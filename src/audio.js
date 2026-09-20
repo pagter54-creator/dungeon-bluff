@@ -1,6 +1,7 @@
 const clamp = value => Math.max(0, Math.min(1, Number(value) || 0));
 const VOLUME_KEY = 'dungeon-bluff.volume';
 const BGM_GAIN = 0.5;
+const SFX_GAIN = 2;
 const TRACKS = {
   lobby: new URL('../bgm_lobby.mp3', import.meta.url).href,
   dungeon: new URL('../bgm_dungeon.mp3', import.meta.url).href,
@@ -31,7 +32,7 @@ export class GameAudio {
       try {
         this.context = this.createContext();
         this.master = this.context.createGain();
-        this.master.gain.value = this.volume;
+        this.master.gain.value = this.volume * SFX_GAIN;
         this.master.connect(this.context.destination);
       } catch { /* BGM can still work without Web Audio effects. */ }
     }
@@ -57,8 +58,8 @@ export class GameAudio {
   setVolume(value) {
     this.volume = clamp(value);
     if (this.volume) this.previousVolume = this.volume;
-    if (this.master) this.master.gain.setTargetAtTime(this.volume, this.context.currentTime, .025);
-    for (const voice of this.voices) voice.volume = this.volume;
+    if (this.master) this.master.gain.setTargetAtTime(this.volume * SFX_GAIN, this.context.currentTime, .025);
+    for (const voice of this.voices) voice.volume = clamp(this.volume * SFX_GAIN);
     try { this.storage?.setItem(VOLUME_KEY, String(this.volume)); } catch { /* Optional preference. */ }
     void this.syncMusic();
   }
@@ -70,7 +71,7 @@ export class GameAudio {
     let voice;
     try { voice = new Audio(new URL(`../${name}.mp3`, import.meta.url).href); }
     catch { fallback?.(); return; }
-    voice.volume = this.volume; this.voices.add(voice);
+    voice.volume = clamp(this.volume * SFX_GAIN); this.voices.add(voice);
     voice.onended = () => this.voices.delete(voice);
     void voice.play().catch(() => { this.voices.delete(voice); this.missingSfx.add(name); fallback?.(); });
   }
