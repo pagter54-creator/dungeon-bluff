@@ -1,5 +1,6 @@
 const clamp = value => Math.max(0, Math.min(1, Number(value) || 0));
 const VOLUME_KEY = 'dungeon-bluff.volume';
+const BGM_GAIN = 0.5;
 const TRACKS = {
   lobby: new URL('../bgm_lobby.mp3', import.meta.url).href,
   dungeon: new URL('../bgm_dungeon.mp3', import.meta.url).href,
@@ -20,7 +21,7 @@ export class GameAudio {
     this.previousVolume = this.volume || .5;
     this.enabled = false;
     this.hidden = false;
-    this.music.volume = this.volume;
+    this.music.volume = this.volume * BGM_GAIN;
   }
   async activate() {
     this.enabled = true;
@@ -38,7 +39,7 @@ export class GameAudio {
     await Promise.allSettled(pending);
   }
   async syncMusic() {
-    this.music.volume = this.volume;
+    this.music.volume = this.volume * BGM_GAIN;
     if (!this.enabled || !this.volume || this.hidden) { this.music.pause(); return; }
     try { if (this.music.paused) await this.music.play(); }
     catch { /* Missing music or blocked autoplay never interrupts the game. */ }
