@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10101b">
+  <meta name="description" content="네 장의 카드, 하나의 운명. 눈치로 살아남는 4인 온라인 던전 레이드.">
+  <title>눈치 레이드 — DUNGEON BLUFF</title>
+  <link rel="icon" type="image/svg+xml" href="./assets/emblem.svg">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="ambient" aria-hidden="true"></div>
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="눈치 레이드 홈"><img src="./assets/emblem.svg" alt=""><span>눈치 레이드<small>DUNGEON BLUFF</small></span></a>
+    <div class="header-right"><span id="connection" class="connection"><i></i> 연결 준비</span><button id="sound" class="icon-button" aria-label="효과음 켜기" title="효과음 켜기">♪ <span>OFF</span></button><button id="help" class="icon-button" aria-label="게임 규칙">?</button></div>
+  </header>
+  <main id="app" aria-live="polite"></main>
+  <footer class="site-footer"><span>READ THE ROOM. SURVIVE THE DUNGEON.</span><span>ONLINE PROTOTYPE <b>v0.1</b></span></footer>
+  <canvas id="fx-canvas" aria-hidden="true"></canvas>
+  <div id="fx-overlay" aria-hidden="true"></div>
+  <div id="toast" role="status"></div>
+  <dialog id="modal"><button class="modal-close icon-button" aria-label="닫기">×</button><div id="modal-body"></div></dialog>
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>

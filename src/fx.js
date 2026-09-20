@@ -1,0 +1,142 @@
+const canvas = document.querySelector('#fx-canvas');
+const ctx = canvas.getContext('2d');
+const overlay = document.querySelector('#fx-overlay');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+let particles = [];
+let raf = 0;
+let previous = 0;
+let audio;
+let sound = false;
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+function resize() { const dpr = Math.min(devicePixelRatio, 2); canvas.width = innerWidth * dpr; canvas.height = innerHeight * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+addEventListener('resize', resize); resize();
+const center = element => { const r = element?.getBoundingClientRect(); return r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : { x: innerWidth / 2, y: innerHeight / 2 }; };
+function frame(now) {
+  const dt = Math.min((now - previous) / 16.67 || 1, 2); previous = now;
+  ctx.clearRect(0, 0, innerWidth, innerHeight);
+  for (const p of particles) {
+    p.x += p.vx * dt; p.y += p.vy * dt; p.vy += p.gravity * dt; p.life -= dt;
+    ctx.globalAlpha = Math.max(0, p.life / p.max); ctx.fillStyle = p.color;
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.life * .08);
+    if (p.shard) ctx.fillRect(-p.size, -p.size / 3, p.size * 2, p.size / 1.5);
+    else { ctx.beginPath(); ctx.arc(0, 0, p.size, 0, Math.PI * 2); ctx.fill(); }
+    ctx.restore();
+  }
+  ctx.globalAlpha = 1; particles = particles.filter(p => p.life > 0);
+  if (particles.length) raf = requestAnimationFrame(frame); else { raf = 0; ctx.clearRect(0, 0, innerWidth, innerHeight); }
+}
+function burst(point, color, count = 65, force = 8, shard = false) {
+  if (reduced.matches) count = Math.min(count, 8);
+  for (let i = 0; i < count; i++) {
+    const a = Math.random() * Math.PI * 2, speed = Math.random() * force + 1;
+    const life = 22 + Math.random() * 26;
+    particles.push({ x: point.x, y: point.y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, gravity: shard ? .13 : .035, size: Math.random() * 3 + 1, life, max: life, color, shard });
+  }
+  if (!raf) { previous = performance.now(); raf = requestAnimationFrame(frame); }
+}
+function tone(freq = 180, duration = .2, type = 'sine', volume = .08, end = 40) {
+  if (!sound || !audio) return;
+  const osc = audio.createOscillator(), gain = audio.createGain();
+  osc.type = type; osc.frequency.setValueAtTime(freq, audio.currentTime); osc.frequency.exponentialRampToValueAtTime(Math.max(end, 1), audio.currentTime + duration);
+  gain.gain.setValueAtTime(volume, audio.currentTime); gain.gain.exponentialRampToValueAtTime(.001, audio.currentTime + duration);
+  osc.connect(gain); gain.connect(audio.destination); osc.start(); osc.stop(audio.currentTime + duration);
+}
+export async function toggleSound() {
+  sound = !sound;
+  if (sound) { audio ||= new (window.AudioContext || window.webkitAudioContext)(); await audio.resume(); tone(440, .2, 'sine', .08, 660); }
+  return sound;
+}
+function textAt(point, text, kind = '') {
+  const el = document.createElement('div'); el.className = `floating-number ${kind}`; el.textContent = text;
+  el.style.left = `${point.x}px`; el.style.top = `${point.y}px`; overlay.append(el);
+  setTimeout(() => el.remove(), 1500);
+}
+function banner(text, sub, kind = '') {
+  const el = document.createElement('div'); el.className = `battle-banner ${kind}`;
+  const strong = document.createElement('strong'), small = document.createElement('small'); strong.textContent = text; small.textContent = sub;
+  el.append(strong, small); overlay.append(el); setTimeout(() => el.remove(), 1800);
+}
+function ring(point, color) {
+  const el = document.createElement('div'); el.className = 'impact-ring'; el.style.left = `${point.x}px`; el.style.top = `${point.y}px`; el.style.borderColor = color;
+  overlay.append(el); setTimeout(() => el.remove(), 700);
+}
+function shake(strong = false) {
+  if (reduced.matches) return;
+  document.querySelector('#app').animate([{ transform: 'translate(0,0)' }, { transform: `translate(${strong ? -10 : -5}px, 4px)` }, { transform: 'translate(7px,-5px)' }, { transform: 'translate(-4px,2px)' }, { transform: 'translate(0,0)' }], { duration: strong ? 400 : 230 });
+}
+async function bolt(from, to, color) {
+  const el = document.createElement('div'); el.className = 'magic-bolt'; el.style.background = color; el.style.boxShadow = `0 0 14px 6px ${color}, 0 0 45px 10px ${color}`;
+  el.style.left = `${from.x}px`; el.style.top = `${from.y}px`; overlay.append(el);
+  await el.animate([{ transform: 'translate(-50%,-50%) scale(.5)', opacity: 0 }, { opacity: 1, offset: .2 }, { transform: `translate(${to.x - from.x}px,${to.y - from.y}px) scale(1.5)`, opacity: 1 }], { duration: reduced.matches ? 80 : 360, easing: 'cubic-bezier(.6,0,.9,.6)' }).finished;
+  el.remove(); burst(to, color, 65, 9); ring(to, color);
+}
+export async function reveal(result) {
+  const cardFor = id => document.querySelector(`[data-reveal="${id}"]`);
+  const playerFor = id => document.querySelector(`[data-player="${id}"]`);
+  const target = () => center(document.querySelector('#enemy-art'));
+  banner('운명을 펼쳐라', `TURN ${result.turnIndex} · 동시 공개`);
+  tone(160, .6, 'triangle', .08, 440);
+  await sleep(reduced.matches ? 100 : 650);
+  for (const c of result.cards) {
+    const el = cardFor(c.memberId);
+    if (el) { el.classList.add('revealed'); el.querySelector('.reveal-value').textContent = c.value; }
+  }
+  tone(620, .2, 'triangle', .09, 240);
+  await sleep(reduced.matches ? 100 : 750);
+  const duplicates = result.cards.filter(c => !c.valid);
+  if (duplicates.length) {
+    for (const c of duplicates) {
+      const el = cardFor(c.memberId); const point = center(el);
+      el?.classList.add('shattered'); burst(point, '#f286b9', 85, 10, true); ring(point, '#f286b9'); textAt(point, '중복 · 소멸', 'cancel');
+    }
+    shake(); tone(85, .35, 'sawtooth', .075, 22);
+    await sleep(reduced.matches ? 120 : 700);
+  }
+  if (result.monsterBefore) {
+    let remainingHp = result.monsterBefore.hp;
+    for (const effect of result.effects.filter(e => e.type === 'attack' && e.amount > 0)) {
+      cardFor(effect.memberId)?.classList.add('empowered');
+      await bolt(center(cardFor(effect.memberId)), target(), '#ddc285');
+      shake(effect.amount >= 4); tone(140 + effect.amount * 50, .23, 'sawtooth', .05, 38); textAt(target(), `−${effect.amount}`, 'critical');
+      remainingHp = Math.max(0, remainingHp - effect.amount);
+      const hpText = document.querySelector('.enemy-health b');
+      const hpBar = document.querySelector('.enemy-health .health-track i');
+      if (hpText) hpText.innerHTML = `${remainingHp} <small>/ ${result.monsterBefore.maxHp}</small>`;
+      if (hpBar) hpBar.style.width = `${remainingHp / result.monsterBefore.maxHp * 100}%`;
+      document.querySelector('#enemy-art')?.animate([{ filter: 'brightness(4)' }, { filter: 'brightness(1)' }], { duration: 350 });
+      await sleep(reduced.matches ? 30 : 180);
+    }
+  } else {
+    for (const c of result.cards.filter(c => c.valid)) await bolt(center(cardFor(c.memberId)), target(), result.success ? '#89e0ba' : '#b39af3');
+    banner(result.success ? '이벤트 성공' : '조건 미달', result.stage.name, result.success ? 'success' : 'danger');
+    burst(target(), result.success ? '#99f0cb' : '#fd8c91', 120, 12); tone(result.success ? 660 : 110, .4, 'triangle', .1, result.success ? 880 : 40);
+    await sleep(reduced.matches ? 100 : 650);
+  }
+  for (const effect of result.effects.filter(e => ['damage', 'heal', 'revive', 'knockout'].includes(e.type))) {
+    const el = playerFor(effect.memberId), point = center(el);
+    const hearts = [...(el?.querySelectorAll('.heart') || [])];
+    const oldHp = hearts.filter(heart => heart.classList.contains('filled')).length;
+    const hp = effect.type === 'damage' ? Math.max(0, oldHp - effect.amount) : effect.type === 'heal' ? Math.min(hearts.length, oldHp + effect.amount) : effect.type === 'revive' ? 1 : 0;
+    if (effect.type === 'damage') {
+      await bolt(target(), point, '#ff687e'); el?.classList.add('hit'); shake(true); textAt(point, `−${effect.amount} HP`, 'damage'); tone(65, .3, 'sawtooth', .07, 20);
+    } else if (effect.type === 'knockout') { textAt(point, 'KNOCKOUT', 'damage'); burst(point, '#ff5676', 100, 12, true); el?.classList.add('knocked-out'); }
+    else { burst(point, '#7ee6b6', 60, 4); ring(point, '#7ee6b6'); textAt(point, effect.type === 'revive' ? '부활 · HP 1' : `+${effect.amount} HP`, 'heal'); tone(520, .3, 'sine', .07, 880); }
+    hearts.forEach((heart, i) => heart.classList.toggle('filled', i < hp));
+    el?.querySelector('.hearts')?.setAttribute('aria-label', `HP ${hp}/${hearts.length}`);
+    if (effect.type === 'revive') el?.classList.remove('knocked-out');
+    await sleep(reduced.matches ? 30 : 220);
+  }
+  for (const effect of result.effects.filter(e => e.type === 'reward' && e.gold)) textAt(center(playerFor(effect.memberId)), `+${effect.gold} G`, 'gold');
+  if (result.monsterBefore && result.stageCleared) {
+    burst(target(), '#e6c487', 200, 16, true); ring(target(), '#fff0ba'); shake(true);
+    document.querySelector('#enemy-art')?.classList.add('defeated');
+    banner(result.stage.category === 'boss' ? 'BOSS DEFEATED' : 'STAGE CLEAR', result.stage.name, 'success');
+    tone(260, .7, 'triangle', .12, 1040);
+  }
+  await sleep(reduced.matches ? 100 : 1100);
+}
+export function finale(success) {
+  banner(success ? '원정 완료' : '원정 실패', success ? '네 장의 카드가 운명을 바꿨다' : '던전은 다음 도전자를 기다린다', success ? 'success' : 'danger');
+  burst({ x: innerWidth / 2, y: innerHeight * .4 }, success ? '#e9c985' : '#fb6788', 220, 14, true);
+  tone(success ? 330 : 130, 1, 'triangle', .12, success ? 990 : 25);
+}
