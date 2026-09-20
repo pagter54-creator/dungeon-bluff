@@ -1,3 +1,5 @@
+import { playTone as tone } from './audio.js';
+
 const canvas = document.querySelector('#fx-canvas');
 const ctx = canvas.getContext('2d');
 const overlay = document.querySelector('#fx-overlay');
@@ -5,8 +7,6 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 let particles = [];
 let raf = 0;
 let previous = 0;
-let audio;
-let sound = false;
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 function resize() { const dpr = Math.min(devicePixelRatio, 2); canvas.width = innerWidth * dpr; canvas.height = innerHeight * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
 addEventListener('resize', resize); resize();
@@ -33,18 +33,6 @@ function burst(point, color, count = 65, force = 8, shard = false) {
     particles.push({ x: point.x, y: point.y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, gravity: shard ? .13 : .035, size: Math.random() * 3 + 1, life, max: life, color, shard });
   }
   if (!raf) { previous = performance.now(); raf = requestAnimationFrame(frame); }
-}
-function tone(freq = 180, duration = .2, type = 'sine', volume = .08, end = 40) {
-  if (!sound || !audio) return;
-  const osc = audio.createOscillator(), gain = audio.createGain();
-  osc.type = type; osc.frequency.setValueAtTime(freq, audio.currentTime); osc.frequency.exponentialRampToValueAtTime(Math.max(end, 1), audio.currentTime + duration);
-  gain.gain.setValueAtTime(volume, audio.currentTime); gain.gain.exponentialRampToValueAtTime(.001, audio.currentTime + duration);
-  osc.connect(gain); gain.connect(audio.destination); osc.start(); osc.stop(audio.currentTime + duration);
-}
-export async function toggleSound() {
-  sound = !sound;
-  if (sound) { audio ||= new (window.AudioContext || window.webkitAudioContext)(); await audio.resume(); tone(440, .2, 'sine', .08, 660); }
-  return sound;
 }
 function textAt(point, text, kind = '') {
   const el = document.createElement('div'); el.className = `floating-number ${kind}`; el.textContent = text;
@@ -112,15 +100,16 @@ export async function reveal(result) {
     burst(target(), result.success ? '#99f0cb' : '#fd8c91', 120, 12); tone(result.success ? 660 : 110, .4, 'triangle', .1, result.success ? 880 : 40);
     await sleep(reduced.matches ? 100 : 650);
   }
-  for (const effect of result.effects.filter(e => ['damage', 'heal', 'revive', 'knockout'].includes(e.type))) {
+  for (const effect of result.effects.filter(e => ['damage', 'heal', 'revive', 'knockout', 'penalty'].includes(e.type))) {
     const el = playerFor(effect.memberId), point = center(el);
+    if (effect.type === 'penalty') { textAt(point, `${effect.score}점 · ${effect.gold} G`, 'penalty'); continue; }
     const hearts = [...(el?.querySelectorAll('.heart') || [])];
     const oldHp = hearts.filter(heart => heart.classList.contains('filled')).length;
-    const hp = effect.type === 'damage' ? Math.max(0, oldHp - effect.amount) : effect.type === 'heal' ? Math.min(hearts.length, oldHp + effect.amount) : effect.type === 'revive' ? 1 : 0;
+    const hp = effect.type === 'damage' ? Math.max(0, oldHp - effect.amount) : effect.type === 'heal' ? Math.min(hearts.length, oldHp + effect.amount) : effect.type === 'revive' ? (effect.hp ?? hearts.length) : 0;
     if (effect.type === 'damage') {
       await bolt(target(), point, '#ff687e'); el?.classList.add('hit'); shake(true); textAt(point, `−${effect.amount} HP`, 'damage'); tone(65, .3, 'sawtooth', .07, 20);
     } else if (effect.type === 'knockout') { textAt(point, 'KNOCKOUT', 'damage'); burst(point, '#ff5676', 100, 12, true); el?.classList.add('knocked-out'); }
-    else { burst(point, '#7ee6b6', 60, 4); ring(point, '#7ee6b6'); textAt(point, effect.type === 'revive' ? '부활 · HP 1' : `+${effect.amount} HP`, 'heal'); tone(520, .3, 'sine', .07, 880); }
+    else { burst(point, '#7ee6b6', 60, 4); ring(point, '#7ee6b6'); textAt(point, effect.type === 'revive' ? `부활 · HP ${hp}` : `+${effect.amount} HP`, 'heal'); tone(520, .3, 'sine', .07, 880); }
     hearts.forEach((heart, i) => heart.classList.toggle('filled', i < hp));
     el?.querySelector('.hearts')?.setAttribute('aria-label', `HP ${hp}/${hearts.length}`);
     if (effect.type === 'revive') el?.classList.remove('knocked-out');
@@ -130,10 +119,21 @@ export async function reveal(result) {
   if (result.monsterBefore && result.stageCleared) {
     burst(target(), '#e6c487', 200, 16, true); ring(target(), '#fff0ba'); shake(true);
     document.querySelector('#enemy-art')?.classList.add('defeated');
-    banner(result.stage.category === 'boss' ? 'BOSS DEFEATED' : 'STAGE CLEAR', result.stage.name, 'success');
+    const winner = result.effects.find(e => e.type === 'kill_bonus');
+    const clearLabel = result.stage.category === 'boss' ? 'BOSS DEFEATED' : 'STAGE CLEAR';
+    if (winner) {
+      const name = playerFor(winner.memberId)?.querySelector('h3')?.textContent.trim() || '최고 피해자';
+      banner(`+${winner.score}`, `${name} · 최고 피해 · ${clearLabel}`, 'winner-banner');
+    } else banner(clearLabel, result.stage.name, 'success');
     tone(260, .7, 'triangle', .12, 1040);
+    for (const effect of result.effects.filter(e => e.type === 'kill_bonus')) {
+      const panel = playerFor(effect.memberId), point = center(panel);
+      panel?.classList.add('kill-winner');
+      const label = document.createElement('span'); label.className = 'winner-label'; label.textContent = '최고 피해 · +10점'; panel?.append(label);
+      textAt(point, `+${effect.score}`, 'winner'); burst(point, '#63ff9c', 110, 8); ring(point, '#63ff9c');
+    }
   }
-  await sleep(reduced.matches ? 100 : 1100);
+  await sleep(reduced.matches ? 500 : result.winnerMemberId ? 1800 : 1100);
 }
 export function finale(success) {
   banner(success ? '원정 완료' : '원정 실패', success ? '네 장의 카드가 운명을 바꿨다' : '던전은 다음 도전자를 기다린다', success ? 'success' : 'danger');

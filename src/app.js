@@ -1,6 +1,7 @@
 import * as api from './api.js';
 import { dungeonArt, creatureArt, eventArt } from './art.js';
-import { reveal, finale, toggleSound } from './fx.js';
+import { reveal, finale } from './fx.js';
+import { initAudioControls, getAudio } from './audio.js';
 
 const app = document.querySelector('#app');
 const modal = document.querySelector('#modal');
@@ -10,6 +11,7 @@ const categoryLabel = { monster: 'MONSTER ENCOUNTER', boss: 'FINAL BOSS', trap: 
 let bundle = null;
 let view = 'home';
 let connected = false;
+let profile = null;
 let busy = false;
 let syncing = false;
 let resync = false;
@@ -26,6 +28,18 @@ const status = (text, online = false) => {
 };
 function toast(message) { const el = document.querySelector('#toast'); el.textContent = message; el.classList.add('visible'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('visible'), 4500); }
 function showModal(html) { document.querySelector('#modal-body').innerHTML = html; modal.showModal(); }
+function setProfile(next) {
+  profile = next;
+  const button = document.querySelector('#nickname');
+  button.textContent = profile.display_name;
+  button.title = `${profile.display_name} · 닉네임 변경`;
+  button.setAttribute('aria-label', `${profile.display_name}, 닉네임 변경`);
+  button.disabled = false;
+}
+function nicknameModal() {
+  showModal(`<div class="eyebrow">YOUR ADVENTURER</div><h2>어떤 이름으로 떠날까요?</h2><p>원정대에 표시할 닉네임을 정하세요. 나중에도 변경할 수 있습니다.</p><form id="nickname-form"><label>닉네임<input name="display_name" required minlength="2" maxlength="16" autocomplete="nickname" value="${escape(profile?.nickname_set ? profile.display_name : '')}" placeholder="2~16자, 글자·숫자·공백·_·-"></label><button class="button primary full" data-network>닉네임 저장 <span>→</span></button></form>`);
+  updateBusy();
+}
 const mine = () => bundle?.members.find(m => m.user_id === api.user?.id);
 const isHost = () => bundle?.room.host_user_id === api.user?.id;
 function updateBusy() { document.querySelectorAll('[data-network]').forEach(button => { button.disabled = busy || button.dataset.unavailable === 'true'; }); }
@@ -34,7 +48,10 @@ async function perform(action, params = {}) {
   busy = true; updateBusy();
   try {
     const response = await api.request(action, { ...(bundle?.room ? { room_id: bundle.room.id } : {}), ...params });
-    if (response.left) {
+    if (response.profile) {
+      setProfile(response.profile); modal.close(); toast('닉네임을 저장했습니다.');
+      if (bundle) await sync();
+    } else if (response.left) {
       roomEpoch++; await api.unsubscribe(); bundle = null; queue = []; sessionIdentity = null; lastResult = 0; view = 'home'; renderHome();
     } else if (response.room) { modal.close(); await accept(response); }
   } catch (error) { toast(error.message); if (bundle) void sync(); }
@@ -46,6 +63,7 @@ async function accept(next, restoring = false) {
   const newRoom = bundle?.room.id !== next.room.id;
   if (newRoom) roomEpoch++;
   bundle = next;
+  void getAudio().setScene(next.session ? 'dungeon' : 'lobby');
   if (next.session?.id !== sessionIdentity) {
     sessionIdentity = next.session?.id || null;
     lastResult = restoring ? (next.session?.state.lastResult?.turnIndex || 0) : 0;
@@ -88,6 +106,7 @@ async function sync() {
   finally { syncing = false; if (resync) { resync = false; void sync(); } }
 }
 function renderHome() {
+  void getAudio().setScene('lobby');
   view = 'home';
   app.innerHTML = `<section class="hero"><div class="hero-copy"><div class="eyebrow"><span class="tiny-diamond"></span> 4인 협력 · 심리전 던전 레이드</div><h1>네 장의 카드.<br>하나의 <em>운명.</em></h1><p class="hero-description">같은 숫자는 사라진다.<br>동료의 패를 읽고, 던전의 끝까지 살아남아라.</p><div class="hero-actions"><button class="button primary" data-action="create">방 생성 <span>↗</span></button><button class="button secondary" data-action="find">방 찾기 <span>⌕</span></button></div><div class="hero-facts"><span><b>04</b> PLAYERS</span><span><b>10</b> STAGES</span><span><b>05</b> CARDS</span></div></div><div class="hero-visual">${dungeonArt()}<span class="art-label">THE GATE IS OPEN<br><b>당신의 선택을 기다립니다</b></span><div class="hero-card card-one"><small>Ⅰ</small><strong>1</strong><span>◇</span></div><div class="hero-card card-five"><small>Ⅴ</small><strong>5</strong><span>✧</span></div><div class="hero-card card-three"><small>Ⅲ</small><strong>3</strong><span>◇</span></div><div class="visual-caption"><span class="live-dot"></span> 믿을 건, 당신의 눈치뿐.</div></div></section><section class="principles"><article><span class="principle-number">01 /</span><div><h3>눈치껏, 한 장</h3><p>1부터 5까지. 비밀리에 카드를 선택하세요.</p></div><span class="principle-symbol">♠</span></article><article><span class="principle-number">02 /</span><div><h3>겹치면, 사라진다</h3><p>같은 숫자를 낸 카드들은 모두 무효가 됩니다.</p></div><span class="principle-symbol">⨯</span></article><article><span class="principle-number">03 /</span><div><h3>함께, 끝까지</h3><p>누적 기절 5회면 전멸. 보스까지 살아남으세요.</p></div><span class="principle-symbol">⚑</span></article></section>${!api.configured ? '<div class="setup-note"><span>연결 설정 대기</span> config.js에 Supabase URL과 publishable key를 입력하면 온라인 원정이 열립니다. <button data-action="setup">설정 안내 ↗</button></div>' : ''}`;
 }
@@ -153,7 +172,7 @@ function renderGame(result = null) {
     const p = players[m.id]; if (!p) return '';
     const ready = result || s.lockedMembers.includes(m.id);
     return `<article class="player-panel seat-${m.seat_index} ${m.id === me?.id ? 'is-me' : ''} ${p.knockedOut ? 'knocked-out' : ''}" data-player="${m.id}"><div class="player-heading"><span class="small-avatar avatar-${m.seat_index}">${['♠', '◈', '♜', '✧'][m.seat_index]}</span><div><h3>${escape(m.display_name)} ${m.id === me?.id ? '<em>나</em>' : ''}</h3><small>${m.ai_type ? AI[m.ai_type][0] : '모험가'}${p.knockedOut ? ' · 기절' : ''}</small></div><div class="hearts" aria-label="HP ${p.hp}/${p.maxHp}">${hearts(p)}</div></div><div class="player-content"><div class="player-stats"><span>SCORE <b>${p.score}</b></span><span>GOLD <b>${p.gold}</b></span><small>남은 카드 ${p.remainingCards.length}장</small></div><div class="reveal-card ${ready ? 'locked' : ''}" data-reveal="${m.id}"><span class="card-back">◇</span><b class="reveal-value">?</b><i></i></div></div><div class="player-bottom"><span class="used-cards">사용 ${p.discardedCards.length ? p.discardedCards.map(v => `<i>${v}</i>`).join('') : '<small>—</small>'}</span><span class="lock-state ${ready ? 'ready' : ''}">${result ? '공개 중' : p.knockedOut ? '자동 제출' : ready ? '✓ 선택 완료' : '선택 중 ···'}</span></div></article>`;
-  }).join('')}</section><section class="hand-section"><div class="hand-heading"><div><div class="eyebrow">${result ? 'FATE REVEALED' : locked ? 'CHOICE LOCKED' : 'MAKE YOUR CHOICE'}</div><h2>${result ? '선택의 결과를 확인하세요.' : player?.knockedOut ? '잠시 쉬어가세요.' : locked ? '선택 완료. 동료를 기다리는 중' : '어떤 숫자로 승부할까요?'}</h2><p>${result ? '같은 숫자의 카드는 모두 무효화됩니다.' : player?.knockedOut ? '서버가 카드를 선택했습니다. 이번 턴이 끝나면 HP 1로 복귀합니다.' : locked ? '모든 카드가 모이면 동시에 공개됩니다.' : '카드를 고르고 확정하세요. 겹치지 않은 카드만 힘을 발휘합니다.'}</p></div><span class="deck-label">SHARED DECK<br><b>모든 방에서 함께 사용하는 카드</b></span></div><div class="hand">${(player?.remainingCards || []).map((v, i) => `<button class="hand-card ${selected === i ? 'selected' : ''}" data-action="select-card" data-index="${i}" data-value="${v}" aria-label="${v} 카드 선택" aria-pressed="${selected === i}" ${result || locked || player?.knockedOut ? 'disabled' : ''}><span class="card-corner">${v}<small>♠</small></span><strong>${v}</strong><span class="card-sigil">${['', '◇', '♧', '♠', '✧', '♛'][v] || '◇'}</span><span class="card-corner bottom">${v}</span></button>`).join('')}</div><div class="hand-actions"><span>${result ? '운명을 판정하는 중…' : locked ? '선택한 카드는 공개 전까지 비밀입니다.' : '확정한 카드는 변경할 수 없습니다.'}</span>${!result && !locked && !player?.knockedOut ? `<button class="button primary" data-action="submit" data-network data-unavailable="${selected === null}" ${selected === null ? 'disabled' : ''}>${selected === null ? '카드를 선택하세요' : `${player.remainingCards[selected]} 카드 확정`} <span>→</span></button>` : '<span class="waiting-pill"><i class="live-dot"></i> ' + (result ? '결과 공개 중' : `${s.lockedMembers.length} / 4 선택 완료`) + '</span>'}</div></section><details class="battle-log"><summary>원정 기록 <span>${s.eventLog.length} TURNS</span></summary><div>${[...s.eventLog].reverse().map(log => `<p><span>STAGE ${log.stageIndex} · TURN ${log.turnIndex}</span><b>${escape(log.stage.name)}</b> ${log.cards.filter(c => !c.valid).length}장 중복 · ${log.monsterBefore ? `${log.totalDamage} 피해` : log.success ? '성공' : '조건 미달'}${log.stageCleared ? ' · 다음 방' : ''}</p>`).join('') || '<p>첫 번째 선택을 기다리고 있습니다.</p>'}</div></details>`;
+  }).join('')}</section><section class="hand-section"><div class="hand-heading"><div><div class="eyebrow">${result ? 'FATE REVEALED' : locked ? 'CHOICE LOCKED' : 'MAKE YOUR CHOICE'}</div><h2>${result ? '선택의 결과를 확인하세요.' : player?.knockedOut ? '잠시 쉬어가세요.' : locked ? '선택 완료. 동료를 기다리는 중' : '어떤 숫자로 승부할까요?'}</h2><p>${result ? '같은 숫자의 카드는 모두 무효화됩니다.' : player?.knockedOut ? '서버가 카드를 선택했습니다. 이번 턴이 끝나면 HP 3으로 복귀합니다.' : locked ? '모든 카드가 모이면 동시에 공개됩니다.' : '카드를 고르고 확정하세요. 겹치지 않은 카드만 힘을 발휘합니다.'}</p></div><span class="deck-label">SHARED DECK<br><b>모든 방에서 함께 사용하는 카드</b></span></div><div class="hand">${(player?.remainingCards || []).map((v, i) => `<button class="hand-card ${selected === i ? 'selected' : ''}" data-action="select-card" data-index="${i}" data-value="${v}" aria-label="${v} 카드 선택" aria-pressed="${selected === i}" ${result || locked || player?.knockedOut ? 'disabled' : ''}><span class="card-corner">${v}<small>♠</small></span><strong>${v}</strong><span class="card-sigil">${['', '◇', '♧', '♠', '✧', '♛'][v] || '◇'}</span><span class="card-corner bottom">${v}</span></button>`).join('')}</div><div class="hand-actions"><span>${result ? '운명을 판정하는 중…' : locked ? '선택한 카드는 공개 전까지 비밀입니다.' : '확정한 카드는 변경할 수 없습니다.'}</span>${!result && !locked && !player?.knockedOut ? `<button class="button primary" data-action="submit" data-network data-unavailable="${selected === null}" ${selected === null ? 'disabled' : ''}>${selected === null ? '카드를 선택하세요' : `${player.remainingCards[selected]} 카드 확정`} <span>→</span></button>` : '<span class="waiting-pill"><i class="live-dot"></i> ' + (result ? '결과 공개 중' : `${s.lockedMembers.length} / 4 선택 완료`) + '</span>'}</div></section><details class="battle-log"><summary>원정 기록 <span>${s.eventLog.length} TURNS</span></summary><div>${[...s.eventLog].reverse().map(log => `<p><span>STAGE ${log.stageIndex} · TURN ${log.turnIndex}</span><b>${escape(log.stage.name)}</b> ${log.cards.filter(c => !c.valid).length}장 중복 · ${log.monsterBefore ? `${log.totalDamage} 피해` : log.success ? '성공' : '조건 미달'}${log.stageCleared ? ' · 다음 방' : ''}</p>`).join('') || '<p>첫 번째 선택을 기다리고 있습니다.</p>'}</div></details>`;
   updateBusy();
 }
 function renderEnd() {
@@ -188,6 +207,7 @@ document.addEventListener('click', async event => {
   }
 });
 document.addEventListener('submit', async event => {
+  if (event.target.id === 'nickname-form') { event.preventDefault(); void perform('set_profile', Object.fromEntries(new FormData(event.target))); }
   if (event.target.id === 'create-form') { event.preventDefault(); void perform('create_room', Object.fromEntries(new FormData(event.target))); }
   if (event.target.id === 'code-form') {
     event.preventDefault(); const room_code = new FormData(event.target).get('room_code').trim().toUpperCase();
@@ -198,8 +218,12 @@ document.addEventListener('submit', async event => {
 });
 document.querySelector('.modal-close').addEventListener('click', () => modal.close());
 modal.addEventListener('click', event => { if (event.target === modal) { const r = modal.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) modal.close(); } });
-document.querySelector('#help').addEventListener('click', () => showModal('<div class="eyebrow">HOW TO SURVIVE</div><h2>눈치를 읽고, 살아남아라.</h2><ol class="guide-list"><li><b>각자 카드 한 장.</b> 4명 모두 비밀리에 선택합니다.</li><li><b>같은 숫자는 전부 무효.</b> 유효한 카드만 공격과 방 효과에 참여합니다.</li><li><b>모든 제출 카드는 소비.</b> 5장을 쓰면 자신의 기본 덱을 다시 받습니다.</li><li><b>HP는 3.</b> 0이 되면 한 턴 자동 제출 후 HP 1로 부활합니다.</li><li><b>누적 기절 5회는 전멸.</b> 점수와 골드를 모두 잃습니다.</li><li><b>10번째 방은 보스.</b> 공격 예고를 읽고, 끝까지 함께 살아남으세요.</li></ol><p class="muted">일반 공격은 카드 숫자만큼 피해를 줍니다. 피해량이 점수가 되고, 막타는 점수·골드 보너스가 있습니다.</p>'));
-document.querySelector('#sound').addEventListener('click', async () => { try { const on = await toggleSound(); const button = document.querySelector('#sound'); button.innerHTML = `♪ <span>${on ? 'ON' : 'OFF'}</span>`; button.setAttribute('aria-label', on ? '효과음 끄기' : '효과음 켜기'); button.title = on ? '효과음 끄기' : '효과음 켜기'; } catch { toast('이 브라우저에서는 효과음을 시작할 수 없습니다.'); } });
+document.querySelector('#help').addEventListener('click', () => showModal('<div class="eyebrow">HOW TO SURVIVE</div><h2>눈치를 읽고, 살아남아라.</h2><ol class="guide-list"><li><b>각자 카드 한 장.</b> 4명 모두 비밀리에 선택합니다.</li><li><b>같은 숫자는 전부 무효.</b> 유효한 카드만 공격과 방 효과에 참여합니다.</li><li><b>모든 제출 카드는 소비.</b> 5장을 쓰면 자신의 기본 덱을 다시 받습니다.</li><li><b>HP는 3.</b> 0이 되면 한 턴 자동 제출 후 HP 3으로 부활합니다.</li><li><b>누적 기절 5회는 전멸.</b> 점수와 골드를 모두 잃습니다.</li><li><b>10번째 방은 보스.</b> 공격 예고를 읽고, 끝까지 함께 살아남으세요.</li></ol><p class="muted">일반 공격은 카드 숫자만큼 피해를 줍니다. 적이 쓰러지는 턴에도 모든 유효 카드가 끝까지 공격합니다. 최고 피해자는 +10점과 기존 처치 보너스 3G를 받습니다. 기절할 때마다 -5점, -2G가 적용됩니다.</p>'));
+document.querySelector('#nickname').addEventListener('click', nicknameModal);
+initAudioControls();
+// Block native drag/drop and context menus without blocking range-slider gestures
+// or caret/selection inside nickname and password inputs.
+for (const type of ['dragstart', 'dragover', 'drop', 'contextmenu']) document.addEventListener(type, event => event.preventDefault(), { capture: true });
 addEventListener('online', () => { status('재연결 중'); void sync(); });
 addEventListener('offline', () => status('연결 끊김 · 복구 대기'));
 document.addEventListener('visibilitychange', () => { if (!document.hidden) void sync(); });
@@ -207,6 +231,13 @@ setInterval(() => { if (!document.hidden && connected && bundle) void sync(); },
 renderHome();
 try {
   connected = await api.connect(status);
-  if (connected) { status('온라인', true); await sync(); }
+  if (connected) {
+    status('온라인', true); await sync();
+    document.querySelector('#nickname').disabled = false;
+    try {
+      setProfile((await api.request('get_profile')).profile);
+      if (!profile.nickname_set && !modal.open) nicknameModal();
+    } catch (error) { toast(error.message); }
+  }
   else status('서버 설정 대기');
 } catch (error) { status('연결 실패'); toast(error.message); }

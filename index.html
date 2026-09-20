@@ -8,12 +8,26 @@
   <title>눈치 레이드 — DUNGEON BLUFF</title>
   <link rel="icon" type="image/svg+xml" href="./assets/emblem.svg">
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./src/updates.css">
 </head>
 <body>
   <div class="ambient" aria-hidden="true"></div>
   <header class="site-header">
     <a class="brand" href="./" aria-label="눈치 레이드 홈"><img src="./assets/emblem.svg" alt=""><span>눈치 레이드<small>DUNGEON BLUFF</small></span></a>
-    <div class="header-right"><span id="connection" class="connection"><i></i> 연결 준비</span><button id="sound" class="icon-button" aria-label="효과음 켜기" title="효과음 켜기">♪ <span>OFF</span></button><button id="help" class="icon-button" aria-label="게임 규칙">?</button></div>
+    <div class="header-right">
+      <button id="nickname" class="nickname-button" disabled title="닉네임 설정">닉네임 설정</button>
+      <span id="connection" class="connection"><i></i> 연결 준비</span>
+      <div class="sound-control">
+        <button id="sound" class="icon-button" aria-label="소리 조절" title="소리 조절" aria-expanded="false" aria-controls="sound-panel">♪ <span>OFF</span></button>
+        <div id="sound-panel" class="sound-panel" hidden role="group" aria-label="배경음악 및 효과음 볼륨">
+          <label for="volume">VOLUME</label>
+          <output id="volume-value" for="volume">50%</output>
+          <input id="volume" type="range" min="0" max="100" step="1" value="50" orient="vertical" aria-label="전체 소리 크기">
+          <button id="sound-mute" type="button" class="text-button" aria-pressed="false">음소거</button>
+        </div>
+      </div>
+      <button id="help" class="icon-button" aria-label="게임 규칙">?</button>
+    </div>
   </header>
   <main id="app" aria-live="polite"></main>
   <footer class="site-footer"><span>READ THE ROOM. SURVIVE THE DUNGEON.</span><span>ONLINE PROTOTYPE <b>v0.1</b></span></footer>
