@@ -1,4 +1,5 @@
-import { playTone as tone } from './audio.js';
+import { playTone as tone, getAudio } from './audio.js';
+import { characterAttack, animateCycle } from './character-fx.js';
 
 const canvas = document.querySelector('#fx-canvas');
 const ctx = canvas.getContext('2d');
@@ -68,6 +69,7 @@ export async function reveal(result) {
   for (const c of result.cards) {
     const el = cardFor(c.memberId);
     if (el) { el.classList.add('revealed'); el.querySelector('.reveal-value').textContent = c.value; }
+    if (c.amplified && el) { const label=document.createElement('small'); label.className='amplified-label'; label.textContent=`${c.value} → ${c.effectValue}`; el.append(label); }
   }
   tone(620, .2, 'triangle', .09, 240);
   await sleep(reduced.matches ? 100 : 750);
@@ -84,7 +86,7 @@ export async function reveal(result) {
     let remainingHp = result.monsterBefore.hp;
     for (const effect of result.effects.filter(e => e.type === 'attack' && e.amount > 0)) {
       cardFor(effect.memberId)?.classList.add('empowered');
-      await bolt(center(cardFor(effect.memberId)), target(), '#ddc285');
+      await characterAttack(effect,center(cardFor(effect.memberId)),target(),{burst,ring,tone,reduced});
       shake(effect.amount >= 4); tone(140 + effect.amount * 50, .23, 'sawtooth', .05, 38); textAt(target(), `−${effect.amount}`, 'critical');
       remainingHp = Math.max(0, remainingHp - effect.amount);
       const hpText = document.querySelector('.enemy-health b');
@@ -99,6 +101,14 @@ export async function reveal(result) {
     banner(result.success ? '이벤트 성공' : '조건 미달', result.stage.name, result.success ? 'success' : 'danger');
     burst(target(), result.success ? '#99f0cb' : '#fd8c91', 120, 12); tone(result.success ? 660 : 110, .4, 'triangle', .1, result.success ? 880 : 40);
     await sleep(reduced.matches ? 100 : 650);
+  }
+  for (const effect of result.effects.filter(e => ['steal','revelation','shield'].includes(e.type))) {
+    const point=center(playerFor(effect.memberId));
+    if(effect.type==='steal') {
+      getAudio().playSfx('sfx_skill_imp_steal',()=>tone(900,.2,'triangle',.06,1400));
+      textAt(center(playerFor(effect.targetId)),'−1','damage'); await bolt(center(playerFor(effect.targetId)),point,'#ee8dd6'); textAt(point,'+1','heal');
+    } else if(effect.type==='shield') { ring(point,'#f7d484'); textAt(point,'강인함 · 방어','gold'); }
+    else { getAudio().playSfx('sfx_skill_seer_reveal',()=>tone(1300,.4,'sine',.06,1700)); textAt(point,'계시','heal'); }
   }
   for (const effect of result.effects.filter(e => ['damage', 'heal', 'revive', 'knockout', 'penalty'].includes(e.type))) {
     const el = playerFor(effect.memberId), point = center(el);
@@ -133,6 +143,12 @@ export async function reveal(result) {
       textAt(point, `+${effect.score}`, 'winner'); burst(point, '#63ff9c', 110, 8); ring(point, '#63ff9c');
     }
   }
+  for (const card of result.cards) {
+    document.querySelectorAll('[data-card-instance]').forEach(el=> {
+      if(el.dataset.cardInstance===card.cardId) { el.classList.add('spent'); const small=el.querySelector('small'); if(small) small.textContent='OFF'; }
+    });
+  }
+  await Promise.allSettled(result.effects.filter(e=>e.type==='refill' && e.cards).map(animateCycle));
   await sleep(reduced.matches ? 500 : result.winnerMemberId ? 1800 : 1100);
 }
 export function finale(success) {

@@ -21,6 +21,8 @@ export class GameAudio {
     this.previousVolume = this.volume || .5;
     this.enabled = false;
     this.hidden = false;
+    this.voices = new Set();
+    this.missingSfx = new Set();
     this.music.volume = this.volume * BGM_GAIN;
   }
   async activate() {
@@ -56,11 +58,22 @@ export class GameAudio {
     this.volume = clamp(value);
     if (this.volume) this.previousVolume = this.volume;
     if (this.master) this.master.gain.setTargetAtTime(this.volume, this.context.currentTime, .025);
+    for (const voice of this.voices) voice.volume = this.volume;
     try { this.storage?.setItem(VOLUME_KEY, String(this.volume)); } catch { /* Optional preference. */ }
     void this.syncMusic();
   }
   toggleMute() { this.setVolume(this.volume ? 0 : this.previousVolume); }
-  setHidden(hidden) { this.hidden = hidden; void this.syncMusic(); }
+  setHidden(hidden) { this.hidden = hidden; if (hidden) { for (const voice of this.voices) voice.pause(); this.voices.clear(); } void this.syncMusic(); }
+  playSfx(name, fallback) {
+    if (!this.enabled || !this.volume || this.hidden) return;
+    if (!/^sfx_[a-z_]+$/.test(name) || this.missingSfx.has(name)) { fallback?.(); return; }
+    let voice;
+    try { voice = new Audio(new URL(`../${name}.mp3`, import.meta.url).href); }
+    catch { fallback?.(); return; }
+    voice.volume = this.volume; this.voices.add(voice);
+    voice.onended = () => this.voices.delete(voice);
+    void voice.play().catch(() => { this.voices.delete(voice); this.missingSfx.add(name); fallback?.(); });
+  }
   tone(freq = 180, duration = .2, type = 'sine', volume = .08, end = 40) {
     if (!this.enabled || !this.volume || this.hidden || !this.context || !this.master) return;
     const osc = this.context.createOscillator(), gain = this.context.createGain();
