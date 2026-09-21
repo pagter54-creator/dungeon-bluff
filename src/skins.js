@@ -24,3 +24,7 @@ export function skinPortrait(character,loadout){
  const skin=skinFor(character,loadout);
  return `<img class="skin-portrait" src="${skin.portrait}" alt="${skin.name}" draggable="false">`;
 }
+export function skinIllustration(character,loadout){
+ const skin=skinFor(character,loadout);
+ return `<div class="player-illustration"><img src="${skin.preview}" alt="${skin.name}" draggable="false" decoding="async"></div>`;
+}

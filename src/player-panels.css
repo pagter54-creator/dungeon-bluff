@@ -1,0 +1,57 @@
+/* Full artwork sits behind the HUD and fades into the playable card row. */
+.arena{min-height:310px;padding:18px 24px}
+.arena .enemy-art{width:190px;height:145px;margin:-6px auto -8px}
+.arena .enemy-health{margin-bottom:8px}
+.party-grid{margin-top:76px;row-gap:66px}
+.illustrated-panel{isolation:isolate;overflow:visible}
+.illustrated-panel .player-illustration{
+ position:absolute;z-index:0;pointer-events:none;user-select:none;
+ top:-52px;left:0;width:100%;height:270px;overflow:hidden;
+ -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 62%,#0009 78%,transparent 100%);
+ mask-image:linear-gradient(to bottom,#000 0%,#000 62%,#0009 78%,transparent 100%);
+}
+.player-illustration img{display:block;width:100%;max-width:370px;height:auto;margin:0 auto;pointer-events:none;filter:drop-shadow(0 0 15px #0006)}
+.illustrated-panel.is-me .player-illustration{top:-70px;height:325px}
+.illustrated-panel.is-me .player-illustration img{max-width:460px}
+.illustrated-panel.knocked-out .player-illustration{filter:grayscale(.8);opacity:.55}
+.illustrated-panel> :is(.player-heading,.player-content,.cycle-pool,.player-bottom,.boss-player-mark,.seer-vision,.active-skill,.panel-controls,.runtime-label){position:relative;z-index:1}
+.illustrated-panel .player-heading{justify-content:space-between;align-items:flex-start;min-height:38px;gap:8px}
+.illustrated-panel .player-identity{min-width:0;max-width:70%;padding:5px 7px;border-radius:5px;background:#19151ed9;box-shadow:0 0 12px #19151e88}
+.illustrated-panel .player-heading h3{font-size:11px}
+.illustrated-panel .hearts{flex:none;margin:5px 0 0 auto;padding:3px 5px;border-radius:5px;background:#19151ed9}
+.illustrated-panel .player-content{min-height:116px;align-items:flex-end;justify-content:space-between;gap:8px;margin:14px 0 22px}
+.illustrated-panel.is-me .player-content{min-height:140px}
+.illustrated-panel .player-stats{gap:9px;padding:8px 6px;border-radius:5px;background:linear-gradient(90deg,#1e1b26f5,#1e1b26cc 70%,#1e1b2600)}
+.illustrated-panel .player-stats>small{max-width:130px;line-height:1.5}
+.illustrated-panel .reveal-card{flex-shrink:0}
+.illustrated-panel .cycle-pool{z-index:2;margin:0 0 14px}
+.illustrated-panel .player-bottom{z-index:3;min-height:32px}
+.illustrated-panel .panel-controls{margin-top:10px;padding-top:10px;min-height:51px}
+.illustrated-panel .runtime-label{margin-top:6px}
+@media(min-width:1101px){
+ .party-grid{grid-template-columns:1.5fr repeat(3,minmax(0,1fr))}
+}
+@media(min-width:761px) and (max-width:1100px){
+ .illustrated-panel.is-me .player-content{min-height:150px}
+ .illustrated-panel.is-me .player-illustration{height:335px}
+ .party-grid .illustrated-panel.is-me .cycle-pool{max-width:none}
+}
+@media(max-width:760px){
+ .arena{min-height:290px;padding:16px 12px}
+ .arena .enemy-art{width:170px;height:135px}
+ .party-grid{margin-top:62px;row-gap:20px}
+ .illustrated-panel.is-me .player-illustration{top:-58px;height:300px}
+ .illustrated-panel.is-me .player-illustration img{max-width:390px}
+ .party-grid .illustrated-panel.is-me .player-content{min-height:130px;justify-content:space-between;gap:8px}
+ .party-grid .illustrated-panel.is-me .cycle-pool{gap:6px}
+ .illustrated-panel:not(.is-me) .player-illustration{top:46px;height:185px}
+ .illustrated-panel:not(.is-me) .player-illustration img{width:160%;max-width:none;margin-left:-30%}
+ .illustrated-panel:not(.is-me) .player-heading{min-height:52px;display:block}
+ .illustrated-panel:not(.is-me) .player-identity{max-width:100%;padding:2px}
+ .illustrated-panel:not(.is-me) .hearts{display:inline-flex;margin:3px 0 0;padding:2px}
+ .illustrated-panel:not(.is-me) .player-content{min-height:65px;margin:95px 0 12px;gap:2px}
+ .illustrated-panel:not(.is-me) .player-stats{padding:4px 0;gap:5px}
+ .illustrated-panel:not(.is-me) .player-stats>small{font-size:7px;letter-spacing:0}
+ .illustrated-panel:not(.is-me) .cycle-pool{gap:2px}
+ .illustrated-panel:not(.is-me) .player-bottom{min-height:40px}
+}
