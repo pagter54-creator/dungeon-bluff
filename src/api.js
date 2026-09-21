@@ -1,4 +1,4 @@
-import { validateRegistration, validatePassword } from './account-validation.js';
+import { validateRegistration } from './account-validation.js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../config.js';
 import { withRequestTimeout } from './request-timeout.js';
 export const configured = Boolean(SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY);
@@ -64,15 +64,15 @@ export const accountRequest=(action,params={})=>request(action,params,'account-a
 export async function registerAccount(fields) {
  const input=validateRegistration(fields);
  await accountRequest('register_account',{nickname:input.nickname});
- const {data,error}=await withRequestTimeout(()=>client.auth.updateUser({email:input.email},{emailRedirectTo:new URL('./',location.href).href}));
+ const previousId=user.id;
+ // Confirm Email OFF upgrades this same anonymous identity atomically.
+ const {data,error}=await withRequestTimeout(()=>client.auth.updateUser({email:input.email,password:input.password}));
  if(error)throw error;
- if(data.user?.email_confirmed_at && !data.user?.is_anonymous) await finishRegistration(input.password,input.password);
- return accountRequest('get_account');
-}
-export async function finishRegistration(password,confirm){
- validatePassword(password,confirm);
- const {error}=await withRequestTimeout(()=>client.auth.updateUser({password}));if(error)throw error;
- return accountRequest('get_account');
+ if(!data.user || data.user.id!==previousId || data.user.is_anonymous || data.user.email?.toLowerCase()!==input.email.toLowerCase())throw new Error('계정 전환에 실패했습니다. 서버 가입 설정을 확인해 주세요.');
+ user=data.user;
+ const account=await accountRequest('get_account');
+ if(account.profile?.account_type!=='registered' || !account.stats)throw new Error('계정 등록을 마치지 못했습니다. 닉네임을 확인하고 다시 시도해 주세요.');
+ return account;
 }
 export async function loginAccount(email,password){
  const {error}=await withRequestTimeout(()=>client.auth.signInWithPassword({email:email.trim(),password}));if(error)throw error;

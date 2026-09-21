@@ -17,12 +17,10 @@ function identity(){
  return `<div class="account-identity"><span class="eyebrow">${registered()?'REGISTERED ADVENTURER':'GUEST ADVENTURER'}</span><h2>${html(p.display_name)}</h2>${s?`<div class="account-balances"><b>${s.rating_points}<small>RP</small></b><b>${s.account_gold}<small>ACCOUNT GOLD</small></b><b>${s.games_completed}<small>COMPLETED</small></b></div>`:'<p>게스트 플레이의 RP와 골드는 영구 저장되지 않습니다.</p>'}</div>`;
 }
 function nicknameForm(){return `<form data-meta-form="nickname"><label>닉네임<input name="nickname" required minlength="2" maxlength="16" value="${html(account?.profile.nickname)}"></label><p>${registered()?account.profile.free_nickname_change_available?'무료 변경 1회 사용 가능':'변경 비용: 50 Account Gold':'게스트 이름 뒤에 랜덤 4자리 코드가 붙습니다.'}</p><button class="button primary">닉네임 변경</button></form>`;}
-function registrationForm(){return `<div class="eyebrow">KEEP YOUR ADVENTURE</div><h2>계정 등록</h2><p>이메일 인증 후 비밀번호 설정을 마치면 영구 계정이 됩니다.</p><form data-meta-form="register"><label>이메일<input name="email" type="email" required autocomplete="email"></label><label>비밀번호<input name="password" type="password" required minlength="8" autocomplete="new-password"></label><label>비밀번호 확인<input name="confirm" type="password" required minlength="8" autocomplete="new-password"></label><label>닉네임<input name="nickname" required minlength="2" maxlength="16" value="${html(account?.profile.registration_nickname||account?.profile.nickname||'')}"></label><button class="button primary full">인증 메일 받기</button></form>`;}
+function registrationForm(){return `<div class="eyebrow">KEEP YOUR ADVENTURE</div><h2>계정 등록</h2><p>가입 즉시 1000 RP · 0 Account Gold · 무료 닉네임 변경 1회를 사용할 수 있습니다.</p><form data-meta-form="register"><label>이메일<input name="email" type="email" required autocomplete="email"></label><label>비밀번호<input name="password" type="password" required minlength="8" autocomplete="new-password"></label><label>비밀번호 확인<input name="confirm" type="password" required minlength="8" autocomplete="new-password"></label><label>닉네임<input name="nickname" required minlength="2" maxlength="16" value="${html(account?.profile.registration_nickname||account?.profile.nickname||'')}"></label><button class="button primary full">가입 완료</button></form>`;}
 function accountPage(){
- const p=account.profile;
  let contents=identity();
  if(!registered()){
-  if(p.registration_nickname)contents+=p.email_verified?`<div class="account-notice">이메일 인증 완료 · 비밀번호를 설정해 가입을 마쳐 주세요.</div><form data-meta-form="finish"><label>비밀번호<input name="password" type="password" required minlength="8" autocomplete="new-password"></label><label>비밀번호 확인<input name="confirm" type="password" required minlength="8" autocomplete="new-password"></label><button class="button primary">가입 완료</button></form><p>닉네임이 선점되었다면 계정 등록에서 다른 이름을 입력해 주세요.</p>`:'<div class="account-notice">인증 메일을 확인해 주세요. 인증 후 이 화면을 다시 열어 가입을 완료하세요.</div>';
   contents+=`<div class="meta-actions">${button('계정 등록','register')}${button('로그인','login')}${button('게스트 이름 변경','nickname')}</div>`;
  }else contents+=`<div class="meta-actions">${button('닉네임 변경','nickname')}${button('로그아웃','logout')}</div>`;
  return contents;
@@ -75,8 +73,7 @@ export function initAccountUI(config){
   const type=e.target.dataset.metaForm;if(!type)return;e.preventDefault();if(working)return;
   const data=Object.fromEntries(new FormData(e.target));const b=e.target.querySelector('button');working=true;b.disabled=true;
   try{
-   if(type==='register'){await api.registerAccount(data);options.toast('인증 메일을 확인해 주세요. 비밀번호는 저장하지 않습니다.');}
-   if(type==='finish'){await api.finishRegistration(data.password,data.confirm);options.toast('계정 등록 상태를 확인했습니다.');}
+   if(type==='register'){await api.registerAccount(data);options.toast('가입이 완료되었습니다. 1000 RP로 모험을 시작하세요.');}
    if(type==='nickname'){await api.accountRequest('change_nickname',{nickname:data.nickname});options.toast('닉네임을 변경했습니다.');await options.onNickname?.();}
    if(type==='login'){if(!options.canSwitch())throw new Error('방에서 나온 뒤 로그인해 주세요.');await api.loginAccount(data.email,data.password);return;}
    await openAccountPage('account');
