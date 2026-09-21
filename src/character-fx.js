@@ -41,12 +41,12 @@ export async function animateCycle(effect) {
   const audio=getAudio();
   if (effect.random) audio.playSfx('sfx_gambler_draw',()=>audio.tone(220,.25,'triangle',.07,780));
   const cards=[...pool.querySelectorAll('.pool-card')];
-  for(const el of cards) { el.classList.add('spent'); el.querySelector('small').textContent='OFF'; }
+  for(const el of cards) { el.classList.add('face-down'); el.querySelector('b').textContent='◇'; el.querySelector('small').textContent=''; }
   const dice=document.createElement('span'); dice.className='cycle-dice'; dice.textContent=effect.random?'⚄':'↻'; pool.append(dice);
   try { await finishAnimation(dice.animate(reduce?[{opacity:0},{opacity:1}]:[{transform:'rotate(0) scale(.4)',opacity:0},{transform:'rotate(540deg) scale(1.2)',opacity:1}],{duration:reduce?60:effect.random?280:160})); }
   finally { dice.remove(); }
   const animations=cards.map((el,i)=> {
-    el.classList.remove('spent','chosen'); el.classList.toggle('lucky-seven',effect.cards[i].value===7);
+    el.classList.remove('spent','chosen','face-down'); el.classList.toggle('lucky-seven',effect.cards[i].value===7);
     el.querySelector('b').textContent=effect.cards[i].value; el.querySelector('small').textContent='◆';
     return finishAnimation(el.animate(reduce?[{opacity:.3},{opacity:1}]:[{transform:'rotateY(90deg)',opacity:0},{transform:'rotateY(0deg)',opacity:1}],{duration:reduce?60:240,delay:reduce?0:i*35,fill:'both'}));
   });

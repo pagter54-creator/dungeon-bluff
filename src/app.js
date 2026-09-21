@@ -1,8 +1,10 @@
+import { initAccountUI, refreshAccount, openAccountPage, getAccount } from './account-ui.js';
+import { preloadEssentials, preloadSession } from './cosmetics.js';
 import * as api from './api.js';
 import { dungeonArt, creatureArt, eventArt } from './art.js';
 import { reveal, finale } from './fx.js';
 import { initAudioControls, getAudio } from './audio.js';
-import { characterFor, characterChoices, deckLabel, partyPanels, ownHand, cycleCards } from './character-ui.js';
+import { characterFor, characterChoices, deckLabel, partyPanels, mobileSelection, cycleCards } from './character-ui.js';
 import { animateCycle } from './character-fx.js';
 
 const app = document.querySelector('#app');
@@ -24,6 +26,7 @@ let selected = null;
 let useSkill = false;
 let toastTimer;
 let sessionIdentity = null;
+let rewardRefreshSession = null;
 let roomEpoch = 0;
 let listLoading = false;
 const status = (text, online = false) => {
@@ -40,7 +43,7 @@ function setProfile(next) {
   button.disabled = false;
 }
 function nicknameModal() {
-  showModal(`<div class="eyebrow">YOUR ADVENTURER</div><h2>어떤 이름으로 떠날까요?</h2><p>원정대에 표시할 닉네임을 정하세요. 나중에도 변경할 수 있습니다.</p><form id="nickname-form"><label>닉네임<input name="display_name" required minlength="2" maxlength="16" autocomplete="nickname" value="${escape(profile?.nickname_set ? profile.display_name : '')}" placeholder="2~16자, 글자·숫자·공백·_·-"></label><button class="button primary full" data-network>닉네임 저장 <span>→</span></button></form>`);
+  showModal(`<div class="eyebrow">YOUR ADVENTURER</div><h2>어떤 이름으로 떠날까요?</h2><p>원정대에 표시할 닉네임을 정하세요. 나중에도 변경할 수 있습니다.</p><form id="nickname-form"><label>닉네임<input name="display_name" required minlength="2" maxlength="16" autocomplete="nickname" value="${escape(profile?.nickname_set ? profile.nickname || profile.display_name : '')}" placeholder="2~16자, 글자·숫자·공백·_·-"></label><button class="button primary full" data-network>닉네임 저장 <span>→</span></button></form>`);
   updateBusy();
 }
 const mine = () => bundle?.members.find(m => m.user_id === api.user?.id);
@@ -65,8 +68,11 @@ async function accept(next, restoring = false) {
   if (bundle?.room.id === next.room.id && next.room.version < bundle.room.version) return;
   const newRoom = bundle?.room.id !== next.room.id;
   const newSession = next.session?.id && next.session.id !== sessionIdentity;
+  if (newSession) await preloadSession(next.session);
+  if (bundle?.room.id === next.room.id && next.room.version < bundle.room.version) return;
   if (newRoom) roomEpoch++;
   bundle = next;
+  if (next.session?.status !== 'active' && next.session && rewardRefreshSession !== next.session.id) { rewardRefreshSession=next.session.id; void refreshAccount().catch(()=>{}); }
   void getAudio().setScene(next.session ? 'dungeon' : 'lobby');
   if (next.session?.id !== sessionIdentity) {
     sessionIdentity = next.session?.id || null;
@@ -126,6 +132,7 @@ function renderHome() {
   void getAudio().setScene('lobby');
   view = 'home';
   app.innerHTML = `<section class="hero"><div class="hero-copy"><div class="eyebrow"><span class="tiny-diamond"></span> 4인 협력 · 심리전 던전 레이드</div><h1>네 장의 카드.<br>하나의 <em>운명.</em></h1><p class="hero-description">같은 숫자는 사라진다.<br>동료의 패를 읽고, 던전의 끝까지 살아남아라.</p><div class="hero-actions"><button class="button primary" data-action="create">방 생성 <span>↗</span></button><button class="button secondary" data-action="find">방 찾기 <span>⌕</span></button></div><div class="hero-facts"><span><b>04</b> PLAYERS</span><span><b>10</b> STAGES</span><span><b>05</b> CARDS</span></div></div><div class="hero-visual">${dungeonArt()}<span class="art-label">THE GATE IS OPEN<br><b>당신의 선택을 기다립니다</b></span><div class="hero-card card-one"><small>Ⅰ</small><strong>1</strong><span>◇</span></div><div class="hero-card card-five"><small>Ⅴ</small><strong>5</strong><span>✧</span></div><div class="hero-card card-three"><small>Ⅲ</small><strong>3</strong><span>◇</span></div><div class="visual-caption"><span class="live-dot"></span> 믿을 건, 당신의 눈치뿐.</div></div></section><section class="principles"><article><span class="principle-number">01 /</span><div><h3>눈치껏, 한 장</h3><p>공개된 카드 풀에서 비밀리에 한 장을 선택하세요.</p></div><span class="principle-symbol">♠</span></article><article><span class="principle-number">02 /</span><div><h3>겹치면, 사라진다</h3><p>같은 숫자를 낸 카드들은 모두 무효가 됩니다.</p></div><span class="principle-symbol">⨯</span></article><article><span class="principle-number">03 /</span><div><h3>함께, 끝까지</h3><p>누적 기절 8회면 전멸. 보스까지 살아남으세요.</p></div><span class="principle-symbol">⚑</span></article></section>${!api.configured ? '<div class="setup-note"><span>연결 설정 대기</span> config.js에 Supabase URL과 publishable key를 입력하면 온라인 원정이 열립니다. <button data-action="setup">설정 안내 ↗</button></div>' : ''}`;
+  app.insertAdjacentHTML('beforeend','<nav class="meta-menu" aria-label="계정 콘텐츠"><button data-meta="ranking"><small>HALL OF FAME</small>랭킹 ↗</button><button data-meta="shop"><small>TRADING POST</small>상점 ↗</button><button data-meta="inventory"><small>YOUR COLLECTION</small>인벤토리 ↗</button><button data-meta="account"><small>ADVENTURER ACCOUNT</small>계정 / 등록 ↗</button></nav>');
 }
 function connectionNeeded() {
   if (connected) return false;
@@ -186,14 +193,14 @@ function renderGame(result = null) {
   const stageIndex = result?.stageIndex || g.stage_index;
   const turnIndex = result?.turnIndex || g.turn_index;
   const sortedMembers = [...bundle.members].sort((a, b) => a.seat_index - b.seat_index);
-  app.innerHTML = `<section class="game-top"><div class="stage-counter"><span>STAGE</span><b>${String(stageIndex).padStart(2, '0')}</b><small>/ 10</small></div><div class="stage-track">${s.stageOrder.map((st, i) => `<span class="stage-node ${i + 1 < stageIndex ? 'passed' : i + 1 === stageIndex ? 'current' : ''}" title="Stage ${i + 1}">${i === 9 ? '♛' : i + 1 < stageIndex ? '✓' : '◇'}</span>`).join('')}</div><div class="knockout-meter"><small>누적 기절</small><b class="${g.party_knockouts >= 7 ? 'danger-text' : ''}">${g.party_knockouts}<span> / 8</span></b></div><button class="icon-button" data-action="leave-confirm" aria-label="원정 나가기">↗</button></section><section class="arena ${stage.category === 'boss' ? 'boss-arena' : ''}" style="--stage-color:${escape(stage.color)}"><div class="arena-grid"></div><div class="encounter-heading"><div class="eyebrow">${categoryLabel[stage.category]}</div><h1>${escape(stage.name)}</h1><p>${escape(stage.subtitle || '당신의 카드가 다음 운명을 결정합니다')}</p></div><div id="enemy-art" class="enemy-art">${monster ? creatureArt(stage.shape, stage.color) : eventArt(stage.category)}</div><div class="arena-side left"><span>TURN</span><b>${String(turnIndex).padStart(2, '0')}</b><small>${result ? 'REVEALING' : 'SELECTING'}</small></div><div class="arena-side right"><span>${monster ? 'THREAT' : 'ENCOUNTER'}</span><b>${monster ? (stage.category === 'boss' ? 'Ⅲ' : 'Ⅱ') : 'Ⅰ'}</b><small>${monster ? '공격 예고 확인' : '한 턴으로 판정'}</small></div>${monster ? `<div class="enemy-health"><div><span>${stage.category === 'boss' ? 'BOSS' : 'MONSTER'} HP</span><b>${monster.hp} <small>/ ${monster.maxHp}</small></b></div><div class="health-track"><i style="width:${monster.hp / monster.maxHp * 100}%"></i></div></div>` : ''}<div class="intent ${monster?.attackIn === 1 ? 'imminent' : ''}"><span>${monster ? (monster.attackIn === 1 ? '⚠ 이번 턴 공격' : `◷ ${monster.attackIn}턴 후 공격`) : '◇ 방의 규칙'}</span><p>${escape(monster?.intent || stage.rule)}</p></div></section><section class="party-grid">${partyPanels(bundle, players, { me, result, selected, useSkill })}</section>${ownHand(player, { result, locked, selected, useSkill })}<details class="battle-log"><summary>원정 기록 <span>${s.eventLog.length} TURNS</span></summary><div>${[...s.eventLog].reverse().map(log => `<p><span>STAGE ${log.stageIndex} · TURN ${log.turnIndex}</span><b>${escape(log.stage.name)}</b> ${log.cards.filter(c => !c.valid).length}장 중복 · ${log.monsterBefore ? `${log.totalDamage} 피해` : log.success ? '성공' : '조건 미달'}${log.stageCleared ? ' · 다음 방' : ''}</p>`).join('') || '<p>첫 번째 선택을 기다리고 있습니다.</p>'}</div></details>`;
+  app.innerHTML = `<section class="game-top"><div class="stage-counter"><span>STAGE</span><b>${String(stageIndex).padStart(2, '0')}</b><small>/ 10</small></div><div class="stage-track">${s.stageOrder.map((st, i) => `<span class="stage-node ${i + 1 < stageIndex ? 'passed' : i + 1 === stageIndex ? 'current' : ''}" title="Stage ${i + 1}">${i === 9 ? '♛' : i + 1 < stageIndex ? '✓' : '◇'}</span>`).join('')}</div><div class="knockout-meter"><small>누적 기절</small><b class="${g.party_knockouts >= 7 ? 'danger-text' : ''}">${g.party_knockouts}<span> / 8</span></b></div><button class="icon-button" data-action="leave-confirm" aria-label="원정 나가기">↗</button></section><section class="arena ${stage.category === 'boss' ? 'boss-arena' : ''}" style="--stage-color:${escape(stage.color)}"><div class="arena-grid"></div><div class="encounter-heading"><div class="eyebrow">${categoryLabel[stage.category]}</div><h1>${escape(stage.name)}</h1><p>${escape(stage.subtitle || '당신의 카드가 다음 운명을 결정합니다')}</p></div><div id="enemy-art" class="enemy-art">${monster ? creatureArt(stage.shape, stage.color) : eventArt(stage.category)}</div><div class="arena-side left"><span>TURN</span><b>${String(turnIndex).padStart(2, '0')}</b><small>${result ? 'REVEALING' : 'SELECTING'}</small></div><div class="arena-side right"><span>${monster ? 'THREAT' : 'ENCOUNTER'}</span><b>${monster ? (stage.category === 'boss' ? 'Ⅲ' : 'Ⅱ') : 'Ⅰ'}</b><small>${monster ? '공격 예고 확인' : '한 턴으로 판정'}</small></div>${monster ? `<div class="enemy-health"><div><span>${stage.category === 'boss' ? 'BOSS' : 'MONSTER'} HP</span><b>${monster.hp} <small>/ ${monster.maxHp}</small></b></div><div class="health-track"><i style="width:${monster.hp / monster.maxHp * 100}%"></i></div></div>` : ''}<div class="intent ${monster?.attackIn === 1 ? 'imminent' : ''}"><span>${monster ? (monster.attackIn === 1 ? '⚠ 이번 턴 공격' : `◷ ${monster.attackIn}턴 후 공격`) : '◇ 방의 규칙'}</span><p>${escape(monster?.intent || stage.rule)}</p></div></section><section class="party-grid">${partyPanels(bundle, players, { me, result, selected, useSkill })}</section>${mobileSelection(player, { result, locked, selected, useSkill })}<details class="battle-log"><summary>원정 기록 <span>${s.eventLog.length} TURNS</span></summary><div>${[...s.eventLog].reverse().map(log => `<p><span>STAGE ${log.stageIndex} · TURN ${log.turnIndex}</span><b>${escape(log.stage.name)}</b> ${log.cards.filter(c => !c.valid).length}장 중복 · ${log.monsterBefore ? `${log.totalDamage} 피해` : log.success ? '성공' : '조건 미달'}${log.stageCleared ? ' · 다음 방' : ''}</p>`).join('') || '<p>첫 번째 선택을 기다리고 있습니다.</p>'}</div></details>`;
   updateBusy();
 }
 function renderEnd() {
   const g = bundle.session;
   const success = g.status === 'completed';
   const ranked = [...bundle.members].sort((a, b) => g.state.players[b.id].score - g.state.players[a.id].score);
-  app.innerHTML = `<section class="end-screen ${success ? 'victory' : 'failure'}"><div class="end-emblem">${success ? '♛' : '♠'}</div><div class="eyebrow">${success ? 'EXPEDITION COMPLETE' : 'EXPEDITION FAILED'}</div><h1>${success ? '던전이 당신을 기억합니다.' : '이번 운명은, 여기까지.'}</h1><p>${success ? '열 개의 방, 그리고 마지막 보스. 함께 살아남았습니다.' : '누적 기절 8회. 이번 원정의 점수와 골드는 모두 무효가 됩니다.'}</p><div class="end-stats"><span>도달 스테이지 <b>${g.stage_index} / 10</b></span><span>플레이한 턴 <b>${g.turn_index - 1}</b></span><span>누적 기절 <b>${g.party_knockouts} / 8</b></span></div><div class="ranking">${ranked.map((m, i) => `<div><span class="rank">0${i + 1}</span><span class="small-avatar avatar-${m.seat_index}">${['♠', '◈', '♜', '✧'][m.seat_index]}</span><b>${escape(m.display_name)}${m.user_id === api.user.id ? ' · 나' : ''}</b><span>${g.state.players[m.id].score} <small>PTS</small></span><span>${g.state.players[m.id].gold} <small>G</small></span></div>`).join('')}</div><button class="button primary" data-action="leave" data-network>새로운 원정 준비 <span>→</span></button></section>`;
+  app.innerHTML = `<section class="end-screen ${success ? 'victory' : 'failure'}"><div class="end-emblem">${success ? '♛' : '♠'}</div><div class="eyebrow">${success ? 'EXPEDITION COMPLETE' : 'EXPEDITION FAILED'}</div><h1>${success ? '던전이 당신을 기억합니다.' : '이번 운명은, 여기까지.'}</h1><p>${success ? '열 개의 방, 그리고 마지막 보스. 함께 살아남았습니다.' : '누적 기절 8회. 이번 원정의 점수와 골드는 모두 무효가 됩니다.'}</p><div class="account-notice">${getAccount()?.profile.account_type==='registered'?(success?'원정 보상은 서버에서 계정에 한 번만 반영됩니다. 랭킹과 Account Gold는 계정 메뉴에서 확인하세요.':'실패한 원정의 RP와 Account Gold는 변하지 않습니다.'):'게스트의 이번 원정 점수와 골드는 영구 저장되지 않습니다.'}</div><div class="end-stats"><span>도달 스테이지 <b>${g.stage_index} / 10</b></span><span>플레이한 턴 <b>${g.turn_index - 1}</b></span><span>누적 기절 <b>${g.party_knockouts} / 8</b></span></div><div class="ranking">${ranked.map((m, i) => `<div><span class="rank">0${1 + ranked.filter(other => g.state.players[other.id].score > g.state.players[m.id].score).length}</span><span class="small-avatar avatar-${m.seat_index}">${['♠', '◈', '♜', '✧'][m.seat_index]}</span><b>${escape(m.display_name)}${m.user_id === api.user.id ? ' · 나' : ''}</b><span>${g.state.players[m.id].score} <small>PTS</small></span><span>${g.state.players[m.id].gold} <small>G</small></span></div>`).join('')}</div><button class="button primary" data-action="leave" data-network>새로운 원정 준비 <span>→</span></button></section>`;
 }
 document.addEventListener('click', async event => {
   const button = event.target.closest('[data-action]'); if (!button || button.disabled) return;
@@ -241,7 +248,11 @@ document.addEventListener('submit', async event => {
 document.querySelector('.modal-close').addEventListener('click', () => modal.close());
 modal.addEventListener('click', event => { if (event.target === modal) { const r = modal.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) modal.close(); } });
 document.querySelector('#help').addEventListener('click', () => showModal('<div class="eyebrow">HOW TO SURVIVE</div><h2>눈치를 읽고, 살아남아라.</h2><ol class="guide-list"><li><b>각자 카드 한 장.</b> 4명 모두 비밀리에 선택합니다.</li><li><b>같은 숫자는 전부 무효.</b> 유효한 카드만 공격과 방 효과에 참여합니다.</li><li><b>모든 제출 카드는 소비.</b> 5장을 쓰면 자신의 기본 덱을 다시 받습니다.</li><li><b>HP는 3.</b> 0이 되면 한 턴 자동 제출 후 HP 3으로 부활합니다.</li><li><b>누적 기절 8회는 전멸.</b> 점수와 골드를 모두 잃습니다.</li><li><b>10번째 방은 보스.</b> 공격 예고를 읽고, 끝까지 함께 살아남으세요.</li></ol><p class="muted">일반 공격은 카드 숫자만큼 피해를 줍니다. 적이 쓰러지는 턴에도 모든 유효 카드가 끝까지 공격합니다. 최고 피해자는 +10점과 기존 처치 보너스 3G를 받습니다. 기절할 때마다 -5점, -2G가 적용됩니다.</p>'));
-document.querySelector('#nickname').addEventListener('click', nicknameModal);
+document.querySelector('#nickname').addEventListener('click', () => void openAccountPage('account'));
+initAccountUI({showModal,toast,canSwitch:()=>!bundle,ready:()=>connected,onNickname:()=>bundle?sync():Promise.resolve(),onAccount:data=>{
+  setProfile(data.profile);
+  document.querySelector('#account-summary').textContent=data.stats?data.stats.rating_points+' RP · '+data.stats.account_gold+' Account Gold':'GUEST · 계정 등록';
+}});
 initAudioControls();
 // Block native drag/drop and context menus without blocking range-slider gestures
 // or caret/selection inside nickname and password inputs.
@@ -250,6 +261,7 @@ addEventListener('online', () => { status('재연결 중'); void sync(); });
 addEventListener('offline', () => status('연결 끊김 · 복구 대기'));
 document.addEventListener('visibilitychange', () => { if (!document.hidden) void sync(); });
 setInterval(() => { if (!document.hidden && connected && bundle) void sync(); }, 5000);
+await preloadEssentials();
 renderHome();
 try {
   connected = await api.connect(status);
@@ -257,7 +269,7 @@ try {
     status('온라인', true); await sync();
     document.querySelector('#nickname').disabled = false;
     try {
-      setProfile((await api.request('get_profile')).profile);
+      await refreshAccount();
       if (!profile.nickname_set && !modal.open) nicknameModal();
     } catch (error) { toast(error.message); }
   }
