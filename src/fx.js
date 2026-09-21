@@ -85,6 +85,14 @@ export async function reveal(result) {
   }
   if (result.monsterBefore) {
     let remainingHp = result.monsterBefore.hp;
+    for(const effect of result.effects.filter(e=>e.type==='boss_card')){
+      const point=center(cardFor(effect.memberId));cardFor(effect.memberId)?.classList.add('boss-afflicted');
+      textAt(point,effect.label,'cancel');burst(point,'#c797ff',65,8);ring(point,'#ddc1ff');
+    }
+    for(const effect of result.effects.filter(e=>e.type==='monster_heal'&&e.amount>0)){
+      remainingHp=Math.min(result.monsterBefore.maxHp,remainingHp+effect.amount);
+      textAt(target(),`포식 · +${effect.amount} HP`,'heal');burst(target(),'#a5ef76',90,9);ring(target(),'#b6fa82');
+    }
     for (const effect of result.effects.filter(e => e.type === 'attack' && e.amount > 0)) {
       cardFor(effect.memberId)?.classList.add('empowered');
       await characterAttack(effect,center(cardFor(effect.memberId)),target(),{burst,ring,tone,reduced});
@@ -97,11 +105,22 @@ export async function reveal(result) {
       document.querySelector('#enemy-art')?.animate([{ filter: 'brightness(4)' }, { filter: 'brightness(1)' }], { duration: 350 });
       await sleep(reduced.matches ? 30 : 180);
     }
+    const finalHp=result.monsterAfter?.hp??remainingHp;
+    const hpText=document.querySelector('.enemy-health b'),hpBar=document.querySelector('.enemy-health .health-track i');
+    if(hpText)hpText.innerHTML=`${finalHp} <small>/ ${result.monsterBefore.maxHp}</small>`;
+    if(hpBar)hpBar.style.width=`${finalHp/result.monsterBefore.maxHp*100}%`;
   } else {
     for (const c of result.cards.filter(c => c.valid)) await bolt(center(cardFor(c.memberId)), target(), result.success ? '#89e0ba' : '#b39af3');
     banner(result.success ? '이벤트 성공' : '조건 미달', result.stage.name, result.success ? 'success' : 'danger');
     burst(target(), result.success ? '#99f0cb' : '#fd8c91', 120, 12); tone(result.success ? 660 : 110, .4, 'triangle', .1, result.success ? 880 : 40);
     await sleep(reduced.matches ? 100 : 650);
+  }
+  for(const effect of result.effects.filter(e=>['boss_special','boss_status','boss_mark'].includes(e.type))){
+    const point=effect.memberId?center(playerFor(effect.memberId)):target();
+    ring(point,'#e5afff');burst(point,'#c586ff',140,13,true);textAt(point,effect.label,'critical');
+    if(effect.type==='boss_special'){banner(effect.label,effect.detail,'danger');shake(true);tone(90,.7,'sawtooth',.09,480);}
+    if(effect.memberId)playerFor(effect.memberId)?.classList.add('boss-mark-flash');
+    await sleep(reduced.matches?50:350);
   }
   for (const effect of result.effects.filter(e => ['steal','revelation','shield'].includes(e.type))) {
     const point=center(playerFor(effect.memberId));
