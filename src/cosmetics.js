@@ -1,5 +1,7 @@
+import { SKINS,skinFor } from './skins.js';
 const names=['gold','stars','jade'];
 export const COSMETIC_ASSETS={
+ ...SKINS,
  default_card_front:{type:'card_front',name:'기본 앞면',className:'cosmetic-front-default'},
  default_card_back:{type:'card_back',name:'기본 뒷면',className:'cosmetic-back-default'},
 };
@@ -22,4 +24,7 @@ function loadImage(url){
 }
 export function preloadEssentials(){return loadImage(new URL('../assets/emblem.svg',import.meta.url).href);}
 export function preloadCosmetics(ids=Object.keys(COSMETIC_ASSETS)){return Promise.all(ids.map(id=>loadImage(COSMETIC_ASSETS[id]?.preview)));}
-export function preloadSession(session){return preloadCosmetics(Object.values(session?.state.players||{}).flatMap(p=>Object.values(p.loadout||{})));}
+export function preloadSession(session){return Promise.all(Object.values(session?.state.players||{}).flatMap(p=>[
+ loadImage(skinFor(p.characterId,p.loadout).portrait),
+ preloadCosmetics([p.loadout?.equipped_card_front,p.loadout?.equipped_card_back]),
+]));}

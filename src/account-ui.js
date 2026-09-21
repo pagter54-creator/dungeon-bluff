@@ -1,13 +1,17 @@
+import { SKINS,skinFor } from './skins.js';
+import { createSkinDrawClient } from './skin-draw.js';
+import { revealSkin } from './skin-reveal.js';
 import * as api from './api.js';
 import { html } from './character-ui.js';
 import { COSMETIC_ASSETS,preloadCosmetics } from './cosmetics.js';
 let account=null,options,working=false,activePage='account',category='card_front';
+const skinDraw=createSkinDrawClient({request:api.accountRequest,storage:{getItem:key=>localStorage.getItem(key),setItem:(key,value)=>localStorage.setItem(key,value),removeItem:key=>localStorage.removeItem(key)}});
 export const getAccount=()=>account;
 const registered=()=>account?.profile.account_type==='registered';
 const button=(label,action,extra='')=>`<button class="button secondary" data-meta="${action}" ${extra}>${label}</button>`;
-function preview(id){const item=COSMETIC_ASSETS[id];return item?.preview?`<img class="cosmetic-preview" src="${item.preview}" alt="카드 치장 미리보기" loading="lazy">`:`<div class="cosmetic-preview default-preview">${id.includes('back')?'◇':'5'}</div>`;}
+function preview(id){const item=COSMETIC_ASSETS[id];return item?.preview?`<img class="cosmetic-preview ${item.type==='character_skin'?'skin-full-preview':''}" src="${item.preview}" alt="${html(item.name||'카드 치장 미리보기')}" loading="lazy" draggable="false">`:`<div class="cosmetic-preview default-preview">${id.includes('back')?'◇':'5'}</div>`;}
 export async function refreshAccount(){
- account=await api.accountRequest('get_account');options?.onAccount(account);void preloadCosmetics(account.inventory);
+ account=await api.accountRequest('get_account');options?.onAccount(account);void preloadCosmetics(account.inventory.filter(id=>!SKINS[id]));
  return account;
 }
 function guestGate(){return `<p>이메일 계정을 등록하면 상점과 인벤토리, 영구 RP·Account Gold를 이용할 수 있습니다.</p>${button('계정 등록','register')}`;}
@@ -36,13 +40,19 @@ export async function openAccountPage(page='account'){
    markup=`<div class="eyebrow">HALL OF ADVENTURERS</div><h2>랭킹</h2><p>이메일 계정 · RP 기준 공동 순위</p><ol class="leaderboard">${board.entries.map(row).join('')||'<li>첫 번째 원정의 주인공을 기다립니다.</li>'}</ol>${board.me&&!board.entries.some(r=>r.is_me)?`<h3>내 순위</h3><ol class="leaderboard">${row(board.me)}</ol>`:''}`;
   }
   if(page==='shop'){
-   const {items}=await api.accountRequest('get_shop');void preloadCosmetics(items.map(i=>i.asset_key));
-   markup=`${identity()}<h2>상점</h2>${!registered()?guestGate():''}<div class="shop-grid">${items.map(i=>`<article class="shop-item">${preview(i.asset_key)}<small>${i.item_type==='card_front'?'CARD FRONT':'CARD BACK'}</small><h3>${html(i.display_name)}</h3><p>${i.price} Account Gold</p>${button(account.inventory.includes(i.id)?'보유 중':'구매','purchase',`data-item="${html(i.id)}" ${!registered()||account.inventory.includes(i.id)?'disabled':''}`)}</article>`).join('')}<article class="shop-item coming-soon"><div class="cosmetic-preview default-preview">✦</div><small>COMING SOON</small><h3>스킨 뽑기</h3><p>10 Gold</p>${button('준비 중','gacha')}</article></div>`;
+   const {items}=await api.accountRequest('get_shop');
+   markup=`${identity()}<h2>상점</h2>${!registered()?guestGate():''}<article class="gacha-banner"><div><span class="eyebrow">A NEW FACE OF FATE</span><h2>운명의 옷장</h2><p>중복 없는 캐릭터 스킨 · 1회 10 Account Gold</p>${button('스킨 뽑기 →','gacha')}</div>${preview('mage1')}${preview('thief2')}</article><div class="shop-grid">${items.filter(i=>i.item_type!=='character_skin').map(i=>`<article class="shop-item">${preview(i.asset_key)}<small>${i.item_type==='card_front'?'CARD FRONT':'CARD BACK'}</small><h3>${html(i.display_name)}</h3><p>${i.price} Account Gold</p>${button(account.inventory.includes(i.id)?'보유 중':'구매','purchase',`data-item="${html(i.id)}" ${!registered()||account.inventory.includes(i.id)?'disabled':''}`)}</article>`).join('')}</div>`;
+  }
+  if(page==='gacha'){
+   const {items}=await api.accountRequest('get_shop');const pool=items.filter(i=>i.item_type==='character_skin'&&i.gacha_enabled&&!i.is_default);
+   const remaining=pool.filter(i=>!account.inventory.includes(i.id)).length,pending=skinDraw.hasPending(api.user.id);
+   markup=`${identity()}<div class="gacha-intro"><span class="eyebrow">WARDROBE OF FATE</span><h2>아직 만나지 못한 당신.</h2><p>빛 속에서 새로운 스킨을 만나세요.<br>보유하지 않은 스킨 중 하나가 같은 확률로 등장합니다.</p><strong>${pool.length-remaining} / ${pool.length} 수집</strong><p>기본 스킨 8종은 무료 · 중복 없음 · 모두 수집하면 구매 종료</p>${registered()?button(pending?'이전 뽑기 결과 확인 / 재시도':remaining?'스킨 뽑기 · 10 Account Gold':'모든 스킨 수집 완료','draw',`${!pending&&(!remaining||account.stats.account_gold<10)?'disabled':''}`):guestGate()}${registered()&&remaining&&account.stats.account_gold<10&&!pending?'<p>Account Gold가 부족합니다. 원정을 성공해 골드를 모아 보세요.</p>':''}${pending?'<p>응답을 받지 못한 요청을 다시 확인합니다. 이미 지급됐다면 추가 차감 없이 결과를 표시합니다.</p>':''}</div><div class="shop-grid skin-gallery">${pool.map(i=>`<article class="shop-item ${account.inventory.includes(i.id)?'skin-owned':''}">${preview(i.asset_key)}<small>${html(SKINS[i.id]?.label)}</small><h3>${html(i.display_name)}</h3><p>${account.inventory.includes(i.id)?'✓ 보유 중 · 뽑기 제외':'등장 확률 '+(100/remaining).toFixed(2)+'%'}</p></article>`).join('')}</div>`;
   }
   if(page==='inventory'){
-   const {items}=await api.accountRequest('get_shop');const owned=items.filter(i=>i.item_type===category&&account.inventory.includes(i.id));
+   const {items}=await api.accountRequest('get_shop');const owned=items.filter(i=>i.item_type===category&&(i.is_default||account.inventory.includes(i.id)));
    if(category!=='character_skin')owned.unshift({id:`default_${category}`,asset_key:`default_${category}`,display_name:'기본 카드',item_type:category});
-   markup=`${identity()}<h2>인벤토리</h2>${registered()?`<div class="inventory-tabs">${[['card_front','카드 앞면'],['card_back','카드 뒷면'],['character_skin','캐릭터 스킨']].map(([id,label])=>button(label,'category',`data-category="${id}" aria-pressed="${id===category}"`)).join('')}</div><div class="shop-grid">${owned.map(i=>`<article class="shop-item">${preview(i.asset_key)}<h3>${html(i.display_name)}</h3>${button(account.loadout[`equipped_${category}`]===i.id?'장착 중':'장착','equip',`data-item="${i.id}" ${account.loadout[`equipped_${category}`]===i.id?'disabled':''}`)}</article>`).join('')||'<p>보유한 캐릭터 스킨이 없습니다. 준비 중입니다.</p>'}</div>`:guestGate()}`;
+   const equipped=i=>i.item_type==='character_skin'?skinFor(i.target_character_id,account.loadout).id===i.id:account.loadout[`equipped_${category}`]===i.id;
+   markup=`${identity()}<h2>인벤토리</h2>${registered()?`<div class="inventory-tabs">${[['card_front','카드 앞면'],['card_back','카드 뒷면'],['character_skin','캐릭터 스킨']].map(([id,label])=>button(label,'category',`data-category="${id}" aria-pressed="${id===category}"`)).join('')}</div>${category==='character_skin'?'<p>캐릭터마다 한 벌씩 장착합니다. 다음 원정부터 얼굴 이미지로 표시됩니다.</p>':''}<div class="shop-grid">${owned.map(i=>`<article class="shop-item">${preview(i.asset_key)}${i.item_type==='character_skin'?`<small>${html(SKINS[i.id]?.label)} · ${i.is_default?'기본 지급':'보유 스킨'}</small>`:''}<h3>${html(i.display_name)}</h3>${button(equipped(i)?'장착 중':'장착','equip',`data-item="${i.id}" ${equipped(i)?'disabled':''}`)}</article>`).join('')||'<p>보유한 치장이 없습니다.</p>'}</div>`:guestGate()}`;
   }
   if(activePage===page)options.showModal(markup);
  }catch(e){options.showModal(`<h2>계정 연결 확인</h2><p>${html(e.message)}</p>`);}
@@ -52,22 +62,27 @@ export function initAccountUI(config){
  document.addEventListener('click',async e=>{
   const b=e.target.closest('[data-meta]');if(!b||b.disabled||working)return;
   const action=b.dataset.meta;
-  if(['account','ranking','shop','inventory'].includes(action)){void openAccountPage(action);return;}
+  if(['account','ranking','shop','inventory','gacha'].includes(action)){void openAccountPage(action);return;}
   if(action==='register'){options.showModal(registrationForm());return;}
   if(action==='nickname'){options.showModal(nicknameForm());return;}
-  if(action==='gacha'){options.toast('스킨 뽑기 기능은 준비 중입니다.');return;}
+  if(action==='skin-inventory'){category='character_skin';void openAccountPage('inventory');return;}
   if(action==='category'){category=b.dataset.category;void openAccountPage('inventory');return;}
   if(action==='login'){
    options.showModal(`<h2>로그인</h2><form data-meta-form="login"><label>이메일<input name="email" type="email" required autocomplete="email"></label><label>비밀번호<input name="password" type="password" required autocomplete="current-password"></label><button class="button primary">로그인</button></form>`);return;
   }
   working=true;b.disabled=true;
   try{
+   if(action==='draw'){
+    options.showModal('<section class="gacha-intro"><div class="summon-loading" aria-hidden="true">✦</div><h2>운명의 문을 여는 중…</h2><p>결과를 확인하고 있습니다.</p></section>');
+    const result=await skinDraw.draw(api.user.id);account=result.account;options.onAccount(account);
+    await revealSkin(result.item.id,options.showModal);return;
+   }
    if(action==='logout'){if(!options.canSwitch())throw new Error('방에서 나온 뒤 로그아웃해 주세요.');await api.logoutAccount();}
    if(action==='purchase'||action==='equip'){
     await api.accountRequest(action==='purchase'?'purchase_item':'equip_item',{item_id:b.dataset.item});
-    options.toast(action==='purchase'?'구매했습니다.':'장착했습니다. 다음 원정부터 적용됩니다.');await openAccountPage(activePage);
+    options.toast(action==='purchase'?'구매했습니다.':'장착했습니다. 다음 원정부터 적용됩니다.');if(action==='equip'&&SKINS[b.dataset.item]){category='character_skin';await openAccountPage('inventory');}else await openAccountPage(activePage);
    }
-  }catch(err){options.toast(err.message);}finally{working=false;b.disabled=false;}
+  }catch(err){options.toast(err.message);if(action==='draw')await openAccountPage('gacha');}finally{working=false;b.disabled=false;}
  });
  document.addEventListener('submit',async e=>{
   const type=e.target.dataset.metaForm;if(!type)return;e.preventDefault();if(working)return;

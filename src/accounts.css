@@ -12,3 +12,41 @@
 /* Keep registered balances from crowding the game header on medium screens. */
 @media(max-width:1100px){.header-right{gap:10px}.account-summary{max-width:155px;white-space:normal;line-height:1.6;text-align:right;font-size:9px}}
 @media(max-width:760px){.account-summary{display:none}.shop-item{min-width:0}}
+
+/* Full illustrations in collections; supplied cropped artwork in party UI. */
+.skin-portrait{display:block;width:100%;height:100%;object-fit:cover;object-position:center;pointer-events:none;border-radius:inherit}
+.character-avatar,.small-avatar,.avatar{overflow:hidden;flex-shrink:0}
+.character-icon:has(.skin-portrait){width:64px;height:76px;min-width:64px;border-radius:9px;overflow:hidden}
+.character-avatar:has(.skin-portrait){width:52px;height:58px;border:1px solid var(--character-color)}
+.shop-item .skin-full-preview{width:100%;height:220px;object-fit:contain;filter:drop-shadow(0 6px 14px #0008)}
+.skin-gallery .shop-item{background:radial-gradient(ellipse at 50% 60%,#51426655,transparent 65%),#1c1824}
+.skin-owned{border-color:#79bf9b}.skin-owned>p{color:#92d8ae}
+.gacha-banner{display:flex;gap:12px;align-items:center;padding:24px;margin-top:22px;border:1px solid #bd9c6e;border-radius:12px;overflow:hidden;background:radial-gradient(ellipse at right,#76548988,transparent 70%),#251b30}
+.gacha-banner>div{flex:1;min-width:0}.gacha-banner .skin-full-preview{width:95px;height:200px;object-fit:contain;filter:drop-shadow(0 0 16px #e7b6ff55)}
+.gacha-banner h2{font-size:25px!important}.gacha-banner p{line-height:1.8!important}.gacha-banner .eyebrow{font-size:8px}
+.gacha-intro{text-align:center;padding:24px 8px;background:radial-gradient(ellipse at 50% 15%,#9f75ce33,transparent 65%)}
+.gacha-intro>strong{display:block;font-size:30px;color:var(--gold);margin:24px 0 10px}.gacha-intro>p{line-height:1.9}.gacha-intro>.button{margin:12px auto;border-color:var(--gold);background:linear-gradient(130deg,#8c6648,#513b70);color:#fff8e4;padding:18px 28px}
+.summon-loading{font-size:90px;color:#f9dfad;animation:summon-breathe 1.4s ease-in-out infinite;text-shadow:0 0 30px #b886fb}
+#modal:has(.shop-grid){width:min(900px,calc(100vw - 32px))}
+#modal:has(.skin-reveal){width:min(760px,calc(100vw - 32px));max-width:760px;background:#14101d;border-color:#e6be86;overflow-x:hidden;overflow-y:auto}
+#modal:has(.skin-reveal) .modal-close{z-index:10}
+#modal:has(.skin-reveal)::backdrop{background:#08050fec;animation:backdrop-flare 2.1s both}
+.skin-reveal{position:relative;isolation:isolate;text-align:center;overflow:hidden;min-height:620px;margin:-10px;padding:24px 12px 18px;background:radial-gradient(ellipse at 50% 44%,#835ea788,transparent 65%)}
+.reveal-heading,.reveal-caption{position:relative;z-index:3}.reveal-heading h2{font-size:19px!important;color:#e2caed}.reveal-heading .eyebrow{color:#f8d696}
+.summoned-skin{display:block;position:relative;z-index:2;margin:6px auto;width:100%;height:min(47vh,400px);object-fit:contain;filter:drop-shadow(0 0 22px #f6db9a88);animation:skin-arrive 2.1s cubic-bezier(.16,.8,.2,1) both;pointer-events:none}
+.missing-art{display:grid;place-content:center;font-size:100px;color:#efd09a}.missing-art p{font-size:13px}
+.reveal-caption{animation:caption-arrive 2.5s both}.reveal-caption>small{color:#d6bdeb;letter-spacing:3px}.reveal-caption h2{margin:12px 0!important;font-size:30px!important;color:#fff0c9;text-shadow:0 0 24px #c68965}.reveal-caption>p{color:#adcfb6}.reveal-caption .meta-actions{justify-content:center}.reveal-caption .button{min-height:40px;font-size:12px;padding:12px 16px}
+.summon-flash{position:absolute;inset:0;z-index:5;pointer-events:none;background:radial-gradient(ellipse,#fff 15%,#fff6ce 38%,#d9bcff 70%);animation:summon-flash 2.1s both}
+.summon-rays{position:absolute;left:50%;top:40%;width:850px;height:850px;z-index:0;pointer-events:none;background:repeating-conic-gradient(from 0deg,#f4da8e24 0deg 4deg,transparent 4deg 22deg);mask-image:radial-gradient(circle,#000,transparent 66%);animation:summon-spin 30s linear infinite}
+.summon-ring{position:absolute;top:43%;left:50%;width:300px;height:300px;border-radius:50%;border:2px solid #f9df9c;box-shadow:0 0 30px #cc92ff,inset 0 0 25px #d2a8ef;pointer-events:none;animation:ring-expand 2.2s both}.ring-two{animation-delay:.16s;border-style:dashed}
+.summon-sparks{position:absolute;left:50%;top:43%;z-index:3;pointer-events:none}.summon-sparks i{position:absolute;width:5px;height:5px;background:#fff4b0;box-shadow:0 0 10px #fff3a2;border-radius:50%;animation:spark-burst 2.6s both}
+@keyframes summon-breathe{50%{transform:scale(1.15);filter:brightness(1.4)}}
+@keyframes backdrop-flare{0%,35%{background:#08050fec}60%{background:#f4d9ff99}100%{background:#08050fec}}
+@keyframes summon-spin{from{transform:translate(-50%,-50%) rotate(0)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+@keyframes summon-flash{0%,35%{opacity:0;transform:scale(.05)}60%{opacity:.96;transform:scale(1.3)}100%{opacity:0;transform:scale(1.8)}}
+@keyframes ring-expand{0%{opacity:0;transform:translate(-50%,-50%) scale(.05) rotate(-90deg)}45%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(2.4) rotate(30deg)}}
+@keyframes spark-burst{0%,40%{opacity:0;transform:rotate(var(--angle)) translateX(0)}65%{opacity:1}100%{opacity:0;transform:rotate(var(--angle)) translateX(var(--distance))}}
+@keyframes skin-arrive{0%,48%{opacity:0;transform:scale(.65) translateY(35px);filter:brightness(4) blur(8px)}75%{opacity:1;filter:brightness(1.8) drop-shadow(0 0 45px #fff2bc)}100%{opacity:1;transform:scale(1) translateY(0);filter:brightness(1) drop-shadow(0 0 22px #f6db9a88)}}
+@keyframes caption-arrive{0%,65%{opacity:0;transform:translateY(15px)}100%{opacity:1;transform:translateY(0)}}
+@media(max-width:760px){.gacha-banner{padding:16px;gap:5px}.gacha-banner .skin-full-preview{width:70px;height:155px}.gacha-banner .skin-full-preview:last-child{display:none}.shop-item .skin-full-preview{height:200px}.skin-reveal{min-height:540px;padding-inline:3px}.reveal-caption h2{font-size:25px!important}.reveal-caption .meta-actions{gap:7px}.party-grid .player-panel:not(.is-me) .character-avatar:has(.skin-portrait){width:35px;height:40px}.character-icon:has(.skin-portrait){width:50px;min-width:50px;height:60px}}
+@media(prefers-reduced-motion:reduce){.summon-flash,.summon-ring,.summon-sparks{display:none}.summon-rays,.summoned-skin,.reveal-caption,.summon-loading,#modal:has(.skin-reveal)::backdrop{animation:none}.summoned-skin,.reveal-caption{opacity:1}}
