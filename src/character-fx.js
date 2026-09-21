@@ -1,3 +1,4 @@
+import { finishAnimation } from './animation-wait.js';
 import { getAudio } from './audio.js';
 const styles = {
   sword: { glyph:'╱', color:'#fff2db', duration:240, freq:850, type:'sawtooth' },
@@ -28,7 +29,7 @@ export async function characterAttack(effect, from, to, { burst, ring, tone, red
     {transform:`${travel} rotate(${angle+(style.spin?(enhanced?1080:720):0)}deg) scale(${enhanced?1.8:1.1})`,opacity:1},
   ];
   if(reduced.matches) { el.style.left=`${to.x}px`; el.style.top=`${to.y}px`; }
-  try { await el.animate(frames,{duration:reduced.matches?80:style.duration,easing:'ease-in'}).finished; }
+  try { await finishAnimation(el.animate(frames,{duration:reduced.matches?80:style.duration,easing:'ease-in'})); }
   finally { el.remove(); }
   burst(to,style.color,enhanced?120:65,enhanced?12:8,style.spin); ring(to,style.color);
   tone(style.freq / 2,.16,'triangle',enhanced?.08:.045,45);
@@ -42,12 +43,12 @@ export async function animateCycle(effect) {
   const cards=[...pool.querySelectorAll('.pool-card')];
   for(const el of cards) { el.classList.add('spent'); el.querySelector('small').textContent='OFF'; }
   const dice=document.createElement('span'); dice.className='cycle-dice'; dice.textContent=effect.random?'⚄':'↻'; pool.append(dice);
-  try { await dice.animate(reduce?[{opacity:0},{opacity:1}]:[{transform:'rotate(0) scale(.4)',opacity:0},{transform:'rotate(540deg) scale(1.2)',opacity:1}],{duration:reduce?60:effect.random?280:160}).finished; }
+  try { await finishAnimation(dice.animate(reduce?[{opacity:0},{opacity:1}]:[{transform:'rotate(0) scale(.4)',opacity:0},{transform:'rotate(540deg) scale(1.2)',opacity:1}],{duration:reduce?60:effect.random?280:160})); }
   finally { dice.remove(); }
   const animations=cards.map((el,i)=> {
     el.classList.remove('spent','chosen'); el.classList.toggle('lucky-seven',effect.cards[i].value===7);
     el.querySelector('b').textContent=effect.cards[i].value; el.querySelector('small').textContent='◆';
-    return el.animate(reduce?[{opacity:.3},{opacity:1}]:[{transform:'rotateY(90deg)',opacity:0},{transform:'rotateY(0deg)',opacity:1}],{duration:reduce?60:240,delay:reduce?0:i*35,fill:'both'}).finished;
+    return finishAnimation(el.animate(reduce?[{opacity:.3},{opacity:1}]:[{transform:'rotateY(90deg)',opacity:0},{transform:'rotateY(0deg)',opacity:1}],{duration:reduce?60:240,delay:reduce?0:i*35,fill:'both'}));
   });
   if(effect.random && effect.cards.some(c=>c.value===7)) audio.playSfx('sfx_gambler_lucky',()=>audio.tone(1000,.3,'sine',.06,1500));
   await Promise.allSettled(animations);

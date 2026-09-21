@@ -1,3 +1,4 @@
+import { finishAnimation } from './animation-wait.js';
 import { playTone as tone, getAudio } from './audio.js';
 import { characterAttack, animateCycle } from './character-fx.js';
 
@@ -56,7 +57,7 @@ function shake(strong = false) {
 async function bolt(from, to, color) {
   const el = document.createElement('div'); el.className = 'magic-bolt'; el.style.background = color; el.style.boxShadow = `0 0 14px 6px ${color}, 0 0 45px 10px ${color}`;
   el.style.left = `${from.x}px`; el.style.top = `${from.y}px`; overlay.append(el);
-  await el.animate([{ transform: 'translate(-50%,-50%) scale(.5)', opacity: 0 }, { opacity: 1, offset: .2 }, { transform: `translate(${to.x - from.x}px,${to.y - from.y}px) scale(1.5)`, opacity: 1 }], { duration: reduced.matches ? 80 : 360, easing: 'cubic-bezier(.6,0,.9,.6)' }).finished;
+  await finishAnimation(el.animate([{ transform: 'translate(-50%,-50%) scale(.5)', opacity: 0 }, { opacity: 1, offset: .2 }, { transform: `translate(${to.x - from.x}px,${to.y - from.y}px) scale(1.5)`, opacity: 1 }], { duration: reduced.matches ? 80 : 360, easing: 'cubic-bezier(.6,0,.9,.6)' }));
   el.remove(); burst(to, color, 65, 9); ring(to, color);
 }
 export async function reveal(result) {

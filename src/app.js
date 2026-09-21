@@ -76,7 +76,8 @@ async function accept(next, restoring = false) {
   if (newRoom) await api.subscribe(next.room.id, sync, status);
   view = next.session ? 'game' : 'lobby';
   if (next.session) {
-    const newResults = next.session.state.eventLog.filter(e => e.type === 'turn_result' && e.turnIndex > lastResult);
+    // Catch up to the latest turn instead of replaying minutes of stale battles.
+    const newResults = next.session.state.eventLog.filter(e => e.type === 'turn_result' && e.turnIndex > lastResult).slice(-2);
     for (const r of newResults) { queue.push(r); lastResult = r.turnIndex; selected = null; useSkill = false; }
     if (!animating) {
       if (queue.length) void playQueue();
@@ -96,6 +97,8 @@ async function playQueue() {
     while (queue.length && bundle) {
       const result = queue.shift(); renderGame(result); await reveal(result);
     }
+  } catch (error) {
+    queue = []; toast('연출을 건너뛰고 최신 턴으로 복구했습니다.');
   } finally {
     animating = false;
     if (bundle?.session) { renderGame(); if (bundle.session.status !== 'active') finale(bundle.session.status === 'completed'); }
@@ -111,6 +114,11 @@ async function sync() {
     const next = await api.request('get_room_state', roomId ? { room_id: roomId } : {});
     if (epoch !== roomEpoch) return;
     if (next.room) await accept(next, !bundle);
+    else if (bundle) {
+      roomEpoch++; await api.unsubscribe(); bundle = null; queue = []; sessionIdentity = null; lastResult = 0;
+      selected = null; useSkill = false; renderHome();
+      toast('접속이 오래 끊겨 방이 종료되었습니다. 새 방을 만들어 주세요.');
+    }
   } catch (error) { status('연결 복구 중', false); }
   finally { syncing = false; if (resync) { resync = false; void sync(); } }
 }

@@ -1,4 +1,5 @@
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../config.js';
+import { withRequestTimeout } from './request-timeout.js';
 export const configured = Boolean(SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY);
 let client;
 let channel;
@@ -25,14 +26,19 @@ export async function connect(onStatus) {
 }
 export async function request(action, params = {}) {
   if (!client) throw new Error('config.js에 Supabase 연결 정보를 입력해 주세요.');
-  const { data, error } = await client.functions.invoke('game-api', { body: { action, ...params } });
-  if (error) {
-    let message = '서버에 연결하지 못했습니다. 연결 상태를 확인해 주세요.';
-    try { const body = await error.context.json(); message = body.error || message; } catch { /* network error */ }
-    throw new Error(message);
-  }
-  if (data.error) throw new Error(data.error);
-  return data;
+  return withRequestTimeout(async signal => {
+    const { data: auth, error } = await client.auth.getSession();
+    if (signal.aborted) throw new Error('요청 시간이 초과되었습니다.');
+    if (error || !auth.session) throw new Error('인증이 만료되었습니다. 다시 연결해 주세요.');
+    const response = await fetch(`${SUPABASE_URL.replace(/\/$/, '')}/functions/v1/game-api`, {
+      method: 'POST', signal,
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: `Bearer ${auth.session.access_token}` },
+      body: JSON.stringify({ action, ...params }),
+    });
+    const data = await response.json();
+    if (!response.ok || data?.error) throw new Error(data?.error || '서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    return data;
+  });
 }
 export async function subscribe(roomId, onUpdate, onStatus) {
   if (channel) await client.removeChannel(channel);
