@@ -141,3 +141,36 @@
  .party-grid .player-info{margin-top:-22px;padding:8px 7px}
  .party-grid .player-info .player-stats{gap:3px 5px}
 }
+
+/* The panel starts around the knees, while its backdrop remains behind the art. */
+body:has(.game-top) .site-header{height:74px}
+.game-top{margin:12px 0 10px}
+.party-grid .player-panel{--art-stage-height:clamp(260px,36vh,430px);--art-overlap:clamp(83px,11.5vh,138px)}
+.party-grid .player-art-stage{height:var(--art-stage-height);z-index:1}
+.party-grid .illustrated-panel .player-art-stage .player-illustration,
+.party-grid .illustrated-panel.is-me .player-art-stage .player-illustration{
+ mask-image:linear-gradient(to bottom,#000 0%,#000 60%,#000d 72%,#0006 86%,transparent 100%);
+ -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 60%,#000d 72%,#0006 86%,transparent 100%);
+}
+.party-grid .player-art-stage .player-illustration-base{transform:translateY(calc(0px - var(--base-lift,0px)))}
+.party-grid .player-art-stage .player-pose-layer{top:calc(0px - var(--pose-lift,0px))}
+.party-grid .player-info{z-index:auto;margin-top:calc(0px - var(--art-overlap));background:transparent;backdrop-filter:none;box-shadow:none}
+.party-grid .player-info::before{content:"";position:absolute;inset:0;z-index:0;border-radius:inherit;background:linear-gradient(180deg,#25202d8c,#211d2ad9 32%,#1e1b26f2 80%);backdrop-filter:blur(3px);pointer-events:none}
+.party-grid .player-info>*{position:relative;z-index:2}
+.party-grid .player-panel.is-me .player-info{box-shadow:none}
+.party-grid .player-panel.knocked-out .player-info{background:transparent}
+.party-grid .player-panel.knocked-out .player-info::before{background:linear-gradient(180deg,#2718219c,#271821f2 70%)}
+
+@media(min-width:761px) and (max-width:1100px){
+ .party-grid .player-panel.is-me{--art-stage-height:clamp(285px,34vh,385px);--art-overlap:clamp(91px,10.9vh,123px)}
+ .party-grid .player-panel:not(.is-me){--art-stage-height:clamp(210px,26vh,295px);--art-overlap:clamp(67px,8.3vh,94px)}
+ .party-grid .player-panel .player-art-stage{height:var(--art-stage-height)}
+}
+@media(max-width:760px){
+ body:has(.game-top) .site-header{height:66px}
+ .game-top{margin:10px 0 8px}
+ .party-grid .player-panel.is-me{--art-stage-height:clamp(245px,43vh,375px);--art-overlap:clamp(78px,13.7vh,120px)}
+ .party-grid .player-panel:not(.is-me){--art-stage-height:clamp(120px,20vh,175px);--art-overlap:clamp(38px,6.4vh,56px)}
+ .party-grid .player-panel .player-art-stage{height:var(--art-stage-height)}
+ .party-grid .player-panel .player-info{margin-top:calc(0px - var(--art-overlap))}
+}

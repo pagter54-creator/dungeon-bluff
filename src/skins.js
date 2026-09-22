@@ -24,6 +24,13 @@ export const SKIN_ART_LAYOUT={
  gambler0:{scale:1.06,offsetX:0,offsetY:0},
  berserker0:{scale:1.04,offsetX:0,offsetY:0},
 };
+// Some supplied pose canvases are shorter than the standing art. Lift only
+// those files so their face and weapon sit at the same visual height.
+export const SKIN_POSE_LIFT={
+ prophet0_A:42,prophet0_D:42,prophet1_A:38,
+ prophet2:36,prophet2_A:38,prophet2_D:38,
+ prophet3_A:40,prophet3_D:40,thief3_D:34,
+};
 // These are preloaded because the files currently exist. Future pose files still
 // work automatically on first use without adding them to this list.
 export const AVAILABLE_POSES=Object.values(SKINS).filter(s=>s.id.startsWith('berserker')).flatMap(s=>[s.attack,s.damage]);
@@ -38,5 +45,5 @@ export function skinPortrait(character,loadout){
 export function skinIllustration(character,loadout){
  const skin=skinFor(character,loadout);
  const {scale=1,offsetX=0,offsetY=0,positionX=50,positionY=100}=SKIN_ART_LAYOUT[skin.id]||{};
- return `<div class="player-illustration" data-attack-src="${skin.attack}" data-damage-src="${skin.damage}" style="--art-scale:${scale};--art-offset-x:${offsetX}px;--art-offset-y:${offsetY}px;--art-position-x:${positionX}%;--art-position-y:${positionY}%"><img class="player-illustration-base" src="${skin.preview}" alt="${skin.name}" draggable="false" decoding="async"></div>`;
+ return `<div class="player-illustration" data-attack-src="${skin.attack}" data-damage-src="${skin.damage}" data-attack-lift="${SKIN_POSE_LIFT[skin.id+'_A']||0}" data-damage-lift="${SKIN_POSE_LIFT[skin.id+'_D']||0}" style="--art-scale:${scale};--art-offset-x:${offsetX}px;--art-offset-y:${offsetY}px;--art-position-x:${positionX}%;--art-position-y:${positionY}%;--base-lift:${SKIN_POSE_LIFT[skin.id]||0}px"><img class="player-illustration-base" src="${skin.preview}" alt="${skin.name}" draggable="false" decoding="async"></div>`;
 }

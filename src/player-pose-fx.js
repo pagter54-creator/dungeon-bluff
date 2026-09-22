@@ -37,6 +37,7 @@ export async function setKnockoutPose(panel,knockedOut){
   const layer=document.createElement('img');
   layer.className='player-pose-layer knockout-pose';
   layer.src=url;layer.alt='';layer.draggable=false;
+  layer.style?.setProperty('--pose-lift',`${Number(frame.dataset.damageLift)||0}px`);
   frame.append(layer);
   requestAnimationFrame(()=>{
     if(knockoutRequests.get(frame)===request)frame.classList.add('knockout-art');
@@ -55,6 +56,7 @@ export async function showPlayerPose(panel,kind){
   const layer=document.createElement('img');
   layer.className=`player-pose-layer pose-${kind}`;
   layer.src=url;layer.alt='';layer.draggable=false;
+  layer.style?.setProperty('--pose-lift',`${Number(kind==='attack'?frame.dataset.attackLift:frame.dataset.damageLift)||0}px`);
   frame.append(layer);frame.classList.add(`showing-${kind}`);
   if(!reducedMotion()){
     base.animate([{opacity:1,filter:'brightness(1)'},{opacity:.22,filter:'brightness(2.4)'},{opacity:.5,filter:'brightness(.75)'}],{duration:220,fill:'forwards'});
