@@ -1,6 +1,7 @@
 /* Full artwork sits behind the HUD and fades into the playable card row. */
 .arena{min-height:310px;padding:18px 24px}
 .arena .enemy-art{width:190px;height:145px;margin:-6px auto -8px}
+.arena .enemy-art:has(.monster-illustration){width:min(330px,46vw);height:250px;margin:0 auto 8px}
 .arena .enemy-health{margin-bottom:8px}
 .party-grid{margin-top:76px;row-gap:66px}
 .illustrated-panel{isolation:isolate;overflow:visible}
@@ -43,6 +44,7 @@
 }
 @media(prefers-reduced-motion:reduce){.player-illustration,.player-illustration .knockout-pose,.player-illustration.knockout-art .player-illustration-base{transition:none}}
 @media(min-width:761px) and (max-width:1100px){
+ .arena .enemy-art:has(.monster-illustration){width:290px;height:225px}
  .illustrated-panel.is-me .player-content{min-height:150px}
  .illustrated-panel.is-me .player-illustration{height:335px}
  .party-grid .illustrated-panel.is-me .cycle-pool{max-width:none}
@@ -50,6 +52,7 @@
 @media(max-width:760px){
  .arena{min-height:290px;padding:16px 12px}
  .arena .enemy-art{width:170px;height:135px}
+ .arena .enemy-art:has(.monster-illustration){width:min(250px,68vw);height:215px;margin:0 auto 10px}
  .party-grid{margin-top:62px;row-gap:20px}
  .illustrated-panel.is-me .player-illustration{top:-58px;height:300px}
  .illustrated-panel.is-me .player-illustration img{max-width:390px}

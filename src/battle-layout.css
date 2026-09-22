@@ -1,0 +1,86 @@
+/* A compact encounter HUD leaves room for the four character stages below it. */
+.arena{
+ display:grid;grid-template-columns:minmax(82px,1fr) minmax(0,420px) minmax(82px,1fr);
+ grid-template-rows:auto minmax(150px,180px) auto auto auto;
+ align-items:center;column-gap:12px;min-height:0;padding:14px 22px 15px;
+}
+.arena::before,.arena::after{display:none}
+.arena-grid{width:320px;height:245px;top:58%;opacity:.55}
+.arena .encounter-heading{grid-column:2;grid-row:1;z-index:1}
+.arena .encounter-heading h1{font-size:22px;margin:5px 0 2px}
+.arena .enemy-art,.arena .enemy-art:has(.monster-illustration){grid-column:2;grid-row:2;z-index:1;width:min(300px,100%);height:180px;margin:0 auto}
+.arena .enemy-art:not(:has(.monster-illustration)){width:min(230px,100%);height:165px}
+.arena .arena-side{position:relative;top:auto;left:auto;right:auto;z-index:1;gap:4px;min-width:0}
+.arena .arena-side.left{grid-column:1;grid-row:2}
+.arena .arena-side.right{grid-column:3;grid-row:2}
+.arena .arena-side b{font-size:25px;line-height:1}
+.arena .enemy-health{grid-column:2;grid-row:3;width:min(100%,360px);max-width:none;margin:0 auto 2px}
+.arena .intent{grid-column:1/-1;grid-row:4;max-width:100%;margin:8px auto 0}
+.arena .intent p{max-width:100%;margin:0}
+.arena .boss-status{grid-column:1/-1;grid-row:5;margin:8px auto 0;padding:8px 12px}
+
+/* Artwork is a separate, unmasked stage. Only the lower information panel has a frame. */
+.party-grid{margin-top:10px;row-gap:20px;align-items:stretch}
+.party-grid .player-panel.illustrated-panel{display:flex;flex-direction:column;min-width:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;overflow:visible}
+.party-grid .player-art-stage{position:relative;z-index:0;height:clamp(215px,20vw,300px);width:100%;pointer-events:none;isolation:isolate}
+.party-grid .player-art-stage::after{content:"";position:absolute;bottom:3px;left:13%;width:74%;height:17px;border-radius:50%;background:#ab77bd19;filter:blur(9px);z-index:-1}
+.party-grid .illustrated-panel .player-art-stage .player-illustration,
+.party-grid .illustrated-panel.is-me .player-art-stage .player-illustration{
+ position:absolute;inset:auto 0 0;display:block;width:100%;height:100%;overflow:visible;
+ transform:translate(var(--art-offset-x,0px),var(--art-offset-y,0px)) scale(var(--art-scale,1));
+ transform-origin:bottom center;mask-image:none;-webkit-mask-image:none;
+}
+.party-grid .illustrated-panel .player-art-stage .player-illustration img,
+.party-grid .illustrated-panel.is-me .player-art-stage .player-illustration img{
+ display:block;width:100%;max-width:none;height:100%;margin:0;object-fit:contain;
+ object-position:var(--art-position-x,50%) var(--art-position-y,100%);
+}
+.party-grid .illustrated-panel .player-art-stage .player-illustration .player-pose-layer{
+ position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+ object-position:var(--art-position-x,50%) var(--art-position-y,100%);
+}
+.party-grid .player-info{position:relative;z-index:1;flex:1;min-width:0;padding:13px;border:1px solid #473a50;border-radius:7px;background:linear-gradient(160deg,#24202c,#1e1b26 74%);box-shadow:0 14px 26px #0002}
+.party-grid .player-panel.is-me .player-info{border-color:#a48a5e;box-shadow:0 0 23px #be92501c}
+.party-grid .player-panel.knocked-out .player-info{border-color:#693848;background:#271821}
+.party-grid .player-panel.kill-winner{padding:0;border:0;box-shadow:none}
+.party-grid .player-panel.kill-winner .player-info{border:2px solid #63ff9c;box-shadow:0 0 35px #63ff9c77,inset 0 0 35px #63ff9c22}
+.party-grid .player-info .player-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;min-height:0}
+.party-grid .player-info .player-identity-bar{display:block;flex:1;min-width:0;margin:0;padding:0;border:0;background:none}
+.party-grid .player-info .player-identity-bar h3{font-size:12px;line-height:1.35}
+.party-grid .player-info .player-identity-bar small{display:block;overflow:hidden;text-overflow:ellipsis;margin:2px 0 0}
+.party-grid .player-info .hearts{margin:0;padding:2px 4px;flex:none}
+.party-grid .illustrated-panel .player-info .player-content,
+.party-grid .illustrated-panel.is-me .player-info .player-content{min-height:70px;align-items:center;justify-content:space-between;gap:8px;margin:10px 0}
+.party-grid .player-info .player-stats{padding:0;background:none}
+.party-grid .player-info .cycle-pool{margin:0 0 12px}
+.party-grid .player-info .player-bottom{min-height:32px}
+
+@media(min-width:761px) and (max-width:1100px){
+ .party-grid .player-panel.is-me .player-art-stage{height:clamp(270px,36vw,400px)}
+ .party-grid .player-panel:not(.is-me) .player-art-stage{height:clamp(190px,22vw,260px)}
+}
+@media(max-width:760px){
+ .arena{grid-template-columns:minmax(45px,1fr) minmax(0,245px) minmax(45px,1fr);grid-template-rows:auto minmax(135px,155px) auto auto auto;column-gap:4px;padding:12px 10px}
+ .arena-grid{width:245px;height:190px}
+ .arena .encounter-heading h1{font-size:19px}
+ .arena .enemy-art,.arena .enemy-art:has(.monster-illustration){width:min(225px,100%);height:155px;margin:0 auto}
+ .arena .enemy-art:not(:has(.monster-illustration)){height:145px}
+ .arena .arena-side b{font-size:20px}
+ .arena .arena-side small{display:none}
+ .arena .enemy-health{max-width:100%}
+ .arena .intent{flex-direction:column;gap:5px;margin-top:8px}
+ .arena .intent p{font-size:9px}
+ .party-grid{margin-top:8px;row-gap:18px}
+ .party-grid .player-panel.is-me,.party-grid .player-panel:not(.is-me){padding:0}
+ .party-grid .player-panel.is-me .player-art-stage{height:clamp(250px,65vw,410px)}
+ .party-grid .player-panel:not(.is-me) .player-art-stage{height:clamp(110px,22vw,175px)}
+ .party-grid .illustrated-panel:not(.is-me) .player-art-stage .player-illustration{inset:auto 0 0;width:100%;height:100%}
+ .party-grid .illustrated-panel:not(.is-me) .player-art-stage .player-illustration img{width:100%;height:100%;margin:0;max-width:none}
+ .party-grid .player-info{padding:9px 7px}
+ .party-grid .illustrated-panel:not(.is-me) .player-info .player-content,
+ .party-grid .illustrated-panel.is-me .player-info .player-content{min-height:58px;margin:8px 0;gap:3px}
+ .party-grid .player-panel:not(.is-me) .player-info .player-heading{min-height:0;flex-wrap:wrap}
+ .party-grid .player-panel:not(.is-me) .player-info .hearts{margin:0}
+ .party-grid .player-panel:not(.is-me) .player-info .player-identity-bar{padding:0;margin:0}
+ .party-grid .player-panel:not(.is-me) .player-info .player-identity-bar small{margin-top:2px}
+}

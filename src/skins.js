@@ -18,6 +18,12 @@ export const SKINS=Object.fromEntries(groups.flatMap(([stem,character,label,name
   damage:new URL(`../skin image/${id}_D.png`,import.meta.url).href}];
 })));
 export const DEFAULT_SKINS=Object.fromEntries(Object.values(SKINS).filter(s=>s.isDefault).map(s=>[s.character,s.id]));
+// Tune individual silhouettes here as new poses arrive. Values are applied to
+// the whole contained image, including its attack and damage variants.
+export const SKIN_ART_LAYOUT={
+ gambler0:{scale:1.06,offsetX:0,offsetY:0},
+ berserker0:{scale:1.04,offsetX:0,offsetY:0},
+};
 // These are preloaded because the files currently exist. Future pose files still
 // work automatically on first use without adding them to this list.
 export const AVAILABLE_POSES=Object.values(SKINS).filter(s=>s.id.startsWith('berserker')).flatMap(s=>[s.attack,s.damage]);
@@ -31,5 +37,6 @@ export function skinPortrait(character,loadout){
 }
 export function skinIllustration(character,loadout){
  const skin=skinFor(character,loadout);
- return `<div class="player-illustration" data-attack-src="${skin.attack}" data-damage-src="${skin.damage}"><img class="player-illustration-base" src="${skin.preview}" alt="${skin.name}" draggable="false" decoding="async"></div>`;
+ const {scale=1,offsetX=0,offsetY=0,positionX=50,positionY=100}=SKIN_ART_LAYOUT[skin.id]||{};
+ return `<div class="player-illustration" data-attack-src="${skin.attack}" data-damage-src="${skin.damage}" style="--art-scale:${scale};--art-offset-x:${offsetX}px;--art-offset-y:${offsetY}px;--art-position-x:${positionX}%;--art-position-y:${positionY}%"><img class="player-illustration-base" src="${skin.preview}" alt="${skin.name}" draggable="false" decoding="async"></div>`;
 }
