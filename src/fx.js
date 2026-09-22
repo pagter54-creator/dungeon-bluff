@@ -2,7 +2,7 @@ import { monsterAttack } from './monster-fx.js';
 import { finishAnimation } from './animation-wait.js';
 import { playTone as tone, getAudio } from './audio.js';
 import { characterAttack, animateCycle } from './character-fx.js';
-import { showPlayerPose } from './player-pose-fx.js';
+import { showPlayerPose,setKnockoutPose } from './player-pose-fx.js';
 
 const canvas = document.querySelector('#fx-canvas');
 const ctx = canvas.getContext('2d');
@@ -145,11 +145,11 @@ export async function reveal(result) {
       if(result.monsterBefore) await monsterAttack(result.stage.shape,target(),point,{burst,ring,tone,reduced});
       else await bolt(target(), point, '#ff687e'); el?.classList.add('hit'); shake(true); textAt(point, `−${effect.amount} HP`, 'damage'); tone(65, .3, 'sawtooth', .07, 20);
       await sleep(reduced.matches?30:180);await restorePose();
-    } else if (effect.type === 'knockout') { textAt(point, 'KNOCKOUT', 'damage'); burst(point, '#ff5676', 100, 12, true); el?.classList.add('knocked-out'); }
+    } else if (effect.type === 'knockout') { textAt(point, 'KNOCKOUT', 'damage'); burst(point, '#ff5676', 100, 12, true); el?.classList.add('knocked-out');await setKnockoutPose(el,true); }
     else { burst(point, '#7ee6b6', 60, 4); ring(point, '#7ee6b6'); textAt(point, effect.type === 'revive' ? `부활 · HP ${hp}` : `+${effect.amount} HP`, 'heal'); tone(520, .3, 'sine', .07, 880); }
     hearts.forEach((heart, i) => heart.classList.toggle('filled', i < hp));
     el?.querySelector('.hearts')?.setAttribute('aria-label', `HP ${hp}/${hearts.length}`);
-    if (effect.type === 'revive') el?.classList.remove('knocked-out');
+    if (effect.type === 'revive') { el?.classList.remove('knocked-out');await setKnockoutPose(el,false); }
     await sleep(reduced.matches ? 30 : 220);
   }
   for (const effect of result.effects.filter(e => e.type === 'reward' && e.gold)) textAt(center(playerFor(effect.memberId)), `+${effect.gold} G`, 'gold');

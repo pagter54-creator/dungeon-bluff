@@ -2,6 +2,7 @@ import { finishAnimation } from './animation-wait.js';
 import { assetLoader } from './asset-loader.js';
 
 const active=new WeakMap();
+const knockoutRequests=new WeakMap();
 
 export function poseUrl(base,pose){
   return base.replace(/\.png(?:[?#].*)?$/i,`_${pose}.png`);
@@ -13,6 +14,34 @@ function canLoad(url){
 }
 
 function reducedMotion(){return matchMedia('(prefers-reduced-motion: reduce)').matches;}
+
+export async function setKnockoutPose(panel,knockedOut){
+  const frame=panel?.querySelector('.player-illustration');
+  if(!frame)return;
+  const request=(knockoutRequests.get(frame)||0)+1;
+  knockoutRequests.set(frame,request);
+  if(!knockedOut){
+    frame.classList.remove('knockout-art');
+    for(const layer of frame.querySelectorAll('.knockout-pose')){
+      layer.removeTimer=setTimeout(()=>layer.remove(),reducedMotion()?0:280);
+    }
+    return;
+  }
+  const current=frame.querySelector('.knockout-pose');
+  if(current){
+    clearTimeout(current.removeTimer);
+    frame.classList.add('knockout-art');return;
+  }
+  const url=frame.dataset.damageSrc;
+  if(!await canLoad(url)||knockoutRequests.get(frame)!==request||!frame.isConnected)return;
+  const layer=document.createElement('img');
+  layer.className='player-pose-layer knockout-pose';
+  layer.src=url;layer.alt='';layer.draggable=false;
+  frame.append(layer);
+  requestAnimationFrame(()=>{
+    if(knockoutRequests.get(frame)===request)frame.classList.add('knockout-art');
+  });
+}
 
 export async function showPlayerPose(panel,kind){
   const frame=panel?.querySelector('.player-illustration');

@@ -1,6 +1,6 @@
 import {assetLoader} from './asset-loader.js';
 import { SKINS,skinFor } from './skins.js';
-const names=['gold','stars','jade'];
+const names=['gold','stars','jade','crimson','frost'];
 export const COSMETIC_ASSETS={
  ...SKINS,
  default_card_front:{type:'card_front',name:'기본 앞면',className:'cosmetic-front-default'},

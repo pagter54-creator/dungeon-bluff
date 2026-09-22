@@ -5,18 +5,23 @@
 .party-grid{margin-top:76px;row-gap:66px}
 .illustrated-panel{isolation:isolate;overflow:visible}
 .illustrated-panel .player-illustration{
- position:absolute;z-index:0;pointer-events:none;user-select:none;
+ position:absolute;z-index:0;pointer-events:none;user-select:none;transition:translate .22s ease;
  top:-52px;left:0;width:100%;height:270px;overflow:hidden;
  -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 62%,#0009 78%,transparent 100%);
  mask-image:linear-gradient(to bottom,#000 0%,#000 62%,#0009 78%,transparent 100%);
 }
 .player-illustration img{display:block;width:100%;max-width:370px;height:auto;margin:0 auto;pointer-events:none;filter:drop-shadow(0 0 15px #0006)}
 .player-illustration .player-pose-layer{position:absolute;inset:0;width:100%;height:auto;object-fit:contain;object-position:top center;z-index:2;will-change:opacity,transform,filter}
+.player-illustration:is(.showing-attack,.showing-damage,.knockout-art){translate:0 -14px}
+.player-illustration .knockout-pose{opacity:0;transition:opacity .28s ease}
+.player-illustration.knockout-art .knockout-pose{opacity:1}
+.player-illustration.knockout-art .player-illustration-base{opacity:.18;transition:opacity .28s ease}
 .player-illustration.showing-attack{filter:drop-shadow(0 0 15px color-mix(in srgb,var(--character-color) 65%,transparent))}
 .player-illustration.showing-damage{filter:drop-shadow(0 0 18px #ff5b7466)}
 .illustrated-panel.is-me .player-illustration{top:-70px;height:325px}
 .illustrated-panel.is-me .player-illustration img{max-width:460px}
 .illustrated-panel.knocked-out .player-illustration{filter:grayscale(.8);opacity:.55}
+.illustrated-panel.knocked-out .player-illustration.knockout-art{opacity:.75}
 .illustrated-panel> :is(.player-heading,.player-content,.cycle-pool,.player-identity-bar,.player-bottom,.boss-player-mark,.seer-vision,.active-skill,.panel-controls,.runtime-label){position:relative;z-index:1}
 .illustrated-panel .player-heading{justify-content:flex-end;align-items:flex-start;min-height:38px;gap:8px}
 .illustrated-panel .hearts{flex:none;margin:5px 0 0 auto;padding:3px 5px;border-radius:5px;background:#19151ed9}
@@ -36,6 +41,7 @@
 @media(min-width:1101px){
  .party-grid{grid-template-columns:1.5fr repeat(3,minmax(0,1fr))}
 }
+@media(prefers-reduced-motion:reduce){.player-illustration,.player-illustration .knockout-pose,.player-illustration.knockout-art .player-illustration-base{transition:none}}
 @media(min-width:761px) and (max-width:1100px){
  .illustrated-panel.is-me .player-content{min-height:150px}
  .illustrated-panel.is-me .player-illustration{height:335px}
