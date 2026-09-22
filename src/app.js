@@ -1,7 +1,8 @@
+import { loadInitialAssets,loadBackgroundAssets,ensureGameAssets } from './loading-ui.js';
 import { isShuffleTurn,selectionInfo,toggleCardSelection } from './battle-rules.js';
-import { skinPortrait } from './skins.js';
+import { skinPortrait,skinFor } from './skins.js';
 import { initAccountUI, refreshAccount, openAccountPage, getAccount } from './account-ui.js';
-import { preloadEssentials, preloadSession } from './cosmetics.js';
+import { preloadSession } from './cosmetics.js';
 import * as api from './api.js';
 import { dungeonArt, creatureArt, eventArt } from './art.js';
 import { reveal, finale } from './fx.js';
@@ -55,6 +56,7 @@ async function perform(action, params = {}) {
   if (busy) return;
   busy = true; updateBusy();
   try {
+    if (['create_room','join_room','start_game'].includes(action)) await ensureGameAssets();
     const response = await api.request(action, { ...(bundle?.room ? { room_id: bundle.room.id } : {}), ...params });
     if (response.profile) {
       setProfile(response.profile); modal.close(); toast('닉네임을 저장했습니다.');
@@ -92,7 +94,7 @@ async function accept(next, restoring = false) {
       else {
         renderGame();
         if (newSession && !restoring && next.session.status === 'active') {
-          for (const p of Object.values(next.session.state.players)) if(p.character?.definition?.deckType === 'random') void animateCycle({memberId:p.memberId,random:true,cards:p.cycleCards});
+          for (const p of Object.values(next.session.state.players)) if(['random','continuous'].includes(p.character?.definition?.deckType)) void animateCycle({memberId:p.memberId,random:true,cards:p.cycleCards});
         }
       }
     }
@@ -179,7 +181,7 @@ function renderLobby() {
     const m = members.find(m => m.seat_index === seat);
     if (!m) return `<article class="lobby-slot empty"><span class="seat-number">0${seat + 1}</span><div class="empty-avatar">＋</div><h3>동료를 기다리는 중</h3><p>함께할 한 자리가 남았어요</p>${host ? '<button class="button secondary small" data-action="ai">AI 동료 추가 +</button>' : '<span class="muted">호스트가 AI를 추가할 수 있어요</span>'}</article>`;
     const character = characterFor(bundle, m.character_id);
-    return `<article class="lobby-slot seat-${seat}"><span class="seat-number">0${seat + 1}</span><span class="member-badge">${m.member_type === 'ai' ? 'AI COMPANION' : 'HUMAN'}${m.user_id === room.host_user_id ? ' · HOST' : ''}</span><div class="avatar avatar-${seat}">${skinPortrait(character.id,m.user_id===api.user.id?getAccount()?.loadout:null)}</div><h3>${escape(m.display_name)}${m.user_id === api.user.id ? '<small> 나</small>' : ''}</h3><p>${escape(character.display_name)}${m.ai_type ? ' · ' + AI[m.ai_type][0] : ''}</p><p class="lobby-deck">${escape(deckLabel(character))}</p><p>${escape(character.definition?.skill?.name || '')}</p>${m.user_id === api.user.id || (host && m.member_type === 'ai') ? `<button class="button secondary small" data-action="character-select" data-member="${m.id}">캐릭터 선택</button>` : ''}${host && m.member_type === 'ai' ? `<button class="text-button remove-ai" data-action="remove-ai" data-id="${m.id}" data-network>AI 제거</button>` : '<span class="ready-marker">✓ 원정 준비 완료</span>'}</article>`;
+    return `<article class="lobby-slot illustrated-lobby seat-${seat}"><div class="lobby-illustration" aria-hidden="true"><img src="${skinFor(character.id,m.user_id===api.user.id?getAccount()?.loadout:m.loadout).preview}" alt="" draggable="false"></div><span class="seat-number">0${seat + 1}</span><span class="member-badge">${m.member_type === 'ai' ? 'AI COMPANION' : 'HUMAN'}${m.user_id === room.host_user_id ? ' · HOST' : ''}</span><div class="lobby-member-info"><h3>${escape(m.display_name)}${m.user_id === api.user.id ? '<small> 나</small>' : ''}</h3><p>${escape(character.display_name)}${m.ai_type ? ' · ' + AI[m.ai_type][0] : ''}</p><p class="lobby-deck">${escape(deckLabel(character))}</p><p>${escape(character.definition?.skill?.name || '')}</p>${m.user_id === api.user.id || (host && m.member_type === 'ai') ? `<button class="button secondary small" data-action="character-select" data-member="${m.id}">캐릭터 선택</button>` : ''}${host && m.member_type === 'ai' ? `<button class="text-button remove-ai" data-action="remove-ai" data-id="${m.id}" data-network>AI 제거</button>` : '<span class="ready-marker">✓ 원정 준비 완료</span>'}</div></article>`;
   }).join('')}</div><section class="departure"><div><span class="eyebrow">YOUR PARTY</span><h2>${members.length}<small> / 4명 준비 완료</small></h2><p>카드는 모든 방에서 공유됩니다. 서로 다른 선택이 생존을 만듭니다.</p></div>${host ? `<button class="button primary start-button" data-action="start" data-network data-unavailable="${members.length !== 4}" ${members.length !== 4 ? 'disabled' : ''}>${members.length === 4 ? '던전 입장' : `${4 - members.length}명의 동료가 더 필요해요`} <span>→</span></button>` : '<p class="muted">호스트가 원정을 시작하기를 기다리고 있습니다.</p>'}</section>`;
 }
 function hearts(player) { return Array.from({ length: player.maxHp }, (_, i) => `<span class="heart ${i < player.hp ? 'filled' : ''}">♥</span>`).join(''); }
@@ -209,6 +211,7 @@ document.addEventListener('click', async event => {
   const action = button.dataset.action;
   if (action === 'home') renderHome();
   if (action === 'setup') setupHelp();
+  if (['create','find','join'].includes(action)) {try {await ensureGameAssets();}catch(error){toast(error.message);return;}}
   if (action === 'create') createModal();
   if (action === 'find') void renderFind();
   if (action === 'refresh') void loadRooms();
@@ -249,7 +252,7 @@ document.addEventListener('submit', async event => {
 });
 document.querySelector('.modal-close').addEventListener('click', () => modal.close());
 modal.addEventListener('click', event => { if (event.target === modal) { const r = modal.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) modal.close(); } });
-document.querySelector('#help').addEventListener('click', () => showModal('<div class="eyebrow">HOW TO SURVIVE</div><h2>눈치를 읽고, 살아남아라.</h2><ol class="guide-list"><li><b>각자 카드 한 장.</b> 4명 모두 비밀리에 선택합니다.</li><li><b>같은 숫자는 전부 무효.</b> 유효한 카드만 공격과 방 효과에 참여합니다.</li><li><b>모든 제출 카드는 소비.</b> 5장을 쓰면 자신의 기본 덱을 다시 받습니다.</li><li><b>HP는 3.</b> 0이 되면 한 턴 자동 제출 후 HP 3으로 부활합니다.</li><li><b>누적 기절 8회는 전멸.</b> 도달 스테이지에 따라 원정 점수·골드를 정산합니다. 1~4층 0%, 5층 20%, 6층 30%, 7층 40%, 8층 50%, 9층 60%, 보스층 70%, 클리어 100%. 소수점은 버립니다.</li><li><b>10번째 방은 보스.</b> 2턴마다 일반 공격과 특수 패턴을 번갈아 사용합니다. 일반 몬스터는 3턴마다 공격합니다.</li></ol><p class="muted">일반 공격은 카드 숫자만큼 피해를 줍니다. 적이 쓰러지는 턴에도 모든 유효 카드가 끝까지 공격합니다. 최고 피해자는 +10점과 기존 처치 보너스 3G를 받습니다. 기절할 때마다 -5점, -2G가 적용됩니다.</p>'));
+document.querySelector('#help').addEventListener('click', () => showModal('<div class="eyebrow">HOW TO SURVIVE</div><h2>눈치를 읽고, 살아남아라.</h2><ol class="guide-list"><li><b>각자 카드 한 장.</b> 4명 모두 비밀리에 선택합니다.</li><li><b>같은 숫자는 전부 무효.</b> 유효한 카드만 공격과 방 효과에 참여합니다.</li><li><b>모든 제출 카드는 소비.</b> 5장을 쓰면 자신의 기본 덱을 다시 받습니다. 도박사는 사이클 없이 손패 2장을 유지하며 한 장을 쓰면 다음 턴에 한 장을 보충합니다.</li><li><b>HP는 3.</b> 0이 되면 한 턴 자동 제출 후 HP 3으로 부활합니다.</li><li><b>누적 기절 8회는 전멸.</b> 도달 스테이지에 따라 원정 점수·골드를 정산합니다. 1~4층 0%, 5층 20%, 6층 30%, 7층 40%, 8층 50%, 9층 60%, 보스층 70%, 클리어 100%. 소수점은 버립니다.</li><li><b>10번째 방은 보스.</b> 2턴마다 일반 공격과 특수 패턴을 번갈아 사용합니다. 일반 몬스터는 3턴마다 공격합니다.</li></ol><p class="muted">일반 공격은 카드 숫자만큼 피해를 줍니다. 적이 쓰러지는 턴에도 모든 유효 카드가 끝까지 공격합니다. 최고 피해자는 +10점과 기존 처치 보너스 3G를 받습니다. 기절할 때마다 -5점, -2G가 적용됩니다.</p>'));
 document.querySelector('#nickname').addEventListener('click', () => void openAccountPage('account'));
 initAccountUI({showModal,toast,canSwitch:()=>!bundle,ready:()=>connected,onNickname:()=>bundle?sync():Promise.resolve(),onAccount:data=>{
   setProfile(data.profile);
@@ -263,7 +266,8 @@ addEventListener('online', () => { status('재연결 중'); void sync(); });
 addEventListener('offline', () => status('연결 끊김 · 복구 대기'));
 document.addEventListener('visibilitychange', () => { if (!document.hidden) void sync(); });
 setInterval(() => { if (!document.hidden && connected && bundle) void sync(); }, 5000);
-await preloadEssentials();
+try {await loadInitialAssets();} catch(error) {toast(error.message);}
+void loadBackgroundAssets();
 renderHome();
 try {
   connected = await api.connect(status);

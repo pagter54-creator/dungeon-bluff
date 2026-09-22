@@ -1,0 +1,25 @@
+/* Full illustrations stay inside their own preparation slot. */
+.lobby-slot.illustrated-lobby{position:relative;isolation:isolate;overflow:hidden;min-height:440px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:28px 16px 22px}
+.lobby-illustration{position:absolute;inset:0;z-index:-1;pointer-events:none;background:#201e29}
+.lobby-illustration img{width:100%;height:100%;object-fit:cover;object-position:50% 15%;filter:grayscale(1);opacity:.48;mask-image:linear-gradient(#000 45%,#0009 85%,#0005)}
+.illustrated-lobby .member-badge{position:relative;z-index:1;margin:0 auto auto;padding:9px 12px;background:#201e29c9;border-radius:4px}
+.illustrated-lobby .seat-number{z-index:1}
+.lobby-member-info{position:relative;width:100%;min-width:0;margin-top:140px;padding:16px 10px 8px;border:1px solid #d8bb7e20;border-radius:8px;background:linear-gradient(#201e29d9,#201e29f5);text-align:center;box-sizing:border-box}
+.lobby-member-info h3{overflow-wrap:anywhere;margin:0 0 9px;font-size:16px}
+.lobby-member-info p{margin:10px 0}.lobby-member-info .ready-marker{display:block;margin-top:18px}
+.lobby-member-info .remove-ai{position:static;display:block;margin:12px auto 0}
+.lobby-member-info .lobby-deck{font-size:14px;line-height:1.6}
+.enemy-art .monster-illustration{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 12px 18px #0008);animation:monster-breathe 4s ease-in-out infinite}
+.monster-projectile{position:fixed;pointer-events:none;font-size:70px;line-height:1;text-shadow:0 0 16px currentColor,0 0 38px currentColor;will-change:transform,opacity}
+.monster-charge{font-size:100px;font-weight:900}.monster-echo{font-size:95px}.monster-arrow{font-size:76px}.monster-slam{font-size:110px}.monster-curse{border:3px solid currentColor;border-radius:50%;width:100px;height:100px;text-align:center}.monster-splash{font-size:35px}.monster-bomb{font-size:65px}.monster-bite{font-size:100px}
+.cycle-pool.continuous-hand{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));max-width:240px;margin-left:auto;margin-right:auto;width:100%}
+.asset-loading{color:#ede8f4;border:1px solid #d9bc8055;border-radius:18px;background:radial-gradient(ellipse at top,#362c45,#17151f 70%);width:min(520px,calc(100vw - 40px));padding:40px 28px;text-align:center;box-sizing:border-box;box-shadow:0 24px 100px #0009}
+.asset-loading::backdrop{background:#10101bf2;backdrop-filter:blur(12px)}
+.asset-loading h2{font-size:24px}.asset-loading p{color:#b7aebe;font-size:14px;line-height:1.7;min-height:48px}
+.asset-loading progress{width:100%;height:8px;accent-color:#d9bc80;border:0;border-radius:8px;overflow:hidden;background:#373040}
+.asset-loading progress::-webkit-progress-bar{background:#373040}.asset-loading progress::-webkit-progress-value{background:linear-gradient(90deg,#947451,#f6dfab)}
+.loading-sigil{font-size:70px;color:#e1c58d;text-shadow:0 0 36px #d9bc8066;animation:loading-pulse 2s ease-in-out infinite}.loading-actions{display:flex;gap:12px;justify-content:center;margin-top:24px}.loading-actions:empty{display:none}
+@keyframes loading-pulse{50%{opacity:.45;transform:scale(.9)}}
+@keyframes monster-breathe{50%{translate:0 -6px}}
+@media(max-width:650px){.lobby-slot.illustrated-lobby{min-height:360px;padding:18px 10px}.lobby-member-info{margin-top:105px}.lobby-member-info h3{font-size:14px}.asset-loading{padding:28px 18px}.asset-loading h2{font-size:20px}}
+@media(prefers-reduced-motion:reduce){.enemy-art .monster-illustration,.loading-sigil{animation:none}}

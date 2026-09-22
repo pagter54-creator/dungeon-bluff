@@ -1,3 +1,4 @@
+import { MONSTER_IMAGES } from './monster-assets.js';
 // Original code-native vector artwork. No external image dependencies.
 export function dungeonArt() {
   return `<svg class="dungeon-art" viewBox="0 0 900 760" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -18,18 +19,8 @@ export function dungeonArt() {
   <g fill="#272231" stroke="#57495d"><path d="m430 135 18-38 25 39-24 29Z"/><path d="m138 586 42-13 40 42-72 9Z"/><path d="m665 614 42-49 55 24 18 42Z"/><path d="m279 659-31-24-36 8-10 25Z"/></g>
   <g fill="#d7b67e" opacity=".6"><circle cx="354" cy="422" r="2"/><circle cx="552" cy="464" r="2"/><circle cx="394" cy="297" r="2"/><circle cx="480" cy="513" r="1.5"/><circle cx="264" cy="214" r="2"/><circle cx="610" cy="356" r="2"/></g></svg>`;
 }
-export function creatureArt(shape = 'seer', color = '#b99af6') {
-  const parts = {
-    boar: `<path d="m61 159 23-65 56-24 63 25 31 71-40 43H100Z"/><path d="m91 162-35-37 9 62 37 9m98-34 38-37-8 62-37 9" class="bone"/><path d="m89 99 3-46 37 28m44 0 37-27-2 52"/><path d="m110 151 33-13 43 14-7 40h-57Z" class="dark"/><path d="m128 164 8 13m20-13 8 13" class="eye"/>`,
-    bat: `<path d="m127 121-45-60-49-29 10 77-27 44 51-4 23 39 35-16m48-51 45-60 49-29-10 77 27 44-51-4-23 39-35-16"/><path d="m112 178 10-83 17 15 12-34 12 34 18-15 8 83-39 40Z"/><path d="m133 145 9 7m28-7-10 7" class="eye"/>`,
-    hunter: `<path d="m75 211 34-64 7-67 33-39 43 46-6 68 39 56Z"/><path d="m116 99 34-31 34 31-18 65h-33Z" class="dark"/><path d="m127 119 17 4m28-4-17 4" class="eye"/><path d="m214 79 20 127m-37-96 53 9" class="bone"/>`,
-    golem: `<path d="m82 100 31-27 73 0 33 27-13 89-55 30-59-30Z"/><path d="m74 111-26 24-8 67 42-5m143-86 25 24 8 67-42-5M118 68l6-28h54l6 28"/><path d="m116 110 23 9m45-9-23 9" class="eye"/><path d="m151 130-18 28 18 24 17-24Z" class="eye"/>`,
-    seer: `<path d="m79 219 25-78 11-51 36-52 37 52 11 51 24 78-71-19Z"/><path d="m117 113 34-46 34 46-34 52Z" class="dark"/><path d="m128 119 23-10 22 10-22 10Z" class="eye"/><path d="m72 170 29-13m99 0 29 13m-80 7v16" class="bone"/><circle cx="151" cy="20" r="11" class="eye"/>`,
-    slime: `<path d="M47 187c-5-49 30-33 34-71s24-65 59-64c44-15 57 44 58 66s56 44 53 71c-9 46-194 51-204-2Z"/><path d="m103 133 20 5m60-5-20 5" class="eye"/><path d="m126 163 18 16 24-18" class="dark"/>`,
-    goblin: `<path d="m91 157-57-52 60 8 20-43 34-21 35 21 23 43 59-8-57 52-13 48-46 20-45-20Z"/><path d="m103 136 25 4m63-4-25 4" class="eye"/><path d="m119 176 31 9 29-9-12 22h-33Z" class="bone"/>`,
-    mimic: `<path d="m62 124 21-54h136l21 54-23 77H85Z"/><path d="m74 125 79 12 76-12-21 54H93Z" class="dark"/><path d="m90 131 9 25 13-22 14 27 15-23 17 25 14-25 12 21 15-25 10 19 10-24" class="bone"/><path d="m115 97 18 6m57-6-18 6" class="eye"/><path d="m137 182 13 13 14-13v28h-27Z" class="bone"/>`,
-  };
-  return `<svg class="creature" viewBox="0 0 300 260" aria-hidden="true" style="--creature-color:${color}"><ellipse cx="150" cy="231" rx="91" ry="15" fill="${color}" opacity=".13"/><g class="creature-body" fill="#30263c" stroke="${color}" stroke-width="3" stroke-linejoin="round">${parts[shape] || parts.seer}</g></svg>`;
+export function creatureArt(shape = 'seer') {
+  return '<img class="creature monster-illustration" src="'+(MONSTER_IMAGES[shape]||MONSTER_IMAGES.seer)+'" alt="" draggable="false" decoding="async">';
 }
 export function eventArt(category) {
   const inner = {

@@ -41,13 +41,18 @@ export async function animateCycle(effect) {
   const audio=getAudio();
   if (effect.random) audio.playSfx('sfx_gambler_draw',()=>audio.tone(220,.25,'triangle',.07,780));
   const cards=[...pool.querySelectorAll('.pool-card')];
-  for(const el of cards) { el.classList.add('face-down'); el.querySelector('b').textContent='◇'; el.querySelector('small').textContent=''; }
+  // Keep the unplayed card in its original slot; animate only the consumed slot.
+  const replacement=effect.continuous?effect.cards.find(c=>!effect.previousCards.some(old=>old.id===c.id)):null;
+  const targets=effect.continuous?cards.filter(el=>effect.previousCards.find(c=>c.id===el.dataset.cardInstance)?.used):cards;
+  for(const el of targets) { el.classList.add('face-down'); el.querySelector('b').textContent='◇'; el.querySelector('small').textContent=''; }
   const dice=document.createElement('span'); dice.className='cycle-dice'; dice.textContent=effect.random?'⚄':'↻'; pool.append(dice);
   try { await finishAnimation(dice.animate(reduce?[{opacity:0},{opacity:1}]:[{transform:'rotate(0) scale(.4)',opacity:0},{transform:'rotate(540deg) scale(1.2)',opacity:1}],{duration:reduce?60:effect.random?280:160})); }
   finally { dice.remove(); }
-  const animations=cards.map((el,i)=> {
-    el.classList.remove('spent','chosen','face-down'); el.classList.toggle('lucky-seven',effect.cards[i].value===7);
-    el.querySelector('b').textContent=effect.cards[i].value; el.querySelector('small').textContent='◆';
+  const animations=targets.map((el,i)=> {
+    const card=replacement||effect.cards[i];
+    el.dataset.cardInstance=card.id;if(el.dataset.cardId)el.dataset.cardId=card.id;
+    el.classList.remove('spent','chosen','face-down'); el.classList.toggle('lucky-seven',card.value===7);
+    el.querySelector('b').textContent=card.value; el.querySelector('small').textContent='◆';
     return finishAnimation(el.animate(reduce?[{opacity:.3},{opacity:1}]:[{transform:'rotateY(90deg)',opacity:0},{transform:'rotateY(0deg)',opacity:1}],{duration:reduce?60:240,delay:reduce?0:i*35,fill:'both'}));
   });
   if(effect.random && effect.cards.some(c=>c.value===7)) audio.playSfx('sfx_gambler_lucky',()=>audio.tone(1000,.3,'sine',.06,1500));

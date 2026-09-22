@@ -1,3 +1,4 @@
+import {assetLoader} from './asset-loader.js';
 import { SKINS,skinFor } from './skins.js';
 const names=['gold','stars','jade'];
 export const COSMETIC_ASSETS={
@@ -13,15 +14,7 @@ export function cosmeticClass(loadout,side){
  const id=loadout?.[`equipped_card_${side}`], entry=COSMETIC_ASSETS[id];
  return entry?.type===`card_${side}`?entry.className:COSMETIC_ASSETS[`default_card_${side}`].className;
 }
-const loaded=new Map();
-function loadImage(url){
- if(!url)return Promise.resolve();
- if(!loaded.has(url))loaded.set(url,new Promise(resolve=>{
-  const img=new Image();const timer=setTimeout(resolve,5000);
-  img.onload=img.onerror=()=>{clearTimeout(timer);resolve();};img.src=url;
- }));
- return loaded.get(url);
-}
+const loadImage=url=>url?assetLoader.load(url).catch(()=>{}):Promise.resolve();
 export function preloadEssentials(){return loadImage(new URL('../assets/emblem.svg',import.meta.url).href);}
 export function preloadCosmetics(ids=Object.keys(COSMETIC_ASSETS)){return Promise.all(ids.map(id=>loadImage(COSMETIC_ASSETS[id]?.preview)));}
 export function preloadSession(session){return Promise.all(Object.values(session?.state.players||{}).flatMap(p=>[
