@@ -11,6 +11,9 @@
  mask-image:linear-gradient(to bottom,#000 0%,#000 62%,#0009 78%,transparent 100%);
 }
 .player-illustration img{display:block;width:100%;max-width:370px;height:auto;margin:0 auto;pointer-events:none;filter:drop-shadow(0 0 15px #0006)}
+.player-illustration .player-pose-layer{position:absolute;inset:0;width:100%;height:auto;object-fit:contain;object-position:top center;z-index:2;will-change:opacity,transform,filter}
+.player-illustration.showing-attack{filter:drop-shadow(0 0 15px color-mix(in srgb,var(--character-color) 65%,transparent))}
+.player-illustration.showing-damage{filter:drop-shadow(0 0 18px #ff5b7466)}
 .illustrated-panel.is-me .player-illustration{top:-70px;height:325px}
 .illustrated-panel.is-me .player-illustration img{max-width:460px}
 .illustrated-panel.knocked-out .player-illustration{filter:grayscale(.8);opacity:.55}

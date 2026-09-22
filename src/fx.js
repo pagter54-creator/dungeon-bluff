@@ -2,6 +2,7 @@ import { monsterAttack } from './monster-fx.js';
 import { finishAnimation } from './animation-wait.js';
 import { playTone as tone, getAudio } from './audio.js';
 import { characterAttack, animateCycle } from './character-fx.js';
+import { showPlayerPose } from './player-pose-fx.js';
 
 const canvas = document.querySelector('#fx-canvas');
 const ctx = canvas.getContext('2d');
@@ -96,6 +97,7 @@ export async function reveal(result) {
     }
     for (const effect of result.effects.filter(e => e.type === 'attack' && e.amount > 0)) {
       cardFor(effect.memberId)?.classList.add('empowered');
+      const restorePose=await showPlayerPose(playerFor(effect.memberId),'attack');
       await characterAttack(effect,center(cardFor(effect.memberId)),target(),{burst,ring,tone,reduced});
       shake(effect.amount >= 4); tone(140 + effect.amount * 50, .23, 'sawtooth', .05, 38); textAt(target(), `−${effect.amount}`, 'critical');
       remainingHp = Math.max(0, remainingHp - effect.amount);
@@ -105,6 +107,7 @@ export async function reveal(result) {
       if (hpBar) hpBar.style.width = `${remainingHp / result.monsterBefore.maxHp * 100}%`;
       document.querySelector('#enemy-art')?.animate([{ filter: 'brightness(4)' }, { filter: 'brightness(1)' }], { duration: 350 });
       await sleep(reduced.matches ? 30 : 180);
+      await restorePose();
     }
     const finalHp=result.monsterAfter?.hp??remainingHp;
     const hpText=document.querySelector('.enemy-health b'),hpBar=document.querySelector('.enemy-health .health-track i');
@@ -138,8 +141,10 @@ export async function reveal(result) {
     const oldHp = hearts.filter(heart => heart.classList.contains('filled')).length;
     const hp = effect.type === 'damage' ? Math.max(0, oldHp - effect.amount) : effect.type === 'heal' ? Math.min(hearts.length, oldHp + effect.amount) : effect.type === 'revive' ? (effect.hp ?? hearts.length) : 0;
     if (effect.type === 'damage') {
+      const restorePose=await showPlayerPose(el,'damage');
       if(result.monsterBefore) await monsterAttack(result.stage.shape,target(),point,{burst,ring,tone,reduced});
       else await bolt(target(), point, '#ff687e'); el?.classList.add('hit'); shake(true); textAt(point, `−${effect.amount} HP`, 'damage'); tone(65, .3, 'sawtooth', .07, 20);
+      await sleep(reduced.matches?30:180);await restorePose();
     } else if (effect.type === 'knockout') { textAt(point, 'KNOCKOUT', 'damage'); burst(point, '#ff5676', 100, 12, true); el?.classList.add('knocked-out'); }
     else { burst(point, '#7ee6b6', 60, 4); ring(point, '#7ee6b6'); textAt(point, effect.type === 'revive' ? `부활 · HP ${hp}` : `+${effect.amount} HP`, 'heal'); tone(520, .3, 'sine', .07, 880); }
     hearts.forEach((heart, i) => heart.classList.toggle('filled', i < hp));

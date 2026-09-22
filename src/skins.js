@@ -13,9 +13,14 @@ export const SKINS=Object.fromEntries(groups.flatMap(([stem,character,label,name
  const id=stem+index;
  return [id,{id,name,character,label,isDefault:index===0,type:'character_skin',
   preview:new URL(`../skin image/${id}.png`,import.meta.url).href,
-  portrait:new URL(`../skin image/${id}${index===0?'_crop':''}.png`,import.meta.url).href}];
+  portrait:new URL(`../skin image/${id}${index===0?'_crop':''}.png`,import.meta.url).href,
+  attack:new URL(`../skin image/${id}_A.png`,import.meta.url).href,
+  damage:new URL(`../skin image/${id}_D.png`,import.meta.url).href}];
 })));
 export const DEFAULT_SKINS=Object.fromEntries(Object.values(SKINS).filter(s=>s.isDefault).map(s=>[s.character,s.id]));
+// These are preloaded because the files currently exist. Future pose files still
+// work automatically on first use without adding them to this list.
+export const AVAILABLE_POSES=Object.values(SKINS).filter(s=>s.id.startsWith('berserker')).flatMap(s=>[s.attack,s.damage]);
 export function skinFor(character,loadout){
  const candidate=SKINS[loadout?.equipped_character_skins?.[character]];
  return candidate?.character===character?candidate:SKINS[DEFAULT_SKINS[character]||'travler0'];
@@ -26,5 +31,5 @@ export function skinPortrait(character,loadout){
 }
 export function skinIllustration(character,loadout){
  const skin=skinFor(character,loadout);
- return `<div class="player-illustration"><img src="${skin.preview}" alt="${skin.name}" draggable="false" decoding="async"></div>`;
+ return `<div class="player-illustration" data-attack-src="${skin.attack}" data-damage-src="${skin.damage}"><img class="player-illustration-base" src="${skin.preview}" alt="${skin.name}" draggable="false" decoding="async"></div>`;
 }

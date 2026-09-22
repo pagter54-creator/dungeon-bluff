@@ -1,10 +1,10 @@
 import {assetLoader} from './asset-loader.js';
-import {SKINS} from './skins.js';
+import {SKINS,AVAILABLE_POSES} from './skins.js';
 import {MONSTER_IMAGES} from './monster-assets.js';
 import {COSMETIC_ASSETS} from './cosmetics.js';
 
 const basics=Object.values(SKINS).filter(s=>s.isDefault).map(s=>s.preview);
-const images=[...new Set([...Object.values(SKINS).flatMap(s=>[s.preview,s.portrait]),...Object.values(MONSTER_IMAGES),...Object.values(COSMETIC_ASSETS).map(s=>s.preview).filter(Boolean),new URL('../assets/emblem.svg',import.meta.url).href])];
+const images=[...new Set([...Object.values(SKINS).flatMap(s=>[s.preview,s.portrait]),...AVAILABLE_POSES,...Object.values(MONSTER_IMAGES),...Object.values(COSMETIC_ASSETS).map(s=>s.preview).filter(Boolean),new URL('../assets/emblem.svg',import.meta.url).href])];
 const music=['bgm_lobby.mp3','bgm_dungeon.mp3'].map(name=>new URL(`../${name}`,import.meta.url).href);
 let foreground=null;
 function showLoading(urls,title,extra=Promise.resolve()) {
