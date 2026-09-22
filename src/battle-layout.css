@@ -208,11 +208,22 @@ body:has(.game-top) .site-header{height:74px}
    scales up for larger ones, so no aspect-ratio gutters appear. */
 body:has(.game-top) .ambient{
  z-index:0;
- background-image:linear-gradient(#18131c88,#15121aa8),var(--game-background-url);
- background-size:cover,cover;
- background-position:center,center;
+ overflow:hidden;
+ background:none;
+}
+body:has(.game-top) .ambient::before,
+body:has(.game-top) .ambient::after{content:"";position:absolute;pointer-events:none}
+body:has(.game-top) .ambient::before{
+ inset:-18px;
+ background-image:var(--game-background-url);
+ background-size:cover;
+ background-position:center;
  background-repeat:no-repeat;
- filter:grayscale(.32);
+ filter:grayscale(.32) blur(6px);
+}
+body:has(.game-top) .ambient::after{
+ inset:0;
+ background:linear-gradient(#18131c88,#15121aa8);
 }
 body:has(.game-top) > .site-header{position:relative;z-index:3}
 body:has(.game-top) > main{position:relative;z-index:2}
@@ -281,4 +292,23 @@ body:has(.game-top) > .site-footer{position:relative;z-index:1}
  .arena .intent,.arena .boss-status{right:12px;width:clamp(170px,26%,275px)}
  .arena .intent{padding:7px 8px}
  .arena .intent p{font-size:11px}
+}
+
+/* Compact the encounter container itself to the illustrated target area. */
+@media(min-width:761px){
+ .arena{height:220px;min-height:0;padding:7px 20px;row-gap:3px;overflow:visible}
+ .arena .arena-side.left{top:28px}
+ .arena .arena-side.right{top:111px}
+ .arena .enemy-art,.arena .enemy-art:has(.monster-illustration){top:54%;height:242px}
+ .arena .enemy-art:not(:has(.monster-illustration)){height:210px}
+ .arena .intent{top:50%}
+ .arena:has(.boss-status) .intent{top:34%}
+ .arena .boss-status{top:55%}
+}
+@media(min-width:761px) and (max-width:1100px){
+ .arena{height:215px;padding:6px 12px}
+ .arena .arena-side.left{top:25px}
+ .arena .arena-side.right{top:107px}
+ .arena .enemy-art,.arena .enemy-art:has(.monster-illustration){height:225px}
+ .arena .enemy-art:not(:has(.monster-illustration)){height:195px}
 }

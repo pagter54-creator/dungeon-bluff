@@ -1,4 +1,4 @@
-import { loadInitialAssets,loadBackgroundAssets,ensureGameAssets } from './loading-ui.js';
+import { loadInitialAssets,ensureOwnAssets,ensureRoomAssets } from './loading-ui.js';
 import { isShuffleTurn,selectionInfo,toggleCardSelection } from './battle-rules.js';
 import { skinPortrait,skinFor } from './skins.js';
 import { initAccountUI, refreshAccount, openAccountPage, getAccount } from './account-ui.js';
@@ -58,7 +58,7 @@ async function perform(action, params = {}) {
   if (busy) return;
   busy = true; updateBusy();
   try {
-    if (['create_room','join_room','start_game'].includes(action)) await ensureGameAssets();
+    if (action==='create_room') await ensureOwnAssets(getAccount()?.loadout);
     const response = await api.request(action, { ...(bundle?.room ? { room_id: bundle.room.id } : {}), ...params });
     if (response.profile) {
       setProfile(response.profile); modal.close(); toast('닉네임을 저장했습니다.');
@@ -74,6 +74,7 @@ async function accept(next, restoring = false) {
   if (bundle?.room.id === next.room.id && next.room.version < bundle.room.version) return;
   const newRoom = bundle?.room.id !== next.room.id;
   const newSession = next.session?.id && next.session.id !== sessionIdentity;
+  await ensureRoomAssets(next.members,api.user?.id,getAccount()?.loadout);
   if (newSession) await preloadSession(next.session);
   if (bundle?.room.id === next.room.id && next.room.version < bundle.room.version) return;
   if (newRoom) roomEpoch++;
@@ -217,7 +218,6 @@ document.addEventListener('click', async event => {
   const action = button.dataset.action;
   if (action === 'home') renderHome();
   if (action === 'setup') setupHelp();
-  if (['create','find','join'].includes(action)) {try {await ensureGameAssets();}catch(error){toast(error.message);return;}}
   if (action === 'create') createModal();
   if (action === 'find') void renderFind();
   if (action === 'refresh') void loadRooms();
@@ -273,7 +273,6 @@ addEventListener('offline', () => status('연결 끊김 · 복구 대기'));
 document.addEventListener('visibilitychange', () => { if (!document.hidden) void sync(); });
 setInterval(() => { if (!document.hidden && connected && bundle) void sync(); }, 5000);
 try {await loadInitialAssets();} catch(error) {toast(error.message);}
-void loadBackgroundAssets();
 renderHome();
 try {
   connected = await api.connect(status);

@@ -1,14 +1,10 @@
 import {assetLoader} from './asset-loader.js';
-import {SKINS,AVAILABLE_POSES} from './skins.js';
-import {MONSTER_IMAGES} from './monster-assets.js';
-import {COSMETIC_ASSETS} from './cosmetics.js';
+import {SKINS,skinFor} from './skins.js';
 
-const basics=Object.values(SKINS).filter(s=>s.isDefault).map(s=>s.preview);
-const images=[...new Set([...Object.values(SKINS).flatMap(s=>[s.preview,s.portrait]),...AVAILABLE_POSES,...Object.values(MONSTER_IMAGES),...Object.values(COSMETIC_ASSETS).map(s=>s.preview).filter(Boolean),new URL('../assets/emblem.svg',import.meta.url).href])];
 const music=['bgm_lobby.mp3','bgm_dungeon.mp3'].map(name=>new URL(`../${name}`,import.meta.url).href);
 let foreground=null;
 function showLoading(urls,title,extra=Promise.resolve()) {
-  if(foreground)return foreground;
+  if(foreground)return foreground.then(()=>showLoading(urls,title,extra));
   foreground=(async()=>{
     const dialog=document.createElement('dialog');dialog.className='asset-loading';
     dialog.setAttribute('aria-label',title);
@@ -33,7 +29,18 @@ function showLoading(urls,title,extra=Promise.resolve()) {
 export async function loadInitialAssets() {
   // Audio errors must not prevent entering a game; playback remains gesture-driven.
   const audio=assetLoader.batch(music,{audio:true});
-  try{await showLoading(basics,'당신의 원정을 준비합니다',audio);}finally{await audio;}
+  try{await showLoading([],'당신의 원정을 준비합니다',audio);}finally{await audio;}
 }
-export function loadBackgroundAssets(){return assetLoader.batch(images,{delay:180});}
-export function ensureGameAssets(){return images.every(url=>assetLoader.ready.has(url))?Promise.resolve():showLoading(images,'동료를 만나기 전, 잠시만요');}
+function ensureImages(urls,title){
+  const missing=[...new Set(urls.filter(Boolean))].filter(url=>!assetLoader.ready.has(url));
+  return missing.length?showLoading(missing,title):Promise.resolve();
+}
+export function ownSkinImages(loadout){
+  const equipped=Object.values(loadout?.equipped_character_skins||{}).map(id=>SKINS[id]?.preview);
+  return [skinFor('adventurer',loadout).preview,...equipped].filter(Boolean);
+}
+export function roomSkinImages(members,ownUserId,ownLoadout){
+  return (members||[]).map(member=>skinFor(member.character_id,member.user_id===ownUserId?(ownLoadout||member.loadout):member.loadout).preview);
+}
+export function ensureOwnAssets(loadout){return ensureImages(ownSkinImages(loadout),'내 스킨을 준비합니다');}
+export function ensureRoomAssets(members,ownUserId,ownLoadout){return ensureImages(roomSkinImages(members,ownUserId,ownLoadout),'원정대의 스킨을 준비합니다');}
