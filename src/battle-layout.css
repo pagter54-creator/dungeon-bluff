@@ -207,12 +207,16 @@ body:has(.game-top) .site-header{height:74px}
 /* The expedition scene fills the viewport; cover crops smaller windows and
    scales up for larger ones, so no aspect-ratio gutters appear. */
 body:has(.game-top) .ambient{
+ z-index:0;
  background-image:linear-gradient(#18131c88,#15121aa8),var(--game-background-url);
  background-size:cover,cover;
  background-position:center,center;
  background-repeat:no-repeat;
  filter:grayscale(.32);
 }
+body:has(.game-top) > .site-header{position:relative;z-index:3}
+body:has(.game-top) > main{position:relative;z-index:2}
+body:has(.game-top) > .site-footer{position:relative;z-index:1}
 
 /* Desktop encounter: the art is centered in the arena, with a readable left HUD. */
 @media(min-width:761px){
@@ -258,5 +262,23 @@ body:has(.game-top) .ambient{
  .arena .enemy-art,.arena .enemy-art:has(.monster-illustration){width:min(300px,31vw);height:230px}
  .arena .enemy-art:not(:has(.monster-illustration)){width:min(260px,27vw);height:205px}
  .arena .intent{flex-wrap:wrap}
+ .arena .intent p{font-size:11px}
+}
+
+/* Keep rules and attack warnings on the right of the centered artwork. */
+@media(min-width:761px){
+ .arena .intent,.arena .boss-status{
+  position:absolute;left:auto;right:24px;grid-column:auto;grid-row:auto;
+  width:clamp(195px,25%,380px);max-width:calc(50% - 20px);
+  margin:0;text-align:left;z-index:2;
+ }
+ .arena .intent{top:50%;transform:translateY(-50%);flex-wrap:wrap;padding:10px 12px;border-left:1px solid #a987b566;background:linear-gradient(90deg,#211929a8,#21192948)}
+ .arena:has(.boss-status) .intent{top:34%}
+ .arena .boss-status{top:54%;box-sizing:border-box;padding:9px 12px}
+ .arena .intent p{width:100%;font-size:12px;line-height:1.5}
+}
+@media(min-width:761px) and (max-width:1100px){
+ .arena .intent,.arena .boss-status{right:12px;width:clamp(170px,26%,275px)}
+ .arena .intent{padding:7px 8px}
  .arena .intent p{font-size:11px}
 }
