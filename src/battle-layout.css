@@ -204,6 +204,16 @@ body:has(.game-top) .site-header{height:74px}
  .arena .intent p{margin-top:6px;font-size:11px}
 }
 
+/* The expedition scene fills the viewport; cover crops smaller windows and
+   scales up for larger ones, so no aspect-ratio gutters appear. */
+body:has(.game-top) .ambient{
+ background-image:linear-gradient(#18131c88,#15121aa8),var(--game-background-url);
+ background-size:cover,cover;
+ background-position:center,center;
+ background-repeat:no-repeat;
+ filter:grayscale(.32);
+}
+
 /* Desktop encounter: the art is centered in the arena, with a readable left HUD. */
 @media(min-width:761px){
  .arena{

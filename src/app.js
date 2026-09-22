@@ -10,6 +10,7 @@ import { initAudioControls, getAudio } from './audio.js';
 import { characterFor, characterChoices, deckLabel, partyPanels, mobileSelection, cycleCards } from './character-ui.js';
 import { animateCycle } from './character-fx.js';
 import { setKnockoutPose } from './player-pose-fx.js';
+import { showGameBackground } from './game-background.js';
 
 const app = document.querySelector('#app');
 const modal = document.querySelector('#modal');
@@ -87,6 +88,7 @@ async function accept(next, restoring = false) {
   if (newRoom) await api.subscribe(next.room.id, sync, status);
   view = next.session ? 'game' : 'lobby';
   if (next.session) {
+    void showGameBackground(next.session.id);
     // Catch up to the latest turn instead of replaying minutes of stale battles.
     const newResults = next.session.state.eventLog.filter(e => e.type === 'turn_result' && e.turnIndex > lastResult).slice(-2);
     for (const r of newResults) { queue.push(r); lastResult = r.turnIndex; selected = null; useSkill = false; }
