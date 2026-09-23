@@ -100,6 +100,9 @@ export class GameAudio {
       skill_random_hand:{noise:[.09,2600,.035],tones:[[340,.18,'triangle',.04,780]]},
       gunshot:{noise:[.12,3200,.09],tones:[[160,.13,'sawtooth',.055,45]]},
       punch:{noise:[.1,600,.08],tones:[[115,.14,'triangle',.065,35]]},
+      kick:{noise:[.15,850,.08],tones:[[85,.2,'triangle',.07,28]]},
+      punch_whoosh:{noise:[.09,2400,.035],tones:[]},
+      kick_whoosh:{noise:[.19,1800,.045],tones:[]},
       skill_full_burst:{noise:[.15,2200,.06],tones:[[550,.2,'square',.035,1000]]},
       skill_combo:{noise:[.12,800,.05],tones:[[220,.2,'triangle',.05,480]]},
     };

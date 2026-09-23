@@ -1,6 +1,6 @@
 import { finishAnimation } from './animation-wait.js';
 import { getAudio, playTone } from './audio.js';
-import { projectileFlight } from './combat-impact.js';
+import { projectileFlight, impactAt, recoil } from './combat-impact.js';
 import { motionPreference } from './motion.js';
 function combatCue(name) {
   try { getAudio().combatCue?.(name); } catch (error) { console.warn('Combat sound unavailable:', name, error); }
@@ -11,7 +11,6 @@ function soundEffect(name, fallback) {
 }
 const styles = {
   bullet: { glyph:'━', color:'#ffd08a', duration:300, freq:180, type:'sawtooth' },
-  fist: { glyph:'✊', color:'#ffac78', duration:360, freq:95, type:'triangle' },
   sword: { glyph:'╱', color:'#fff2db', duration:570, freq:850, type:'sawtooth' },
   spear: { glyph:'⟶', color:'#e8bd70', duration:590, freq:240, type:'triangle' },
   dagger: { glyph:'➤', color:'#9ce2c0', duration:470, freq:1350, type:'sawtooth' },
@@ -29,7 +28,7 @@ export function characterAttackOrigin(panel) {
 export async function showSkillEffect(panel,skillId,label){
   const point=characterAttackOrigin(panel);if(!point)return;
   const looks={gold_bonus:['✦','#e9cd8e'],toughness:['◇','#f3d486'],low_card_gold:['◆','#8de0b4'],amplify:['✺','#c4a0ff'],blood_heat:['✹','#ff8b85'],revelation:['✧','#91dbff'],score_steal:['♆','#f2a2df'],random_hand:['⚄','#ffe18c']};
-  looks.full_burst=['⌖','#ffd08a']; looks.combo=['✊','#ffac78'];
+  looks.full_burst=['⌖','#ffd08a']; looks.combo=['⋔','#ffac78'];
   const [glyph,color]=looks[skillId]||['✦','#dbc5ee'];
   const el=document.createElement('div');el.className='skill-proc';
   el.style.cssText=`left:${point.x}px;top:${point.y}px;--skill-color:${color}`;
@@ -44,12 +43,15 @@ export async function showSkillEffect(panel,skillId,label){
   ],{duration:720,easing:'ease-out'}));}finally{el.remove();}
 }
 export async function characterAttack(effect, from, to, { burst, ring, tone, reduced }) {
+  if(effect.attackFx==='fist') {
+    await martialAttack(effect,from,to,{burst,ring,reduced});
+    return;
+  }
   if ((effect.attackFx==='bullet'||effect.attackFx==='fist') && effect.hits>1) {
     for(let i=0;i<Math.min(4,effect.hits);i++) await characterAttack({...effect,hits:1},from,{x:to.x+(i%2?12:-12),y:to.y+(i%2?-8:8)},{burst,ring,tone,reduced});
     return;
   }
   if(effect.attackFx==='bullet')combatCue('gunshot');
-  if(effect.attackFx==='fist')combatCue('punch');
   const style = styles[effect.attackFx] || styles.sword;
   const enhanced = effect.amplified || effect.empowered;
   soundEffect(effect.attackSfx || 'sfx_attack_adventurer', () => tone(style.freq, .22, style.type, .065, style.freq / 3));
@@ -72,6 +74,40 @@ export async function characterAttack(effect, from, to, { burst, ring, tone, red
   finally { el.remove(); }
   burst(to,style.color,enhanced?120:65,enhanced?12:8,style.spin); ring(to,style.color);
   tone(style.freq / 2,.16,'triangle',enhanced?.08:.045,45);
+}
+// Vector silhouettes keep martial strikes consistent across platforms, without
+// OS-dependent emoji. Each combo hit rolls its own punch or sweeping kick.
+async function martialAttack(effect,from,to,{burst,ring,reduced}) {
+  const hits=Math.max(1,Math.min(4,effect.hits||1));
+  for(let i=0;i<hits;i++) {
+    const kick=Math.random()<.5,side=Math.random()<.5?-1:1;
+    const color=kick?'#ffe2b0':'#ffad78';
+    const el=document.createElement('div');
+    el.className=`martial-strike ${kick?'martial-kick':'martial-punch'}`;
+    el.style.cssText=`left:${from.x}px;top:${from.y}px;color:${color}`;
+    const silhouette=kick
+      ? 'M55 31 L76 22 L102 50 L118 66 L151 68 Q165 71 160 82 L113 87 Q101 87 96 76 L84 58 Z'
+      : 'M44 57 L91 51 L98 38 L110 33 L118 37 L128 33 L136 38 L145 37 L153 45 L160 48 L162 64 L151 77 L126 82 L99 73 L46 76 Z';
+    const trail=kick?'M16 87 Q42 6 119 27 M26 97 Q65 14 152 45':'M8 50 L93 56 M0 68 L88 64 M18 83 L96 73';
+    el.innerHTML=`<svg viewBox="0 0 180 110" aria-hidden="true"><path class="martial-trail" d="${trail}"/><path class="martial-limb" d="${silhouette}"/><path class="martial-detail" d="${kick?'M90 55 L105 50 M99 68 L114 61':'M103 47 L106 62 M118 43 L121 61 M133 44 L136 60'}"/></svg>`;
+    document.querySelector('#fx-overlay').append(el);
+    const dx=to.x-from.x,dy=to.y-from.y,angle=Math.atan2(dy,dx)*180/Math.PI;
+    const pose=(p,bend,rotation,scale)=>`translate(calc(-50% + ${dx*p-dy/Math.max(1,Math.hypot(dx,dy))*bend}px),calc(-50% + ${dy*p+dx/Math.max(1,Math.hypot(dx,dy))*bend}px)) rotate(${angle+rotation}deg) scale(${scale})`;
+    const frames=reduced.matches?[{opacity:0},{opacity:.9,offset:.4},{opacity:0}]:[
+      {transform:pose(0,0,kick?-side*38:0,.5),opacity:0},
+      {transform:pose(.35,kick?side*65:0,kick?-side*18:0,.95),opacity:.85,offset:.4},
+      {transform:pose(1,0,kick?side*15:0,kick?1.3:1.1),opacity:1},
+    ];
+    if(reduced.matches){el.style.left=`${to.x}px`;el.style.top=`${to.y}px`;}
+    combatCue(kick?'kick_whoosh':'punch_whoosh');
+    try{await projectileFlight(el,frames,{duration:kick?300:230,easing:'cubic-bezier(.5,.05,.85,.4)'},reduced.matches);}
+    finally{el.remove();}
+    combatCue(kick?'kick':'punch');
+    impactAt(to,color,kick&&!reduced.matches,reduced.matches);
+    recoil(document.querySelector('#enemy-art img, #enemy-art svg'),from,to,kick,reduced.matches);
+    burst(to,color,reduced.matches?8:kick?48:32,kick?9:6);
+    if(i===hits-1)ring(to,color);
+  }
 }
 export async function animateCycle(effect) {
   const pool = document.querySelector(`[data-cycle-pool="${effect.memberId}"]`);

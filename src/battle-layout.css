@@ -357,4 +357,9 @@ body:has(.game-top) > .site-footer{position:relative;z-index:1}
 
 .cycle-pool.gunner-hand{grid-template-columns:repeat(3,minmax(0,1fr))}
 .projectile-bullet{font-size:38px;text-shadow:0 0 10px #ffd08a,0 0 24px #ff793d}
-.projectile-fist{font-size:54px;text-shadow:0 0 18px #ffac78}
+.martial-strike{position:fixed;width:150px;height:92px;pointer-events:none;transform-origin:center;filter:drop-shadow(0 0 7px currentColor);will-change:transform,opacity}
+.martial-strike.martial-kick{width:190px;height:116px}
+.martial-strike svg{width:100%;height:100%;overflow:visible}
+.martial-limb{fill:#fff2d9;fill-opacity:.9;stroke:currentColor;stroke-width:2;stroke-linejoin:bevel}
+.martial-trail{fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;opacity:.65}
+.martial-detail{fill:none;stroke:#9c603f;stroke-width:2;opacity:.7}
