@@ -1,9 +1,7 @@
 /* A compact encounter HUD leaves room for the four character stages below it. */
 /* Reduced motion changes the effect, not the time available to read the card. */
 @keyframes battle-card-reduced-reveal{from{opacity:.2}to{opacity:1}}
-@media(prefers-reduced-motion:reduce){
- .arena~.party-grid .reveal-card.revealed:not(.shattered){animation:battle-card-reduced-reveal .65s ease both!important}
-}
+:root.motion-reduced .arena~.party-grid .reveal-card.revealed:not(.shattered){animation:battle-card-reduced-reveal .65s ease both!important}
 .arena{
  display:grid;grid-template-columns:minmax(82px,1fr) minmax(0,420px) minmax(82px,1fr);
  grid-template-rows:auto minmax(150px,180px) auto auto auto;

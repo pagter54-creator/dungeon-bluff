@@ -11,6 +11,7 @@ import { characterFor, characterChoices, deckLabel, partyPanels, mobileSelection
 import { animateCycle } from './character-fx.js';
 import { setKnockoutPose } from './player-pose-fx.js';
 import { showGameBackground } from './game-background.js';
+import { initMotionControl } from './motion.js';
 
 const app = document.querySelector('#app');
 const modal = document.querySelector('#modal');
@@ -93,11 +94,12 @@ async function accept(next, restoring = false) {
     // Catch up to the latest turn instead of replaying minutes of stale battles.
     const newResults = next.session.state.eventLog.filter(e => e.type === 'turn_result' && e.turnIndex > lastResult).slice(-2);
     for (const r of newResults) { queue.push(r); lastResult = r.turnIndex; selected = null; useSkill = false; }
+    if (document.hidden && queue.length > 2) queue = queue.slice(-2);
     if (!animating) {
-      if (queue.length) void playQueue();
+      if (queue.length && !document.hidden) void playQueue();
       else {
-        renderGame();
-        if (newSession && !restoring && next.session.status === 'active') {
+        if (!queue.length) renderGame();
+        if (!document.hidden && !queue.length && newSession && !restoring && next.session.status === 'active') {
           for (const p of Object.values(next.session.state.players)) if(['random','continuous'].includes(p.character?.definition?.deckType)) void animateCycle({memberId:p.memberId,random:true,cards:p.cycleCards});
         }
       }
@@ -108,9 +110,12 @@ async function accept(next, restoring = false) {
 async function playQueue() {
   animating = true;
   try {
-    while (queue.length && bundle) {
+    while (queue.length && bundle && !document.hidden) {
       const result = queue.shift();
-      try { renderGame(result); await reveal(result); }
+      try {
+        renderGame(result); await reveal(result);
+        if (document.hidden) { queue.unshift(result); break; }
+      }
       catch (error) {
         console.error('Turn presentation failed:', result.turnIndex, error);
         toast('일부 전투 연출을 재생하지 못했습니다. 다음 턴은 계속 진행됩니다.');
@@ -271,6 +276,7 @@ initAccountUI({showModal,toast,canSwitch:()=>!bundle,ready:()=>connected,onNickn
   document.querySelector('#account-summary').textContent=data.stats?data.stats.rating_points+' RP · '+data.stats.account_gold+' Account Gold':'GUEST · 계정 등록';
 }});
 initAudioControls();
+initMotionControl();
 // Block native drag/drop and context menus without blocking range-slider gestures
 // or caret/selection inside nickname and password inputs.
 for (const type of ['dragstart', 'dragover', 'drop', 'contextmenu']) document.addEventListener(type, event => event.preventDefault(), { capture: true });

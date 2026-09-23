@@ -1,6 +1,7 @@
 import { finishAnimation } from './animation-wait.js';
 import { getAudio, playTone } from './audio.js';
 import { projectileFlight } from './combat-impact.js';
+import { motionPreference } from './motion.js';
 function combatCue(name) {
   try { getAudio().combatCue?.(name); } catch (error) { console.warn('Combat sound unavailable:', name, error); }
 }
@@ -31,7 +32,7 @@ export async function showSkillEffect(panel,skillId,label){
   el.style.cssText=`left:${point.x}px;top:${point.y}px;--skill-color:${color}`;
   const icon=document.createElement('b'),text=document.createElement('span');icon.textContent=glyph;text.textContent=label;el.append(icon,text);
   document.querySelector('#fx-overlay').append(el);combatCue(`skill_${skillId}`);
-  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduced=motionPreference.matches;
   try{await finishAnimation(el.animate(reduced?[{opacity:0},{opacity:1,offset:.2},{opacity:1,offset:.8},{opacity:0}]:[
     {transform:'translate(-50%,-30%) scale(.7)',opacity:0},
     {transform:'translate(-50%,-50%) scale(1.08)',opacity:1,offset:.22},
@@ -66,7 +67,7 @@ export async function characterAttack(effect, from, to, { burst, ring, tone, red
 export async function animateCycle(effect) {
   const pool = document.querySelector(`[data-cycle-pool="${effect.memberId}"]`);
   if (!pool) return;
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduce = motionPreference.matches;
   if (effect.random) soundEffect('sfx_gambler_draw',()=>playTone(220,.25,'triangle',.07,780));
   const cards=[...pool.querySelectorAll('.pool-card')];
   // Keep the unplayed card in its original slot; animate only the consumed slot.

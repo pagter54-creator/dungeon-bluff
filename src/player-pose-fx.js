@@ -1,5 +1,6 @@
 import { finishAnimation } from './animation-wait.js';
 import { assetLoader } from './asset-loader.js';
+import { motionPreference } from './motion.js';
 
 const active=new WeakMap();
 const knockoutRequests=new WeakMap();
@@ -13,7 +14,7 @@ function canLoad(url){
   return assetLoader.load(url).then(()=>true,()=>false);
 }
 
-function reducedMotion(){return matchMedia('(prefers-reduced-motion: reduce)').matches;}
+function reducedMotion(){return motionPreference.matches;}
 
 export async function setKnockoutPose(panel,knockedOut){
   const frame=panel?.querySelector('.player-illustration');

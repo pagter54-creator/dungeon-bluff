@@ -6,11 +6,12 @@ import { characterAttack, characterAttackOrigin, animateCycle, showSkillEffect }
 import { showPlayerPose,setKnockoutPose } from './player-pose-fx.js';
 import { flipRevealCard } from './card-reveal-fx.js';
 import { impactAt, recoil, revealShowcase, shatterCard, projectileFlight } from './combat-impact.js';
+import { motionPreference } from './motion.js';
 
 const canvas = document.querySelector('#fx-canvas');
 const ctx = canvas.getContext('2d');
 const overlay = document.querySelector('#fx-overlay');
-const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+const reduced = motionPreference;
 let particles = [];
 let raf = 0;
 let previous = 0;

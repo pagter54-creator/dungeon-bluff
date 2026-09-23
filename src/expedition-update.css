@@ -22,4 +22,4 @@
 @keyframes loading-pulse{50%{opacity:.45;transform:scale(.9)}}
 @keyframes monster-breathe{50%{translate:0 -6px}}
 @media(max-width:650px){.lobby-slot.illustrated-lobby{min-height:360px;padding:18px 10px}.lobby-member-info{margin-top:105px}.lobby-member-info h3{font-size:14px}.asset-loading{padding:28px 18px}.asset-loading h2{font-size:20px}}
-@media(prefers-reduced-motion:reduce){.enemy-art .monster-illustration,.loading-sigil{animation:none}}
+:root.motion-reduced .enemy-art .monster-illustration,:root.motion-reduced .loading-sigil{animation:none}
