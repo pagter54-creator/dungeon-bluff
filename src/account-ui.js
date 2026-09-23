@@ -5,6 +5,24 @@ import * as api from './api.js';
 import { html } from './character-ui.js';
 import { COSMETIC_ASSETS,preloadCosmetics } from './cosmetics.js';
 let account=null,options,working=false,activePage='account',category='card_front';
+let skinFilter='all';
+const characterOrder=[...new Set(Object.values(SKINS).map(s=>s.character))];
+const cardTypes=[['card_front','카드 앞면'],['card_back','카드 뒷면']];
+export function sortCatalogItems(items){
+ const typeRank={card_front:0,card_back:1,character_skin:2};
+ return [...items].sort((a,b)=>(typeRank[a.item_type]??3)-(typeRank[b.item_type]??3)
+  ||characterOrder.indexOf(a.target_character_id)-characterOrder.indexOf(b.target_character_id)
+  ||(Number(a.id.match(/\d+$/)?.[0])||0)-(Number(b.id.match(/\d+$/)?.[0])||0)
+  ||a.id.localeCompare(b.id));
+}
+function skinGroups(items,render,filter='all'){
+ return characterOrder.map(character=>{
+  const group=sortCatalogItems(items.filter(item=>item.target_character_id===character));
+  if(!group.length)return '';
+  const label=Object.values(SKINS).find(s=>s.character===character)?.label||character;
+  return `<section class="catalog-group" data-character-group="${character}" ${filter!=='all'&&filter!==character?'hidden':''}><h3 class="catalog-heading">${html(label)} <small>${group.length}종</small></h3><div class="shop-grid skin-gallery">${group.map(render).join('')}</div></section>`;
+ }).join('');
+}
 const skinDraw=createSkinDrawClient({request:api.accountRequest,storage:{getItem:key=>localStorage.getItem(key),setItem:(key,value)=>localStorage.setItem(key,value),removeItem:key=>localStorage.removeItem(key)}});
 export const getAccount=()=>account;
 const registered=()=>account?.profile.account_type==='registered';
@@ -41,18 +59,21 @@ export async function openAccountPage(page='account'){
   }
   if(page==='shop'){
    const {items}=await api.accountRequest('get_shop');
-   markup=`${identity()}<h2>상점</h2>${!registered()?guestGate():''}<article class="gacha-banner"><div><span class="eyebrow">A NEW FACE OF FATE</span><h2>운명의 옷장</h2><p>중복 없는 캐릭터 스킨 · 1회 10 Account Gold</p>${button('스킨 뽑기 →','gacha')}</div>${preview('mage1')}${preview('thief2')}</article><div class="shop-grid">${items.filter(i=>i.item_type!=='character_skin').map(i=>`<article class="shop-item">${preview(i.asset_key)}<small>${i.item_type==='card_front'?'CARD FRONT':'CARD BACK'}</small><h3>${html(i.display_name)}</h3><p>${i.price} Account Gold</p>${button(account.inventory.includes(i.id)?'보유 중':'구매','purchase',`data-item="${html(i.id)}" ${!registered()||account.inventory.includes(i.id)?'disabled':''}`)}</article>`).join('')}</div>`;
+   markup=`${identity()}<h2>상점</h2>${!registered()?guestGate():''}<article class="gacha-banner"><div><span class="eyebrow">A NEW FACE OF FATE</span><h2>운명의 옷장</h2><p>중복 없는 캐릭터 스킨 · 1회 10 Account Gold</p>${button('스킨 뽑기 →','gacha')}</div>${preview('mage1')}${preview('thief2')}</article>${cardTypes.map(([type,label])=>{const group=sortCatalogItems(items.filter(i=>i.item_type===type));return group.length?`<section class="catalog-group"><h3 class="catalog-heading">${label} <small>${group.length}종</small></h3><div class="shop-grid">${group.map(i=>`<article class="shop-item">${preview(i.asset_key)}<small>${type==='card_front'?'CARD FRONT':'CARD BACK'}</small><h3>${html(i.display_name)}</h3><p>${i.price} Account Gold</p>${button(account.inventory.includes(i.id)?'보유 중':'구매','purchase',`data-item="${html(i.id)}" ${!registered()||account.inventory.includes(i.id)?'disabled':''}`)}</article>`).join('')}</div></section>`:''}).join('')}`;
   }
   if(page==='gacha'){
    const {items}=await api.accountRequest('get_shop');const pool=items.filter(i=>i.item_type==='character_skin'&&i.gacha_enabled&&!i.is_default);
    const remaining=pool.filter(i=>!account.inventory.includes(i.id)).length,pending=skinDraw.hasPending(api.user.id);
-   markup=`${identity()}<div class="gacha-intro"><span class="eyebrow">WARDROBE OF FATE</span><h2>아직 만나지 못한 당신.</h2><p>빛 속에서 새로운 스킨을 만나세요.<br>보유하지 않은 스킨 중 하나가 같은 확률로 등장합니다.</p><strong>${pool.length-remaining} / ${pool.length} 수집</strong><p>기본 스킨 8종은 무료 · 중복 없음 · 모두 수집하면 구매 종료</p>${registered()?button(pending?'이전 뽑기 결과 확인 / 재시도':remaining?'스킨 뽑기 · 10 Account Gold':'모든 스킨 수집 완료','draw',`${!pending&&(!remaining||account.stats.account_gold<10)?'disabled':''}`):guestGate()}${registered()&&remaining&&account.stats.account_gold<10&&!pending?'<p>Account Gold가 부족합니다. 원정을 성공해 골드를 모아 보세요.</p>':''}${pending?'<p>응답을 받지 못한 요청을 다시 확인합니다. 이미 지급됐다면 추가 차감 없이 결과를 표시합니다.</p>':''}</div><div class="shop-grid skin-gallery">${pool.map(i=>`<article class="shop-item ${account.inventory.includes(i.id)?'skin-owned':''}">${preview(i.asset_key)}<small>${html(SKINS[i.id]?.label)}</small><h3>${html(i.display_name)}</h3><p>${account.inventory.includes(i.id)?'✓ 보유 중 · 뽑기 제외':'등장 확률 '+(100/remaining).toFixed(2)+'%'}</p></article>`).join('')}</div>`;
+   markup=`${identity()}<div class="gacha-intro"><span class="eyebrow">WARDROBE OF FATE</span><h2>아직 만나지 못한 당신.</h2><p>빛 속에서 새로운 스킨을 만나세요.<br>보유하지 않은 스킨 중 하나가 같은 확률로 등장합니다.</p><strong>${pool.length-remaining} / ${pool.length} 수집</strong><p>기본 스킨 8종은 무료 · 중복 없음 · 모두 수집하면 구매 종료</p>${registered()?button(pending?'이전 뽑기 결과 확인 / 재시도':remaining?'스킨 뽑기 · 10 Account Gold':'모든 스킨 수집 완료','draw',`${!pending&&(!remaining||account.stats.account_gold<10)?'disabled':''}`):guestGate()}${registered()&&remaining&&account.stats.account_gold<10&&!pending?'<p>Account Gold가 부족합니다. 원정을 성공해 골드를 모아 보세요.</p>':''}${pending?'<p>응답을 받지 못한 요청을 다시 확인합니다. 이미 지급됐다면 추가 차감 없이 결과를 표시합니다.</p>':''}</div>${skinGroups(pool,i=>`<article class="shop-item ${account.inventory.includes(i.id)?'skin-owned':''}">${preview(i.asset_key)}<small>${html(SKINS[i.id]?.label)}</small><h3>${html(i.display_name)}</h3><p>${account.inventory.includes(i.id)?'✓ 보유 중 · 뽑기 제외':'등장 확률 '+(100/remaining).toFixed(2)+'%'}</p></article>`)}`;
   }
   if(page==='inventory'){
    const {items}=await api.accountRequest('get_shop');const owned=items.filter(i=>i.item_type===category&&(i.is_default||account.inventory.includes(i.id)));
    if(category!=='character_skin')owned.unshift({id:`default_${category}`,asset_key:`default_${category}`,display_name:'기본 카드',item_type:category});
    const equipped=i=>i.item_type==='character_skin'?skinFor(i.target_character_id,account.loadout).id===i.id:account.loadout[`equipped_${category}`]===i.id;
-   markup=`${identity()}<h2>인벤토리</h2>${registered()?`<div class="inventory-tabs">${[['card_front','카드 앞면'],['card_back','카드 뒷면'],['character_skin','캐릭터 스킨']].map(([id,label])=>button(label,'category',`data-category="${id}" aria-pressed="${id===category}"`)).join('')}</div>${category==='character_skin'?'<p>캐릭터마다 한 벌씩 장착합니다. 다음 원정부터 얼굴 이미지로 표시됩니다.</p>':''}<div class="shop-grid">${owned.map(i=>`<article class="shop-item">${preview(i.asset_key)}${i.item_type==='character_skin'?`<small>${html(SKINS[i.id]?.label)} · ${i.is_default?'기본 지급':'보유 스킨'}</small>`:''}<h3>${html(i.display_name)}</h3>${button(equipped(i)?'장착 중':'장착','equip',`data-item="${i.id}" ${equipped(i)?'disabled':''}`)}</article>`).join('')||'<p>보유한 치장이 없습니다.</p>'}</div>`:guestGate()}`;
+   const itemCard=i=>`<article class="shop-item">${preview(i.asset_key)}${i.item_type==='character_skin'?`<small>${html(SKINS[i.id]?.label)} · ${i.is_default?'기본 지급':'보유 스킨'}</small>`:''}<h3>${html(i.display_name)}</h3>${button(equipped(i)?'장착 중':'장착','equip',`data-item="${html(i.id)}" ${equipped(i)?'disabled':''}`)}</article>`;
+   const skinList=category==='character_skin';
+   const filters=`<div class="skin-filter" role="group" aria-label="스킨 직업 필터">${[['all','전체'],...characterOrder.map(character=>[character,Object.values(SKINS).find(s=>s.character===character)?.label||character])].map(([id,label])=>button(label,'skin-filter',`data-character="${id}" aria-pressed="${id===skinFilter}"`)).join('')}</div>`;
+   markup=`${identity()}<h2>인벤토리</h2>${registered()?`<div class="inventory-tabs">${[['card_front','카드 앞면'],['card_back','카드 뒷면'],['character_skin','캐릭터 스킨']].map(([id,label])=>button(label,'category',`data-category="${id}" aria-pressed="${id===category}"`)).join('')}</div>${skinList?`<p>캐릭터마다 한 벌씩 장착합니다. 다음 원정부터 얼굴 이미지로 표시됩니다.</p><div class="skin-inventory">${filters}${skinGroups(owned,itemCard,skinFilter)}</div>`:`<div class="shop-grid">${sortCatalogItems(owned).map(itemCard).join('')||'<p>보유한 치장이 없습니다.</p>'}</div>`}`:guestGate()}`;
   }
   if(activePage===page)options.showModal(markup);
  }catch(e){options.showModal(`<h2>계정 연결 확인</h2><p>${html(e.message)}</p>`);}
@@ -67,6 +88,13 @@ export function initAccountUI(config){
   if(action==='nickname'){options.showModal(nicknameForm());return;}
   if(action==='skin-inventory'){category='character_skin';void openAccountPage('inventory');return;}
   if(action==='category'){category=b.dataset.category;void openAccountPage('inventory');return;}
+  if(action==='skin-filter'){
+   skinFilter=b.dataset.character;
+   const gallery=b.closest('.skin-inventory');
+   gallery?.querySelectorAll('[data-character-group]').forEach(group=>{group.hidden=skinFilter!=='all'&&group.dataset.characterGroup!==skinFilter;});
+   gallery?.querySelectorAll('[data-meta="skin-filter"]').forEach(filter=>filter.setAttribute('aria-pressed',String(filter.dataset.character===skinFilter)));
+   return;
+  }
   if(action==='login'){
    options.showModal(`<h2>로그인</h2><form data-meta-form="login"><label>이메일<input name="email" type="email" required autocomplete="email"></label><label>비밀번호<input name="password" type="password" required autocomplete="current-password"></label><button class="button primary">로그인</button></form>`);return;
   }
