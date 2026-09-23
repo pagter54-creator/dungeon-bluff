@@ -5,6 +5,7 @@ import { playTone as tone, getAudio } from './audio.js';
 import { characterAttack, characterAttackOrigin, animateCycle } from './character-fx.js';
 import { showPlayerPose,setKnockoutPose } from './player-pose-fx.js';
 import { flipRevealCard } from './card-reveal-fx.js';
+import { impactAt, recoil, revealShowcase, shatterCard, projectileFlight } from './combat-impact.js';
 
 const canvas = document.querySelector('#fx-canvas');
 const ctx = canvas.getContext('2d');
@@ -13,6 +14,7 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 let particles = [];
 let raf = 0;
 let previous = 0;
+let cameraShake;
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 function resize() { const dpr = Math.min(devicePixelRatio, 2); canvas.width = innerWidth * dpr; canvas.height = innerHeight * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
 addEventListener('resize', resize); resize();
@@ -49,6 +51,7 @@ function banner(text, sub, kind = '') {
   const el = document.createElement('div'); el.className = `battle-banner ${kind}`;
   const strong = document.createElement('strong'), small = document.createElement('small'); strong.textContent = text; small.textContent = sub;
   el.append(strong, small); overlay.append(el); setTimeout(() => el.remove(), 1800);
+  return el;
 }
 function ring(point, color) {
   const el = document.createElement('div'); el.className = 'impact-ring'; el.style.left = `${point.x}px`; el.style.top = `${point.y}px`; el.style.borderColor = color;
@@ -56,33 +59,44 @@ function ring(point, color) {
 }
 function shake(strong = false) {
   if (reduced.matches) return;
-  document.querySelector('#app').animate([{ transform: 'translate(0,0)' }, { transform: `translate(${strong ? -10 : -5}px, 4px)` }, { transform: 'translate(7px,-5px)' }, { transform: 'translate(-4px,2px)' }, { transform: 'translate(0,0)' }], { duration: strong ? 400 : 230 });
+  cameraShake?.cancel();
+  const force=strong?13:6;
+  cameraShake=document.querySelector('#app').animate([0,-1,.8,-.65,.45,-.25,0].map((v,i)=>({transform:`translate(${v*force}px,${i%2?v*force*.45:-v*force*.55}px)`})),{duration:strong?380:250,easing:'ease-out'});
 }
 async function bolt(from, to, color) {
   const el = document.createElement('div'); el.className = 'magic-bolt'; el.style.background = color; el.style.boxShadow = `0 0 14px 6px ${color}, 0 0 45px 10px ${color}`;
   el.style.left = `${from.x}px`; el.style.top = `${from.y}px`; overlay.append(el);
-  await finishAnimation(el.animate([{ transform: 'translate(-50%,-50%) scale(.5)', opacity: 0 }, { opacity: 1, offset: .2 }, { transform: `translate(${to.x - from.x}px,${to.y - from.y}px) scale(1.5)`, opacity: 1 }], { duration: 360, easing: 'cubic-bezier(.6,0,.9,.6)' }));
-  el.remove(); burst(to, color, 65, 9); ring(to, color);
+  try{await projectileFlight(el,[{ transform: 'translate(-50%,-50%) scale(.5)', opacity: .8 }, { opacity: 1, offset: .2 }, { transform: `translate(calc(-50% + ${to.x-from.x}px),calc(-50% + ${to.y-from.y}px)) scale(1.5)`, opacity: 1 }], { duration: 420, easing: 'cubic-bezier(.6,0,.9,.6)' },reduced.matches);}
+  finally{el.remove();} burst(to, color, 65, 9); ring(to, color);
 }
 export async function reveal(result) {
   const cardFor = id => document.querySelector(`[data-reveal="${id}"]`);
   const playerFor = id => document.querySelector(`[data-player="${id}"]`);
   const target = () => center(document.querySelector('#enemy-art'));
-  banner('운명을 펼쳐라', `TURN ${result.turnIndex} · 동시 공개`);
+  const introduction=banner('운명을 펼쳐라', `TURN ${result.turnIndex} · 동시 공개`);
   tone(160, .6, 'triangle', .08, 440);
   await sleep(650);
-  await Promise.all(result.cards.map(c=>flipRevealCard(cardFor(c.memberId),c,reduced.matches)));
+  introduction.remove();
+  const showcase=revealShowcase(result.cards,cardFor,playerFor);
+  try{
+  await Promise.all(result.cards.flatMap(c=>[flipRevealCard(cardFor(c.memberId),c,reduced.matches),flipRevealCard(showcase.cardFor(c.memberId),c,reduced.matches)]));
   tone(620, .2, 'triangle', .09, 240);
-  await sleep(500);
+  await sleep(700);
   const duplicates = result.cards.filter(c => !c.valid);
   if (duplicates.length) {
-    for (const c of duplicates) {
-      const el = cardFor(c.memberId); const point = center(el);
-      el?.classList.add('shattered'); burst(point, '#f286b9', 85, 10, true); ring(point, '#f286b9'); textAt(point, '중복 · 소멸', 'cancel');
-    }
+    const conflicting=duplicates.map(c=>showcase.cardFor(c.memberId)||cardFor(c.memberId));
+    await Promise.all(conflicting.map(el=>el?finishAnimation(el.animate(reduced.matches?[{opacity:.7},{opacity:1}]:[{translate:'0px 0px',filter:'brightness(1)'},{translate:'-5px 0px',filter:'brightness(2)',offset:.3},{translate:'5px 0px',filter:'brightness(1.5)',offset:.6},{translate:'0px 0px',filter:'brightness(2.5)'}],{duration:300})):Promise.resolve()));
+    const breaks=duplicates.map(c=>{
+      const el=showcase.cardFor(c.memberId)||cardFor(c.memberId),point=center(el);
+      cardFor(c.memberId)?.classList.add('shattered');
+      burst(point,'#f286b9',95,11,true);impactAt(point,'#f286b9',false,reduced.matches);textAt(point,`${c.value} 중복 · 소멸`,'cancel');
+      return shatterCard(el,reduced.matches);
+    });
     shake(); tone(85, .35, 'sawtooth', .075, 22);
-    await sleep(700);
+    await Promise.all(breaks);
   }
+  await sleep(200);
+  }finally{showcase.remove();}
   if (result.monsterBefore) {
     let remainingHp = result.monsterBefore.hp;
     for(const effect of result.effects.filter(e=>e.type==='boss_card')){
@@ -98,13 +112,14 @@ export async function reveal(result) {
       const restorePose=await showPlayerPose(playerFor(effect.memberId),'attack');
       const origin=characterAttackOrigin(playerFor(effect.memberId))||center(cardFor(effect.memberId));
       await characterAttack(effect,origin,target(),{burst,ring,tone,reduced});
+      impactAt(target(),effect.amount>=4?'#ffe5a3':'#f8deff',effect.amount>=4,reduced.matches);
+      recoil(document.querySelector('#enemy-art img, #enemy-art svg'),origin,target(),effect.amount>=4,reduced.matches);
       shake(effect.amount >= 4); tone(140 + effect.amount * 50, .23, 'sawtooth', .05, 38); textAt(target(), `−${effect.amount}`, 'critical');
       remainingHp = Math.max(0, remainingHp - effect.amount);
       const hpText = document.querySelector('.enemy-health b');
       const hpBar = document.querySelector('.enemy-health .health-track i');
       if (hpText) hpText.innerHTML = `${remainingHp} <small>/ ${result.monsterBefore.maxHp}</small>`;
       if (hpBar) hpBar.style.width = `${remainingHp / result.monsterBefore.maxHp * 100}%`;
-      document.querySelector('#enemy-art')?.animate([{ filter: 'brightness(4)' }, { filter: 'brightness(1)' }], { duration: 350 });
       await sleep(180);
       await restorePose();
     }
@@ -115,6 +130,7 @@ export async function reveal(result) {
   } else {
     for (const c of result.cards.filter(c => c.valid)) await bolt(center(cardFor(c.memberId)), target(), result.success ? '#89e0ba' : '#b39af3');
     banner(result.success ? '이벤트 성공' : '조건 미달', result.stage.name, result.success ? 'success' : 'danger');
+    impactAt(target(),result.success?'#99f0cb':'#fd8c91',true,reduced.matches);
     burst(target(), result.success ? '#99f0cb' : '#fd8c91', 120, 12); tone(result.success ? 660 : 110, .4, 'triangle', .1, result.success ? 880 : 40);
     await sleep(650);
   }
@@ -134,15 +150,20 @@ export async function reveal(result) {
     else { getAudio().playSfx('sfx_skill_seer_reveal',()=>tone(1300,.4,'sine',.06,1700)); textAt(point,'계시','heal'); }
   }
   for (const effect of result.effects.filter(e => ['damage', 'heal', 'revive', 'knockout', 'penalty'].includes(e.type))) {
-    const el = playerFor(effect.memberId), point = center(el);
+    const el = playerFor(effect.memberId), point = characterAttackOrigin(el)||center(el);
     if (effect.type === 'penalty') { textAt(point, `${effect.score}점 · ${effect.gold} G`, 'penalty'); continue; }
     const hearts = [...(el?.querySelectorAll('.heart') || [])];
     const oldHp = hearts.filter(heart => heart.classList.contains('filled')).length;
     const hp = effect.type === 'damage' ? Math.max(0, oldHp - effect.amount) : effect.type === 'heal' ? Math.min(hearts.length, oldHp + effect.amount) : effect.type === 'revive' ? (effect.hp ?? hearts.length) : 0;
     if (effect.type === 'damage') {
-      const restorePose=await showPlayerPose(el,'damage');
       if(result.monsterBefore) await monsterAttack(result.stage.shape,target(),point,{burst,ring,tone,reduced});
       else await bolt(target(), point, '#ff687e'); el?.classList.add('hit'); shake(true); textAt(point, `−${effect.amount} HP`, 'damage'); tone(65, .3, 'sawtooth', .07, 20);
+      impactAt(point,'#ff6985',true,reduced.matches);
+      recoil(el?.querySelector('.player-art-stage'),target(),point,true,reduced.matches);
+      const pose=showPlayerPose(el,'damage');
+      const info=el?.querySelector('.player-info');
+      if(info)void finishAnimation(info.animate([{boxShadow:'inset 0 0 45px #ff486aaa,0 0 25px #ff486a88'},{boxShadow:'inset 0 0 0 transparent,0 0 0 transparent'}],{duration:550}));
+      const restorePose=await pose;
       await sleep(180);await restorePose();
     } else if (effect.type === 'knockout') { textAt(point, 'KNOCKOUT', 'damage'); burst(point, '#ff5676', 100, 12, true); el?.classList.add('knocked-out');await setKnockoutPose(el,true); }
     else { burst(point, '#7ee6b6', 60, 4); ring(point, '#7ee6b6'); textAt(point, effect.type === 'revive' ? `부활 · HP ${hp}` : `+${effect.amount} HP`, 'heal'); tone(520, .3, 'sine', .07, 880); }
@@ -153,6 +174,7 @@ export async function reveal(result) {
   }
   for (const effect of result.effects.filter(e => e.type === 'reward' && e.gold)) textAt(center(playerFor(effect.memberId)), `+${effect.gold} G`, 'gold');
   if (result.monsterBefore && result.stageCleared) {
+    impactAt(target(),'#ffe4a0',true,reduced.matches);
     burst(target(), '#e6c487', 200, 16, true); ring(target(), '#fff0ba'); shake(true);
     document.querySelector('#enemy-art')?.classList.add('defeated');
     const winner = result.effects.find(e => e.type === 'kill_bonus');

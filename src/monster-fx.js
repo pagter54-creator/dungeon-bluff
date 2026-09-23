@@ -1,4 +1,5 @@
 import { finishAnimation } from './animation-wait.js';
+import { projectileFlight } from './combat-impact.js';
 
 // Telegraph, trajectory and impact are deliberately different for every monster.
 export const MONSTER_ATTACKS = {
@@ -39,7 +40,7 @@ export async function monsterAttack(shape, from, to, {burst,ring,tone,reduced}) 
         shape==='seer'?[{transform:'rotate(0) scale(.1)',opacity:0},{transform:'rotate(180deg) scale(2.5)',opacity:1},{transform:'rotate(240deg) scale(1)',opacity:0}]:
         shape==='mimic'?[{transform:`translateY(${i?-85:85}px) rotate(${i?180:0}deg) scale(2)`,opacity:0},{transform:`rotate(${i?180:0}deg) scale(1.2)`,opacity:1}]:
         [{transform:`rotate(${angle}deg) scale(.6)`,opacity:0},{transform:`translate(${dx*.5+(i-2)*12}px,${dy*.5-(shape==='slime'||shape==='goblin'?90:0)}px) rotate(${angle+(shape==='goblin'?180:0)}deg)`,opacity:1,offset:.5},{transform:`translate(${dx}px,${dy}px) rotate(${angle+(shape==='goblin'?540:0)}deg) scale(${shape==='boar'?2:1.2})`,opacity:1}];
-      await finishAnimation(el.animate(reducedMotion?[{opacity:0},{opacity:.7},{opacity:0}]:travel,{duration:520,delay:i*65,easing:'ease-in'}));
+      await projectileFlight(el,reducedMotion?[{opacity:0},{opacity:.7},{opacity:0}]:travel,{duration:520,delay:i*65,easing:'ease-in'},reducedMotion||stationary);
     }));
     burst(to,style.color,reducedMotion?12:shape==='golem'?150:100,shape==='golem'?15:9,shape==='goblin');
     if(!reducedMotion) {ring(to,style.color);if(shape==='bat'||shape==='golem')ring(to,'#fff1dc');}

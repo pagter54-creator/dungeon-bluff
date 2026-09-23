@@ -325,3 +325,26 @@ body:has(.game-top) > .site-footer{position:relative;z-index:1}
 .party-grid .reveal-card.revealed .reveal-value{display:block}
 .party-grid .reveal-card.revealed .card-back{display:none}
 .party-grid .reveal-card.shattered{transform:rotate(8deg) scale(.78)}
+
+/* Temporary foreground cards make simultaneous choices readable at any slot size. */
+.combat-showcase{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);display:flex;justify-content:center;gap:clamp(12px,3vw,48px);padding:26px 40px 32px;border-radius:24px;background:radial-gradient(ellipse,#15101eee 30%,#15101e99 60%,transparent 74%);z-index:5;max-width:100%;box-sizing:border-box}
+.showcase-slot{display:flex;flex-direction:column;align-items:center;gap:12px;min-width:0}
+.showcase-slot>span{color:#eee3f5;font-size:12px;font-weight:700;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 2px 6px #000}
+.combat-showcase .reveal-card{width:96px;height:134px;border-width:2px;flex:none;box-shadow:0 12px 28px #0008,inset 0 0 0 5px #382741;transition:opacity .2s,filter .2s}
+.combat-showcase .reveal-card .card-back{font-size:45px}
+.combat-showcase .reveal-card .reveal-value{font-size:58px}
+.combat-showcase .reveal-card .reveal-value,.card-fragment .reveal-value{display:none;transform:none;backface-visibility:visible}
+.combat-showcase .reveal-card.revealed,.card-fragment.revealed{transform:none}
+.combat-showcase .reveal-card.revealed .reveal-value,.card-fragment.revealed .reveal-value{display:block}
+.combat-showcase .reveal-card.revealed .card-back,.card-fragment.revealed .card-back{display:none}
+.combat-showcase .reveal-card.revealed{box-shadow:0 0 35px #efd08b55,inset 0 0 0 4px #efd08b33}
+.card-fragment{position:absolute!important;z-index:6;pointer-events:none;border:2px solid #ffb4cc!important;background:#70435d!important;color:#ffe5ef!important;box-sizing:border-box}
+.card-fragment .reveal-value{font-size:58px}
+.combat-impact{position:absolute;width:160px;height:160px;pointer-events:none;z-index:4;color:var(--impact-color)}
+.combat-impact i{position:absolute;left:0;top:48%;width:100%;height:5%;background:linear-gradient(90deg,transparent,currentColor 35%,#fff 50%,currentColor 65%,transparent);transform:rotate(-35deg);filter:drop-shadow(0 0 8px currentColor)}
+.combat-impact i:nth-child(2){transform:rotate(40deg) scale(.75)}
+.combat-impact b{position:absolute;inset:12%;border:2px solid currentColor;border-radius:50%;box-shadow:0 0 24px currentColor,inset 0 0 18px currentColor}
+.character-projectile,.monster-projectile{will-change:transform,opacity}
+#fx-overlay .floating-number{z-index:8}
+#fx-overlay .battle-banner{z-index:9}
+@media(max-width:760px){.combat-showcase{top:42%;gap:12px;padding:22px 14px}.combat-showcase .reveal-card{width:58px;height:84px}.combat-showcase .reveal-card .reveal-value{font-size:36px}.showcase-slot>span{font-size:9px;max-width:65px}.combat-impact{width:110px;height:110px}}

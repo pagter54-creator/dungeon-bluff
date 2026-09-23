@@ -1,5 +1,6 @@
 import { finishAnimation } from './animation-wait.js';
 import { getAudio } from './audio.js';
+import { projectileFlight } from './combat-impact.js';
 const styles = {
   sword: { glyph:'╱', color:'#fff2db', duration:570, freq:850, type:'sawtooth' },
   spear: { glyph:'⟶', color:'#e8bd70', duration:590, freq:240, type:'triangle' },
@@ -33,7 +34,7 @@ export async function characterAttack(effect, from, to, { burst, ring, tone, red
     {transform:`${travel(1)} rotate(${angle+(style.spin?(enhanced?1080:720):0)}deg) scale(${enhanced?1.8:1.1})`,opacity:1},
   ];
   if(reduced.matches) { el.style.left=`${to.x}px`; el.style.top=`${to.y}px`; }
-  try { await finishAnimation(el.animate(frames,{duration:style.duration,easing:'ease-in'})); }
+  try { await projectileFlight(el,frames,{duration:style.duration,easing:'cubic-bezier(.5,.05,.8,.5)'},reduced.matches); }
   finally { el.remove(); }
   burst(to,style.color,enhanced?120:65,enhanced?12:8,style.spin); ring(to,style.color);
   tone(style.freq / 2,.16,'triangle',enhanced?.08:.045,45);
