@@ -8,7 +8,7 @@ import { dungeonArt, creatureArt, eventArt } from './art.js';
 import { reveal, finale } from './fx.js';
 import { initAudioControls, getAudio } from './audio.js';
 import { characterFor, characterChoices, deckLabel, partyPanels, mobileSelection, cycleCards } from './character-ui.js';
-import { animateCycle } from './character-fx.js';
+import { animateCycle, showSkillEffect } from './character-fx.js';
 import { setKnockoutPose } from './player-pose-fx.js';
 import { showGameBackground } from './game-background.js';
 import { initMotionControl } from './motion.js';
@@ -67,6 +67,7 @@ async function perform(action, params = {}) {
     } else if (response.left) {
       roomEpoch++; await api.unsubscribe(); bundle = null; queue = []; sessionIdentity = null; lastResult = 0; view = 'home'; renderHome();
     } else if (response.room) { modal.close(); await accept(response); }
+    return response;
   } catch (error) { toast(error.message); if (bundle) void sync(); }
   finally { busy = false; updateBusy(); }
 }
@@ -238,9 +239,16 @@ document.addEventListener('click', async event => {
   if (action === 'set-character') void perform('set_character', { member_id: button.dataset.member, character_id: button.dataset.character });
   if (action === 'skill-info') {
     const c = characterFor(bundle, button.dataset.character), skill = c.definition?.skill;
-    if (skill) showModal(`<div class="eyebrow">${skill.type.toUpperCase()} · ${escape(c.display_name)}</div><h2>${escape(skill.name)}</h2><p>${escape(skill.description)}</p>`);
+    if (skill) showModal(`<div class="eyebrow">${skill.type === 'hybrid' ? 'PASSIVE & ACTIVE' : skill.type.toUpperCase()} · ${escape(c.display_name)}</div><h2>${escape(skill.name)}</h2><p>${escape(skill.description)}</p>`);
   }
   if (action === 'toggle-skill' && !animating) { useSkill = !useSkill; renderGame(); }
+  if (action === 'activate-revelation' && !animating && bundle?.session) {
+    const member = mine(), session = bundle.session;
+    const response = await perform('activate_skill', { session_id:session.id, turn_index:session.turn_index, member_id:member.id });
+    if (response?.session?.state.players[member.id]?.characterRuntimeState.revealExpiresTurn === session.turn_index) {
+      void showSkillEffect(document.querySelector(`[data-player="${member.id}"]`), 'revelation', '계시 · 이번 턴 전체 공개');
+    }
+  }
   if (action === 'add-ai') void perform('add_ai', { ai_type: button.dataset.type });
   if (action === 'remove-ai') void perform('remove_ai', { member_id: button.dataset.id });
   if (action === 'start') void perform('start_game');
@@ -269,7 +277,7 @@ document.addEventListener('submit', async event => {
 });
 document.querySelector('.modal-close').addEventListener('click', () => modal.close());
 modal.addEventListener('click', event => { if (event.target === modal) { const r = modal.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) modal.close(); } });
-document.querySelector('#help').addEventListener('click', () => showModal('<div class="eyebrow">HOW TO SURVIVE</div><h2>눈치를 읽고, 살아남아라.</h2><ol class="guide-list"><li><b>각자 카드 한 장.</b> 4명 모두 비밀리에 선택합니다.</li><li><b>같은 숫자는 전부 무효.</b> 유효한 카드만 공격과 방 효과에 참여합니다.</li><li><b>모든 제출 카드는 소비.</b> 5장을 쓰면 자신의 기본 덱을 다시 받습니다. 도박사는 사이클 없이 손패 2장을 유지하며 한 장을 쓰면 다음 턴에 한 장을 보충합니다.</li><li><b>HP는 3.</b> 0이 되면 한 턴 자동 제출 후 HP 3으로 부활합니다.</li><li><b>누적 기절 8회는 전멸.</b> 도달 스테이지에 따라 원정 점수·골드를 정산합니다. 1~4층 0%, 5층 20%, 6층 30%, 7층 40%, 8층 50%, 9층 60%, 보스층 70%, 클리어 100%. 소수점은 버립니다.</li><li><b>10번째 방은 보스.</b> 2턴마다 일반 공격과 특수 패턴을 번갈아 사용합니다. 일반 몬스터는 3턴마다 공격합니다.</li></ol><p class="muted">일반 공격은 카드 숫자만큼 피해를 줍니다. 적이 쓰러지는 턴에도 모든 유효 카드가 끝까지 공격합니다. 최고 피해자는 +10점과 기존 처치 보너스 3G를 받습니다. 기절할 때마다 -10점, -3G가 적용됩니다.</p>'));
+document.querySelector('#help').addEventListener('click', () => showModal('<div class="eyebrow">HOW TO SURVIVE</div><h2>눈치를 읽고, 살아남아라.</h2><ol class="guide-list"><li><b>각자 카드 한 장.</b> 4명 모두 비밀리에 선택합니다.</li><li><b>같은 숫자는 전부 무효.</b> 유효한 카드만 공격과 방 효과에 참여합니다.</li><li><b>모든 제출 카드는 소비.</b> 5장을 쓰면 자신의 기본 덱을 다시 받습니다. 도박사는 사이클 없이 매 턴 남은 카드까지 버리고 새 카드 2장을 받습니다. 6·7은 합쳐서 최대 한 장만 나옵니다.</li><li><b>HP는 3.</b> 0이 되면 한 턴 자동 제출 후 HP 3으로 부활합니다.</li><li><b>누적 기절 8회는 전멸.</b> 도달 스테이지에 따라 원정 점수·골드를 정산합니다. 1~4층 0%, 5층 20%, 6층 30%, 7층 40%, 8층 50%, 9층 60%, 보스층 70%, 클리어 100%. 소수점은 버립니다.</li><li><b>10번째 방은 보스.</b> 2턴마다 일반 공격과 특수 패턴을 번갈아 사용합니다. 일반 몬스터는 3턴마다 공격합니다.</li></ol><p class="muted">일반 공격은 카드 숫자만큼 피해를 줍니다. 적이 쓰러지는 턴에도 모든 유효 카드가 끝까지 공격합니다. 최고 피해자는 +10점과 기존 처치 보너스 3G를 받습니다. 기절할 때마다 -10점, -3G가 적용됩니다.</p>'));
 document.querySelector('#nickname').addEventListener('click', () => void openAccountPage('account'));
 initAccountUI({showModal,toast,canSwitch:()=>!bundle,ready:()=>connected,onNickname:()=>bundle?sync():Promise.resolve(),onAccount:data=>{
   setProfile(data.profile);

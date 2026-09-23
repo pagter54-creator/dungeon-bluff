@@ -91,6 +91,11 @@ export async function reveal(result) {
   const skillPhase=(phase,id)=>{
     for(const e of result.effects.filter(e=>e.type==='skill'&&e.phase===phase&&(!id||e.memberId===id))){
       skill(e.memberId,e.skillId,e.label,phase);
+      if (Number.isInteger(e.stacks)) {
+        const gauge = playerFor(e.memberId)?.querySelector('.revelation-gauge');
+        gauge?.setAttribute('aria-valuenow', String(e.stacks));
+        gauge?.querySelectorAll('.revelation-pip').forEach((pip,i)=>pip.classList.toggle('filled',i<e.stacks));
+      }
       if(Number.isFinite(e.hp)){
         const panel=playerFor(e.memberId),hearts=[...(panel?.querySelectorAll('.heart')||[])];
         hearts.forEach((heart,i)=>heart.classList.toggle('filled',i<e.hp));
@@ -109,6 +114,15 @@ export async function reveal(result) {
   combatCue('reveal');
   await sleep(600);
   const duplicates = result.cards.filter(c => !c.valid);
+  const resisted = result.cards.filter(c => c.resisted);
+  const resistanceAnimations = [];
+  for (const c of resisted) {
+    const el = showcase.cardFor(c.memberId) || cardFor(c.memberId);
+    el?.classList.add('clash-resisted'); cardFor(c.memberId)?.classList.add('clash-resisted');
+    ring(center(el), '#ffe1a0'); burst(center(el), '#ffe1a0', 65, 7);
+    textAt(center(el), '강인함 · 소멸 저항', 'gold'); combatCue('skill_toughness');
+    if (el) resistanceAnimations.push(finishAnimation(el.animate(reduced.matches?[{opacity:.6},{opacity:1}]:[{transform:'scale(1)',filter:'brightness(1)'},{transform:'scale(.92)',filter:'brightness(2.8)',offset:.3},{transform:'scale(1.14)',filter:'brightness(1.8)',offset:.6},{transform:'scale(1)',filter:'brightness(1)'}],{duration:650,easing:'ease-out'})));
+  }
   if (duplicates.length) {
     const conflicting=duplicates.map(c=>showcase.cardFor(c.memberId)||cardFor(c.memberId));
     await Promise.all(conflicting.map(el=>el?finishAnimation(el.animate(reduced.matches?[{opacity:.7},{opacity:1}]:[{translate:'0px 0px',filter:'brightness(1)'},{translate:'-5px 0px',filter:'brightness(2)',offset:.3},{translate:'5px 0px',filter:'brightness(1.5)',offset:.6},{translate:'0px 0px',filter:'brightness(2.5)'}],{duration:300})):Promise.resolve()));
@@ -121,10 +135,11 @@ export async function reveal(result) {
     shake(); combatCue('crack');
     await Promise.all(breaks);
   }
+  await Promise.allSettled(resistanceAnimations);
   await sleep(170);
   }finally{showcase.remove();}
   skillPhase('clash');
-  for(const c of result.cards.filter(c=>c.skillUsed))skill(c.memberId,'amplify',c.valid?'증폭 · 효과 +2':'증폭 · 중복 무효');
+  for(const c of result.cards.filter(c=>c.skillUsed))skill(c.memberId,c.skillId||'amplify',c.skillId==='toughness'?'강인함 · 행동 유지':c.valid?'증폭 · 효과 +2':'증폭 · 중복 무효');
   if (result.monsterBefore) {
     let remainingHp = result.monsterBefore.hp;
     for(const effect of result.effects.filter(e=>e.type==='boss_card')){

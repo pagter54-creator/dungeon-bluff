@@ -71,8 +71,8 @@ export async function animateCycle(effect) {
   if (effect.random) soundEffect('sfx_gambler_draw',()=>playTone(220,.25,'triangle',.07,780));
   const cards=[...pool.querySelectorAll('.pool-card')];
   // Keep the unplayed card in its original slot; animate only the consumed slot.
-  const replacement=effect.continuous?effect.cards.find(c=>!effect.previousCards.some(old=>old.id===c.id)):null;
-  const targets=effect.continuous?cards.filter(el=>effect.previousCards.find(c=>c.id===el.dataset.cardInstance)?.used):cards;
+  const replacement=effect.continuous&&!effect.replaceAll?effect.cards.find(c=>!effect.previousCards.some(old=>old.id===c.id)):null;
+  const targets=effect.continuous&&!effect.replaceAll?cards.filter(el=>effect.previousCards.find(c=>c.id===el.dataset.cardInstance)?.used):cards;
   for(const el of targets) { el.classList.add('face-down'); el.querySelector('b').textContent='◇'; el.querySelector('small').textContent=''; }
   const dice=document.createElement('span'); dice.className='cycle-dice'; dice.textContent=effect.random?'⚄':'↻'; pool.append(dice);
   try { await finishAnimation(dice.animate(reduce?[{opacity:0},{opacity:1}]:[{transform:'rotate(0) scale(.4)',opacity:0},{transform:'rotate(540deg) scale(1.2)',opacity:1}],{duration:effect.random?280:160})); }
