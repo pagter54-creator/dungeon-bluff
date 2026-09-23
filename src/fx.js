@@ -2,8 +2,9 @@ import { monsterAttack } from './monster-fx.js';
 import { advanceParticle } from './particle-time.js';
 import { finishAnimation } from './animation-wait.js';
 import { playTone as tone, getAudio } from './audio.js';
-import { characterAttack, animateCycle } from './character-fx.js';
+import { characterAttack, characterAttackOrigin, animateCycle } from './character-fx.js';
 import { showPlayerPose,setKnockoutPose } from './player-pose-fx.js';
+import { flipRevealCard } from './card-reveal-fx.js';
 
 const canvas = document.querySelector('#fx-canvas');
 const ctx = canvas.getContext('2d');
@@ -70,13 +71,9 @@ export async function reveal(result) {
   banner('운명을 펼쳐라', `TURN ${result.turnIndex} · 동시 공개`);
   tone(160, .6, 'triangle', .08, 440);
   await sleep(650);
-  for (const c of result.cards) {
-    const el = cardFor(c.memberId);
-    if (el) { el.classList.add('revealed'); el.querySelector('.reveal-value').textContent = c.value; }
-    if (c.amplified && el) { const label=document.createElement('small'); label.className='amplified-label'; label.textContent=`${c.value} → ${c.effectValue}`; el.append(label); }
-  }
+  await Promise.all(result.cards.map(c=>flipRevealCard(cardFor(c.memberId),c,reduced.matches)));
   tone(620, .2, 'triangle', .09, 240);
-  await sleep(750);
+  await sleep(500);
   const duplicates = result.cards.filter(c => !c.valid);
   if (duplicates.length) {
     for (const c of duplicates) {
@@ -99,7 +96,8 @@ export async function reveal(result) {
     for (const effect of result.effects.filter(e => e.type === 'attack' && e.amount > 0)) {
       cardFor(effect.memberId)?.classList.add('empowered');
       const restorePose=await showPlayerPose(playerFor(effect.memberId),'attack');
-      await characterAttack(effect,center(cardFor(effect.memberId)),target(),{burst,ring,tone,reduced});
+      const origin=characterAttackOrigin(playerFor(effect.memberId))||center(cardFor(effect.memberId));
+      await characterAttack(effect,origin,target(),{burst,ring,tone,reduced});
       shake(effect.amount >= 4); tone(140 + effect.amount * 50, .23, 'sawtooth', .05, 38); textAt(target(), `−${effect.amount}`, 'critical');
       remainingHp = Math.max(0, remainingHp - effect.amount);
       const hpText = document.querySelector('.enemy-health b');

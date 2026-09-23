@@ -317,3 +317,11 @@ body:has(.game-top) > .site-footer{position:relative;z-index:1}
  .arena .enemy-art,.arena .enemy-art:has(.monster-illustration){height:225px}
  .arena .enemy-art:not(:has(.monster-illustration)){height:195px}
 }
+
+/* The reveal swaps visible faces halfway through a 2D flip. This also keeps
+   numbers readable inside panels that use translucent backdrop layers. */
+.party-grid .reveal-card.revealed{transform:none}
+.party-grid .reveal-card .reveal-value{display:none;transform:none;backface-visibility:visible}
+.party-grid .reveal-card.revealed .reveal-value{display:block}
+.party-grid .reveal-card.revealed .card-back{display:none}
+.party-grid .reveal-card.shattered{transform:rotate(8deg) scale(.78)}

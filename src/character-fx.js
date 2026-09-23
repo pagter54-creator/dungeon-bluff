@@ -1,32 +1,36 @@
 import { finishAnimation } from './animation-wait.js';
 import { getAudio } from './audio.js';
 const styles = {
-  sword: { glyph:'╱', color:'#fff2db', duration:240, freq:850, type:'sawtooth' },
-  spear: { glyph:'⟶', color:'#e8bd70', duration:270, freq:240, type:'triangle' },
-  dagger: { glyph:'➤', color:'#9ce2c0', duration:150, freq:1350, type:'sawtooth' },
-  magic: { glyph:'✺', color:'#bb91ff', duration:380, freq:480, type:'sine' },
-  axe: { glyph:'⚒', color:'#ff776b', duration:390, freq:125, type:'sawtooth', spin:true },
-  starlight: { glyph:'✧', color:'#9bdeff', duration:310, freq:1100, type:'sine' },
-  imp_magic: { glyph:'♆', color:'#ee8dd6', duration:230, freq:640, type:'square' },
-  dice: { glyph:'⚄', color:'#ffdc7d', duration:340, freq:350, type:'triangle', spin:true },
+  sword: { glyph:'╱', color:'#fff2db', duration:570, freq:850, type:'sawtooth' },
+  spear: { glyph:'⟶', color:'#e8bd70', duration:590, freq:240, type:'triangle' },
+  dagger: { glyph:'➤', color:'#9ce2c0', duration:470, freq:1350, type:'sawtooth' },
+  magic: { glyph:'✺', color:'#bb91ff', duration:650, freq:480, type:'sine' },
+  axe: { glyph:'⚒', color:'#ff776b', duration:640, freq:125, type:'sawtooth', spin:true },
+  starlight: { glyph:'✧', color:'#9bdeff', duration:600, freq:1100, type:'sine' },
+  imp_magic: { glyph:'♆', color:'#ee8dd6', duration:520, freq:640, type:'square' },
+  dice: { glyph:'⚄', color:'#ffdc7d', duration:600, freq:350, type:'triangle', spin:true },
 };
+export function characterAttackOrigin(panel) {
+  const art=panel?.querySelector('.player-art-stage .player-illustration');
+  const rect=art?.getBoundingClientRect();
+  return rect ? {x:rect.left+rect.width/2,y:rect.top+rect.height*.43} : null;
+}
 export async function characterAttack(effect, from, to, { burst, ring, tone, reduced }) {
   const style = styles[effect.attackFx] || styles.sword;
   const enhanced = effect.amplified || effect.empowered;
   getAudio().playSfx(effect.attackSfx || 'sfx_attack_adventurer', () => tone(style.freq, .22, style.type, .065, style.freq / 3));
   if (effect.amplified) getAudio().playSfx('sfx_skill_mage_amplify', () => tone(1250,.35,'sine',.07,1700));
-  if (effect.attackFx === 'magic' || effect.attackFx === 'starlight') {
-    ring(from,style.color); if(enhanced) burst(from,style.color,65,5);
-  }
+  ring(from,style.color); burst(from,style.color,enhanced?65:24,enhanced?6:4);
   const el = document.createElement('div'); el.className=`character-projectile projectile-${effect.attackFx || 'sword'} ${enhanced?'enhanced':''}`;
   el.textContent=style.glyph; el.style.color=style.color; el.style.left=`${from.x}px`; el.style.top=`${from.y}px`;
   document.querySelector('#fx-overlay').append(el);
   const angle=Math.atan2(to.y-from.y,to.x-from.x)*180/Math.PI;
-  const travel=`translate(${to.x-from.x}px,${to.y-from.y}px)`;
+  const dx=to.x-from.x,dy=to.y-from.y;
+  const travel=(portion)=>`translate(calc(-50% + ${dx*portion}px),calc(-50% + ${dy*portion}px))`;
   const frames = reduced.matches ? [{opacity:0},{opacity:1},{opacity:0}] : [
-    {transform:`translate(-50%,-50%) rotate(${angle}deg) scale(.7)`,opacity:0},
-    {opacity:1,offset:.15},
-    {transform:`${travel} rotate(${angle+(style.spin?(enhanced?1080:720):0)}deg) scale(${enhanced?1.8:1.1})`,opacity:1},
+    {transform:`translate(-50%,-50%) rotate(${angle}deg) scale(.75)`,opacity:.95},
+    {transform:`${travel(.52)} rotate(${angle+(style.spin?360:0)}deg) scale(${enhanced?1.45:1.15})`,opacity:1,offset:.52},
+    {transform:`${travel(1)} rotate(${angle+(style.spin?(enhanced?1080:720):0)}deg) scale(${enhanced?1.8:1.1})`,opacity:1},
   ];
   if(reduced.matches) { el.style.left=`${to.x}px`; el.style.top=`${to.y}px`; }
   try { await finishAnimation(el.animate(frames,{duration:style.duration,easing:'ease-in'})); }
