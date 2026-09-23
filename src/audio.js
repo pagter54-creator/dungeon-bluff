@@ -73,7 +73,11 @@ export class GameAudio {
     catch { fallback?.(); return; }
     voice.volume = clamp(this.volume * SFX_GAIN); this.voices.add(voice);
     voice.onended = () => this.voices.delete(voice);
-    void voice.play().catch(() => { this.voices.delete(voice); this.missingSfx.add(name); fallback?.(); });
+    try {
+      void voice.play().catch(() => { this.voices.delete(voice); this.missingSfx.add(name); fallback?.(); });
+    } catch {
+      this.voices.delete(voice); this.missingSfx.add(name); fallback?.();
+    }
   }
   combatCue(name) {
     if (!this.enabled || !this.volume || this.hidden || !this.context || !this.master) return;
@@ -129,7 +133,9 @@ export class GameAudio {
 
 let shared;
 export const getAudio = () => shared ||= new GameAudio();
-export const playTone = (...args) => getAudio().tone(...args);
+export const playTone = (...args) => {
+  try { getAudio().tone(...args); } catch { /* An audio-device failure must not stop combat visuals. */ }
+};
 
 export function initAudioControls() {
   const audio = getAudio();

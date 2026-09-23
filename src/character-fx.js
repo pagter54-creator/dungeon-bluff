@@ -1,6 +1,13 @@
 import { finishAnimation } from './animation-wait.js';
-import { getAudio } from './audio.js';
+import { getAudio, playTone } from './audio.js';
 import { projectileFlight } from './combat-impact.js';
+function combatCue(name) {
+  try { getAudio().combatCue?.(name); } catch (error) { console.warn('Combat sound unavailable:', name, error); }
+}
+function soundEffect(name, fallback) {
+  try { getAudio().playSfx?.(name, fallback); }
+  catch (error) { console.warn('Combat sound unavailable:', name, error); fallback?.(); }
+}
 const styles = {
   sword: { glyph:'╱', color:'#fff2db', duration:570, freq:850, type:'sawtooth' },
   spear: { glyph:'⟶', color:'#e8bd70', duration:590, freq:240, type:'triangle' },
@@ -23,7 +30,7 @@ export async function showSkillEffect(panel,skillId,label){
   const el=document.createElement('div');el.className='skill-proc';
   el.style.cssText=`left:${point.x}px;top:${point.y}px;--skill-color:${color}`;
   const icon=document.createElement('b'),text=document.createElement('span');icon.textContent=glyph;text.textContent=label;el.append(icon,text);
-  document.querySelector('#fx-overlay').append(el);getAudio().combatCue(`skill_${skillId}`);
+  document.querySelector('#fx-overlay').append(el);combatCue(`skill_${skillId}`);
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   try{await finishAnimation(el.animate(reduced?[{opacity:0},{opacity:1,offset:.2},{opacity:1,offset:.8},{opacity:0}]:[
     {transform:'translate(-50%,-30%) scale(.7)',opacity:0},
@@ -35,9 +42,9 @@ export async function showSkillEffect(panel,skillId,label){
 export async function characterAttack(effect, from, to, { burst, ring, tone, reduced }) {
   const style = styles[effect.attackFx] || styles.sword;
   const enhanced = effect.amplified || effect.empowered;
-  getAudio().playSfx(effect.attackSfx || 'sfx_attack_adventurer', () => tone(style.freq, .22, style.type, .065, style.freq / 3));
-  if (effect.amplified) getAudio().playSfx('sfx_skill_mage_amplify', () => tone(1250,.35,'sine',.07,1700));
-  getAudio().combatCue('launch');
+  soundEffect(effect.attackSfx || 'sfx_attack_adventurer', () => tone(style.freq, .22, style.type, .065, style.freq / 3));
+  if (effect.amplified) soundEffect('sfx_skill_mage_amplify', () => tone(1250,.35,'sine',.07,1700));
+  combatCue('launch');
   ring(from,style.color); burst(from,style.color,enhanced?65:24,enhanced?6:4);
   const el = document.createElement('div'); el.className=`character-projectile projectile-${effect.attackFx || 'sword'} ${enhanced?'enhanced':''}`;
   el.textContent=style.glyph; el.style.color=style.color; el.style.left=`${from.x}px`; el.style.top=`${from.y}px`;
@@ -60,8 +67,7 @@ export async function animateCycle(effect) {
   const pool = document.querySelector(`[data-cycle-pool="${effect.memberId}"]`);
   if (!pool) return;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const audio=getAudio();
-  if (effect.random) audio.playSfx('sfx_gambler_draw',()=>audio.tone(220,.25,'triangle',.07,780));
+  if (effect.random) soundEffect('sfx_gambler_draw',()=>playTone(220,.25,'triangle',.07,780));
   const cards=[...pool.querySelectorAll('.pool-card')];
   // Keep the unplayed card in its original slot; animate only the consumed slot.
   const replacement=effect.continuous?effect.cards.find(c=>!effect.previousCards.some(old=>old.id===c.id)):null;
@@ -77,6 +83,6 @@ export async function animateCycle(effect) {
     el.querySelector('b').textContent=card.value; el.querySelector('small').textContent='◆';
     return finishAnimation(el.animate(reduce?[{opacity:.3},{opacity:1}]:[{transform:'rotateY(90deg)',opacity:0},{transform:'rotateY(0deg)',opacity:1}],{duration:240,delay:i*35,fill:'both'}));
   });
-  if(effect.random && effect.cards.some(c=>c.value===7)) audio.playSfx('sfx_gambler_lucky',()=>audio.tone(1000,.3,'sine',.06,1500));
+  if(effect.random && effect.cards.some(c=>c.value===7)) soundEffect('sfx_gambler_lucky',()=>playTone(1000,.3,'sine',.06,1500));
   await Promise.allSettled(animations);
 }

@@ -109,10 +109,16 @@ async function playQueue() {
   animating = true;
   try {
     while (queue.length && bundle) {
-      const result = queue.shift(); renderGame(result); await reveal(result);
+      const result = queue.shift();
+      try { renderGame(result); await reveal(result); }
+      catch (error) {
+        console.error('Turn presentation failed:', result.turnIndex, error);
+        toast('일부 전투 연출을 재생하지 못했습니다. 다음 턴은 계속 진행됩니다.');
+      }
     }
   } catch (error) {
-    queue = []; toast('연출을 건너뛰고 최신 턴으로 복구했습니다.');
+    console.error('Turn queue failed:', error);
+    toast('전투 화면을 최신 상태로 복구했습니다.');
   } finally {
     animating = false;
     if (bundle?.session) { renderGame(); if (bundle.session.status !== 'active') finale(bundle.session.status === 'completed'); }

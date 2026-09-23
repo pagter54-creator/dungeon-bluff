@@ -16,6 +16,15 @@ let raf = 0;
 let previous = 0;
 let cameraShake;
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+// Sound is optional. A blocked or partially supported Web Audio device must
+// never cancel the card reveal and every combat animation after it.
+function combatCue(name) {
+  try { getAudio().combatCue?.(name); } catch (error) { console.warn('Combat sound unavailable:', name, error); }
+}
+function soundEffect(name, fallback) {
+  try { getAudio().playSfx?.(name, fallback); }
+  catch (error) { console.warn('Combat sound unavailable:', name, error); fallback?.(); }
+}
 function resize() { const dpr = Math.min(devicePixelRatio, 2); canvas.width = innerWidth * dpr; canvas.height = innerHeight * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
 addEventListener('resize', resize); resize();
 const center = element => { const r = element?.getBoundingClientRect(); return r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : { x: innerWidth / 2, y: innerHeight / 2 }; };
@@ -60,8 +69,8 @@ function ring(point, color) {
 function shake(strong = false) {
   if (reduced.matches) return;
   cameraShake?.cancel();
-  const force=strong?13:6;
-  cameraShake=document.querySelector('#app').animate([0,-1,.8,-.65,.45,-.25,0].map((v,i)=>({transform:`translate(${v*force}px,${i%2?v*force*.45:-v*force*.55}px)`})),{duration:strong?380:250,easing:'ease-out'});
+  const force=strong?21:11;
+  cameraShake=document.querySelector('#app')?.animate([0,-1,.8,-.65,.45,-.25,0].map((v,i)=>({transform:`translate(${v*force}px,${i%2?v*force*.45:-v*force*.55}px)`})),{duration:strong?420:310,easing:'ease-out'});
 }
 async function bolt(from, to, color) {
   const el = document.createElement('div'); el.className = 'magic-bolt'; el.style.background = color; el.style.boxShadow = `0 0 14px 6px ${color}, 0 0 45px 10px ${color}`;
@@ -94,9 +103,9 @@ export async function reveal(result) {
   introduction.remove();
   const showcase=revealShowcase(result.cards,cardFor,playerFor);
   try{
-  getAudio().combatCue('flip');
+  combatCue('flip');
   await Promise.all(result.cards.flatMap(c=>[flipRevealCard(cardFor(c.memberId),c,reduced.matches),flipRevealCard(showcase.cardFor(c.memberId),c,reduced.matches)]));
-  getAudio().combatCue('reveal');
+  combatCue('reveal');
   await sleep(600);
   const duplicates = result.cards.filter(c => !c.valid);
   if (duplicates.length) {
@@ -108,7 +117,7 @@ export async function reveal(result) {
       burst(point,'#f286b9',95,11,true);impactAt(point,'#f286b9',false,reduced.matches);textAt(point,`${c.value} 중복 · 소멸`,'cancel');
       return shatterCard(el,reduced.matches);
     });
-    shake(); getAudio().combatCue('crack');
+    shake(); combatCue('crack');
     await Promise.all(breaks);
   }
   await sleep(170);
@@ -133,7 +142,7 @@ export async function reveal(result) {
       await characterAttack(effect,origin,target(),{burst,ring,tone,reduced});
       impactAt(target(),effect.amount>=4?'#ffe5a3':'#f8deff',effect.amount>=4,reduced.matches);
       recoil(document.querySelector('#enemy-art img, #enemy-art svg'),origin,target(),effect.amount>=4,reduced.matches);
-      shake(effect.amount >= 4); getAudio().combatCue(effect.amount>=4?'heavy':'hit'); textAt(target(), `−${effect.amount}`, 'critical');
+      shake(effect.amount >= 4); combatCue(effect.amount>=4?'heavy':'hit'); textAt(target(), `−${effect.amount}`, 'critical');
       remainingHp = Math.max(0, remainingHp - effect.amount);
       const hpText = document.querySelector('.enemy-health b');
       const hpBar = document.querySelector('.enemy-health .health-track i');
@@ -165,10 +174,10 @@ export async function reveal(result) {
     if(effect.type==='steal') {
       const total=result.effects.filter(e=>e.type==='steal'&&e.memberId===effect.memberId).reduce((n,e)=>n+e.amount,0);
       skill(effect.memberId,'score_steal',`슬쩍 · +${total}점`);
-      getAudio().playSfx('sfx_skill_imp_steal',()=>tone(900,.2,'triangle',.06,1400));
+      soundEffect('sfx_skill_imp_steal',()=>tone(900,.2,'triangle',.06,1400));
       textAt(center(playerFor(effect.targetId)),'−1','damage'); await bolt(center(playerFor(effect.targetId)),point,'#ee8dd6'); textAt(point,'+1','heal');
     } else if(effect.type==='shield') { skill(effect.memberId,'toughness','강인함 · 피해 무효');ring(point,'#f7d484'); textAt(point,'강인함 · 방어','gold'); }
-    else { skill(effect.memberId,'revelation','계시 · 다음 턴 공개');getAudio().playSfx('sfx_skill_seer_reveal',()=>tone(1300,.4,'sine',.06,1700)); textAt(point,'계시','heal'); }
+    else { skill(effect.memberId,'revelation','계시 · 다음 턴 공개');soundEffect('sfx_skill_seer_reveal',()=>tone(1300,.4,'sine',.06,1700)); textAt(point,'계시','heal'); }
   }
   for (const effect of result.effects.filter(e => ['damage', 'heal', 'revive', 'knockout', 'penalty'].includes(e.type))) {
     const el = playerFor(effect.memberId), point = characterAttackOrigin(el)||center(el);
@@ -178,7 +187,7 @@ export async function reveal(result) {
     const hp = effect.type === 'damage' ? Math.max(0, oldHp - effect.amount) : effect.type === 'heal' ? Math.min(hearts.length, oldHp + effect.amount) : effect.type === 'revive' ? (effect.hp ?? hearts.length) : 0;
     if (effect.type === 'damage') {
       if(result.monsterBefore) await monsterAttack(result.stage.shape,target(),point,{burst,ring,tone,reduced});
-      else await bolt(target(), point, '#ff687e'); el?.classList.add('hit'); shake(true); textAt(point, `−${effect.amount} HP`, 'damage'); getAudio().combatCue('hurt');
+      else await bolt(target(), point, '#ff687e'); el?.classList.add('hit'); shake(true); textAt(point, `−${effect.amount} HP`, 'damage'); combatCue('hurt');
       impactAt(point,'#ff6985',true,reduced.matches);
       recoil(el?.querySelector('.player-art-stage'),target(),point,true,reduced.matches);
       const pose=showPlayerPose(el,'damage');
