@@ -210,7 +210,7 @@ export async function reveal(result) {
       const info=el?.querySelector('.player-info');
       if(info)void finishAnimation(info.animate([{boxShadow:'inset 0 0 45px #ff486aaa,0 0 25px #ff486a88'},{boxShadow:'inset 0 0 0 transparent,0 0 0 transparent'}],{duration:550}));
       const restorePose=await pose;
-      await sleep(150);await restorePose();
+      await sleep(150);if(hp===0)await setKnockoutPose(el,true);await restorePose();
     } else if (effect.type === 'knockout') { textAt(point, 'KNOCKOUT', 'damage'); burst(point, '#ff5676', 100, 12, true); el?.classList.add('knocked-out');await setKnockoutPose(el,true); }
     else { burst(point, '#7ee6b6', 60, 4); ring(point, '#7ee6b6'); textAt(point, effect.type === 'revive' ? `부활 · HP ${hp}` : `+${effect.amount} HP`, 'heal'); tone(520, .3, 'sine', .07, 880); }
     hearts.forEach((heart, i) => heart.classList.toggle('filled', i < hp));
@@ -230,14 +230,14 @@ export async function reveal(result) {
     const winner = result.effects.find(e => e.type === 'kill_bonus');
     const clearLabel = result.stage.category === 'boss' ? 'BOSS DEFEATED' : 'STAGE CLEAR';
     if (winner) {
-      const name = playerFor(winner.memberId)?.querySelector('h3')?.textContent.trim() || '최고 피해자';
+      const name = result.effects.filter(e=>e.type==='kill_bonus').map(e=>playerFor(e.memberId)?.querySelector('h3')?.textContent.trim() || '최고 피해자').join(' · ');
       banner(`+${winner.score}`, `${name} · 최고 피해 · ${clearLabel}`, 'winner-banner');
     } else banner(clearLabel, result.stage.name, 'success');
     tone(260, .7, 'triangle', .12, 1040);
     for (const effect of result.effects.filter(e => e.type === 'kill_bonus')) {
       const panel = playerFor(effect.memberId), point = center(panel);
       panel?.classList.add('kill-winner');
-      const label = document.createElement('span'); label.className = 'winner-label'; label.textContent = '최고 피해 · +10점'; panel?.append(label);
+      const label = document.createElement('span'); label.className = 'winner-label'; label.textContent = `최고 피해 · +${effect.score}점`; panel?.append(label);
       textAt(point, `+${effect.score}`, 'winner'); burst(point, '#63ff9c', 110, 8); ring(point, '#63ff9c');
     }
   }

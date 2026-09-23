@@ -1,3 +1,4 @@
+import {assetLoader} from './asset-loader.js';
 // File stems intentionally match the supplied artwork (travler, warrior).
 const groups=[
 ['gunner','gunner','총잡이',['총잡이 기본 스킨']],
@@ -54,8 +55,8 @@ export function skinPortrait(character,loadout){
  const skin=skinFor(character,loadout);
  return `<img class="skin-portrait" src="${skin.portrait}" alt="${skin.name}" draggable="false">`;
 }
-export function skinIllustration(character,loadout){
+export function skinIllustration(character,loadout,knockedOut=false){
  const skin=skinFor(character,loadout);
  const {scale=1,offsetX=0,offsetY=0,positionX=50,positionY=100}=SKIN_ART_LAYOUT[skin.id]||{};
- return `<div class="player-illustration" data-attack-src="${skin.attack}" data-damage-src="${skin.damage}" data-attack-lift="${SKIN_POSE_LIFT[skin.id+'_A']||0}" data-damage-lift="${SKIN_POSE_LIFT[skin.id+'_D']||0}" style="--art-scale:${scale};--art-offset-x:${offsetX}px;--art-offset-y:${offsetY}px;--art-position-x:${positionX}%;--art-position-y:${positionY}%;--base-lift:${SKIN_POSE_LIFT[skin.id]||0}px"><img class="player-illustration-base" src="${skin.preview}" alt="${skin.name}" draggable="false" decoding="async"></div>`;
+ return `<div class="player-illustration" data-standing-src="${skin.preview}" data-knocked-out="${Boolean(knockedOut)}" data-attack-src="${skin.attack}" data-damage-src="${skin.damage}" data-attack-lift="${SKIN_POSE_LIFT[skin.id+'_A']||0}" data-damage-lift="${SKIN_POSE_LIFT[skin.id+'_D']||0}" style="--art-scale:${scale};--art-offset-x:${offsetX}px;--art-offset-y:${offsetY}px;--art-position-x:${positionX}%;--art-position-y:${positionY}%;--base-lift:${SKIN_POSE_LIFT[skin.id]||0}px"><img class="player-illustration-base" src="${knockedOut&&assetLoader.ready.has(skin.damage)?skin.damage:skin.preview}" alt="${skin.name}" draggable="false" decoding="async"></div>`;
 }

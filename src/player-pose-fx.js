@@ -16,40 +16,41 @@ function canLoad(url){
 
 function reducedMotion(){return motionPreference.matches;}
 
+function replacePose(frame,base,url) {
+  base.src=url;
+  base.style.opacity='';
+}
 export async function setKnockoutPose(panel,knockedOut){
   const frame=panel?.querySelector('.player-illustration');
-  if(!frame)return;
-  const request=(knockoutRequests.get(frame)||0)+1;
-  knockoutRequests.set(frame,request);
-  if(!knockedOut){
-    frame.classList.remove('knockout-art');
-    for(const layer of frame.querySelectorAll('.knockout-pose')){
-      layer.removeTimer=setTimeout(()=>layer.remove(),reducedMotion()?0:280);
-    }
-    return;
-  }
-  const current=frame.querySelector('.knockout-pose');
-  if(current){
-    clearTimeout(current.removeTimer);
-    frame.classList.add('knockout-art');return;
-  }
-  const url=frame.dataset.damageSrc;
-  if(!await canLoad(url)||knockoutRequests.get(frame)!==request||!frame.isConnected)return;
-  const layer=document.createElement('img');
-  layer.className='player-pose-layer knockout-pose';
-  layer.src=url;layer.alt='';layer.draggable=false;
-  layer.style?.setProperty('--pose-lift',`${Number(frame.dataset.damageLift)||0}px`);
-  frame.append(layer);
-  requestAnimationFrame(()=>{
-    if(knockoutRequests.get(frame)===request)frame.classList.add('knockout-art');
-  });
+  const base=frame?.querySelector('.player-illustration-base');
+  if(!base)return;
+  frame.dataset.standingSrc ||= base.src;
+  frame.dataset.knockedOut=String(knockedOut);
+  const request=(knockoutRequests.get(frame)||0)+1;knockoutRequests.set(frame,request);
+  if(!knockedOut){replacePose(frame,base,frame.dataset.standingSrc);return;}
+  if(base.src===frame.dataset.damageSrc)return;
+  if(await canLoad(frame.dataset.damageSrc) && knockoutRequests.get(frame)===request && frame.isConnected)
+    replacePose(frame,base,frame.dataset.damageSrc);
+}
+async function damagePose(frame,base){
+  const request=(knockoutRequests.get(frame)||0)+1;knockoutRequests.set(frame,request);
+  frame.dataset.standingSrc ||= base.src;
+  if(!await canLoad(frame.dataset.damageSrc)||knockoutRequests.get(frame)!==request||!frame.isConnected)return async()=>{};
+  replacePose(frame,base,frame.dataset.damageSrc);
+  if(!reducedMotion())void finishAnimation(base.animate([{filter:'brightness(1.6)'},{filter:'brightness(1)'}],{duration:180}));
+  return async()=>{
+    if(knockoutRequests.get(frame)!==request||frame.dataset.knockedOut==='true')return;
+    replacePose(frame,base,frame.dataset.standingSrc);
+  };
 }
 
 export async function showPlayerPose(panel,kind){
   const frame=panel?.querySelector('.player-illustration');
   const base=frame?.querySelector('.player-illustration-base');
   const url=kind==='attack'?frame?.dataset.attackSrc:frame?.dataset.damageSrc;
-  if(!frame||!base||!await canLoad(url))return async()=>{};
+  if(!frame||!base)return async()=>{};
+  if(kind==='damage')return damagePose(frame,base);
+  if(!await canLoad(url))return async()=>{};
 
   const previous=active.get(frame);
   if(previous)await previous();
