@@ -1,4 +1,5 @@
 import { monsterAttack } from './monster-fx.js';
+import { advanceParticle } from './particle-time.js';
 import { finishAnimation } from './animation-wait.js';
 import { playTone as tone, getAudio } from './audio.js';
 import { characterAttack, animateCycle } from './character-fx.js';
@@ -16,10 +17,10 @@ function resize() { const dpr = Math.min(devicePixelRatio, 2); canvas.width = in
 addEventListener('resize', resize); resize();
 const center = element => { const r = element?.getBoundingClientRect(); return r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : { x: innerWidth / 2, y: innerHeight / 2 }; };
 function frame(now) {
-  const dt = Math.min((now - previous) / 16.67 || 1, 2); previous = now;
+  const elapsedMs = Math.max(0,now - previous); previous = now;
   ctx.clearRect(0, 0, innerWidth, innerHeight);
   for (const p of particles) {
-    p.x += p.vx * dt; p.y += p.vy * dt; p.vy += p.gravity * dt; p.life -= dt;
+    advanceParticle(p,elapsedMs);
     ctx.globalAlpha = Math.max(0, p.life / p.max); ctx.fillStyle = p.color;
     ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.life * .08);
     if (p.shard) ctx.fillRect(-p.size, -p.size / 3, p.size * 2, p.size / 1.5);
@@ -59,7 +60,7 @@ function shake(strong = false) {
 async function bolt(from, to, color) {
   const el = document.createElement('div'); el.className = 'magic-bolt'; el.style.background = color; el.style.boxShadow = `0 0 14px 6px ${color}, 0 0 45px 10px ${color}`;
   el.style.left = `${from.x}px`; el.style.top = `${from.y}px`; overlay.append(el);
-  await finishAnimation(el.animate([{ transform: 'translate(-50%,-50%) scale(.5)', opacity: 0 }, { opacity: 1, offset: .2 }, { transform: `translate(${to.x - from.x}px,${to.y - from.y}px) scale(1.5)`, opacity: 1 }], { duration: reduced.matches ? 80 : 360, easing: 'cubic-bezier(.6,0,.9,.6)' }));
+  await finishAnimation(el.animate([{ transform: 'translate(-50%,-50%) scale(.5)', opacity: 0 }, { opacity: 1, offset: .2 }, { transform: `translate(${to.x - from.x}px,${to.y - from.y}px) scale(1.5)`, opacity: 1 }], { duration: 360, easing: 'cubic-bezier(.6,0,.9,.6)' }));
   el.remove(); burst(to, color, 65, 9); ring(to, color);
 }
 export async function reveal(result) {
@@ -68,14 +69,14 @@ export async function reveal(result) {
   const target = () => center(document.querySelector('#enemy-art'));
   banner('운명을 펼쳐라', `TURN ${result.turnIndex} · 동시 공개`);
   tone(160, .6, 'triangle', .08, 440);
-  await sleep(reduced.matches ? 100 : 650);
+  await sleep(650);
   for (const c of result.cards) {
     const el = cardFor(c.memberId);
     if (el) { el.classList.add('revealed'); el.querySelector('.reveal-value').textContent = c.value; }
     if (c.amplified && el) { const label=document.createElement('small'); label.className='amplified-label'; label.textContent=`${c.value} → ${c.effectValue}`; el.append(label); }
   }
   tone(620, .2, 'triangle', .09, 240);
-  await sleep(reduced.matches ? 100 : 750);
+  await sleep(750);
   const duplicates = result.cards.filter(c => !c.valid);
   if (duplicates.length) {
     for (const c of duplicates) {
@@ -83,7 +84,7 @@ export async function reveal(result) {
       el?.classList.add('shattered'); burst(point, '#f286b9', 85, 10, true); ring(point, '#f286b9'); textAt(point, '중복 · 소멸', 'cancel');
     }
     shake(); tone(85, .35, 'sawtooth', .075, 22);
-    await sleep(reduced.matches ? 120 : 700);
+    await sleep(700);
   }
   if (result.monsterBefore) {
     let remainingHp = result.monsterBefore.hp;
@@ -106,7 +107,7 @@ export async function reveal(result) {
       if (hpText) hpText.innerHTML = `${remainingHp} <small>/ ${result.monsterBefore.maxHp}</small>`;
       if (hpBar) hpBar.style.width = `${remainingHp / result.monsterBefore.maxHp * 100}%`;
       document.querySelector('#enemy-art')?.animate([{ filter: 'brightness(4)' }, { filter: 'brightness(1)' }], { duration: 350 });
-      await sleep(reduced.matches ? 30 : 180);
+      await sleep(180);
       await restorePose();
     }
     const finalHp=result.monsterAfter?.hp??remainingHp;
@@ -117,14 +118,14 @@ export async function reveal(result) {
     for (const c of result.cards.filter(c => c.valid)) await bolt(center(cardFor(c.memberId)), target(), result.success ? '#89e0ba' : '#b39af3');
     banner(result.success ? '이벤트 성공' : '조건 미달', result.stage.name, result.success ? 'success' : 'danger');
     burst(target(), result.success ? '#99f0cb' : '#fd8c91', 120, 12); tone(result.success ? 660 : 110, .4, 'triangle', .1, result.success ? 880 : 40);
-    await sleep(reduced.matches ? 100 : 650);
+    await sleep(650);
   }
   for(const effect of result.effects.filter(e=>['boss_special','boss_status','boss_mark'].includes(e.type))){
     const point=effect.memberId?center(playerFor(effect.memberId)):target();
     ring(point,'#e5afff');burst(point,'#c586ff',140,13,true);textAt(point,effect.label,'critical');
     if(effect.type==='boss_special'){banner(effect.label,effect.detail,'danger');shake(true);tone(90,.7,'sawtooth',.09,480);}
     if(effect.memberId)playerFor(effect.memberId)?.classList.add('boss-mark-flash');
-    await sleep(reduced.matches?50:350);
+    await sleep(350);
   }
   for (const effect of result.effects.filter(e => ['steal','revelation','shield'].includes(e.type))) {
     const point=center(playerFor(effect.memberId));
@@ -144,13 +145,13 @@ export async function reveal(result) {
       const restorePose=await showPlayerPose(el,'damage');
       if(result.monsterBefore) await monsterAttack(result.stage.shape,target(),point,{burst,ring,tone,reduced});
       else await bolt(target(), point, '#ff687e'); el?.classList.add('hit'); shake(true); textAt(point, `−${effect.amount} HP`, 'damage'); tone(65, .3, 'sawtooth', .07, 20);
-      await sleep(reduced.matches?30:180);await restorePose();
+      await sleep(180);await restorePose();
     } else if (effect.type === 'knockout') { textAt(point, 'KNOCKOUT', 'damage'); burst(point, '#ff5676', 100, 12, true); el?.classList.add('knocked-out');await setKnockoutPose(el,true); }
     else { burst(point, '#7ee6b6', 60, 4); ring(point, '#7ee6b6'); textAt(point, effect.type === 'revive' ? `부활 · HP ${hp}` : `+${effect.amount} HP`, 'heal'); tone(520, .3, 'sine', .07, 880); }
     hearts.forEach((heart, i) => heart.classList.toggle('filled', i < hp));
     el?.querySelector('.hearts')?.setAttribute('aria-label', `HP ${hp}/${hearts.length}`);
     if (effect.type === 'revive') { el?.classList.remove('knocked-out');await setKnockoutPose(el,false); }
-    await sleep(reduced.matches ? 30 : 220);
+    await sleep(220);
   }
   for (const effect of result.effects.filter(e => e.type === 'reward' && e.gold)) textAt(center(playerFor(effect.memberId)), `+${effect.gold} G`, 'gold');
   if (result.monsterBefore && result.stageCleared) {
@@ -176,7 +177,7 @@ export async function reveal(result) {
     });
   }
   await Promise.allSettled(result.effects.filter(e=>e.type==='refill' && e.cards).map(animateCycle));
-  await sleep(reduced.matches ? 500 : result.winnerMemberId ? 1800 : 1100);
+  await sleep(result.winnerMemberId ? 1800 : 1100);
 }
 export function finale(success) {
   banner(success ? '원정 완료' : '원정 실패', success ? '네 장의 카드가 운명을 바꿨다' : '던전은 다음 도전자를 기다린다', success ? 'success' : 'danger');

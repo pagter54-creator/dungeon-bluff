@@ -23,7 +23,7 @@ export async function monsterAttack(shape, from, to, {burst,ring,tone,reduced}) 
       {transform:shape==='boar'?'translateX(-24px) scale(.95)':'translateY(-12px) scale(1.08)',offset:.4},
       {transform:shape==='golem'?'translateY(18px) scale(1.05)':'translateY(8px) scale(1.15)',offset:.65},
       {transform:'translateY(0) scale(1)'},
-    ],{duration:reducedMotion?100:600}));
+    ],{duration:600}));
     tone(shape==='bat'?780:shape==='golem'?55:180,.3,'sawtooth',.07,shape==='seer'?600:45);
     if(!reducedMotion) ring(from,style.color);
     const count=reducedMotion?1:shape==='bat'?3:shape==='slime'?5:shape==='mimic'?2:1;
@@ -39,7 +39,7 @@ export async function monsterAttack(shape, from, to, {burst,ring,tone,reduced}) 
         shape==='seer'?[{transform:'rotate(0) scale(.1)',opacity:0},{transform:'rotate(180deg) scale(2.5)',opacity:1},{transform:'rotate(240deg) scale(1)',opacity:0}]:
         shape==='mimic'?[{transform:`translateY(${i?-85:85}px) rotate(${i?180:0}deg) scale(2)`,opacity:0},{transform:`rotate(${i?180:0}deg) scale(1.2)`,opacity:1}]:
         [{transform:`rotate(${angle}deg) scale(.6)`,opacity:0},{transform:`translate(${dx*.5+(i-2)*12}px,${dy*.5-(shape==='slime'||shape==='goblin'?90:0)}px) rotate(${angle+(shape==='goblin'?180:0)}deg)`,opacity:1,offset:.5},{transform:`translate(${dx}px,${dy}px) rotate(${angle+(shape==='goblin'?540:0)}deg) scale(${shape==='boar'?2:1.2})`,opacity:1}];
-      await finishAnimation(el.animate(reducedMotion?[{opacity:0},{opacity:.7},{opacity:0}]:travel,{duration:reducedMotion?100:520,delay:reducedMotion?0:i*65,easing:'ease-in'}));
+      await finishAnimation(el.animate(reducedMotion?[{opacity:0},{opacity:.7},{opacity:0}]:travel,{duration:520,delay:i*65,easing:'ease-in'}));
     }));
     burst(to,style.color,reducedMotion?12:shape==='golem'?150:100,shape==='golem'?15:9,shape==='goblin');
     if(!reducedMotion) {ring(to,style.color);if(shape==='bat'||shape==='golem')ring(to,'#fff1dc');}
