@@ -1,5 +1,7 @@
 // File stems intentionally match the supplied artwork (travler, warrior).
 const groups=[
+['gunner','gunner','총잡이',['총잡이 기본 스킨']],
+['fighter','fighter','무투가',['무투가 기본 스킨']],
 ['gambler','gambler','도박사',['도박사 기본 스킨','부르주아','가면 무도회','선상 도박꾼']],
 ['berserker','berserker','광전사',['광전사 기본 스킨','혹한의 야만족','지옥불 광전사','흑철 기사']],
 ['imp','imp','임프',['임프 기본 스킨','트릭 오어 트릿!','지옥불 요정','깜짝 선물']],
@@ -9,6 +11,16 @@ const groups=[
 ['travler','adventurer','모험가',['모험가 기본 스킨','설산의 탐험가','신참 항해사','유적 발굴단']],
 ['warrior','warrior','기사',['기사','성지 수호자','북부의 병사','용기사']],
 ];
+export const pendingSkinImage = url => /\/(gunner0|fighter0)(?:_crop|_A|_D)?\.png(?:\?.*)?$/.test(url);
+// Missing future artwork must never prevent joining a room. Retry real filenames
+// on the next render, so adding the PNGs requires no catalog change.
+if (typeof document !== 'undefined') document.addEventListener('error', event => {
+ const img=event.target;
+ if(img?.tagName !== 'IMG' || !pendingSkinImage(img.src))return;
+ const gunner=img.src.includes('gunner0');
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500" viewBox="0 0 400 500"><path d="M200 30 365 145 325 385 200 465 75 385 35 145Z" fill="#211a30" stroke="#d6b77a" stroke-width="3"/><text x="200" y="240" text-anchor="middle" font-size="110" fill="#ffd08a">${gunner?'⌖':'✊'}</text><text x="200" y="330" text-anchor="middle" font-size="30" fill="#eee3d0">${gunner?'총잡이':'무투가'}</text></svg>`;
+ img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+},true);
 export const SKINS=Object.fromEntries(groups.flatMap(([stem,character,label,names])=>names.map((name,index)=>{
  const id=stem+index;
  return [id,{id,name,character,label,isDefault:index===0,type:'character_skin',

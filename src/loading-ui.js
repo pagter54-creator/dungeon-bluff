@@ -1,5 +1,5 @@
 import {assetLoader} from './asset-loader.js';
-import {SKINS,skinFor} from './skins.js';
+import {SKINS,skinFor,pendingSkinImage} from './skins.js';
 
 const music=['bgm_lobby.mp3','bgm_dungeon.mp3'].map(name=>new URL(`../${name}`,import.meta.url).href);
 let foreground=null;
@@ -14,7 +14,7 @@ function showLoading(urls,title,extra=Promise.resolve()) {
     const prevent=event=>event.preventDefault();dialog.addEventListener('cancel',prevent);
     try{
       for(;;){
-        const failed=await assetLoader.batch(urls,{onProgress:(done,total)=>{progress.value=total?done/total*100:100;status.textContent=`원정에 필요한 일러스트를 준비하고 있어요 · ${done} / ${total}`;}});
+        const failed=(await assetLoader.batch(urls,{onProgress:(done,total)=>{progress.value=total?done/total*100:100;status.textContent=`원정에 필요한 일러스트를 준비하고 있어요 · ${done} / ${total}`;}})).filter(url=>!pendingSkinImage(url));
         if(!failed.length){status.textContent='음악과 원정 준비를 마무리하고 있어요';await extra;return;}
         status.textContent=`${failed.length}개 이미지를 불러오지 못했습니다. 연결과 배포된 이미지 파일을 확인해 주세요.`;
         const actions=dialog.querySelector('.loading-actions');

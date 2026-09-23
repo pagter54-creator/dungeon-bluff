@@ -10,6 +10,8 @@ function soundEffect(name, fallback) {
   catch (error) { console.warn('Combat sound unavailable:', name, error); fallback?.(); }
 }
 const styles = {
+  bullet: { glyph:'━', color:'#ffd08a', duration:300, freq:180, type:'sawtooth' },
+  fist: { glyph:'✊', color:'#ffac78', duration:360, freq:95, type:'triangle' },
   sword: { glyph:'╱', color:'#fff2db', duration:570, freq:850, type:'sawtooth' },
   spear: { glyph:'⟶', color:'#e8bd70', duration:590, freq:240, type:'triangle' },
   dagger: { glyph:'➤', color:'#9ce2c0', duration:470, freq:1350, type:'sawtooth' },
@@ -27,6 +29,7 @@ export function characterAttackOrigin(panel) {
 export async function showSkillEffect(panel,skillId,label){
   const point=characterAttackOrigin(panel);if(!point)return;
   const looks={gold_bonus:['✦','#e9cd8e'],toughness:['◇','#f3d486'],low_card_gold:['◆','#8de0b4'],amplify:['✺','#c4a0ff'],blood_heat:['✹','#ff8b85'],revelation:['✧','#91dbff'],score_steal:['♆','#f2a2df'],random_hand:['⚄','#ffe18c']};
+  looks.full_burst=['⌖','#ffd08a']; looks.combo=['✊','#ffac78'];
   const [glyph,color]=looks[skillId]||['✦','#dbc5ee'];
   const el=document.createElement('div');el.className='skill-proc';
   el.style.cssText=`left:${point.x}px;top:${point.y}px;--skill-color:${color}`;
@@ -41,6 +44,12 @@ export async function showSkillEffect(panel,skillId,label){
   ],{duration:720,easing:'ease-out'}));}finally{el.remove();}
 }
 export async function characterAttack(effect, from, to, { burst, ring, tone, reduced }) {
+  if ((effect.attackFx==='bullet'||effect.attackFx==='fist') && effect.hits>1) {
+    for(let i=0;i<Math.min(4,effect.hits);i++) await characterAttack({...effect,hits:1},from,{x:to.x+(i%2?12:-12),y:to.y+(i%2?-8:8)},{burst,ring,tone,reduced});
+    return;
+  }
+  if(effect.attackFx==='bullet')combatCue('gunshot');
+  if(effect.attackFx==='fist')combatCue('punch');
   const style = styles[effect.attackFx] || styles.sword;
   const enhanced = effect.amplified || effect.empowered;
   soundEffect(effect.attackSfx || 'sfx_attack_adventurer', () => tone(style.freq, .22, style.type, .065, style.freq / 3));

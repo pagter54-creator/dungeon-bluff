@@ -139,7 +139,7 @@ export async function reveal(result) {
   await sleep(170);
   }finally{showcase.remove();}
   skillPhase('clash');
-  for(const c of result.cards.filter(c=>c.skillUsed))skill(c.memberId,c.skillId||'amplify',c.skillId==='toughness'?'강인함 · 행동 유지':c.valid?'증폭 · 효과 +2':'증폭 · 중복 무효');
+  for(const c of result.cards.filter(c=>c.skillUsed))skill(c.memberId,c.skillId||'amplify',c.skillId==='full_burst'?(c.valid?'전탄발사 · 손패 전체 사용':'전탄발사 · 중복 무효'):c.skillId==='toughness'?'강인함 · 행동 유지':c.valid?'증폭 · 효과 +2':'증폭 · 중복 무효');
   if (result.monsterBefore) {
     let remainingHp = result.monsterBefore.hp;
     for(const effect of result.effects.filter(e=>e.type==='boss_card')){
