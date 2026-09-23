@@ -21,6 +21,7 @@ export async function characterAttack(effect, from, to, { burst, ring, tone, red
   const enhanced = effect.amplified || effect.empowered;
   getAudio().playSfx(effect.attackSfx || 'sfx_attack_adventurer', () => tone(style.freq, .22, style.type, .065, style.freq / 3));
   if (effect.amplified) getAudio().playSfx('sfx_skill_mage_amplify', () => tone(1250,.35,'sine',.07,1700));
+  getAudio().combatCue('launch');
   ring(from,style.color); burst(from,style.color,enhanced?65:24,enhanced?6:4);
   const el = document.createElement('div'); el.className=`character-projectile projectile-${effect.attackFx || 'sword'} ${enhanced?'enhanced':''}`;
   el.textContent=style.glyph; el.style.color=style.color; el.style.left=`${from.x}px`; el.style.top=`${from.y}px`;
@@ -34,7 +35,7 @@ export async function characterAttack(effect, from, to, { burst, ring, tone, red
     {transform:`${travel(1)} rotate(${angle+(style.spin?(enhanced?1080:720):0)}deg) scale(${enhanced?1.8:1.1})`,opacity:1},
   ];
   if(reduced.matches) { el.style.left=`${to.x}px`; el.style.top=`${to.y}px`; }
-  try { await projectileFlight(el,frames,{duration:style.duration,easing:'cubic-bezier(.5,.05,.8,.5)'},reduced.matches); }
+  try { await projectileFlight(el,frames,{duration:Math.round(style.duration*.92),easing:'cubic-bezier(.5,.05,.8,.5)'},reduced.matches); }
   finally { el.remove(); }
   burst(to,style.color,enhanced?120:65,enhanced?12:8,style.spin); ring(to,style.color);
   tone(style.freq / 2,.16,'triangle',enhanced?.08:.045,45);

@@ -75,13 +75,14 @@ export async function reveal(result) {
   const target = () => center(document.querySelector('#enemy-art'));
   const introduction=banner('운명을 펼쳐라', `TURN ${result.turnIndex} · 동시 공개`);
   tone(160, .6, 'triangle', .08, 440);
-  await sleep(650);
+  await sleep(560);
   introduction.remove();
   const showcase=revealShowcase(result.cards,cardFor,playerFor);
   try{
+  getAudio().combatCue('flip');
   await Promise.all(result.cards.flatMap(c=>[flipRevealCard(cardFor(c.memberId),c,reduced.matches),flipRevealCard(showcase.cardFor(c.memberId),c,reduced.matches)]));
-  tone(620, .2, 'triangle', .09, 240);
-  await sleep(700);
+  getAudio().combatCue('reveal');
+  await sleep(600);
   const duplicates = result.cards.filter(c => !c.valid);
   if (duplicates.length) {
     const conflicting=duplicates.map(c=>showcase.cardFor(c.memberId)||cardFor(c.memberId));
@@ -92,10 +93,10 @@ export async function reveal(result) {
       burst(point,'#f286b9',95,11,true);impactAt(point,'#f286b9',false,reduced.matches);textAt(point,`${c.value} 중복 · 소멸`,'cancel');
       return shatterCard(el,reduced.matches);
     });
-    shake(); tone(85, .35, 'sawtooth', .075, 22);
+    shake(); getAudio().combatCue('crack');
     await Promise.all(breaks);
   }
-  await sleep(200);
+  await sleep(170);
   }finally{showcase.remove();}
   if (result.monsterBefore) {
     let remainingHp = result.monsterBefore.hp;
@@ -114,13 +115,13 @@ export async function reveal(result) {
       await characterAttack(effect,origin,target(),{burst,ring,tone,reduced});
       impactAt(target(),effect.amount>=4?'#ffe5a3':'#f8deff',effect.amount>=4,reduced.matches);
       recoil(document.querySelector('#enemy-art img, #enemy-art svg'),origin,target(),effect.amount>=4,reduced.matches);
-      shake(effect.amount >= 4); tone(140 + effect.amount * 50, .23, 'sawtooth', .05, 38); textAt(target(), `−${effect.amount}`, 'critical');
+      shake(effect.amount >= 4); getAudio().combatCue(effect.amount>=4?'heavy':'hit'); textAt(target(), `−${effect.amount}`, 'critical');
       remainingHp = Math.max(0, remainingHp - effect.amount);
       const hpText = document.querySelector('.enemy-health b');
       const hpBar = document.querySelector('.enemy-health .health-track i');
       if (hpText) hpText.innerHTML = `${remainingHp} <small>/ ${result.monsterBefore.maxHp}</small>`;
       if (hpBar) hpBar.style.width = `${remainingHp / result.monsterBefore.maxHp * 100}%`;
-      await sleep(180);
+      await sleep(150);
       await restorePose();
     }
     const finalHp=result.monsterAfter?.hp??remainingHp;
@@ -132,14 +133,14 @@ export async function reveal(result) {
     banner(result.success ? '이벤트 성공' : '조건 미달', result.stage.name, result.success ? 'success' : 'danger');
     impactAt(target(),result.success?'#99f0cb':'#fd8c91',true,reduced.matches);
     burst(target(), result.success ? '#99f0cb' : '#fd8c91', 120, 12); tone(result.success ? 660 : 110, .4, 'triangle', .1, result.success ? 880 : 40);
-    await sleep(650);
+    await sleep(560);
   }
   for(const effect of result.effects.filter(e=>['boss_special','boss_status','boss_mark'].includes(e.type))){
     const point=effect.memberId?center(playerFor(effect.memberId)):target();
     ring(point,'#e5afff');burst(point,'#c586ff',140,13,true);textAt(point,effect.label,'critical');
     if(effect.type==='boss_special'){banner(effect.label,effect.detail,'danger');shake(true);tone(90,.7,'sawtooth',.09,480);}
     if(effect.memberId)playerFor(effect.memberId)?.classList.add('boss-mark-flash');
-    await sleep(350);
+    await sleep(300);
   }
   for (const effect of result.effects.filter(e => ['steal','revelation','shield'].includes(e.type))) {
     const point=center(playerFor(effect.memberId));
@@ -157,20 +158,20 @@ export async function reveal(result) {
     const hp = effect.type === 'damage' ? Math.max(0, oldHp - effect.amount) : effect.type === 'heal' ? Math.min(hearts.length, oldHp + effect.amount) : effect.type === 'revive' ? (effect.hp ?? hearts.length) : 0;
     if (effect.type === 'damage') {
       if(result.monsterBefore) await monsterAttack(result.stage.shape,target(),point,{burst,ring,tone,reduced});
-      else await bolt(target(), point, '#ff687e'); el?.classList.add('hit'); shake(true); textAt(point, `−${effect.amount} HP`, 'damage'); tone(65, .3, 'sawtooth', .07, 20);
+      else await bolt(target(), point, '#ff687e'); el?.classList.add('hit'); shake(true); textAt(point, `−${effect.amount} HP`, 'damage'); getAudio().combatCue('hurt');
       impactAt(point,'#ff6985',true,reduced.matches);
       recoil(el?.querySelector('.player-art-stage'),target(),point,true,reduced.matches);
       const pose=showPlayerPose(el,'damage');
       const info=el?.querySelector('.player-info');
       if(info)void finishAnimation(info.animate([{boxShadow:'inset 0 0 45px #ff486aaa,0 0 25px #ff486a88'},{boxShadow:'inset 0 0 0 transparent,0 0 0 transparent'}],{duration:550}));
       const restorePose=await pose;
-      await sleep(180);await restorePose();
+      await sleep(150);await restorePose();
     } else if (effect.type === 'knockout') { textAt(point, 'KNOCKOUT', 'damage'); burst(point, '#ff5676', 100, 12, true); el?.classList.add('knocked-out');await setKnockoutPose(el,true); }
     else { burst(point, '#7ee6b6', 60, 4); ring(point, '#7ee6b6'); textAt(point, effect.type === 'revive' ? `부활 · HP ${hp}` : `+${effect.amount} HP`, 'heal'); tone(520, .3, 'sine', .07, 880); }
     hearts.forEach((heart, i) => heart.classList.toggle('filled', i < hp));
     el?.querySelector('.hearts')?.setAttribute('aria-label', `HP ${hp}/${hearts.length}`);
     if (effect.type === 'revive') { el?.classList.remove('knocked-out');await setKnockoutPose(el,false); }
-    await sleep(220);
+    await sleep(190);
   }
   for (const effect of result.effects.filter(e => e.type === 'reward' && e.gold)) textAt(center(playerFor(effect.memberId)), `+${effect.gold} G`, 'gold');
   if (result.monsterBefore && result.stageCleared) {
@@ -197,7 +198,7 @@ export async function reveal(result) {
     });
   }
   await Promise.allSettled(result.effects.filter(e=>e.type==='refill' && e.cards).map(animateCycle));
-  await sleep(result.winnerMemberId ? 1800 : 1100);
+  await sleep(result.winnerMemberId ? 1550 : 950);
 }
 export function finale(success) {
   banner(success ? '원정 완료' : '원정 실패', success ? '네 장의 카드가 운명을 바꿨다' : '던전은 다음 도전자를 기다린다', success ? 'success' : 'danger');

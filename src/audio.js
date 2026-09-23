@@ -75,6 +75,36 @@ export class GameAudio {
     voice.onended = () => this.voices.delete(voice);
     void voice.play().catch(() => { this.voices.delete(voice); this.missingSfx.add(name); fallback?.(); });
   }
+  combatCue(name) {
+    if (!this.enabled || !this.volume || this.hidden || !this.context || !this.master) return;
+    // Synthesized cues are immediate: no audio-file request during combat.
+    const cues={
+      flip:{noise:[.14,2400,.09],tones:[[640,.09,'triangle',.045,1150]]},
+      reveal:{noise:[.07,3800,.055],tones:[[880,.16,'sine',.055,1200],[1320,.2,'sine',.025,1500]]},
+      crack:{noise:[.24,3100,.16],tones:[[210,.16,'square',.035,45],[1500,.12,'triangle',.035,180]]},
+      launch:{noise:[.19,1400,.065],tones:[[180,.16,'sine',.025,620]]},
+      hit:{noise:[.13,1200,.13],tones:[[125,.17,'sine',.12,35]]},
+      heavy:{noise:[.24,850,.17],tones:[[90,.29,'sine',.15,25],[260,.1,'triangle',.045,65]]},
+      hurt:{noise:[.19,1700,.12],tones:[[165,.21,'triangle',.09,45]]},
+    };
+    const cue=cues[name];if(!cue)return;
+    for(const args of cue.tones)this.tone(...args);
+    const [duration,frequency,volume]=cue.noise,ctx=this.context;
+    if(!this.noiseBuffer){
+      this.noiseBuffer=ctx.createBuffer(1,ctx.sampleRate,ctx.sampleRate);
+      const data=this.noiseBuffer.getChannelData(0);
+      for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;
+    }
+    const source=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),gain=ctx.createGain(),now=ctx.currentTime;
+    source.buffer=this.noiseBuffer;filter.type='bandpass';filter.Q.value=.7;
+    filter.frequency.setValueAtTime(frequency,now);
+    filter.frequency.exponentialRampToValueAtTime(Math.max(120,frequency*.25),now+duration);
+    gain.gain.setValueAtTime(.001,now);gain.gain.linearRampToValueAtTime(volume,now+.008);
+    gain.gain.exponentialRampToValueAtTime(.001,now+duration);
+    source.connect(filter);filter.connect(gain);gain.connect(this.master);
+    source.onended=()=>{source.disconnect();filter.disconnect();gain.disconnect();};
+    source.start();source.stop(now+duration);
+  }
   tone(freq = 180, duration = .2, type = 'sine', volume = .08, end = 40) {
     if (!this.enabled || !this.volume || this.hidden || !this.context || !this.master) return;
     const osc = this.context.createOscillator(), gain = this.context.createGain();
