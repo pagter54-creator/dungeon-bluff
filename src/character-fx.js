@@ -16,6 +16,22 @@ export function characterAttackOrigin(panel) {
   const rect=art?.getBoundingClientRect();
   return rect ? {x:rect.left+rect.width/2,y:rect.top+rect.height*.43} : null;
 }
+export async function showSkillEffect(panel,skillId,label){
+  const point=characterAttackOrigin(panel);if(!point)return;
+  const looks={gold_bonus:['✦','#e9cd8e'],toughness:['◇','#f3d486'],low_card_gold:['◆','#8de0b4'],amplify:['✺','#c4a0ff'],blood_heat:['✹','#ff8b85'],revelation:['✧','#91dbff'],score_steal:['♆','#f2a2df'],random_hand:['⚄','#ffe18c']};
+  const [glyph,color]=looks[skillId]||['✦','#dbc5ee'];
+  const el=document.createElement('div');el.className='skill-proc';
+  el.style.cssText=`left:${point.x}px;top:${point.y}px;--skill-color:${color}`;
+  const icon=document.createElement('b'),text=document.createElement('span');icon.textContent=glyph;text.textContent=label;el.append(icon,text);
+  document.querySelector('#fx-overlay').append(el);getAudio().combatCue(`skill_${skillId}`);
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  try{await finishAnimation(el.animate(reduced?[{opacity:0},{opacity:1,offset:.2},{opacity:1,offset:.8},{opacity:0}]:[
+    {transform:'translate(-50%,-30%) scale(.7)',opacity:0},
+    {transform:'translate(-50%,-50%) scale(1.08)',opacity:1,offset:.22},
+    {transform:'translate(-50%,-60%) scale(1)',opacity:1,offset:.72},
+    {transform:'translate(-50%,-85%) scale(.95)',opacity:0},
+  ],{duration:720,easing:'ease-out'}));}finally{el.remove();}
+}
 export async function characterAttack(effect, from, to, { burst, ring, tone, reduced }) {
   const style = styles[effect.attackFx] || styles.sword;
   const enhanced = effect.amplified || effect.empowered;

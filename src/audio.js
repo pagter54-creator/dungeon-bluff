@@ -86,6 +86,14 @@ export class GameAudio {
       hit:{noise:[.13,1200,.13],tones:[[125,.17,'sine',.12,35]]},
       heavy:{noise:[.24,850,.17],tones:[[90,.29,'sine',.15,25],[260,.1,'triangle',.045,65]]},
       hurt:{noise:[.19,1700,.12],tones:[[165,.21,'triangle',.09,45]]},
+      skill_gold_bonus:{noise:[.07,3800,.025],tones:[[1100,.18,'sine',.04,1700]]},
+      skill_toughness:{noise:[.11,1000,.045],tones:[[450,.22,'triangle',.045,800]]},
+      skill_low_card_gold:{noise:[.08,2200,.03],tones:[[800,.19,'triangle',.04,1350]]},
+      skill_amplify:{noise:[.13,2000,.035],tones:[[440,.24,'sine',.045,1250]]},
+      skill_blood_heat:{noise:[.13,650,.045],tones:[[160,.22,'triangle',.05,330]]},
+      skill_revelation:{noise:[.1,3800,.02],tones:[[1400,.24,'sine',.035,2000]]},
+      skill_score_steal:{noise:[.09,1800,.03],tones:[[950,.2,'triangle',.04,430]]},
+      skill_random_hand:{noise:[.09,2600,.035],tones:[[340,.18,'triangle',.04,780]]},
     };
     const cue=cues[name];if(!cue)return;
     for(const args of cue.tones)this.tone(...args);

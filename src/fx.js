@@ -2,7 +2,7 @@ import { monsterAttack } from './monster-fx.js';
 import { advanceParticle } from './particle-time.js';
 import { finishAnimation } from './animation-wait.js';
 import { playTone as tone, getAudio } from './audio.js';
-import { characterAttack, characterAttackOrigin, animateCycle } from './character-fx.js';
+import { characterAttack, characterAttackOrigin, animateCycle, showSkillEffect } from './character-fx.js';
 import { showPlayerPose,setKnockoutPose } from './player-pose-fx.js';
 import { flipRevealCard } from './card-reveal-fx.js';
 import { impactAt, recoil, revealShowcase, shatterCard, projectileFlight } from './combat-impact.js';
@@ -73,6 +73,21 @@ export async function reveal(result) {
   const cardFor = id => document.querySelector(`[data-reveal="${id}"]`);
   const playerFor = id => document.querySelector(`[data-player="${id}"]`);
   const target = () => center(document.querySelector('#enemy-art'));
+  const playedSkills=new Set();
+  const skill=(id,skillId,label,phase='turn')=>{
+    const key=`${id}:${skillId}:${phase}`;if(playedSkills.has(key))return;playedSkills.add(key);
+    void showSkillEffect(playerFor(id),skillId,label);
+  };
+  const skillPhase=(phase,id)=>{
+    for(const e of result.effects.filter(e=>e.type==='skill'&&e.phase===phase&&(!id||e.memberId===id))){
+      skill(e.memberId,e.skillId,e.label,phase);
+      if(Number.isFinite(e.hp)){
+        const panel=playerFor(e.memberId),hearts=[...(panel?.querySelectorAll('.heart')||[])];
+        hearts.forEach((heart,i)=>heart.classList.toggle('filled',i<e.hp));
+        panel?.querySelector('.hearts')?.setAttribute('aria-label',`HP ${e.hp}/${hearts.length}`);
+      }
+    }
+  };
   const introduction=banner('운명을 펼쳐라', `TURN ${result.turnIndex} · 동시 공개`);
   tone(160, .6, 'triangle', .08, 440);
   await sleep(560);
@@ -98,6 +113,8 @@ export async function reveal(result) {
   }
   await sleep(170);
   }finally{showcase.remove();}
+  skillPhase('clash');
+  for(const c of result.cards.filter(c=>c.skillUsed))skill(c.memberId,'amplify',c.valid?'증폭 · 효과 +2':'증폭 · 중복 무효');
   if (result.monsterBefore) {
     let remainingHp = result.monsterBefore.hp;
     for(const effect of result.effects.filter(e=>e.type==='boss_card')){
@@ -109,6 +126,7 @@ export async function reveal(result) {
       textAt(target(),`포식 · +${effect.amount} HP`,'heal');burst(target(),'#a5ef76',90,9);ring(target(),'#b6fa82');
     }
     for (const effect of result.effects.filter(e => e.type === 'attack' && e.amount > 0)) {
+      skillPhase('attack',effect.memberId);
       cardFor(effect.memberId)?.classList.add('empowered');
       const restorePose=await showPlayerPose(playerFor(effect.memberId),'attack');
       const origin=characterAttackOrigin(playerFor(effect.memberId))||center(cardFor(effect.memberId));
@@ -145,10 +163,12 @@ export async function reveal(result) {
   for (const effect of result.effects.filter(e => ['steal','revelation','shield'].includes(e.type))) {
     const point=center(playerFor(effect.memberId));
     if(effect.type==='steal') {
+      const total=result.effects.filter(e=>e.type==='steal'&&e.memberId===effect.memberId).reduce((n,e)=>n+e.amount,0);
+      skill(effect.memberId,'score_steal',`슬쩍 · +${total}점`);
       getAudio().playSfx('sfx_skill_imp_steal',()=>tone(900,.2,'triangle',.06,1400));
       textAt(center(playerFor(effect.targetId)),'−1','damage'); await bolt(center(playerFor(effect.targetId)),point,'#ee8dd6'); textAt(point,'+1','heal');
-    } else if(effect.type==='shield') { ring(point,'#f7d484'); textAt(point,'강인함 · 방어','gold'); }
-    else { getAudio().playSfx('sfx_skill_seer_reveal',()=>tone(1300,.4,'sine',.06,1700)); textAt(point,'계시','heal'); }
+    } else if(effect.type==='shield') { skill(effect.memberId,'toughness','강인함 · 피해 무효');ring(point,'#f7d484'); textAt(point,'강인함 · 방어','gold'); }
+    else { skill(effect.memberId,'revelation','계시 · 다음 턴 공개');getAudio().playSfx('sfx_skill_seer_reveal',()=>tone(1300,.4,'sine',.06,1700)); textAt(point,'계시','heal'); }
   }
   for (const effect of result.effects.filter(e => ['damage', 'heal', 'revive', 'knockout', 'penalty'].includes(e.type))) {
     const el = playerFor(effect.memberId), point = characterAttackOrigin(el)||center(el);
@@ -174,6 +194,10 @@ export async function reveal(result) {
     await sleep(190);
   }
   for (const effect of result.effects.filter(e => e.type === 'reward' && e.gold)) textAt(center(playerFor(effect.memberId)), `+${effect.gold} G`, 'gold');
+  for(const e of result.effects.filter(e=>e.type==='reward')){
+    if(e.bonus>0)skill(e.memberId,'gold_bonus',`노련한 수완 · 보너스 골드`);
+    if(e.reason==='low_card_gold')skill(e.memberId,'low_card_gold','손버릇 · +2G / +5점');
+  }
   if (result.monsterBefore && result.stageCleared) {
     impactAt(target(),'#ffe4a0',true,reduced.matches);
     burst(target(), '#e6c487', 200, 16, true); ring(target(), '#fff0ba'); shake(true);
@@ -197,7 +221,10 @@ export async function reveal(result) {
       if(el.dataset.cardInstance===card.cardId) { el.classList.add('spent'); const small=el.querySelector('small'); if(small) small.textContent='OFF'; }
     });
   }
-  await Promise.allSettled(result.effects.filter(e=>e.type==='refill' && e.cards).map(animateCycle));
+  await Promise.allSettled(result.effects.filter(e=>e.type==='refill' && e.cards).map(e=>{
+    if(e.random)skill(e.memberId,'random_hand','운명의 패 · 새 카드');
+    return animateCycle(e);
+  }));
   await sleep(result.winnerMemberId ? 1550 : 950);
 }
 export function finale(success) {

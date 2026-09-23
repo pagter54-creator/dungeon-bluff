@@ -347,4 +347,7 @@ body:has(.game-top) > .site-footer{position:relative;z-index:1}
 .character-projectile,.monster-projectile{will-change:transform,opacity}
 #fx-overlay .floating-number{z-index:8}
 #fx-overlay .battle-banner{z-index:9}
+.skill-proc{position:absolute;z-index:8;display:flex;flex-direction:column;align-items:center;gap:5px;transform:translate(-50%,-50%);color:var(--skill-color);pointer-events:none;white-space:nowrap}
+.skill-proc b{display:grid;place-items:center;width:48px;height:48px;border:1px solid currentColor;border-radius:50%;background:#211729b8;box-shadow:0 0 18px currentColor,inset 0 0 14px #ffffff22;font-size:28px;text-shadow:0 0 8px currentColor}
+.skill-proc span{font-size:11px;font-weight:700;padding:4px 8px;border-radius:5px;background:#17101de8;box-shadow:0 3px 12px #0006}
 @media(max-width:760px){.combat-showcase{top:42%;gap:12px;padding:22px 14px}.combat-showcase .reveal-card{width:58px;height:84px}.combat-showcase .reveal-card .reveal-value{font-size:36px}.showcase-slot>span{font-size:9px;max-width:65px}.combat-impact{width:110px;height:110px}}
