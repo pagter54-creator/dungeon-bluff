@@ -139,7 +139,7 @@ export async function reveal(result) {
   await sleep(170);
   }finally{showcase.remove();}
   skillPhase('clash');
-  for(const c of result.cards.filter(c=>c.skillUsed))skill(c.memberId,c.skillId||'amplify',c.skillId==='full_burst'?(c.valid?'전탄발사 · 손패 전체 사용':'전탄발사 · 중복 무효'):c.skillId==='toughness'?'강인함 · 행동 유지':c.valid?'증폭 · 효과 +2':'증폭 · 중복 무효');
+  for(const c of result.cards.filter(c=>c.skillUsed))skill(c.memberId,c.skillId||'amplify',c.skillId==='full_burst'?(c.valid?'전탄발사 · 손패 전체 사용':'전탄발사 · 중복 무효'):c.skillId==='toughness'?'강인함 · 행동 유지':c.valid?`증폭 · ${c.legacyAmplify?'효과':'숫자'} +${c.amplifyLevel||1}`:'증폭 · 중복 무효');
   if (result.monsterBefore) {
     let remainingHp = result.monsterBefore.hp;
     for(const effect of result.effects.filter(e=>e.type==='boss_card')){
@@ -192,7 +192,7 @@ export async function reveal(result) {
       skill(effect.memberId,'score_steal',`슬쩍 · +${total}점`);
       soundEffect('sfx_skill_imp_steal',()=>tone(900,.2,'triangle',.06,1400));
       textAt(center(playerFor(effect.targetId)),'−1','damage'); await bolt(center(playerFor(effect.targetId)),point,'#ee8dd6'); textAt(point,'+1','heal');
-    } else if(effect.type==='shield') { skill(effect.memberId,'toughness','강인함 · 피해 무효');ring(point,'#f7d484'); textAt(point,'강인함 · 방어','gold'); }
+    } else if(effect.type==='shield') { skill(effect.memberId,'toughness',effect.label||'강인함 · 피해 무효');ring(point,'#f7d484'); textAt(point,effect.label||'강인함 · 방어','gold'); }
     else { skill(effect.memberId,'revelation','계시 · 다음 턴 공개');soundEffect('sfx_skill_seer_reveal',()=>tone(1300,.4,'sine',.06,1700)); textAt(point,'계시','heal'); }
   }
   for (const effect of result.effects.filter(e => ['damage', 'heal', 'revive', 'knockout', 'penalty'].includes(e.type))) {
@@ -202,7 +202,8 @@ export async function reveal(result) {
     const oldHp = hearts.filter(heart => heart.classList.contains('filled')).length;
     const hp = effect.type === 'damage' ? Math.max(0, oldHp - effect.amount) : effect.type === 'heal' ? Math.min(hearts.length, oldHp + effect.amount) : effect.type === 'revive' ? (effect.hp ?? hearts.length) : 0;
     if (effect.type === 'damage') {
-      if(result.monsterBefore) await monsterAttack(result.stage.shape,target(),point,{burst,ring,tone,reduced});
+      if(effect.reason==='burst_misfire'){burst(point,'#ffba72',85,8,true);ring(point,'#ffda9c');combatCue('skill_full_burst');}
+      else if(result.monsterBefore) await monsterAttack(result.stage.shape,target(),point,{burst,ring,tone,reduced});
       else await bolt(target(), point, '#ff687e'); el?.classList.add('hit'); shake(true); textAt(point, `−${effect.amount} HP`, 'damage'); combatCue('hurt');
       impactAt(point,'#ff6985',true,reduced.matches);
       recoil(el?.querySelector('.player-art-stage'),target(),point,true,reduced.matches);

@@ -1,3 +1,4 @@
+import { EVENT_IMAGES } from './event-assets.js';
 import { MONSTER_IMAGES } from './monster-assets.js';
 // Original code-native vector artwork. No external image dependencies.
 export function dungeonArt() {
@@ -22,7 +23,9 @@ export function dungeonArt() {
 export function creatureArt(shape = 'seer') {
   return '<img class="creature monster-illustration" src="'+(MONSTER_IMAGES[shape]||MONSTER_IMAGES.seer)+'" alt="" draggable="false" decoding="async">';
 }
-export function eventArt(category) {
+export function eventArt(category, eventId) {
+  const image = EVENT_IMAGES[eventId];
+  if (image) return `<img class="creature monster-illustration event-illustration" data-event-category="${category}" src="${image}" alt="" draggable="false" decoding="async">`;
   const inner = {
     treasure: '<path d="m70 113 20-41h120l20 41v91H70Z"/><path d="M70 120h160m-137 0v84m114-84v84"/><path d="M135 109h30v34h-30Z" class="bone"/>',
     trap: '<path d="m150 43 99 169H51Z"/><path d="M150 90v59m0 19v11" class="eye"/><path d="m49 215 202 0"/>',
@@ -30,4 +33,13 @@ export function eventArt(category) {
     event: '<path d="M82 218V108a68 68 0 0 1 136 0v110Z"/><path d="M106 218V108a44 44 0 0 1 88 0v110"/><path d="m150 88 21 34-21 34-21-34Z" class="eye"/><path d="M138 180h24" class="bone"/>',
   };
   return `<svg class="creature event-art" viewBox="0 0 300 260" aria-hidden="true"><g fill="#262032" stroke="currentColor" stroke-width="3" stroke-linejoin="round">${inner[category] || inner.event}</g></svg>`;
+}
+
+// Attach after rendering; cached failures also fall back without blocking entry.
+export function bindEventArtFallback(root) {
+  for (const image of root.querySelectorAll('.event-illustration')) {
+    const fallback = () => { if (image.isConnected) image.outerHTML = eventArt(image.dataset.eventCategory); };
+    image.addEventListener('error', fallback, {once:true});
+    if (image.complete && !image.naturalWidth) fallback();
+  }
 }

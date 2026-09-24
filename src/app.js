@@ -1,10 +1,12 @@
+import {nextAmplifyLevel} from './character-ui.js';
+import {roomSummaryMarkup,echoHud,echoDetails} from './room-summary.js';
 import { loadInitialAssets,ensureOwnAssets,ensureRoomAssets } from './loading-ui.js';
 import { isShuffleTurn,selectionInfo,toggleCardSelection } from './battle-rules.js';
 import { skinPortrait,skinFor } from './skins.js';
 import { initAccountUI, refreshAccount, openAccountPage, getAccount } from './account-ui.js';
 import { preloadSession } from './cosmetics.js';
 import * as api from './api.js';
-import { dungeonArt, creatureArt, eventArt } from './art.js';
+import { dungeonArt, creatureArt, eventArt, bindEventArtFallback } from './art.js';
 import { reveal, finale } from './fx.js';
 import { initAudioControls, getAudio } from './audio.js';
 import { characterFor, characterChoices, deckLabel, partyPanels, mobileSelection, cycleCards } from './character-ui.js';
@@ -33,6 +35,7 @@ let useSkill = false;
 let toastTimer;
 let sessionIdentity = null;
 let rewardRefreshSession = null;
+let shownSummary=null;
 let roomEpoch = 0;
 let listLoading = false;
 const status = (text, online = false) => {
@@ -127,7 +130,7 @@ async function playQueue() {
     toast('전투 화면을 최신 상태로 복구했습니다.');
   } finally {
     animating = false;
-    if (bundle?.session) { renderGame(); if (bundle.session.status !== 'active') finale(bundle.session.status === 'completed'); }
+    if (bundle?.session) { renderGame(); if (bundle.session.status !== 'active'&&!bundle.session.state.roomSummary) finale(bundle.session.status === 'completed'); }
   }
 }
 async function sync() {
@@ -204,16 +207,22 @@ function hearts(player) { return Array.from({ length: player.maxHp }, (_, i) => 
 function renderGame(result = null) {
   if (!bundle?.session) return;
   const g = bundle.session, s = g.state, me = mine();
-  if (!result && g.status !== 'active') { renderEnd(); return; }
+  if (!result && g.status !== 'active' && !s.roomSummary) { renderEnd(); return; }
   const stage = result?.stage || s.currentStage;
   const monster = result ? result.monsterBefore : s.monster;
   const players = result?.beforePlayers || s.players;
   const player = players[me?.id];
-  const locked = s.lockedMembers.includes(me?.id);
+  const locked = Boolean(s.roomSummary || (s.lockedMembers.includes(me?.id) && !s.selectionHolds?.[me?.id]));
   const stageIndex = result?.stageIndex || g.stage_index;
   const turnIndex = result?.turnIndex || g.turn_index;
   const sortedMembers = [...bundle.members].sort((a, b) => a.seat_index - b.seat_index);
-  app.innerHTML = `<section class="game-top"><div class="stage-counter"><span>STAGE</span><b>${String(stageIndex).padStart(2, '0')}</b><small>/ 10</small></div><div class="stage-track">${s.stageOrder.map((st, i) => `<span class="stage-node ${i + 1 < stageIndex ? 'passed' : i + 1 === stageIndex ? 'current' : ''}" title="Stage ${i + 1}">${i === 9 ? '♛' : i + 1 < stageIndex ? '✓' : '◇'}</span>`).join('')}</div><div class="knockout-meter"><small>누적 기절</small><b class="${g.party_knockouts >= 7 ? 'danger-text' : ''}">${g.party_knockouts}<span> / 8</span></b></div><button class="icon-button" data-action="leave-confirm" aria-label="원정 나가기">↗</button></section><section class="arena ${stage.category === 'boss' ? 'boss-arena' : ''}" style="--stage-color:${escape(stage.color)}"><div class="arena-grid"></div><div class="encounter-heading"><div class="eyebrow">${categoryLabel[stage.category]}</div><h1>${escape(stage.name)}</h1><p>${escape(stage.subtitle || '당신의 카드가 다음 운명을 결정합니다')}</p></div><div id="enemy-art" class="enemy-art">${monster ? creatureArt(stage.shape, stage.color) : eventArt(stage.category)}</div><div class="arena-side left"><span>TURN</span><b>${String(turnIndex).padStart(2, '0')}</b><small>${result ? 'REVEALING' : 'SELECTING'}</small></div><div class="arena-side right"><span>${monster ? 'THREAT' : 'ENCOUNTER'}</span><b>${monster ? (stage.category === 'boss' ? 'Ⅲ' : 'Ⅱ') : 'Ⅰ'}</b><small>${monster ? '공격 예고 확인' : '한 턴으로 판정'}</small></div>${monster ? `<div class="enemy-health"><div><span>${stage.category === 'boss' ? 'BOSS' : 'MONSTER'} HP</span><b>${monster.hp} <small>/ ${monster.maxHp}</small></b></div><div class="health-track"><i style="width:${monster.hp / monster.maxHp * 100}%"></i></div></div>` : ''}<div class="intent ${monster?.attackIn === 1 ? 'imminent' : ''}"><span>${monster ? (monster.attackIn === 1 ? (stage.category==='boss'&&monster.nextAction==='special'?'✦ 이번 턴 특수 패턴':'⚠ 이번 턴 공격') : `◷ ${monster.attackIn}턴 후 ${stage.category==='boss'&&monster.nextAction==='special'?'특수 패턴':'공격'}`) : '◇ 방의 규칙'}</span><p>${escape(monster?.intent || stage.rule)}</p></div>${monster?.statusText?`<div class="boss-status"><b>이번 턴 특수 효과</b><p>${escape(monster.statusText)}</p></div>`:''}</section><section class="party-grid">${partyPanels(bundle, players, { me, result, selected, useSkill })}</section>${mobileSelection(player, { result, locked, selected, useSkill, twoCards:isShuffleTurn(g) })}<details class="battle-log"><summary>원정 기록 <span>${s.eventLog.length} TURNS</span></summary><div>${[...s.eventLog].reverse().map(log => `<p><span>STAGE ${log.stageIndex} · TURN ${log.turnIndex}</span><b>${escape(log.stage.name)}</b> ${log.cards.filter(c => !c.valid).length}장 중복 · ${log.monsterBefore ? `${log.totalDamage} 피해` : log.success ? '성공' : '조건 미달'}${log.stageCleared ? ' · 다음 방' : ''}</p>`).join('') || '<p>첫 번째 선택을 기다리고 있습니다.</p>'}</div></details>`;
+  app.innerHTML = `<section class="game-top"><div class="stage-counter"><span>STAGE</span><b>${String(stageIndex).padStart(2, '0')}</b><small>/ 10</small></div><div class="stage-track">${s.stageOrder.map((st, i) => `<span class="stage-node ${i + 1 < stageIndex ? 'passed' : i + 1 === stageIndex ? 'current' : ''}" title="Stage ${i + 1}">${i === 9 ? '♛' : i + 1 < stageIndex ? '✓' : '◇'}</span>`).join('')}</div><div class="knockout-meter"><small>누적 기절</small><b class="${g.party_knockouts >= 7 ? 'danger-text' : ''}">${g.party_knockouts}<span> / 8</span></b></div><button class="icon-button" data-action="leave-confirm" aria-label="원정 나가기">↗</button></section><section class="arena ${stage.category === 'boss' ? 'boss-arena' : ''}" style="--stage-color:${escape(stage.color)}"><div class="arena-grid"></div><div class="encounter-heading"><div class="eyebrow">${categoryLabel[stage.category]}</div><h1>${escape(stage.name)}</h1><p>${escape(stage.subtitle || '당신의 카드가 다음 운명을 결정합니다')}</p></div><div id="enemy-art" class="enemy-art">${monster ? creatureArt(stage.shape, stage.color) : eventArt(stage.category, stage.contentId)}</div><div class="arena-side left"><span>TURN</span><b>${String(turnIndex).padStart(2, '0')}</b><small>${result ? 'REVEALING' : 'SELECTING'}</small></div><div class="arena-side right"><span>${monster ? 'THREAT' : 'ENCOUNTER'}</span><b>${monster ? (stage.category === 'boss' ? 'Ⅲ' : 'Ⅱ') : 'Ⅰ'}</b><small>${monster ? '공격 예고 확인' : '한 턴으로 판정'}</small></div>${monster ? `<div class="enemy-health"><div><span>${stage.category === 'boss' ? 'BOSS' : 'MONSTER'} HP</span><b>${monster.hp} <small>/ ${monster.maxHp}</small></b></div><div class="health-track"><i style="width:${monster.hp / monster.maxHp * 100}%"></i></div></div>` : ''}<div class="intent ${monster?.attackIn === 1 ? 'imminent' : ''}"><span>${monster ? (monster.attackIn === 1 ? (stage.category==='boss'&&monster.nextAction==='special'?'✦ 이번 턴 특수 패턴':'⚠ 이번 턴 공격') : `◷ ${monster.attackIn}턴 후 ${stage.category==='boss'&&monster.nextAction==='special'?'특수 패턴':'공격'}`) : '◇ 방의 규칙'}</span><p>${escape(monster?.intent || stage.rule)}</p></div>${monster?.statusText?`<div class="boss-status"><b>이번 턴 특수 효과</b><p>${escape(monster.statusText)}</p></div>`:''}</section><section class="party-grid">${partyPanels(bundle, players, { me, result:result||s.roomSummary, selected, useSkill })}</section>${s.roomSummary?'':mobileSelection(player, { result, locked, selected, useSkill, twoCards:isShuffleTurn(g) })}<details class="battle-log"><summary>원정 기록 <span>${s.eventLog.length} TURNS</span></summary><div>${[...s.eventLog].reverse().map(log => `<p><span>STAGE ${log.stageIndex} · TURN ${log.turnIndex}</span><b>${escape(log.stage.name)}</b> ${log.cards.filter(c => !c.valid).length}장 중복 · ${log.monsterBefore ? `${log.totalDamage} 피해` : log.success ? '성공' : '조건 미달'}${log.stageCleared ? ' · 다음 방' : ''}</p>`).join('') || '<p>첫 번째 선택을 기다리고 있습니다.</p>'}</div></details>`;
+  bindEventArtFallback(app);
+  if(!result&&s.remakeVersion){
+    app.querySelector('.party-grid')?.insertAdjacentHTML('beforebegin',echoHud(bundle,me));
+    if(s.selectionHolds?.[me?.id]&&s.lockedMembers.includes(me.id))app.insertAdjacentHTML('beforeend','<div class="echo-hud"><button data-action="confirm-card" data-network>현재 카드 확정 ✓</button><span>다른 카드를 골라 한 번 다시 제출할 수 있습니다.</span></div>');
+    if(s.roomSummary){const key=g.id+':'+s.roomSummary.stageIndex;app.insertAdjacentHTML('beforeend',roomSummaryMarkup(bundle,me,shownSummary!==key));shownSummary=key;const overlay=app.querySelector('.room-result-overlay');for(const child of app.children)if(child!==overlay)child.inert=true;overlay.querySelector('button:not(:disabled)')?.focus({preventScroll:true});}
+  }
   for (const p of Object.values(players)) if (p.knockedOut) {
     void setKnockoutPose(app.querySelector(`[data-player="${p.memberId}"]`),true);
   }
@@ -241,7 +250,7 @@ document.addEventListener('click', async event => {
     const c = characterFor(bundle, button.dataset.character), skill = c.definition?.skill;
     if (skill) showModal(`<div class="eyebrow">${skill.type === 'hybrid' ? 'PASSIVE & ACTIVE' : skill.type.toUpperCase()} · ${escape(c.display_name)}</div><h2>${escape(skill.name)}</h2><p>${escape(skill.description)}</p>`);
   }
-  if (action === 'toggle-skill' && !animating) { useSkill = !useSkill; renderGame(); }
+  if (action === 'toggle-skill' && !animating) { const p=bundle?.session?.state.players[mine()?.id];useSkill=p?.skillId==='amplify'?nextAmplifyLevel(p.characterRuntimeState.mana||0,Number(useSkill)||0):!useSkill;renderGame(); }
   if (action === 'activate-revelation' && !animating && bundle?.session) {
     const member = mine(), session = bundle.session;
     const response = await perform('activate_skill', { session_id:session.id, turn_index:session.turn_index, member_id:member.id });
@@ -258,11 +267,16 @@ document.addEventListener('click', async event => {
     showModal(`<div class="eyebrow">LEAVE PARTY</div><h2>원정대를 떠날까요?</h2><p>${bundle.session?.status === 'active' ? '진행 중인 자리는 균형형 AI가 이어받습니다. 나간 원정에는 다시 참가할 수 없습니다.' : '호스트라면 다음 인간 플레이어에게 호스트가 이전됩니다.'}</p><button class="button primary full" data-action="leave" data-network>방 나가기 →</button>`);
   }
   if (action === 'leave') { modal.close(); void perform('leave_room'); }
-  if (action === 'select-card' && !animating) { selected = toggleCardSelection(selected,button.dataset.cardId,isShuffleTurn(bundle.session)); renderGame(); }
+  if(action==='reward-details'){const offer=bundle.session.state.roomChoices?.[mine()?.id];showModal('<h2>'+escape(offer?.name||'제단의 선택')+'</h2><p>'+escape(offer?.description||'즉시 4G 또는 다음 전투 종료 시 HP가 남아 있고 기절하지 않았다면 7G. 도전 효과는 해당 전투 종료 후 사라집니다.')+'</p>');}
+  if(action==='echo-details')showModal(echoDetails(bundle,button));
+  if(action==='echo-info')showModal('<h2>확인한 조건</h2><p>'+escape(bundle.session.state.roomInfo)+'</p>');
+  if(action==='room-ready'||action==='room-choice')void perform(action==='room-ready'?'room_ready':'room_choice',{session_id:bundle.session.id,stage_index:bundle.session.state.roomSummary.stageIndex,choice:button.dataset.choice});
+  if(action==='confirm-card')void perform('confirm_card',{session_id:bundle.session.id,turn_index:bundle.session.turn_index});
+  if (action === 'select-card' && !animating && !bundle?.session?.state.roomSummary) { selected = toggleCardSelection(selected,button.dataset.cardId,isShuffleTurn(bundle.session)); renderGame(); }
   if (action === 'submit' && selected !== null && !animating) {
     const me = mine(), g = bundle.session;
     const twoCards=isShuffleTurn(g),info=selectionInfo(g.state.players[me.id],selected,twoCards);
-    if(info.ready)void perform('submit_card',{session_id:g.id,turn_index:g.turn_index,member_id:me.id,...(twoCards?{card_ids:info.cards.map(c=>c.id)}:{card_id:info.cards[0].id,card_value:info.cards[0].value}),use_skill:useSkill});
+    if(info.ready)void perform(g.state.selectionHolds?.[me.id]&&g.state.lockedMembers.includes(me.id)?'reselect_card':'submit_card',{session_id:g.id,turn_index:g.turn_index,member_id:me.id,...(twoCards?{card_ids:info.cards.map(c=>c.id)}:{card_id:info.cards[0].id,card_value:info.cards[0].value}),use_skill:Boolean(useSkill),amplify_level:g.state.players[me.id].skillId==='amplify'?Number(useSkill)||0:0});
   }
 });
 document.addEventListener('submit', async event => {
@@ -306,3 +320,10 @@ try {
   }
   else status('서버 설정 대기');
 } catch (error) { status('연결 실패'); toast(error.message); }
+
+// Keep keyboard navigation inside the receipt while the room awaits readiness.
+document.addEventListener('keydown',event=>{
+ if(event.key!=='Tab'||modal.open)return;const overlay=app.querySelector('.room-result-overlay');if(!overlay)return;
+ const buttons=[...overlay.querySelectorAll('button:not(:disabled)')];if(!buttons.length)return;const first=buttons[0],last=buttons.at(-1);
+ if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+});

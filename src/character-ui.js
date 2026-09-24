@@ -20,8 +20,8 @@ export function deckLabel(character) {
 export function characterChoices(bundle, memberId) {
   return `<div class="eyebrow">CHOOSE YOUR CHARACTER</div><h2>당신의 패, 당신의 방식.</h2><p>같은 캐릭터도 함께 선택할 수 있습니다.</p><div class="character-choices">${[...(bundle.characters || [])].sort((a,b)=>(['gunner','fighter'].includes(a.id)?1:0)-(['gunner','fighter'].includes(b.id)?1:0)).map(c => `<button class="character-choice" data-action="set-character" data-member="${html(memberId)}" data-character="${html(c.id)}" data-network style="--character-color:${html(c.definition.color)}"><span class="character-icon">${skinPortrait(c.id)}</span><span><b>${html(c.display_name)}</b><small>${html(c.definition.role)}</small><span class="character-deck">${html(deckLabel(c))}</span><strong>${c.definition.skill.type === 'hybrid' ? 'PASSIVE & ACTIVE' : c.definition.skill.type.toUpperCase()} · ${html(c.definition.skill.name)}</strong><p>${html(c.definition.skill.description)}</p></span></button>`).join('')}</div>`;
 }
-export function cardPool(player, { own=false, blocked=false, selected=null } = {}) {
-  return `<div class="cycle-pool ${player.characterId==='gunner'?'gunner-hand':''} ${player.character?.definition?.deckType==='continuous'?'continuous-hand':''}" data-cycle-pool="${html(player.memberId)}" aria-label="현재 손패 ${cycleCards(player).length}장">${cycleCards(player).map(c=>cardComponent(c,{loadout:player.loadout,own,blocked,selected})).join('')}</div>`;
+export function cardPool(player, { own=false, blocked=false, selected=null, useSkill=0 } = {}) {
+  return `<div class="cycle-pool ${player.characterId==='gunner'?'gunner-hand':''} ${player.character?.definition?.deckType==='continuous'?'continuous-hand':''}" data-cycle-pool="${html(player.memberId)}" aria-label="현재 손패 ${cycleCards(player).length}장">${cycleCards(player).map(c=>cardComponent(own&&player.skillId==='amplify'&&useSkill&&[selected].flat().includes(c.id)?{...c,value:c.value+Number(useSkill)}:c,{loadout:player.loadout,own,blocked,selected})).join('')}</div>`;
 }
 export function skillBadge(character) {
   const skill = character.definition?.skill;
@@ -30,13 +30,23 @@ export function skillBadge(character) {
   return `<span class="skill-tooltip"><button type="button" class="skill-badge" data-action="skill-info" data-character="${html(character.id)}" aria-label="${html(skill.name)} 스킬 설명">${html(character.definition.icon)} ${type} · ${html(skill.name)}</button><span class="skill-description" role="tooltip"><b>${html(skill.name)} · ${type}</b>${html(skill.description)}</span></span>`;
 }
 export function revelationGauge(player) {
-  if (player.skillId === 'random_hand') return `<small class="gambler-mode">${player.characterRuntimeState?.observing?'관망 · 1~5':'운명의 패 · 1~7'}</small>`;
+  if (player.skillId === 'random_hand') return player.characterRuntimeState?.observing ? '<small class="gambler-mode">관망 · 1~4 한 장</small>'+resourceGauge('관망 통과',player.characterRuntimeState.observationPasses||0,2,'observation-gauge') : '<small class="gambler-mode">운명의 패 · 1~7</small>';
+  if(player.skillId==='amplify')return resourceGauge('마나',player.characterRuntimeState?.mana||0,4,'mana-gauge');
+  if(player.skillId==='toughness')return resourceGauge('강인함 충전',player.characterRuntimeState?.toughnessCharges||0,2,'toughness-gauge');
   if (player.skillId === 'combo') return `<div class="revelation-gauge" role="meter" aria-label="연격 중첩" aria-valuemin="0" aria-valuemax="3" aria-valuenow="${player.characterRuntimeState?.comboStacks||0}">${[0,1,2].map(i=>`<i class="revelation-pip ${i<(player.characterRuntimeState?.comboStacks||0)?'filled':''}" aria-hidden="true"></i>`).join('')}</div><small class="combo-previous">직전 카드: ${html(player.characterRuntimeState?.comboPrevious ?? '-')}</small>`;
   if (player.skillId !== 'revelation') return '';
   const stacks = Math.max(0, Math.min(3, player.characterRuntimeState?.revelationStacks || 0));
   return `<div class="revelation-gauge" role="meter" aria-label="계시 중첩" aria-valuemin="0" aria-valuemax="3" aria-valuenow="${stacks}">${[0,1,2].map(i=>`<i class="revelation-pip ${i<stacks?'filled':''}" aria-hidden="true"></i>`).join('')}</div>`;
 }
+export function resourceGauge(label,value,max,extra='') {
+  return `<div class="revelation-gauge ${extra}" role="meter" aria-label="${label}" aria-valuemin="0" aria-valuemax="${max}" aria-valuenow="${value}">${Array.from({length:max},(_,i)=>`<i class="revelation-pip ${i<value?'filled':''}" aria-hidden="true"></i>`).join('')}</div>`;
+}
+export function nextAmplifyLevel(mana,current){return current===0?mana>=2?1:0:current===1&&mana>=4?2:0;}
 export function activeButton(player, useSkill, blocked) {
+  if(player.skillId==='amplify'){
+    const mana=player.characterRuntimeState?.mana||0,level=Number(useSkill)||0;
+    return `<button type="button" class="active-skill ${level?'armed':''}" data-action="toggle-skill" aria-pressed="${Boolean(level)}" ${blocked||mana<2?'disabled':''}>✺ 증폭 <b>마나 ${mana-level*2}/4 · ${level?'숫자 +'+level:'2마나 필요'}${level?' · 다시 눌러 변경/취소':''}</b></button>`;
+  }
   if (player.skillId === 'revelation') {
     const active = Boolean(player.characterRuntimeState?.revealExpiresTurn);
     const ready = (player.characterRuntimeState?.revelationStacks || 0) >= 2 && !active;
@@ -45,8 +55,8 @@ export function activeButton(player, useSkill, blocked) {
   if (player.skillType !== 'active' && player.skillId !== 'full_burst') return '';
   const ready = player.activeSkillState?.available;
   const knight = player.skillId === 'toughness';
-  if(player.skillId==='full_burst')return `<button type="button" class="active-skill ${useSkill&&ready?'armed':''}" data-action="toggle-skill" aria-pressed="${Boolean(useSkill&&ready)}" ${blocked||!ready?'disabled':''}>⌖ 전탄발사 <b>${ready?(useSkill?'ON · 손패 전체 사용':'READY'):`${player.characterRuntimeState.burstReadyCycle}사이클에 충전`}</b></button>`;
-  return `<button type="button" class="active-skill ${useSkill && ready ? 'armed' : ''}" data-action="toggle-skill" aria-pressed="${Boolean(useSkill && ready)}" ${blocked || !ready ? 'disabled' : ''}>${knight?'◇ 강인함':'✺ 증폭'} <b>${ready ? useSkill ? knight?'ON · 중복 보호':'ON · +2' : 'READY' : 'USED'}</b></button>`;
+  if(player.skillId==='full_burst')return `<button type="button" class="active-skill ${useSkill&&ready?'armed':''}" data-action="toggle-skill" aria-pressed="${Boolean(useSkill&&ready)}" ${blocked||!ready?'disabled':''}>⌖ 전탄발사 <b>${ready?(useSkill?'ON · 손패 전체 사용':'READY'):'다음 사이클에 충전'}</b></button>`;
+  return `<button type="button" class="active-skill ${useSkill && ready ? 'armed' : ''}" data-action="toggle-skill" aria-pressed="${Boolean(useSkill && ready)}" ${blocked || !ready ? 'disabled' : ''}>${knight?'◇ 강인함':'✺ 증폭'} <b>${ready ? useSkill ? knight?'ON · 충전 1 소모':'ON · +2' : 'READY' : 'USED'}</b></button>`;
 }
 export function partyPanels(bundle, players, { me, result, selected, useSkill }) {
   const s = bundle.session.state;
@@ -54,7 +64,7 @@ export function partyPanels(bundle, players, { me, result, selected, useSkill })
   return [...bundle.members].sort((a,b) => a.seat_index-b.seat_index).map(m => {
     const p = players[m.id]; if (!p) return '';
     const own = me?.id === m.id;
-    const ready = Boolean(result || s.lockedMembers.includes(m.id));
+    const ready = Boolean(result || (s.lockedMembers.includes(m.id)&&!(own&&s.selectionHolds?.[m.id])));
     const c = p.character || characterFor(bundle, p.characterId);
     const seen = privateState.revealedCards?.find(card => card.memberId === m.id);
     const marked = privateState.revealTargets?.includes(m.id);
@@ -65,7 +75,7 @@ export function partyPanels(bundle, players, { me, result, selected, useSkill })
       <div class="player-info">
         <div class="player-heading"><div class="player-identity player-identity-bar" title="${html(m.display_name)}"><h3>${html(m.display_name)} ${own ? '<em>나</em>' : ''}</h3><small>${html(c.display_name)}${m.ai_type ? ' · AI' : ''}${p.knockedOut ? ' · 기절' : ''}</small></div><div class="hearts" aria-label="HP ${p.hp}/${p.maxHp}">${Array.from({length:p.maxHp},(_,i)=>`<span class="heart ${i<p.hp?'filled':''}">♥</span>`).join('')}</div></div>
         <div class="player-content"><div class="player-stats"><span>SCORE <b>${p.score}</b></span><span>RUN GOLD <b>${p.gold}</b></span><small>${c.definition?.deckType==='continuous'?'운명의 패':`CYCLE ${p.cycleIndex || 1}`} · ${cycleCards(p).filter(card=>!card.used).length}장 남음</small></div>${cardComponent(null,{loadout:p.loadout,blocked:ready,revealId:m.id})}</div>
-        ${cardPool(p,{own,blocked:ready || p.knockedOut,selected})}
+        ${cardPool(p,{own,blocked:ready || p.knockedOut,selected,useSkill})}
         <div class="player-bottom"><div class="player-skill">${skillBadge(c)}${revelationGauge(p)}</div><span class="lock-state ${ready?'ready':''}">${result ? '공개 중' : seen ? `선택: ${seen.value}` : p.knockedOut ? '자동 제출' : ready ? '✓ 선택 완료' : '선택 중'}</span></div>
         ${greed?'<div class="boss-player-mark">탐욕 표식 · 다음 기본 공격 대상</div>':''}${marked ? `<div class="seer-vision">✧ ${publicMark?'표적 지정 · 전체 공개':'계시 대상'} · ${seen ? `선택: <b>${seen.value}</b>` : '제출을 기다리는 중'}</div>` : ''}${own ? activeButton(p,useSkill,ready || p.knockedOut) : ''}${own ? panelControls(p,{result,locked:ready,selected,useSkill,twoCards:isShuffleTurn(bundle.session)}) : ''}
       </div>
@@ -74,12 +84,12 @@ export function partyPanels(bundle, players, { me, result, selected, useSkill })
 }
 export function panelControls(player,{result,locked,selected,useSkill,twoCards=false}) {
  const info=selectionInfo({...player,cycleCards:cycleCards(player)},selected,twoCards),blocked=Boolean(result||locked||player?.knockedOut);
- const label=twoCards?`뒤죽박죽 · ${info.cards.length}/${info.count}장 선택 · 무작위 1장 소비`:(info.cards[0]?info.cards[0].value+' 선택'+(useSkill?(player.skillId==='full_burst'?' · 전탄발사':player.skillId==='toughness'?' · 강인함':' · 증폭 +2'):''):'카드를 선택하세요');
+ const label=twoCards?`뒤죽박죽 · ${info.cards.length}/${info.count}장 선택 · 무작위 1장 소비`:(info.cards[0]?(info.cards[0].value+(player.skillId==='amplify'?Number(useSkill)||0:0))+' 선택'+(useSkill?(player.skillId==='full_burst'?' · 전탄발사':player.skillId==='toughness'?' · 강인함':' · 증폭 +'+Number(useSkill)):''):'카드를 선택하세요');
  return `<div class="panel-controls"><span>${result?'공개 중':player?.knockedOut?'자동 제출 · 턴 종료 후 HP 3 부활':locked?'선택 완료 · 동료를 기다리는 중':label}</span>${!blocked?`<button class="button primary" data-action="submit" data-network data-unavailable="${!info.ready}" ${!info.ready?'disabled':''}>${twoCards?'무작위 제출':'제출'} →</button>`:'<span class="waiting-pill">선택 완료</span>'}</div>`;
 }
 export function mobileSelection(player,options) {
  if(!player)return '';
- return `<aside class="mobile-selection" aria-label="내 카드 선택">${cardPool(player,{own:true,blocked:Boolean(options.result||options.locked||player.knockedOut),selected:options.selected})}${panelControls(player,options)}</aside>`;
+ return `<aside class="mobile-selection" aria-label="내 카드 선택">${cardPool(player,{own:true,blocked:Boolean(options.result||options.locked||player.knockedOut),selected:options.selected,useSkill:options.useSkill})}${panelControls(player,options)}</aside>`;
 }
 // Compatibility for existing component tests; no separate hand section is rendered.
 export const ownHand=mobileSelection;
