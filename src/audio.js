@@ -115,6 +115,7 @@ export class GameAudio {
       skill_blood_command:{noise:[.19,1450,.07],tones:[[320,.3,'sine',.06,110]]},
       skill_soul_slash:{noise:[.2,1000,.08],tones:[[180,.3,'sawtooth',.07,65]]},
       skill_predation:{noise:[.16,650,.07],tones:[[190,.26,'triangle',.07,80]]},
+      predation_kill:{noise:[.22,700,.11],tones:[[140,.3,'sawtooth',.08,65],[360,.23,'triangle',.05,160]]},
       predation_major:{noise:[.3,750,.15],tones:[[95,.38,'sawtooth',.11,35],[480,.29,'triangle',.07,130]]},
     };
     const cue=cues[name];if(!cue)return;

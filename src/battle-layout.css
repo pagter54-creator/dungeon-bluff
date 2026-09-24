@@ -351,6 +351,14 @@ body:has(.game-top) > .site-footer{position:relative;z-index:1}
 .player-skill{display:flex;flex-direction:column;gap:6px;min-width:0}
 .revelation-gauge{display:flex;gap:4px;width:84px;max-width:100%}
 .revelation-gauge.predation-gauge{width:100px;gap:3px}
+.revelation-gauge.seer-gauge{width:26px}
+.cycle-pool.continuous-hand.gambler-hand{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));max-width:none;gap:5px}
+.gambler-pile{align-self:stretch;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:1px solid #8d744c;border-radius:4px;background:linear-gradient(145deg,#352b39,#1c1725);color:#dbc18d;padding:4px 1px}
+.gambler-pile>span{font-size:20px}.gambler-pile small{font-size:9px;white-space:nowrap}.gambler-pile b{font-size:17px}.gambler-pile:disabled{opacity:.65}
+.gambler-charges{display:grid;gap:4px}.gambler-charges>div{display:flex;align-items:center;gap:5px;color:#dfbd79;font-size:11px}.gambler-charges small{font-size:8px}
+.charge-dice{display:flex;gap:3px}.charge-dice i{font-style:normal;display:grid;place-items:center;width:16px;height:16px;border:1px solid #6b5840;border-radius:4px;color:#6b5840;background:#211b26;font-size:9px}.charge-dice i.filled{background:#6c522d;color:#ffdf9b;border-color:#d8ae66;box-shadow:0 0 6px #d8ae6644}
+.gambler-deck-detail{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:20px 0}.gambler-deck-detail>span{border:1px solid #745a86;padding:12px 5px;text-align:center;border-radius:5px;background:#32273d;color:#d5bfdc}.gambler-deck-detail b{font-size:22px;color:#f3dcae}.gambler-deck-detail .empty{opacity:.4}
+@media(max-width:760px){.party-grid .player-panel:not(.is-me) .gambler-pile small{font-size:6px}.party-grid .player-panel:not(.is-me) .gambler-pile>span{font-size:12px}.party-grid .player-panel:not(.is-me) .gambler-pile b{font-size:11px}.party-grid .player-panel:not(.is-me) .gambler-hand{gap:2px}.gambler-deck-detail{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .blood-thread{position:fixed;z-index:10001;height:3px;transform-origin:left center;background:linear-gradient(90deg,#9b1735,#ff6985,#9b1735);box-shadow:0 0 8px #f92350,0 0 22px #d91b46;pointer-events:none}
 .vampire-bite-impact,.demon-slash-impact{position:fixed;z-index:10002;width:190px;height:150px;pointer-events:none;filter:drop-shadow(0 0 12px #ea274d)}
 .vampire-bite-impact svg,.demon-slash-impact svg{width:100%;height:100%;overflow:visible}

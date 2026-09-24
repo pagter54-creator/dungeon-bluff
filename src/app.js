@@ -12,6 +12,7 @@ import { reveal, finale } from './fx.js';
 import { initAudioControls, getAudio } from './audio.js';
 import { characterFor, characterChoices, deckLabel, partyPanels, mobileSelection, cycleCards } from './character-ui.js';
 import { characterGuide } from './character-guide.js';
+import {gamblerPileDetails} from './gambler-ui.js';
 import { animateCycle, showSkillEffect } from './character-fx.js';
 import { setKnockoutPose } from './player-pose-fx.js';
 import { showGameBackground } from './game-background.js';
@@ -262,6 +263,7 @@ document.addEventListener('click', async event => {
   if (action === 'home') renderHome();
   if (action === 'setup') setupHelp();
   if (action === 'character-guide') showModal(characterGuide());
+  if(action==='gambler-deck'&&!animating)showModal(gamblerPileDetails(bundle?.session?.state.players[mine()?.id],button.dataset.pile));
   if (action === 'create') createModal();
   if (action === 'find') void renderFind();
   if (action === 'refresh') void loadRooms();
@@ -277,6 +279,7 @@ document.addEventListener('click', async event => {
   }
   if (action === 'toggle-skill' && !animating) { const p=bundle?.session?.state.players[mine()?.id];useSkill=p?.skillId==='amplify'?nextAmplifyLevel(p.characterRuntimeState.mana||0,Number(useSkill)||0):!useSkill;renderGame(); }
   if (action === 'activate-revelation' && !animating && bundle?.session) {
+    if(selected!==null&&(!Array.isArray(selected)||selected.length)){toast('카드 선택을 취소한 뒤 계시를 사용해 주세요.');return;}
     const member = mine(), session = bundle.session;
     const response = await perform('activate_skill', { session_id:session.id, turn_index:session.turn_index, member_id:member.id });
     if (response?.session?.state.players[member.id]?.characterRuntimeState.revealExpiresTurn === session.turn_index) {
@@ -316,7 +319,7 @@ document.addEventListener('submit', async event => {
 });
 document.querySelector('.modal-close').addEventListener('click', () => modal.close());
 modal.addEventListener('click', event => { if (event.target === modal) { const r = modal.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) modal.close(); } });
-document.querySelector('#help').addEventListener('click', () => showModal('<div class="eyebrow">HOW TO SURVIVE</div><h2>눈치를 읽고, 살아남아라.</h2><ol class="guide-list"><li><b>각자 카드 한 장.</b> 4명 모두 비밀리에 선택합니다.</li><li><b>같은 숫자는 전부 무효.</b> 유효한 카드만 공격과 방 효과에 참여합니다.</li><li><b>모든 제출 카드는 소비.</b> 5장을 쓰면 자신의 기본 덱을 다시 받습니다. 도박사는 사이클 없이 매 턴 남은 카드까지 버리고 새 카드 2장을 받습니다. 6·7 제출 후에는 관망 상태가 되며, 중복 시 다음 턴에 해제됩니다.</li><li><b>HP는 3.</b> 0이 되면 한 턴 자동 제출 후 HP 3으로 부활합니다.</li><li><b>누적 기절 8회는 전멸.</b> 도달 스테이지에 따라 원정 점수·골드를 정산합니다. 1~4층 0%, 5층 20%, 6층 30%, 7층 40%, 8층 50%, 9층 60%, 보스층 70%, 클리어 100%. 소수점은 버립니다.</li><li><b>10번째 방은 보스.</b> 2턴마다 일반 공격과 특수 패턴을 번갈아 사용합니다. 일반 몬스터는 3턴마다 공격합니다.</li></ol><p class="muted">일반 공격은 카드 숫자만큼 피해를 줍니다. 적이 쓰러지는 턴에도 모든 유효 카드가 끝까지 공격합니다. 공동 최고 피해자 모두 일반 몬스터 +10점, 보스 +20점을 받습니다. 처치 골드 3G는 기존처럼 그중 한 명에게 지급합니다. 기절 시 -10점과 -3G, 광전사는 추가 -3점입니다.</p>'));
+document.querySelector('#help').addEventListener('click', () => showModal('<div class="eyebrow">HOW TO SURVIVE</div><h2>눈치를 읽고, 살아남아라.</h2><ol class="guide-list"><li><b>각자 카드 한 장.</b> 4명 모두 비밀리에 선택합니다.</li><li><b>같은 숫자는 전부 무효.</b> 유효한 카드만 공격과 방 효과에 참여합니다.</li><li><b>모든 제출 카드는 소비.</b> 5장을 쓰면 자신의 기본 덱을 다시 받습니다. 도박사는 12장 순환 덱에서 매 턴 2장을 뽑습니다. 사용한 6·7만 소멸하며 일반 카드 제출로 재충전합니다.</li><li><b>HP는 3.</b> 0이 되면 한 턴 자동 제출 후 HP 3으로 부활합니다.</li><li><b>누적 기절 8회는 전멸.</b> 도달 스테이지에 따라 원정 점수·골드를 정산합니다. 1~4층 0%, 5층 20%, 6층 30%, 7층 40%, 8층 50%, 9층 60%, 보스층 70%, 클리어 100%. 소수점은 버립니다.</li><li><b>10번째 방은 보스.</b> 2턴마다 일반 공격과 특수 패턴을 번갈아 사용합니다. 일반 몬스터는 3턴마다 공격합니다.</li></ol><p class="muted">일반 공격은 카드 숫자만큼 피해를 줍니다. 적이 쓰러지는 턴에도 모든 유효 카드가 끝까지 공격합니다. 공동 최고 피해자 모두 일반 몬스터 +10점, 보스 +20점을 받습니다. 처치 골드 3G는 기존처럼 그중 한 명에게 지급합니다. 기절 시 -10점과 -3G, 광전사는 추가 -3점입니다.</p>'));
 document.querySelector('#nickname').addEventListener('click', () => void openAccountPage('account'));
 initAccountUI({showModal,toast,canSwitch:()=>!bundle,ready:()=>connected,onNickname:()=>bundle?sync():Promise.resolve(),onAccount:data=>{
   setProfile(data.profile);

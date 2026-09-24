@@ -178,16 +178,25 @@ export async function reveal(result) {
       await sleep(150);
       await restorePose();
     }
-    for(const e of result.effects.filter(e=>e.type==='skill'&&e.skillId==='predation')){
-      const point=characterAttackOrigin(playerFor(e.memberId))||center(playerFor(e.memberId));
-      burst(point,e.gain===2?'#ff385a':'#ac4257',e.gain===2?140:65,e.gain===2?12:6,e.gain===2);
-      ring(point,e.gain===2?'#ff7c94':'#c85d74');textAt(point,`포식 +${e.gain}`,e.gain===2?'critical':'damage');
-      combatCue(e.gain===2?'predation_major':'skill_predation');
-      if(e.gain===2)shake(true);
-      skill(e.memberId,'predation',`포식 +${e.gain}`,'attack');
-      const gauge=playerFor(e.memberId)?.querySelector('.predation-gauge');
-      gauge?.setAttribute('aria-valuenow',String(e.stacks));gauge?.querySelectorAll('.revelation-pip').forEach((pip,i)=>pip.classList.toggle('filled',i<e.stacks));
-    }
+    await Promise.all(result.effects.filter(e=>e.type==='skill'&&e.skillId==='predation').map(async e=>{
+      const panel=playerFor(e.memberId),point=characterAttackOrigin(panel)||center(panel),major=e.gain>=5,kill=e.gain>=3;
+      if(kill)await bolt(target(),point,major?'#ff385a':'#aa304c');
+      burst(point,major?'#ff385a':'#ac4257',major?140:kill?65:18,major?12:kill?6:3,major);
+      if(kill)ring(point,major?'#ff7c94':'#c85d74');
+      textAt(point,`포식 +${e.gain}`,major?'critical':'damage');
+      combatCue(major?'predation_major':kill?'predation_kill':'skill_predation');
+      if(kill)shake(major);
+      const gauge=panel?.querySelector('.predation-gauge');
+      for(let stacks=e.previousStacks??e.stacks-e.gain;stacks<e.stacks;){
+        stacks++;const progress=stacks%8,level=Math.floor(stacks/8);
+        gauge?.setAttribute('aria-valuenow',String(progress));gauge?.querySelectorAll('.revelation-pip').forEach((pip,i)=>pip.classList.toggle('filled',i<progress));
+        const label=panel?.querySelector('.predation-count'),button=panel?.querySelector('.soul-slash-level');
+        if(label)label.textContent=`포식 ${stacks} · 귀참 Lv.${level} +${level+1}`;
+        if(button)button.textContent=`⚔ 귀참 Lv.${level} +${level+1}`;
+        if(progress===0){ring(point,'#ffc0d2');textAt(point,`귀참 Lv.${level}`,'heal');}
+        await sleep(50);
+      }
+    }));
     const finalHp=result.monsterAfter?.hp??remainingHp;
     const hpText=document.querySelector('.enemy-health b'),hpBar=document.querySelector('.enemy-health .health-track i');
     if(hpText)hpText.innerHTML=`${finalHp} <small>/ ${result.monsterBefore.maxHp}</small>`;
@@ -269,6 +278,7 @@ export async function reveal(result) {
       if(el.dataset.cardInstance===card.cardId) { el.classList.add('spent'); const small=el.querySelector('small'); if(small) small.textContent='OFF'; }
     });
   }
+  skillPhase('refill');
   await Promise.allSettled(result.effects.filter(e=>e.type==='refill' && e.cards).map(e=>{
     if(e.random)skill(e.memberId,'random_hand','운명의 패 · 새 카드');
     return animateCycle(e);
