@@ -41,10 +41,14 @@ export function recoil(element,from,to,heavy=false,reduced=false){
 export function revealShowcase(cards,cardFor,playerFor){
  const row=document.createElement('div');row.className='combat-showcase';
  const copies=new Map();
- for(const result of cards){
+ const panelOrder=new Map([...document.querySelectorAll('.party-grid [data-player]')].map((panel,index)=>[panel.dataset.player,index]));
+ const orderedCards=[...cards].sort((a,b)=>(panelOrder.get(a.memberId)??Infinity)-(panelOrder.get(b.memberId)??Infinity));
+ for(const result of orderedCards){
   const source=cardFor(result.memberId);if(!source)continue;
   const slot=document.createElement('div');slot.className='showcase-slot';
-  const label=document.createElement('span');label.textContent=playerFor(result.memberId)?.querySelector('h3')?.textContent.trim()||'플레이어';
+  const panel=playerFor(result.memberId);
+  if(panel?.classList.contains('is-me'))slot.classList.add('is-me');
+  const label=document.createElement('span');label.textContent=panel?.querySelector('h3')?.textContent.trim()||'플레이어';
   const card=source.cloneNode(true);card.removeAttribute('data-reveal');
   slot.append(label,card);row.append(slot);copies.set(result.memberId,card);
  }
