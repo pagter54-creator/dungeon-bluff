@@ -1,8 +1,8 @@
 import {assetLoader} from './asset-loader.js';
 // File stems intentionally match the supplied artwork (travler, warrior).
 const groups=[
-['gunner','gunner','총잡이',['총잡이 기본 스킨']],
-['fighter','fighter','무투가',['무투가 기본 스킨']],
+['gunner','gunner','총잡이',['총잡이 기본 스킨','황야의 무법자','유령선의 포격수']],
+['fighter','fighter','무투가',['무투가 기본 스킨','뇌격투희','염화난무']],
 ['gambler','gambler','도박사',['도박사 기본 스킨','부르주아','가면 무도회','선상 도박꾼']],
 ['berserker','berserker','광전사',['광전사 기본 스킨','혹한의 야만족','지옥불 광전사','흑철 기사']],
 ['imp','imp','임프',['임프 기본 스킨','트릭 오어 트릿!','지옥불 요정','깜짝 선물']],

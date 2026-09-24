@@ -1,4 +1,4 @@
-import { SKINS,skinFor } from './skins.js';
+import { SKINS,DEFAULT_SKINS,skinFor } from './skins.js';
 import { createSkinDrawClient } from './skin-draw.js';
 import { revealSkin } from './skin-reveal.js';
 import * as api from './api.js';
@@ -64,7 +64,7 @@ export async function openAccountPage(page='account'){
   if(page==='gacha'){
    const {items}=await api.accountRequest('get_shop');const pool=items.filter(i=>i.item_type==='character_skin'&&i.gacha_enabled&&!i.is_default);
    const remaining=pool.filter(i=>!account.inventory.includes(i.id)).length,pending=skinDraw.hasPending(api.user.id);
-   markup=`${identity()}<div class="gacha-intro"><span class="eyebrow">WARDROBE OF FATE</span><h2>아직 만나지 못한 당신.</h2><p>빛 속에서 새로운 스킨을 만나세요.<br>보유하지 않은 스킨 중 하나가 같은 확률로 등장합니다.</p><strong>${pool.length-remaining} / ${pool.length} 수집</strong><p>기본 스킨 8종은 무료 · 중복 없음 · 모두 수집하면 구매 종료</p>${registered()?button(pending?'이전 뽑기 결과 확인 / 재시도':remaining?'스킨 뽑기 · 10 Account Gold':'모든 스킨 수집 완료','draw',`${!pending&&(!remaining||account.stats.account_gold<10)?'disabled':''}`):guestGate()}${registered()&&remaining&&account.stats.account_gold<10&&!pending?'<p>Account Gold가 부족합니다. 원정을 성공해 골드를 모아 보세요.</p>':''}${pending?'<p>응답을 받지 못한 요청을 다시 확인합니다. 이미 지급됐다면 추가 차감 없이 결과를 표시합니다.</p>':''}</div>${skinGroups(pool,i=>`<article class="shop-item ${account.inventory.includes(i.id)?'skin-owned':''}">${preview(i.asset_key)}<small>${html(SKINS[i.id]?.label)}</small><h3>${html(i.display_name)}</h3><p>${account.inventory.includes(i.id)?'✓ 보유 중 · 뽑기 제외':'등장 확률 '+(100/remaining).toFixed(2)+'%'}</p></article>`)}`;
+   markup=`${identity()}<div class="gacha-intro"><span class="eyebrow">WARDROBE OF FATE</span><h2>아직 만나지 못한 당신.</h2><p>빛 속에서 새로운 스킨을 만나세요.<br>보유하지 않은 스킨 중 하나가 같은 확률로 등장합니다.</p><strong>${pool.length-remaining} / ${pool.length} 수집</strong><p>기본 스킨 ${Object.keys(DEFAULT_SKINS).length}종은 무료 · 중복 없음 · 모두 수집하면 구매 종료</p>${registered()?button(pending?'이전 뽑기 결과 확인 / 재시도':remaining?'스킨 뽑기 · 10 Account Gold':'모든 스킨 수집 완료','draw',`${!pending&&(!remaining||account.stats.account_gold<10)?'disabled':''}`):guestGate()}${registered()&&remaining&&account.stats.account_gold<10&&!pending?'<p>Account Gold가 부족합니다. 원정을 성공해 골드를 모아 보세요.</p>':''}${pending?'<p>응답을 받지 못한 요청을 다시 확인합니다. 이미 지급됐다면 추가 차감 없이 결과를 표시합니다.</p>':''}</div>${skinGroups(pool,i=>`<article class="shop-item ${account.inventory.includes(i.id)?'skin-owned':''}">${preview(i.asset_key)}<small>${html(SKINS[i.id]?.label)}</small><h3>${html(i.display_name)}</h3><p>${account.inventory.includes(i.id)?'✓ 보유 중 · 뽑기 제외':'등장 확률 '+(100/remaining).toFixed(2)+'%'}</p></article>`)}`;
   }
   if(page==='inventory'){
    const {items}=await api.accountRequest('get_shop');const owned=items.filter(i=>i.item_type===category&&(i.is_default||account.inventory.includes(i.id)));

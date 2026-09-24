@@ -211,7 +211,8 @@ export async function reveal(result) {
       const info=el?.querySelector('.player-info');
       if(info)void finishAnimation(info.animate([{boxShadow:'inset 0 0 45px #ff486aaa,0 0 25px #ff486a88'},{boxShadow:'inset 0 0 0 transparent,0 0 0 transparent'}],{duration:550}));
       const restorePose=await pose;
-      await sleep(150);if(hp===0)await setKnockoutPose(el,true);await restorePose();
+      // Keep the replaced damage illustration visible long enough to read the hit.
+      await sleep(420);if(hp===0)await setKnockoutPose(el,true);await restorePose();
     } else if (effect.type === 'knockout') { textAt(point, 'KNOCKOUT', 'damage'); burst(point, '#ff5676', 100, 12, true); el?.classList.add('knocked-out');await setKnockoutPose(el,true); }
     else { burst(point, '#7ee6b6', 60, 4); ring(point, '#7ee6b6'); textAt(point, effect.type === 'revive' ? `부활 · HP ${hp}` : `+${effect.amount} HP`, 'heal'); tone(520, .3, 'sine', .07, 880); }
     hearts.forEach((heart, i) => heart.classList.toggle('filled', i < hp));
