@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10101b">
+  <meta name="description" content="네 장의 카드, 하나의 운명. 눈치로 살아남는 4인 온라인 던전 레이드.">
+  <title>눈치 레이드 — DUNGEON BLUFF</title>
+  <link rel="icon" type="image/svg+xml" href="./assets/emblem.svg">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./src/updates.css">
+  <link rel="stylesheet" href="./src/characters.css">
+  <link rel="stylesheet" href="./src/accounts.css">
+  <link rel="stylesheet" href="./src/player-panels.css">
+  <link rel="stylesheet" href="./src/expedition-update.css">
+  <link rel="stylesheet" href="./src/battle-layout.css">
+</head>
+<body>
+  <div class="ambient" aria-hidden="true"></div>
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="눈치 레이드 홈"><img src="./assets/emblem.svg" alt=""><span>눈치 레이드<small>DUNGEON BLUFF</small></span></a>
+    <div class="header-right">
+      <button id="nickname" class="nickname-button" disabled title="닉네임 설정">닉네임 설정</button>
+      <span id="account-summary" class="account-summary">GUEST</span>
+      <span id="connection" class="connection"><i></i> 연결 준비</span>
+      <div class="sound-control">
+        <button id="sound" class="icon-button" aria-label="소리 조절" title="소리 조절" aria-expanded="false" aria-controls="sound-panel">♪ <span>OFF</span></button>
+        <div id="sound-panel" class="sound-panel" hidden role="group" aria-label="배경음악 및 효과음 볼륨">
+          <label for="volume">VOLUME</label>
+          <output id="volume-value" for="volume">50%</output>
+          <input id="volume" type="range" min="0" max="100" step="1" value="50" orient="vertical" aria-label="전체 소리 크기">
+          <button id="sound-mute" type="button" class="text-button" aria-pressed="false">음소거</button>
+        </div>
+      </div>
+      <button id="motion" class="motion-button" type="button" aria-label="전투 연출 전환" aria-pressed="true" title="전투 연출 설정">✦ <span>연출 전체</span></button>
+      <button id="help" class="icon-button" aria-label="게임 규칙">?</button>
+    </div>
+  </header>
+  <main id="app" aria-live="polite"></main>
+  <footer class="site-footer"><span>READ THE ROOM. SURVIVE THE DUNGEON.</span><span>ONLINE PROTOTYPE <b>v0.1</b></span></footer>
+  <canvas id="fx-canvas" aria-hidden="true"></canvas>
+  <div id="fx-overlay" aria-hidden="true"></div>
+  <div id="toast" role="status"></div>
+  <dialog id="modal"><button class="modal-close icon-button" aria-label="닫기">×</button><div id="modal-body"></div></dialog>
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>
