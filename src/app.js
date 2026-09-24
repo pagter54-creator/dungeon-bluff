@@ -1,6 +1,7 @@
 import {nextAmplifyLevel} from './character-ui.js';
 import {roomSummaryMarkup,echoHud,echoDetails} from './room-summary.js';
 import { loadInitialAssets,ensureOwnAssets,ensureRoomAssets } from './loading-ui.js';
+import {warmLobbyAssets,stopLobbyLoading,loadEntryAssets} from './battle-loading.js';
 import { isShuffleTurn,selectionInfo,toggleCardSelection } from './battle-rules.js';
 import { skinPortrait,skinFor } from './skins.js';
 import { initAccountUI, refreshAccount, openAccountPage, getAccount } from './account-ui.js';
@@ -38,6 +39,7 @@ let rewardRefreshSession = null;
 let shownSummary=null;
 let roomEpoch = 0;
 let listLoading = false;
+let entryWork=null,entryProgress='',entryError='',entryCompleted=null;
 const status = (text, online = false) => {
   const el = document.querySelector('#connection'); el.classList.toggle('online', online); el.lastChild.textContent = ` ${text}`;
 };
@@ -68,6 +70,7 @@ async function perform(action, params = {}) {
       setProfile(response.profile); modal.close(); toast('닉네임을 저장했습니다.');
       if (bundle) await sync();
     } else if (response.left) {
+      stopLobbyLoading();entryError='';entryCompleted=null;
       roomEpoch++; await api.unsubscribe(); bundle = null; queue = []; sessionIdentity = null; lastResult = 0; view = 'home'; renderHome();
     } else if (response.room) { modal.close(); await accept(response); }
     return response;
@@ -79,10 +82,11 @@ async function accept(next, restoring = false) {
   if (bundle?.room.id === next.room.id && next.room.version < bundle.room.version) return;
   const newRoom = bundle?.room.id !== next.room.id;
   const newSession = next.session?.id && next.session.id !== sessionIdentity;
-  await ensureRoomAssets(next.members,api.user?.id,getAccount()?.loadout);
-  if (newSession) await preloadSession(next.session);
+  if(newRoom&&!next.session)await ensureRoomAssets(next.members,api.user?.id,getAccount()?.loadout);
+  if (newSession && !next.session.state.entryLoading) await preloadSession(next.session);
   if (bundle?.room.id === next.room.id && next.room.version < bundle.room.version) return;
   if (newRoom) roomEpoch++;
+  if(newSession){entryError='';entryProgress='';entryCompleted=null;}
   bundle = next;
   if (next.session?.status !== 'active' && next.session && rewardRefreshSession !== next.session.id) { rewardRefreshSession=next.session.id; void refreshAccount().catch(()=>{}); }
   void getAudio().setScene(next.session ? 'dungeon' : 'lobby');
@@ -108,7 +112,7 @@ async function accept(next, restoring = false) {
         }
       }
     }
-  } else renderLobby();
+  } else {renderLobby();warmLobbyAssets(next.members.map(m=>({...m,loadout:m.user_id===api.user?.id?getAccount()?.loadout:m.loadout})));}
   updateBusy();
 }
 async function playQueue() {
@@ -194,18 +198,35 @@ function aiModal() {
   showModal(`<div class="eyebrow">CHOOSE A COMPANION</div><h2>어떤 동료와 함께할까요?</h2><p>AI도 공개 정보와 자신에게 허용된 계시만 사용합니다.</p><div class="ai-options">${Object.entries(AI).map(([id, [name, description]], i) => `<button data-action="add-ai" data-type="${id}" data-network><span class="ai-icon">${['◈', '♛', '◇', '♜', '✧'][i]}</span><span><b>${name}</b><small>${description}</small></span><code>${id}</code></button>`).join('')}</div>`);
 }
 function renderLobby() {
-  const { room, members } = bundle;
-  const host = isHost();
-  app.innerHTML = `<section class="page-heading"><div><div class="eyebrow">BASE CAMP · 원정 준비</div><h1>${escape(room.room_title)}</h1><p>${room.has_password ? '비밀번호가 있는 비공개 입장' : '누구나 참가할 수 있는 원정'} · 네 명의 운명이 만나는 곳</p></div><button class="button secondary" data-action="leave-confirm">나가기 ↗</button></section><section class="invite-bar"><div><span>ROOM CODE</span><strong>${room.room_code}</strong><button class="text-button" data-action="copy">코드 복사 ⧉</button></div><p>친구에게 코드를 공유하세요.</p><span class="waiting-pill"><i class="live-dot"></i> 대기 중</span></section><div class="lobby-slots">${[0, 1, 2, 3].map(seat => {
-    const m = members.find(m => m.seat_index === seat);
-    if (!m) return `<article class="lobby-slot empty"><span class="seat-number">0${seat + 1}</span><div class="empty-avatar">＋</div><h3>동료를 기다리는 중</h3><p>함께할 한 자리가 남았어요</p>${host ? '<button class="button secondary small" data-action="ai">AI 동료 추가 +</button>' : '<span class="muted">호스트가 AI를 추가할 수 있어요</span>'}</article>`;
-    const character = characterFor(bundle, m.character_id);
-    return `<article class="lobby-slot illustrated-lobby seat-${seat}"><div class="lobby-illustration" aria-hidden="true"><img src="${skinFor(character.id,m.user_id===api.user.id?getAccount()?.loadout:m.loadout).preview}" alt="" draggable="false"></div><span class="seat-number">0${seat + 1}</span><span class="member-badge">${m.member_type === 'ai' ? 'AI COMPANION' : 'HUMAN'}${m.user_id === room.host_user_id ? ' · HOST' : ''}</span><div class="lobby-member-info"><h3>${escape(m.display_name)}${m.user_id === api.user.id ? '<small> 나</small>' : ''}</h3><p>${escape(character.display_name)}${m.ai_type ? ' · ' + AI[m.ai_type][0] : ''}</p><p class="lobby-deck">${escape(deckLabel(character))}</p><p>${escape(character.definition?.skill?.name || '')}</p>${m.user_id === api.user.id || (host && m.member_type === 'ai') ? `<button class="button secondary small" data-action="character-select" data-member="${m.id}">캐릭터 선택</button>` : ''}${host && m.member_type === 'ai' ? `<button class="text-button remove-ai" data-action="remove-ai" data-id="${m.id}" data-network>AI 제거</button>` : '<span class="ready-marker">✓ 원정 준비 완료</span>'}</div></article>`;
-  }).join('')}</div><section class="departure"><div><span class="eyebrow">YOUR PARTY</span><h2>${members.length}<small> / 4명 준비 완료</small></h2><p>카드는 모든 방에서 공유됩니다. 서로 다른 선택이 생존을 만듭니다.</p></div>${host ? `<button class="button primary start-button" data-action="start" data-network data-unavailable="${members.length !== 4}" ${members.length !== 4 ? 'disabled' : ''}>${members.length === 4 ? '던전 입장' : `${4 - members.length}명의 동료가 더 필요해요`} <span>→</span></button>` : '<p class="muted">호스트가 원정을 시작하기를 기다리고 있습니다.</p>'}</section>`;
+  const {room,members}=bundle,host=isHost(),ready=m=>m.member_type==='ai'||m.lobby_ready===true;
+  const count=members.filter(ready).length,canStart=members.length===4&&count===4;
+  app.innerHTML=`<section class="page-heading"><div><div class="eyebrow">BASE CAMP · 원정 준비</div><h1>${escape(room.room_title)}</h1></div><button class="button secondary" data-action="leave-confirm">나가기 ↗</button></section><section class="invite-bar"><div><span>ROOM CODE</span><strong>${room.room_code}</strong><button class="text-button" data-action="copy">코드 복사 ⧉</button></div><span>${count} / 4 준비 완료</span></section><div class="lobby-slots">${[0,1,2,3].map(seat=>{
+    const m=members.find(m=>m.seat_index===seat);
+    if(!m)return `<article class="lobby-slot empty"><span class="seat-number">0${seat+1}</span><div class="empty-avatar">＋</div><h3>동료를 기다리는 중</h3>${host?'<button class="button secondary small" data-action="ai">AI 동료 추가 +</button>':''}</article>`;
+    const character=characterFor(bundle,m.character_id),own=m.user_id===api.user.id;
+    return `<article class="lobby-slot illustrated-lobby seat-${seat}"><div class="lobby-illustration" aria-hidden="true"><img src="${skinFor(character.id,own?getAccount()?.loadout:m.loadout).preview}" alt="" draggable="false"></div><span class="seat-number">0${seat+1}</span><span class="member-badge">${m.member_type==='ai'?'AI COMPANION':'HUMAN'}${m.user_id===room.host_user_id?' · HOST':''}</span><div class="lobby-member-info"><h3>${escape(m.display_name)}</h3><p>${escape(character.display_name)}</p><p class="lobby-deck">${escape(deckLabel(character))}</p><p>${escape(character.definition?.skill?.name||'')}</p>${own||(host&&m.member_type==='ai')?`<button class="button secondary small" data-action="character-select" data-member="${m.id}">캐릭터 선택</button>`:''}<span class="ready-marker">${ready(m)?'✓ 준비 완료':'캐릭터 선택 · 준비 대기'}</span>${own?`<button class="button ${ready(m)?'secondary':'primary'} small" data-action="lobby-ready" data-ready="${!ready(m)}" data-network>${ready(m)?'준비 취소':'준비'}</button>`:''}${host&&m.member_type==='ai'?`<button class="text-button remove-ai" data-action="remove-ai" data-id="${m.id}" data-network>AI 제거</button>`:''}</div></article>`;
+  }).join('')}</div><section class="departure"><div><span class="eyebrow">YOUR PARTY</span><h2>${count}<small> / 4명 준비 완료</small></h2><p>캐릭터를 변경하면 준비가 취소됩니다.</p></div>${host?`<button class="button primary start-button" data-action="start" data-network data-unavailable="${!canStart}" ${canStart?'':'disabled'}>${canStart?'던전 입장 →':'동료의 준비를 기다리는 중'}</button>`:'<p class="muted">호스트의 출발을 기다리는 중</p>'}</section>`;
+}
+function renderEntryLoading(){
+ const s=bundle.session.state,ready=s.entryLoading?.ready||[];
+ app.innerHTML=`<section class="entry-loading"><div class="eyebrow">EXPEDITION LOADING</div><h1>원정대를 준비합니다</h1><p role="status">${escape(entryError||entryProgress||'일러스트 확인 중')}</p><div class="entry-members">${bundle.members.map(m=>`<div><b>${escape(m.display_name)}</b><span>${m.member_type==='ai'||ready.includes(m.id)?'✓ 로딩 완료':'이미지 준비 중'}</span></div>`).join('')}</div>${entryError?'<button class="button primary" data-action="retry-entry">다시 시도</button>':''}<button class="button secondary" data-action="leave-confirm">나가기</button></section>`;
+}
+async function prepareEntry(){
+ if(entryWork||!bundle?.session?.state.entryLoading)return;
+ const session=bundle.session,roomId=bundle.room.id;entryWork=session.id;entryError='';
+ try{
+  await loadEntryAssets(session,(done,total)=>{if(bundle?.session?.id!==session.id)return;entryProgress=`일러스트 ${done} / ${total}`;if(bundle.session.state.entryLoading)renderEntryLoading();});
+  if(bundle?.session?.id!==session.id)return;
+  const response=await api.request('assets_loaded',{room_id:roomId,session_id:session.id});
+  if(bundle?.session?.id!==session.id)return;
+  entryCompleted=session.id;entryProgress='완료 · 동료를 기다리는 중';await accept(response);
+ }catch(error){if(bundle?.session?.id===session.id){entryError=error.message;renderEntryLoading();}}
+ finally{entryWork=null;if(bundle?.session?.state.entryLoading&&!entryError&&entryCompleted!==bundle.session.id)void prepareEntry();}
 }
 function hearts(player) { return Array.from({ length: player.maxHp }, (_, i) => `<span class="heart ${i < player.hp ? 'filled' : ''}">♥</span>`).join(''); }
 function renderGame(result = null) {
   if (!bundle?.session) return;
+  if(bundle.session.state.entryLoading){renderEntryLoading();if(!entryWork&&!entryError&&entryCompleted!==bundle.session.id)void prepareEntry();return;}
   const g = bundle.session, s = g.state, me = mine();
   if (!result && g.status !== 'active' && !s.roomSummary) { renderEnd(); return; }
   const stage = result?.stage || s.currentStage;
@@ -245,6 +266,8 @@ document.addEventListener('click', async event => {
   if (action === 'join') joinModal({ room_id: button.dataset.id }, button.dataset.password === 'true');
   if (action === 'ai') aiModal();
   if (action === 'character-select') showModal(characterChoices(bundle, button.dataset.member));
+  if(action==='lobby-ready')void perform('set_ready',{ready:button.dataset.ready==='true'});
+  if(action==='retry-entry'){entryError='';void prepareEntry();}
   if (action === 'set-character') void perform('set_character', { member_id: button.dataset.member, character_id: button.dataset.character });
   if (action === 'skill-info') {
     const c = characterFor(bundle, button.dataset.character), skill = c.definition?.skill;

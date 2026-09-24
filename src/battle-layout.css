@@ -357,6 +357,12 @@ body:has(.game-top) > .site-footer{position:relative;z-index:1}
 .vampire-bite-impact path{fill:#ff5d75;stroke:#fff0e9;stroke-width:2}
 .demon-slash-impact path{fill:none;stroke:#e3264a;stroke-width:16;stroke-linecap:round}
 .demon-slash-impact .slash-core{stroke:#ffd0da;stroke-width:4}
+.crimson-flight{position:fixed;width:14px;height:14px;border-radius:50%;background:#ff5673;box-shadow:0 0 18px 7px #df173e;pointer-events:none}
+.crimson-slashes,.crimson-jaws{position:fixed;width:230px;height:180px;transform:translate(-50%,-50%);filter:drop-shadow(0 0 12px #e72b4f);pointer-events:none}
+.crimson-slashes>div{position:absolute;inset:0}.crimson-slashes svg,.crimson-jaws svg{width:100%;height:100%;overflow:visible}
+.crimson-slashes path{fill:none;stroke:#dc2349;stroke-width:15;stroke-linecap:round}.crimson-slashes .core{stroke:#ffe5e9;stroke-width:3}
+.crimson-jaws path{fill:#ec3656;stroke:#ffced7;stroke-width:2}
+.entry-loading{max-width:650px;margin:8vh auto;padding:28px;text-align:center}.entry-members{display:grid;gap:12px;margin:25px 0}.entry-members>div{display:flex;justify-content:space-between;gap:16px;padding:15px;border:1px solid #66507066;border-radius:8px;background:#201b28cc}.entry-members span{color:#d8bd88}.ready-marker{display:block;margin:10px 0}
 .revelation-pip{height:7px;flex:1;border:1px solid #608097;border-radius:2px;background:#182333;transition:background .25s,box-shadow .25s}
 .revelation-pip.filled{background:linear-gradient(90deg,#67aadb,#c9f2ff);border-color:#b9eaff;box-shadow:0 0 8px #91d9ff80}
 .reveal-card.clash-resisted,.combat-showcase .reveal-card.clash-resisted{border-color:#ffe0a2;box-shadow:0 0 35px #f3c567aa,inset 0 0 0 4px #ffe8b877;outline:2px solid #f3d486;outline-offset:4px}

@@ -83,6 +83,11 @@ export class GameAudio {
     if (!this.enabled || !this.volume || this.hidden || !this.context || !this.master) return;
     // Synthesized cues are immediate: no audio-file request during combat.
     const cues={
+      crimson_rush:{noise:[.12,1900,.045],tones:[[180,.14,'sine',.035,460]]},
+      crimson_cut_high:{noise:[.19,3400,.14],tones:[[1150,.12,'sawtooth',.05,170],[170,.15,'triangle',.075,60]]},
+      crimson_cut_low:{noise:[.22,2200,.15],tones:[[820,.15,'sawtooth',.055,95],[110,.18,'triangle',.09,38]]},
+      vampire_open:{noise:[.22,1150,.065],tones:[[150,.25,'sawtooth',.045,310]]},
+      vampire_crunch:{noise:[.25,750,.16],tones:[[105,.23,'triangle',.13,29],[430,.1,'square',.035,90]]},
       flip:{noise:[.14,2400,.09],tones:[[640,.09,'triangle',.045,1150]]},
       reveal:{noise:[.07,3800,.055],tones:[[880,.16,'sine',.055,1200],[1320,.2,'sine',.025,1500]]},
       crack:{noise:[.24,3100,.16],tones:[[210,.16,'square',.035,45],[1500,.12,'triangle',.035,180]]},
