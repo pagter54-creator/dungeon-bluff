@@ -7,7 +7,7 @@ export function pileButton(player,pile,own){
 export function gamblerCharges(player){
   const d=player.gamblerDeck;if(!d?.sixProgress)return '';
   return `<div class="gambler-charges">${[6,7].map(value=>{
-    const six=value===6,progress=d[six?'sixProgress':'sevenProgress'],max=d[six?'sixCount':'sevenCount']>=2;
+    const six=value===6,progress=d[six?'sixProgress':'sevenProgress'],max=d[six?'sixMax':'sevenMax']||d[six?'sixCount':'sevenCount']>=2;
     const slots=Array.from({length:six?3:5},(_,i)=>`<i class="${max||(six?i<progress.length:progress.includes(i+1))?'filled':''}">${six?'●':i+1}</i>`).join('');
     return `<div aria-label="${value} 카드 충전 ${max?'MAX':progress.length+'/'+(six?3:5)}"><b>${value}</b><span class="charge-dice">${slots}</span><small>${max?'MAX':progress.length+'/'+(six?3:5)}</small></div>`;
   }).join('')}</div>`;

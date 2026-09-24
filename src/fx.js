@@ -207,6 +207,16 @@ export async function reveal(result) {
     impactAt(target(),result.success?'#99f0cb':'#fd8c91',true,reduced.matches);
     burst(target(), result.success ? '#99f0cb' : '#fd8c91', 120, 12); tone(result.success ? 660 : 110, .4, 'triangle', .1, result.success ? 880 : 40);
     await sleep(560);
+    for(const e of result.effects.filter(e=>e.type==='skill'&&e.skillId==='predation')){
+      const panel=playerFor(e.memberId),point=characterAttackOrigin(panel)||center(panel),progress=e.stacks%8,level=Math.floor(e.stacks/8);
+      burst(point,'#ac4257',18,3);textAt(point,'포식 +1','damage');combatCue('skill_predation');
+      const gauge=panel?.querySelector('.predation-gauge');
+      gauge?.setAttribute('aria-valuenow',String(progress));gauge?.querySelectorAll('.revelation-pip').forEach((pip,i)=>pip.classList.toggle('filled',i<progress));
+      const label=panel?.querySelector('.predation-count'),button=panel?.querySelector('.soul-slash-level');
+      if(label)label.textContent=`포식 ${e.stacks} · 귀참 Lv.${level} +${level+1}`;
+      if(button)button.textContent=`⚔ 귀참 Lv.${level} +${level+1}`;
+      if(progress===0){ring(point,'#ffc0d2');textAt(point,`귀참 Lv.${level}`,'heal');}
+    }
   }
   for(const effect of result.effects.filter(e=>['boss_special','boss_status','boss_mark'].includes(e.type))){
     const point=effect.memberId?center(playerFor(effect.memberId)):target();
