@@ -105,6 +105,12 @@ export class GameAudio {
       kick_whoosh:{noise:[.19,1800,.045],tones:[]},
       skill_full_burst:{noise:[.15,2200,.06],tones:[[550,.2,'square',.035,1000]]},
       skill_combo:{noise:[.12,800,.05],tones:[[220,.2,'triangle',.05,480]]},
+      vampire_bite:{noise:[.17,900,.11],tones:[[230,.24,'sawtooth',.09,65]]},
+      demon_sword:{noise:[.21,1350,.12],tones:[[170,.3,'sawtooth',.08,55]]},
+      skill_blood_command:{noise:[.19,1450,.07],tones:[[320,.3,'sine',.06,110]]},
+      skill_soul_slash:{noise:[.2,1000,.08],tones:[[180,.3,'sawtooth',.07,65]]},
+      skill_predation:{noise:[.16,650,.07],tones:[[190,.26,'triangle',.07,80]]},
+      predation_major:{noise:[.3,750,.15],tones:[[95,.38,'sawtooth',.11,35],[480,.29,'triangle',.07,130]]},
     };
     const cue=cues[name];if(!cue)return;
     for(const args of cue.tones)this.tone(...args);

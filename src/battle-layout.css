@@ -350,6 +350,13 @@ body:has(.game-top) > .site-footer{position:relative;z-index:1}
 .skill-proc span{font-size:11px;font-weight:700;padding:4px 8px;border-radius:5px;background:#17101de8;box-shadow:0 3px 12px #0006}
 .player-skill{display:flex;flex-direction:column;gap:6px;min-width:0}
 .revelation-gauge{display:flex;gap:4px;width:84px;max-width:100%}
+.revelation-gauge.predation-gauge{width:100px;gap:3px}
+.blood-thread{position:fixed;z-index:10001;height:3px;transform-origin:left center;background:linear-gradient(90deg,#9b1735,#ff6985,#9b1735);box-shadow:0 0 8px #f92350,0 0 22px #d91b46;pointer-events:none}
+.vampire-bite-impact,.demon-slash-impact{position:fixed;z-index:10002;width:190px;height:150px;pointer-events:none;filter:drop-shadow(0 0 12px #ea274d)}
+.vampire-bite-impact svg,.demon-slash-impact svg{width:100%;height:100%;overflow:visible}
+.vampire-bite-impact path{fill:#ff5d75;stroke:#fff0e9;stroke-width:2}
+.demon-slash-impact path{fill:none;stroke:#e3264a;stroke-width:16;stroke-linecap:round}
+.demon-slash-impact .slash-core{stroke:#ffd0da;stroke-width:4}
 .revelation-pip{height:7px;flex:1;border:1px solid #608097;border-radius:2px;background:#182333;transition:background .25s,box-shadow .25s}
 .revelation-pip.filled{background:linear-gradient(90deg,#67aadb,#c9f2ff);border-color:#b9eaff;box-shadow:0 0 8px #91d9ff80}
 .reveal-card.clash-resisted,.combat-showcase .reveal-card.clash-resisted{border-color:#ffe0a2;box-shadow:0 0 35px #f3c567aa,inset 0 0 0 4px #ffe8b877;outline:2px solid #f3d486;outline-offset:4px}

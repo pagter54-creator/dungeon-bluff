@@ -19,6 +19,8 @@ const styles = {
   starlight: { glyph:'✧', color:'#9bdeff', duration:600, freq:1100, type:'sine' },
   imp_magic: { glyph:'♆', color:'#ee8dd6', duration:520, freq:640, type:'square' },
   dice: { glyph:'⚄', color:'#ffdc7d', duration:600, freq:350, type:'triangle', spin:true },
+  vampire_bite: { glyph:'牙', color:'#ef3857', duration:490, freq:230, type:'sawtooth' },
+  demon_sword: { glyph:'╳', color:'#dd304e', duration:490, freq:180, type:'sawtooth' },
 };
 export function characterAttackOrigin(panel) {
   const art=panel?.querySelector('.player-art-stage .player-illustration');
@@ -29,6 +31,7 @@ export async function showSkillEffect(panel,skillId,label){
   const point=characterAttackOrigin(panel);if(!point)return;
   const looks={gold_bonus:['✦','#e9cd8e'],toughness:['◇','#f3d486'],low_card_gold:['◆','#8de0b4'],amplify:['✺','#c4a0ff'],blood_heat:['✹','#ff8b85'],revelation:['✧','#91dbff'],score_steal:['♆','#f2a2df'],random_hand:['⚄','#ffe18c']};
   looks.full_burst=['⌖','#ffd08a']; looks.combo=['⋔','#ffac78'];
+  looks.blood_command=['♜','#ef3857'];looks.predation=['◆','#a82d43'];looks.soul_slash=['╳','#dd304e'];
   const [glyph,color]=looks[skillId]||['✦','#dbc5ee'];
   const el=document.createElement('div');el.className='skill-proc';
   el.style.cssText=`left:${point.x}px;top:${point.y}px;--skill-color:${color}`;
@@ -52,6 +55,8 @@ export async function characterAttack(effect, from, to, { burst, ring, tone, red
     return;
   }
   if(effect.attackFx==='bullet')combatCue('gunshot');
+  if(effect.attackFx==='vampire_bite')combatCue('vampire_bite');
+  if(effect.attackFx==='demon_sword')combatCue('demon_sword');
   const style = styles[effect.attackFx] || styles.sword;
   const enhanced = effect.amplified || effect.empowered;
   soundEffect(effect.attackSfx || 'sfx_attack_adventurer', () => tone(style.freq, .22, style.type, .065, style.freq / 3));
@@ -73,6 +78,18 @@ export async function characterAttack(effect, from, to, { burst, ring, tone, red
   try { await projectileFlight(el,frames,{duration:Math.round(style.duration*.92),easing:'cubic-bezier(.5,.05,.8,.5)'},reduced.matches); }
   finally { el.remove(); }
   burst(to,style.color,enhanced?120:65,enhanced?12:8,style.spin); ring(to,style.color);
+  if(effect.attackFx==='vampire_bite'){
+    const bite=document.createElement('div');bite.className='vampire-bite-impact';bite.style.cssText=`left:${to.x}px;top:${to.y}px`;
+    bite.innerHTML='<svg viewBox="0 0 180 140" aria-hidden="true"><path d="M15 18 Q90 -12 165 18 L145 53 120 24 105 67 90 30 75 67 60 24 35 53Z"/><path d="M15 122 Q90 152 165 122 L145 87 120 116 105 73 90 110 75 73 60 116 35 87Z"/></svg>';
+    document.querySelector('#fx-overlay').append(bite);
+    void finishAnimation(bite.animate([{transform:'translate(-50%,-50%) scale(1.7)',opacity:.2},{transform:'translate(-50%,-50%) scale(.78)',opacity:1,offset:.48},{transform:'translate(-50%,-50%) scale(.7)',opacity:0}],{duration:440,easing:'ease-in'})).finally(()=>bite.remove());
+  }
+  if(effect.attackFx==='demon_sword'){
+    const slash=document.createElement('div');slash.className='demon-slash-impact';slash.style.cssText=`left:${to.x}px;top:${to.y}px`;
+    slash.innerHTML='<svg viewBox="0 0 220 150" aria-hidden="true"><path d="M12 130 Q100 115 208 14 M20 24 Q105 43 200 139"/><path class="slash-core" d="M35 120 Q110 93 183 30 M40 35 Q115 63 177 126"/></svg>';
+    document.querySelector('#fx-overlay').append(slash);
+    void finishAnimation(slash.animate([{transform:'translate(-50%,-50%) rotate(-9deg) scale(.65)',opacity:0},{transform:'translate(-50%,-50%) rotate(4deg) scale(1.15)',opacity:1,offset:.4},{transform:'translate(-50%,-50%) rotate(7deg) scale(1.25)',opacity:0}],{duration:490,easing:'ease-out'})).finally(()=>slash.remove());
+  }
   tone(style.freq / 2,.16,'triangle',enhanced?.08:.045,45);
 }
 // Vector silhouettes keep martial strikes consistent across platforms, without

@@ -1,6 +1,8 @@
 import {assetLoader} from './asset-loader.js';
 // File stems intentionally match the supplied artwork (travler, warrior).
 const groups=[
+['vampire','vampire','흡혈귀',['흡혈귀 기본 스킨','가면 무도회']],
+['demonsword','demonsword','귀검사',['귀검사 기본 스킨','천명 집행자']],
 ['gunner','gunner','총잡이',['총잡이 기본 스킨','황야의 무법자','유령선의 포격수']],
 ['fighter','fighter','무투가',['무투가 기본 스킨','뇌격투희','염화난무']],
 ['gambler','gambler','도박사',['도박사 기본 스킨','부르주아','가면 무도회','선상 도박꾼']],
@@ -12,14 +14,14 @@ const groups=[
 ['travler','adventurer','모험가',['모험가 기본 스킨','설산의 탐험가','신참 항해사','유적 발굴단']],
 ['warrior','warrior','기사',['기사','성지 수호자','북부의 병사','용기사']],
 ];
-export const pendingSkinImage = url => /\/(gunner0|fighter0)(?:_crop|_A|_D)?\.png(?:\?.*)?$/.test(url);
+export const pendingSkinImage = url => /\/(?:gunner0|fighter0)(?:_crop|_A|_D)?\.png(?:\?.*)?$/.test(url) || /\/vampire1_(?:A|D)\.png(?:\?.*)?$/.test(url);
 // Missing future artwork must never prevent joining a room. Retry real filenames
 // on the next render, so adding the PNGs requires no catalog change.
 if (typeof document !== 'undefined') document.addEventListener('error', event => {
  const img=event.target;
  if(img?.tagName !== 'IMG' || !pendingSkinImage(img.src))return;
- const gunner=img.src.includes('gunner0');
- const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500" viewBox="0 0 400 500"><path d="M200 30 365 145 325 385 200 465 75 385 35 145Z" fill="#211a30" stroke="#d6b77a" stroke-width="3"/><text x="200" y="240" text-anchor="middle" font-size="110" fill="#ffd08a">${gunner?'⌖':'✊'}</text><text x="200" y="330" text-anchor="middle" font-size="30" fill="#eee3d0">${gunner?'총잡이':'무투가'}</text></svg>`;
+ const look=img.src.includes('gunner')?['⌖','총잡이']:img.src.includes('fighter')?['✊','무투가']:img.src.includes('vampire')?['♜','흡혈귀']:['⚔','귀검사'];
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500" viewBox="0 0 400 500"><path d="M200 30 365 145 325 385 200 465 75 385 35 145Z" fill="#211a30" stroke="#d6b77a" stroke-width="3"/><text x="200" y="240" text-anchor="middle" font-size="110" fill="#ffd08a">${look[0]}</text><text x="200" y="330" text-anchor="middle" font-size="30" fill="#eee3d0">${look[1]}</text></svg>`;
  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
 },true);
 export const SKINS=Object.fromEntries(groups.flatMap(([stem,character,label,names])=>names.map((name,index)=>{

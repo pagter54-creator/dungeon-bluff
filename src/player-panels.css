@@ -34,6 +34,9 @@
 .illustrated-panel .cycle-pool{z-index:2;margin:0 0 14px}
 .illustrated-panel .player-identity-bar{display:flex;align-items:baseline;gap:8px;min-width:0;margin:0 0 9px;padding:7px 8px;border-top:1px solid #3d3242;border-radius:4px;background:linear-gradient(90deg,#19151ef5,#19151eaa 72%,transparent)}
 .illustrated-panel .player-identity-bar h3{min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
+.illustrated-panel .player-identity-bar.is-thrall h3{color:#ff647d;text-shadow:0 0 12px #e3375f99}
+.thrall-status{display:block;margin:4px 0;color:#ef8192;font-size:10px}
+.predation-gauge{width:100px;gap:3px}.predation-gauge .revelation-pip{flex:1;min-width:0;background:#2c131d;border-color:#623141}.predation-gauge .revelation-pip.filled{background:#b3324c;box-shadow:0 0 8px #e03d60}
 .illustrated-panel .player-identity-bar h3 em{margin-left:4px}
 .illustrated-panel .player-identity-bar small{flex:none;margin:0 0 0 auto;white-space:nowrap;font-size:8px;color:var(--muted)}
 .illustrated-panel .player-bottom{z-index:3;min-height:32px}

@@ -89,7 +89,7 @@ export async function reveal(result) {
     void showSkillEffect(playerFor(id),skillId,label);
   };
   const skillPhase=(phase,id)=>{
-    for(const e of result.effects.filter(e=>e.type==='skill'&&e.phase===phase&&(!id||e.memberId===id))){
+    for(const e of result.effects.filter(e=>e.type==='skill'&&e.skillId!=='predation'&&e.phase===phase&&(!id||e.memberId===id))){
       skill(e.memberId,e.skillId,e.label,phase);
       if (Number.isInteger(e.stacks)) {
         const gauge = playerFor(e.memberId)?.querySelector('.revelation-gauge');
@@ -110,9 +110,20 @@ export async function reveal(result) {
   const showcase=revealShowcase(result.cards,cardFor,playerFor);
   try{
   combatCue('flip');
-  await Promise.all(result.cards.flatMap(c=>[flipRevealCard(cardFor(c.memberId),c,reduced.matches),flipRevealCard(showcase.cardFor(c.memberId),c,reduced.matches)]));
+  await Promise.all(result.cards.flatMap(c=>{const initial=c.exchangeFrom==null?c:{...c,value:c.exchangeFrom,amplified:false};return [flipRevealCard(cardFor(c.memberId),initial,reduced.matches),flipRevealCard(showcase.cardFor(c.memberId),initial,reduced.matches)];}));
   combatCue('reveal');
-  await sleep(600);
+  await sleep(360);
+  for(const exchange of result.effects.filter(e=>e.type==='vampire_swap')){
+    const source=showcase.cardFor(exchange.sourceId)||cardFor(exchange.sourceId),targetCard=showcase.cardFor(exchange.targetId)||cardFor(exchange.targetId);
+    const a=center(source),b=center(targetCard),line=document.createElement('div');
+    line.className='blood-thread';line.style.cssText=`left:${a.x}px;top:${a.y}px;width:${Math.hypot(b.x-a.x,b.y-a.y)}px;transform:rotate(${Math.atan2(b.y-a.y,b.x-a.x)}rad)`;overlay.append(line);
+    combatCue('skill_blood_command');ring(a,'#ff3755');ring(b,'#ff3755');burst(a,'#ea3154',50,6);burst(b,'#ea3154',50,6);
+    await finishAnimation(line.animate([{opacity:0,scale:'0 1'},{opacity:1,scale:'1 1',offset:.35},{opacity:1,offset:.75},{opacity:0}],{duration:440,easing:'ease-out'}));line.remove();
+    for(const [id,value] of [[exchange.sourceId,exchange.targetValue],[exchange.targetId,exchange.sourceValue]])for(const el of [cardFor(id),showcase.cardFor(id)]){
+      const number=el?.querySelector('.reveal-value');if(number)number.textContent=value;
+      if(el)void finishAnimation(el.animate([{filter:'brightness(1)'},{filter:'brightness(3) drop-shadow(0 0 15px #fb325a)',offset:.45},{filter:'brightness(1)'}],{duration:320}));
+    }
+  }
   const duplicates = result.cards.filter(c => !c.valid);
   const resisted = result.cards.filter(c => c.resisted);
   const resistanceAnimations = [];
@@ -139,7 +150,7 @@ export async function reveal(result) {
   await sleep(170);
   }finally{showcase.remove();}
   skillPhase('clash');
-  for(const c of result.cards.filter(c=>c.skillUsed))skill(c.memberId,c.skillId||'amplify',c.skillId==='full_burst'?(c.valid?'전탄발사 · 손패 전체 사용':'전탄발사 · 중복 무효'):c.skillId==='toughness'?'강인함 · 행동 유지':c.valid?`증폭 · ${c.legacyAmplify?'효과':'숫자'} +${c.amplifyLevel||1}`:'증폭 · 중복 무효');
+  for(const c of result.cards.filter(c=>c.skillUsed))skill(c.memberId,c.skillId||'amplify',c.skillId==='blood_command'?'피의 명령 · 카드 교환':c.skillId==='soul_slash'?(c.valid?'귀참 · 강화 공격':'귀참 · 중복 무효'):c.skillId==='full_burst'?(c.valid?'전탄발사 · 손패 전체 사용':'전탄발사 · 중복 무효'):c.skillId==='toughness'?'강인함 · 행동 유지':c.valid?`증폭 · ${c.legacyAmplify?'효과':'숫자'} +${c.amplifyLevel||1}`:'증폭 · 중복 무효');
   if (result.monsterBefore) {
     let remainingHp = result.monsterBefore.hp;
     for(const effect of result.effects.filter(e=>e.type==='boss_card')){
@@ -166,6 +177,16 @@ export async function reveal(result) {
       if (hpBar) hpBar.style.width = `${remainingHp / result.monsterBefore.maxHp * 100}%`;
       await sleep(150);
       await restorePose();
+    }
+    for(const e of result.effects.filter(e=>e.type==='skill'&&e.skillId==='predation')){
+      const point=characterAttackOrigin(playerFor(e.memberId))||center(playerFor(e.memberId));
+      burst(point,e.gain===2?'#ff385a':'#ac4257',e.gain===2?140:65,e.gain===2?12:6,e.gain===2);
+      ring(point,e.gain===2?'#ff7c94':'#c85d74');textAt(point,`포식 +${e.gain}`,e.gain===2?'critical':'damage');
+      combatCue(e.gain===2?'predation_major':'skill_predation');
+      if(e.gain===2)shake(true);
+      skill(e.memberId,'predation',`포식 +${e.gain}`,'attack');
+      const gauge=playerFor(e.memberId)?.querySelector('.predation-gauge');
+      gauge?.setAttribute('aria-valuenow',String(e.stacks));gauge?.querySelectorAll('.revelation-pip').forEach((pip,i)=>pip.classList.toggle('filled',i<e.stacks));
     }
     const finalHp=result.monsterAfter?.hp??remainingHp;
     const hpText=document.querySelector('.enemy-health b'),hpBar=document.querySelector('.enemy-health .health-track i');
