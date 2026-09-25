@@ -166,7 +166,7 @@ test('multiple imps use one snapshot, seat order and a zero floor without creati
 test('two imps each drain the same non-imp when the target has enough value',()=>{
   const run=reverse=>{const {g}=setup(['imp','imp','adventurer','mage']);const subs=submit(g,[4,4,4,4]);return resolveTurn(g,reverse?subs.reverse():subs,rng(8));};
   for(const r of [run(false),run(true)]){
-    assert.deepEqual(r.cards.map(c=>c.value),[6,6,2,2]);
+    assert.deepEqual(Object.fromEntries(r.cards.map(c=>[c.memberId,c.value])),{p0:6,p1:6,p2:2,p3:2});
     assert.equal(r.effects.filter(e=>e.type==='imp_number_steal').length,4);
     assert.ok(!r.effects.some(e=>e.type==='steal'));
   }
@@ -226,7 +226,7 @@ test('card pool uses all five instances; used duplicate is dimmed without reveal
 
 test('two active knights can both resist a collision, while a boss seal still suppresses their effect',()=>{
  for(const seal of [false,true]){
-  const {g}=setup(['warrior','warrior','seer','imp']);
+  const {g}=setup(['warrior','warrior','seer','adventurer']);
   if(seal){g.state.currentStage.category='boss';g.state.monster.pending={kind:'seal',turn:g.turn_index,number:3};}
   const r=resolveTurn(g,submit(g,[3,3,3,3],[0,1]));
   assert.deepEqual(r.cards.map(c=>c.valid),[true,true,false,false]);
