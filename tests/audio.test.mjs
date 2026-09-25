@@ -9,7 +9,7 @@ test('combat cues share master volume, reuse noise and clean up their audio node
  Object.assign(context,{sampleRate:8000,createGain:node,createOscillator:node,createBufferSource:node,createBiquadFilter:node,createBuffer(){buffers++;return {getChannelData:()=>new Float32Array(8000)};}});
  audio.combatCue('flip');assert.equal(nodes.length,0);
  await audio.activate();
- for(const cue of ['flip','reveal','crack','launch','hit','heavy','hurt','skill_gold_bonus','skill_toughness','skill_low_card_gold','skill_amplify','skill_blood_heat','skill_revelation','skill_score_steal','skill_random_hand']){
+ for(const cue of ['flip','reveal','crack','launch','hit','heavy','hurt','skill_gold_bonus','skill_toughness','skill_low_card_gold','skill_amplify','skill_blood_heat','skill_revelation','skill_number_steal','skill_random_hand']){
   const before=nodes.length;audio.combatCue(cue);assert.ok(nodes.length>before,`${cue} must produce sound`);
  }
  assert.equal(buffers,1);assert.ok(nodes.slice(1).every(n=>n.disconnected));
