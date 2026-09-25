@@ -1,0 +1,5 @@
+-- Read-only: no emails, passwords, tokens, or submitted card values.
+select jsonb_build_object(
+ 'functions',(select jsonb_agg(jsonb_build_object('name',p.proname,'definition',pg_get_functiondef(p.oid))) from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in ('game_read','game_commit','member_profile_name')),
+ 'rooms',(select coalesce(jsonb_agg(jsonb_build_object('id',r.id,'status',r.status,'version',r.version,'humans',(select count(*) from public.room_members m where m.room_id=r.id and m.member_type='human'),'ais',(select count(*) from public.room_members m where m.room_id=r.id and m.member_type='ai'),'session_status',g.status,'turn',g.turn_index,'locked_members',g.state->'lockedMembers','submitted_members',(select jsonb_agg(t.member_id) from public.turn_submissions t where t.session_id=g.id and t.turn_index=g.turn_index))), '[]'::jsonb) from public.rooms r left join public.game_sessions g on g.room_id=r.id where r.status<>'closed')
+) as diagnostics;

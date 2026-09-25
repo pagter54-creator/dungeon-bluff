@@ -1,0 +1,16 @@
+export const CONFIG = Object.freeze({
+  PLAYER_MAX_HP: 3,
+  PLAYER_REVIVE_HP: 3,
+  KNOCKOUT_SCORE_PENALTY: 10,
+  KNOCKOUT_GOLD_PENALTY: 3,
+  KILL_WINNER_SCORE: 10,
+  KILL_WINNER_GOLD: 3,
+  PARTY_KNOCKOUT_LIMIT: 8,
+  MAX_ROOM_MEMBERS: 4,
+  BASE_MONSTER_HP: 31,
+  MONSTER_STAGE_HP_GROWTH: 0.07,
+  DEFAULT_BOSS_HP_MULTIPLIER: 2,
+  STAGE_COUNT: 10,
+  EVENT_LOG_LIMIT: 100,
+});
+export const AI_TYPES = ['balanced', 'greedy', 'cautious', 'blocker', 'chaotic'];

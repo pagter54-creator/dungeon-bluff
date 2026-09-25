@@ -1,0 +1,19 @@
+project_id = "dungeon-bluff"
+
+[auth]
+enable_anonymous_sign_ins = true
+enable_manual_linking = true
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+
+[functions.game-api]
+verify_jwt = false
+# Router validates every JWT with auth.getUser(), including publishable-key projects.
+
+[functions.account-api]
+verify_jwt = false
+
+[functions.cleanup-guests]
+verify_jwt = false
