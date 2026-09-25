@@ -66,5 +66,8 @@ jobs:
       - name: Dry-run database migrations
         run: supabase db push --dry-run --db-url "$SUPABASE_DB_URL"
 
+      - name: Apply database migrations
+        run: supabase db push --db-url "$SUPABASE_DB_URL"
+
       - name: Deploy Edge Functions
         run: supabase functions deploy --project-ref "$SUPABASE_PROJECT_ID"
