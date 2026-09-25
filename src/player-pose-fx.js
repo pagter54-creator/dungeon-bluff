@@ -27,6 +27,7 @@ function reducedMotion(){return motionPreference.matches;}
 function replacePose(frame,base,url) {
   base.src=url;
   base.style.opacity='';
+  if(frame.classList?.contains?.('twin-active'))frame.classList.toggle('twin-wide-damage',url===frame.dataset.damageSrc);
 }
 export async function setKnockoutPose(panel,knockedOut){
   const frame=activeArtFrame(panel);
@@ -67,7 +68,8 @@ export async function showPlayerPose(panel,kind){
   layer.className=`player-pose-layer pose-${kind}`;
   layer.src=url;layer.alt='';layer.draggable=false;
   layer.style?.setProperty('--pose-lift',`${Number(kind==='attack'?frame.dataset.attackLift:frame.dataset.damageLift)||0}px`);
-  frame.append(layer);frame.classList.add(`showing-${kind}`);
+  const poseParent=kind==='attack'&&frame.closest?.('.twins-art')||frame;
+  poseParent.append(layer);frame.classList.add(`showing-${kind}`);
   if(!reducedMotion()){
     base.animate([{opacity:1,filter:'brightness(1)'},{opacity:.22,filter:'brightness(2.4)'},{opacity:.5,filter:'brightness(.75)'}],{duration:220,fill:'forwards'});
     await finishAnimation(layer.animate([

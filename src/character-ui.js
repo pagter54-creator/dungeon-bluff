@@ -16,7 +16,7 @@ export function cycleCards(player) {
   return deck.map((value, slot) => { const index = remaining.indexOf(value); if (index >= 0) remaining.splice(index, 1); return { id: `${player.memberId}-cycle-${player.cycleIndex || 1}-card-${slot}`, slot, value, used:index < 0 }; });
 }
 export function deckLabel(character) {
-  if (character.definition?.deckType === 'continuous') return '12장 순환 덱 · 매 턴 2장 · 6/7 사용 시 소멸·재충전';
+  if (character.definition?.deckType === 'continuous') return '시작 덱 11장(1~5×2 + 6) · 매 턴 2장 · 충전된 6/7은 버린 덱으로';
   return character.definition?.deckType === 'random' ? '1~7 중 매 사이클 랜덤 5장' : character.deck.join(' / ');
 }
 export function characterChoices(bundle, memberId) {

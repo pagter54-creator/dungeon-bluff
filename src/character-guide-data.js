@@ -332,8 +332,7 @@ export const CHARACTER_CATALOG = {
       4,
       5,
       5,
-      6,
-      7
+      6
     ],
     "enabled": true,
     "definition": {
@@ -347,9 +346,9 @@ export const CHARACTER_CATALOG = {
         "id": "random_hand",
         "name": "운명의 패",
         "type": "passive",
-        "description": "12장 덱에서 매 턴 2장을 뽑고 나머지도 턴 종료 시 버립니다. 사용한 6·7만 소멸. 서로 다른 1~5 숫자 3종 제출 시 6 충전, 5종 제출 시 7 충전(각 최대 2장). 덱이 비면 버린 덱을 섞어 이어 뽑습니다."
+        "description": "1~5 각 2장과 6 한 장, 총 11장 덱에서 매 턴 2장을 뽑습니다. 사용한 6·7만 소멸합니다. 서로 다른 1~5 숫자 3종 제출 시 6, 5종 제출 시 7을 충전해 버린 덱에 넣습니다(각 최대 2장). 뽑을 덱이 비면 버린 덱을 섞습니다."
       },
-      "balanceRevision": 5
+      "balanceRevision": 6
     }
   }
 };

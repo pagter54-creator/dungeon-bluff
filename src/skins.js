@@ -63,7 +63,7 @@ export function skinIllustration(character,loadout,knockedOut=false,runtime={}){
  const skin=skinFor(character,loadout);
  if(skin.partners){
   const side=runtime?.parity===0?'G':'B';
-  return `<div class="twins-art" data-parity="${side}">${skin.partners.map(part=>illustrationFrame({...skin,...part},knockedOut&&part.side===side,`twin-${part.side} ${part.side===side?'twin-active':'twin-resting'}`)).join('')}</div>`;
+  return `<div class="twins-art" data-parity="${side}">${skin.partners.map(part=>illustrationFrame({...skin,...part},knockedOut&&part.side===side,`twin-${part.side} ${part.side===side?'twin-active'+(knockedOut?' twin-wide-damage':''):'twin-resting'}`)).join('')}</div>`;
  }
  return illustrationFrame(skin,knockedOut);
 }

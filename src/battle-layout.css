@@ -364,6 +364,9 @@ body:has(.game-top) > .site-footer{position:relative;z-index:1}
 .party-grid .illustrated-panel .player-art-stage .twins-art .twin-G{right:-6%;left:auto}
 .party-grid .illustrated-panel .player-art-stage .twins-art .twin-active{z-index:3;filter:brightness(1.1);transform:translate(var(--art-offset-x,0px),var(--art-offset-y,0px)) scale(var(--art-scale,1))}
 .party-grid .illustrated-panel .player-art-stage .twins-art .twin-resting{z-index:1;filter:brightness(.42) saturate(.55);transform:translate(var(--art-offset-x,0px),calc(var(--art-offset-y,0px) + 10px)) scale(calc(var(--art-scale,1)*.94))}
+/* Attack and damage poses occupy the full pair, anchored between the twins. */
+.party-grid .illustrated-panel .player-art-stage .twins-art>.player-pose-layer{position:absolute;z-index:5;left:-30%;right:auto;top:calc(-25% - var(--pose-lift,0px));width:160%;height:150%;object-fit:contain;object-position:center center;mask-image:linear-gradient(to bottom,#000 0%,#000 60%,#000d 72%,#0006 86%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 60%,#000d 72%,#0006 86%,transparent 100%)}
+.party-grid .illustrated-panel .player-art-stage .twins-art .twin-active.twin-wide-damage{left:-30%;right:auto;top:-25%;bottom:auto;width:160%;height:150%;z-index:5;transform:translate(var(--art-offset-x,0px),var(--art-offset-y,0px)) scale(var(--art-scale,1))}
 .twins-parity{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:10px;color:#c7b8d1}
 .twins-parity b{color:#f0c184;white-space:nowrap}.twins-parity span{font-size:9px}
 .pool-card.parity-locked:not(.spent){filter:saturate(.2) brightness(.5);border-style:dashed}

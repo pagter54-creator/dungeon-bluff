@@ -6,7 +6,7 @@ const order=['adventurer','warrior','rogue','mage','berserker','seer','imp','gam
 
 // Long-form guide copy is separate from the short in-battle skill descriptions.
 const guide={
-  twins:{difficulty:null,stats:[],trait:'홀짝 교대로 움직이고 곡예로 예측을 깨는 합동 공격수',text:[
+  twins:{difficulty:2.5,stats:[4.5,3,1,2.5],trait:'홀짝 교대로 움직이고 곡예로 예측을 깨는 합동 공격수',text:[
     '첫 턴은 <strong>홀 / 짝 중 무작위</strong>로 시작하며, 매 턴 종료 시 교대합니다.<br>홀: <strong>1·3</strong>, 짝: <strong>2·4</strong>만 선택할 수 있습니다.',
     '몬스터에게 유효한 공격을 하면 <strong>최종 피해 +2</strong>.<br>교환된 카드에도 적용되며 카드 숫자와 이벤트 판정은 바꾸지 않습니다.',
     '「곡예」는 제출 전에 즉시 <strong>손패를 1·2·3·4로 초기화하고 홀짝을 반전</strong>합니다.',
@@ -52,10 +52,11 @@ const guide={
     '점수가 남아 있는 상대에게서만<br>점수를 빼앗을 수 있습니다.'
   ]},
   gambler:{difficulty:4.5,stats:[4.5,5,1,4.5],trait:'덱 카운팅과 6·7 장전으로 고점을 준비',text:[
-    '도박사는 12장으로 구성된 전용 덱에서<br><strong>매 턴 카드 2장을 뽑아 하나를 선택</strong>합니다.',
+    '도박사는 1~5 각 2장과 6 한 장, <strong>총 11장</strong>으로 시작합니다.<br>매 턴 카드 2장을 뽑아 하나를 선택합니다.',
     '턴이 끝나면 1~5 카드와 사용하지 않은 6·7은<br><strong>버린 카드 덱으로 이동</strong>합니다.',
     '실제로 사용한 <strong>6과 7만 덱에서 제거</strong>됩니다.',
     '1~5 중 서로 다른 숫자 <strong>3종을 제출하면 6을 충전</strong>하고,<br>1~5를 <strong>모두 한 번씩 제출하면 7을 충전</strong>합니다.',
+    '충전된 6·7은 <strong>버린 카드 덱에 추가</strong>됩니다.<br>버린 덱을 다시 섞을 때부터 뽑을 수 있습니다.',
     '6과 7은 각각 <strong>최대 2장까지</strong> 보유할 수 있습니다.',
     '뽑을 카드 덱이 부족해지면<br>버린 카드 덱을 다시 섞어 이어서 뽑습니다.'
   ]},
