@@ -73,9 +73,9 @@ export const CHARACTER_CATALOG = {
         "id": "soul_slash",
         "name": "포식 · 귀참",
         "type": "hybrid",
-        "description": "몬스터 유효 공격 또는 이벤트 유효 카드로 포식 +1, 처치 턴 기여 시 총 +3, 공동 최고 피해면 총 +5. 포식 8마다 귀참 레벨 +1. 레벨업하면 사용한 귀참도 즉시 재활성화됩니다. 귀참은 현재 레벨+1의 추가 피해를 줍니다."
+        "description": "몬스터 유효 공격 또는 이벤트 유효 카드로 포식 +1, 처치 턴 기여 시 총 +4, 공동 최고 피해면 총 +8. 포식 8마다 귀참 레벨 +1. 레벨업하면 사용한 귀참도 즉시 재활성화됩니다. 귀참은 현재 레벨+1의 추가 피해를 줍니다."
       },
-      "balanceRevision": 6
+      "balanceRevision": 7
     }
   },
   "gunner": {
@@ -305,17 +305,18 @@ export const CHARACTER_CATALOG = {
     "enabled": true,
     "definition": {
       "deckType": "fixed",
-      "role": "충돌을 이득으로 바꾸는 방해꾼",
+      "role": "카드 숫자를 뒤틀어 판정을 바꾸는 방해꾼",
       "icon": "♆",
       "color": "#ee8cd7",
       "attackFx": "imp_magic",
       "attackSfx": "sfx_attack_imp",
       "skill": {
-        "id": "score_steal",
+        "id": "number_steal",
         "name": "슬쩍",
         "type": "passive",
-        "description": "중복 시 함께 겹친 모든 상대에게서 각각 1점 강탈. 양수 점수만 강탈합니다."
-      }
+        "description": "중복 판정 직전, 나와 같은 숫자를 낸 모든 비임프 플레이어에게서 카드 숫자 1을 빼앗습니다. 대상은 최소 0까지 감소하고 임프는 실제로 빼앗은 만큼 증가합니다. 변경된 숫자로 모든 판정을 진행합니다."
+      },
+      "balanceRevision": 7
     }
   },
   "gambler": {

@@ -110,7 +110,7 @@ export async function reveal(result) {
   const showcase=revealShowcase(result.cards,cardFor,playerFor);
   try{
   combatCue('flip');
-  await Promise.all(result.cards.flatMap(c=>{const initial=c.exchangeFrom==null?c:{...c,value:c.exchangeFrom,amplified:false};return [flipRevealCard(cardFor(c.memberId),initial,reduced.matches),flipRevealCard(showcase.cardFor(c.memberId),initial,reduced.matches)];}));
+  await Promise.all(result.cards.flatMap(c=>{const initial=c.exchangeFrom==null&&c.impFrom==null?c:{...c,value:c.exchangeFrom??c.impFrom,amplified:false};return [flipRevealCard(cardFor(c.memberId),initial,reduced.matches),flipRevealCard(showcase.cardFor(c.memberId),initial,reduced.matches)];}));
   combatCue('reveal');
   await sleep(360);
   for(const exchange of result.effects.filter(e=>e.type==='vampire_swap')){
@@ -123,6 +123,28 @@ export async function reveal(result) {
       const number=el?.querySelector('.reveal-value');if(number)number.textContent=value;
       if(el)void finishAnimation(el.animate([{filter:'brightness(1)'},{filter:'brightness(3) drop-shadow(0 0 15px #fb325a)',offset:.45},{filter:'brightness(1)'}],{duration:320}));
     }
+  }
+  const impSteals=result.effects.filter(e=>e.type==='imp_number_steal');
+  if(impSteals.length){
+    const numbers=new Map(result.cards.filter(c=>c.impFrom!=null).map(c=>[c.memberId,c.impFrom]));
+    const flies=impSteals.map(e=>{
+      const source=showcase.cardFor(e.targetId)||cardFor(e.targetId);
+      const destination=showcase.cardFor(e.memberId)||cardFor(e.memberId);
+      const from=center(source),to=center(destination);
+      source?.classList.add('imp-drained');destination?.classList.add('imp-charged');
+      ring(from,'#f3a5e9');burst(from,'#db8edb',24,4,true);
+      const fragment=document.createElement('div');fragment.className='imp-number-fragment';fragment.textContent='1';
+      fragment.style.left=`${from.x}px`;fragment.style.top=`${from.y}px`;overlay.append(fragment);
+      return finishAnimation(fragment.animate([{transform:'translate(-50%,-50%) scale(.8)',opacity:0},{transform:'translate(-50%,-50%) scale(1.4)',opacity:1,offset:.2},{transform:`translate(calc(-50% + ${to.x-from.x}px),calc(-50% + ${to.y-from.y}px)) scale(.7)`,opacity:0}],{duration:380,easing:'ease-in-out'})).finally(()=>fragment.remove());
+    });
+    soundEffect('sfx_skill_imp_steal',()=>tone(800,.22,'triangle',.07,1280));
+    await Promise.all(flies);
+    for(const e of impSteals){numbers.set(e.targetId,(numbers.get(e.targetId)??e.targetValue)-1);numbers.set(e.memberId,(numbers.get(e.memberId)??e.sourceValue)+1);}
+    for(const [id,value] of numbers)for(const el of [cardFor(id),showcase.cardFor(id)]){
+      const number=el?.querySelector('.reveal-value');if(number)number.textContent=value;
+      if(el)void finishAnimation(el.animate([{filter:'brightness(1)'},{filter:'brightness(2.4) drop-shadow(0 0 12px #e695df)',offset:.5},{filter:'brightness(1)'}],{duration:300}));
+    }
+    for(const e of impSteals)skill(e.memberId,'number_steal','슬쩍 · 숫자 강탈','imp');
   }
   const duplicates = result.cards.filter(c => !c.valid);
   const resisted = result.cards.filter(c => c.resisted);
@@ -225,14 +247,9 @@ export async function reveal(result) {
     if(effect.memberId)playerFor(effect.memberId)?.classList.add('boss-mark-flash');
     await sleep(300);
   }
-  for (const effect of result.effects.filter(e => ['steal','revelation','shield'].includes(e.type))) {
+  for (const effect of result.effects.filter(e => ['revelation','shield'].includes(e.type))) {
     const point=center(playerFor(effect.memberId));
-    if(effect.type==='steal') {
-      const total=result.effects.filter(e=>e.type==='steal'&&e.memberId===effect.memberId).reduce((n,e)=>n+e.amount,0);
-      skill(effect.memberId,'score_steal',`슬쩍 · +${total}점`);
-      soundEffect('sfx_skill_imp_steal',()=>tone(900,.2,'triangle',.06,1400));
-      textAt(center(playerFor(effect.targetId)),'−1','damage'); await bolt(center(playerFor(effect.targetId)),point,'#ee8dd6'); textAt(point,'+1','heal');
-    } else if(effect.type==='shield') { skill(effect.memberId,'toughness',effect.label||'강인함 · 피해 무효');ring(point,'#f7d484'); textAt(point,effect.label||'강인함 · 방어','gold'); }
+    if(effect.type==='shield') { skill(effect.memberId,'toughness',effect.label||'강인함 · 피해 무효');ring(point,'#f7d484'); textAt(point,effect.label||'강인함 · 방어','gold'); }
     else { skill(effect.memberId,'revelation','계시 · 다음 턴 공개');soundEffect('sfx_skill_seer_reveal',()=>tone(1300,.4,'sine',.06,1700)); textAt(point,'계시','heal'); }
   }
   for (const effect of result.effects.filter(e => ['damage', 'heal', 'revive', 'knockout', 'penalty'].includes(e.type))) {

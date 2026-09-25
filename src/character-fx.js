@@ -31,7 +31,7 @@ export function characterAttackOrigin(panel) {
 }
 export async function showSkillEffect(panel,skillId,label){
   const point=characterAttackOrigin(panel);if(!point)return;
-  const looks={gold_bonus:['✦','#e9cd8e'],toughness:['◇','#f3d486'],low_card_gold:['◆','#8de0b4'],amplify:['✺','#c4a0ff'],blood_heat:['✹','#ff8b85'],revelation:['✧','#91dbff'],score_steal:['♆','#f2a2df'],random_hand:['⚄','#ffe18c']};
+  const looks={gold_bonus:['✦','#e9cd8e'],toughness:['◇','#f3d486'],low_card_gold:['◆','#8de0b4'],amplify:['✺','#c4a0ff'],blood_heat:['✹','#ff8b85'],revelation:['✧','#91dbff'],number_steal:['♆','#f2a2df'],random_hand:['⚄','#ffe18c']};
   looks.full_burst=['⌖','#ffd08a']; looks.combo=['⋔','#ffac78'];
   looks.blood_command=['♜','#ef3857'];looks.predation=['◆','#a82d43'];looks.soul_slash=['╳','#dd304e'];
   looks.acrobatics=['♊','#f0c184'];

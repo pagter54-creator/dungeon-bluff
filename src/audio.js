@@ -104,7 +104,7 @@ export class GameAudio {
       skill_amplify:{noise:[.13,2000,.035],tones:[[440,.24,'sine',.045,1250]]},
       skill_blood_heat:{noise:[.13,650,.045],tones:[[160,.22,'triangle',.05,330]]},
       skill_revelation:{noise:[.1,3800,.02],tones:[[1400,.24,'sine',.035,2000]]},
-      skill_score_steal:{noise:[.09,1800,.03],tones:[[950,.2,'triangle',.04,430]]},
+      skill_number_steal:{noise:[.09,1800,.03],tones:[[950,.2,'triangle',.04,430]]},
       skill_random_hand:{noise:[.09,2600,.035],tones:[[340,.18,'triangle',.04,780]]},
       gunshot:{noise:[.12,3200,.09],tones:[[160,.13,'sawtooth',.055,45]]},
       punch:{noise:[.1,600,.08],tones:[[115,.14,'triangle',.065,35]]},
