@@ -275,6 +275,8 @@ test('skill controls label knight and seer correctly and show one filled segment
  assert.equal((gauge.match(/class="revelation-pip/g)||[]).length,1);
  assert.equal((gauge.match(/revelation-pip filled/g)||[]).length,1);
  assert.match(activeButton(p,false,false),/activate-revelation/);
+ const selectedButton=activeButton(p,false,false,[],{},true);
+ assert.match(selectedButton,/activate-revelation/);assert.ok(!selectedButton.includes('disabled'));assert.ok(!selectedButton.includes('선택 취소'));
  assert.match(activeButton(g.state.players.p1,true,false),/강인함/);
  assert.ok(!activeButton(g.state.players.p1,true,false).includes('증폭'));
  assert.equal(p.character.display_name,'예언가');
