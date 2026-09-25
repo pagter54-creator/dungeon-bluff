@@ -8,7 +8,7 @@ async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const out = [];
   for (const entry of entries) {
-    if (entry.name.startsWith('.') || entry.name === 'node_modules') continue;
+    if (entry.name.startsWith('.') || entry.name === 'node_modules' || (path.resolve(directory) === path.join(root, 'src') && entry.name === 'src')) continue;
     const filename = path.join(directory, entry.name);
     if (entry.isDirectory()) out.push(...await walk(filename)); else out.push(filename);
   }
