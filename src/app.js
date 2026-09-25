@@ -291,7 +291,6 @@ document.addEventListener('click', async event => {
     }
   }
   if (action === 'activate-revelation' && !animating && bundle?.session) {
-    if(selected!==null&&(!Array.isArray(selected)||selected.length)){toast('카드 선택을 취소한 뒤 계시를 사용해 주세요.');return;}
     const member = mine(), session = bundle.session;
     const response = await perform('activate_skill', { session_id:session.id, turn_index:session.turn_index, member_id:member.id });
     if (response?.session?.state.players[member.id]?.characterRuntimeState.revealExpiresTurn === session.turn_index) {
