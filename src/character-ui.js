@@ -75,7 +75,7 @@ export function activeButton(player, useSkill, blocked, members=[], players={}, 
   if (player.skillId === 'revelation') {
     const active = Boolean(player.characterRuntimeState?.revealExpiresTurn);
     const ready = (player.characterRuntimeState?.revelationStacks || 0) >= 1 && !active;
-    return `<button type="button" class="active-skill ${active?'armed':''}" data-action="activate-revelation" data-network data-unavailable="${blocked||!ready||hasSelected}" ${blocked||!ready||hasSelected?'disabled':''}>✧ 계시 <b>${active?'이번 턴 공개 중':hasSelected?'카드 선택 취소 후 사용':ready?'1칸 소모 · 발동':'1칸 필요'}</b></button>`;
+    return `<button type="button" class="active-skill ${active?'armed':''}" data-action="activate-revelation" data-network data-unavailable="${blocked||!ready}" ${blocked||!ready?'disabled':''}>✧ 계시 <b>${active?'이번 턴 공개 중':ready?'1칸 소모 · 발동':'1칸 필요'}</b></button>`;
   }
   if (player.skillType !== 'active' && player.skillId !== 'full_burst') return '';
   const ready = player.activeSkillState?.available;
