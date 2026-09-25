@@ -1,5 +1,5 @@
 import {assetLoader} from './asset-loader.js';
-import {SKINS,skinFor,pendingSkinImage} from './skins.js';
+import {SKINS,skinFor,pendingSkinImage,skinStandingAssets} from './skins.js';
 
 const music=['bgm_lobby.mp3','bgm_dungeon.mp3'].map(name=>new URL(`../${name}`,import.meta.url).href);
 let foreground=null;
@@ -36,11 +36,11 @@ function ensureImages(urls,title){
   return missing.length?showLoading(missing,title):Promise.resolve();
 }
 export function ownSkinImages(loadout){
-  const equipped=Object.values(loadout?.equipped_character_skins||{}).map(id=>SKINS[id]?.preview);
+  const equipped=Object.values(loadout?.equipped_character_skins||{}).flatMap(id=>SKINS[id]?skinStandingAssets(SKINS[id]):[]);
   return [skinFor('adventurer',loadout).preview,...equipped].filter(Boolean);
 }
 export function roomSkinImages(members,ownUserId,ownLoadout){
-  return (members||[]).map(member=>skinFor(member.character_id,member.user_id===ownUserId?(ownLoadout||member.loadout):member.loadout).preview);
+  return (members||[]).flatMap(member=>skinStandingAssets(skinFor(member.character_id,member.user_id===ownUserId?(ownLoadout||member.loadout):member.loadout)));
 }
 export function ensureOwnAssets(loadout){return ensureImages(ownSkinImages(loadout),'내 스킨을 준비합니다');}
 export function ensureRoomAssets(members,ownUserId,ownLoadout){return ensureImages(roomSkinImages(members,ownUserId,ownLoadout),'원정대의 스킨을 준비합니다');}

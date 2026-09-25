@@ -2,10 +2,16 @@ import { CHARACTER_CATALOG } from './character-guide-data.js';
 import { skinPortrait } from './skins.js';
 import { deckLabel, html } from './character-ui.js';
 
-const order=['adventurer','warrior','rogue','mage','berserker','seer','imp','gambler','gunner','fighter','vampire','demonsword'];
+const order=['adventurer','warrior','rogue','mage','berserker','seer','imp','gambler','gunner','fighter','vampire','demonsword','twins'];
 
 // Long-form guide copy is separate from the short in-battle skill descriptions.
 const guide={
+  twins:{difficulty:null,stats:[],trait:'홀짝 교대로 움직이고 곡예로 예측을 깨는 합동 공격수',text:[
+    '첫 턴은 <strong>홀 / 짝 중 무작위</strong>로 시작하며, 매 턴 종료 시 교대합니다.<br>홀: <strong>1·3</strong>, 짝: <strong>2·4</strong>만 선택할 수 있습니다.',
+    '몬스터에게 유효한 공격을 하면 <strong>최종 피해 +2</strong>.<br>교환된 카드에도 적용되며 카드 숫자와 이벤트 판정은 바꾸지 않습니다.',
+    '「곡예」는 제출 전에 즉시 <strong>손패를 1·2·3·4로 초기화하고 홀짝을 반전</strong>합니다.',
+    '곡예를 사용한 뒤 새 손패 네 장을 끝까지 사용하면 다시 충전됩니다.<br>몬스터·방·사이클이 바뀌어도 홀짝 순서는 유지됩니다.'
+  ]},
   adventurer:{difficulty:1,stats:[2,4.5,.5,1],trait:'안정적인 경제·누적 점수',text:[
     '골드 보상을 받을 때마다<br><strong>해당 보상에 +1G</strong>가 추가됩니다.',
     '몬스터 전투에서 카드가 중복되지 않고 통과하면<br>피해와 별개로 <strong>점수 +1</strong>을 획득합니다.'
@@ -89,6 +95,6 @@ export function characterGuide(){
   return `<div class="eyebrow">CHARACTER CODEX</div><h2>캐릭터 도감</h2><p>카드 구성과 스킬, 캐릭터별 플레이 성향을 확인하세요.</p><div class="character-guide-list">${order.map(id=>{
     const character=CHARACTER_CATALOG[id],detail=guide[id],skill=character.definition.skill;
     const type=skill.type==='hybrid'?'패시브 · 액티브':skill.type==='active'?'액티브':'패시브';
-    return `<article class="character-guide-entry" style="--character-color:${html(character.definition.color)}"><div class="character-guide-heading"><span class="character-guide-portrait">${skinPortrait(id)}</span><div><h3>${html(character.display_name)}</h3><small>${html(character.definition.role)}</small></div></div><div class="character-guide-profile"><div class="character-guide-difficulty"><span>난이도</span><strong aria-label="난이도 ${detail.difficulty}/5">${difficulty(detail.difficulty)}</strong></div>${detail.stats.map((value,index)=>meter(traits[index],value)).join('')}<p>${html(detail.trait)}</p></div><div class="character-guide-deck"><b>카드 구성</b><div class="character-guide-cards">${character.deck.map(value=>`<span>${value}</span>`).join('')}</div><small>${html(deckLabel(character))}</small></div><div class="character-guide-skill"><b>${html(type)} · ${html(skill.name)}</b>${detail.text.map(paragraph=>`<p>${paragraph}</p>`).join('')}</div></article>`;
+    return `<article class="character-guide-entry" style="--character-color:${html(character.definition.color)}"><div class="character-guide-heading"><span class="character-guide-portrait">${skinPortrait(id)}</span><div><h3>${html(character.display_name)}</h3><small>${html(character.definition.role)}</small></div></div><div class="character-guide-profile"><div class="character-guide-difficulty"><span>난이도</span><strong aria-label="난이도 ${detail.difficulty==null?'미정':detail.difficulty+'/5'}">${detail.difficulty==null?'—':difficulty(detail.difficulty)}</strong></div>${detail.stats.map((value,index)=>meter(traits[index],value)).join('')}<p>${html(detail.trait)}</p></div><div class="character-guide-deck"><b>카드 구성</b><div class="character-guide-cards">${character.deck.map(value=>`<span>${value}</span>`).join('')}</div><small>${html(deckLabel(character))}</small></div><div class="character-guide-skill"><b>${html(type)} · ${html(skill.name)}</b>${detail.text.map(paragraph=>`<p>${paragraph}</p>`).join('')}</div></article>`;
   }).join('')}</div>`;
 }

@@ -4,6 +4,14 @@ import { motionPreference } from './motion.js';
 
 const active=new WeakMap();
 const knockoutRequests=new WeakMap();
+export function activeArtFrame(panel){return panel?.querySelector('.twins-art .twin-active')||panel?.querySelector('.player-illustration');}
+
+export function animateTwinHandoff(panel){
+  const front=activeArtFrame(panel),back=panel?.querySelector('.twin-resting');
+  if(!front||!back||reducedMotion())return;
+  void finishAnimation(front.animate([{opacity:.5,filter:'brightness(.55)',translate:'0 10px'},{opacity:1,filter:'brightness(1.12)',translate:'0 0'}],{duration:300,easing:'ease-out'}));
+  void finishAnimation(back.animate([{filter:'brightness(1)'},{filter:'brightness(.42)'}],{duration:300,easing:'ease-out'}));
+}
 
 export function poseUrl(base,pose){
   return base.replace(/\.png(?:[?#].*)?$/i,`_${pose}.png`);
@@ -21,7 +29,7 @@ function replacePose(frame,base,url) {
   base.style.opacity='';
 }
 export async function setKnockoutPose(panel,knockedOut){
-  const frame=panel?.querySelector('.player-illustration');
+  const frame=activeArtFrame(panel);
   const base=frame?.querySelector('.player-illustration-base');
   if(!base)return;
   frame.dataset.standingSrc ||= base.src;
@@ -45,7 +53,7 @@ async function damagePose(frame,base){
 }
 
 export async function showPlayerPose(panel,kind){
-  const frame=panel?.querySelector('.player-illustration');
+  const frame=activeArtFrame(panel);
   const base=frame?.querySelector('.player-illustration-base');
   const url=kind==='attack'?frame?.dataset.attackSrc:frame?.dataset.damageSrc;
   if(!frame||!base)return async()=>{};

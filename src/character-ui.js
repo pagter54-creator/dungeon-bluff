@@ -2,6 +2,7 @@ import { skinPortrait,skinIllustration } from './skins.js';
 import { isShuffleTurn,selectionInfo } from './battle-rules.js';
 import { cardComponent } from './card-component.js';
 import {pileButton,gamblerCharges} from './gambler-ui.js';
+import {cardAllowed} from './battle-rules.js';
 export const html = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
 export function characterFor(bundle, id) {
   return bundle?.session?.state.characterDefinitions?.[id] || bundle?.characters?.find(c => c.id === id) || { id, display_name: '모험가', deck: [], definition: { icon:'⚔', color:'#dabc85', role:'기존 원정 캐릭터' } };
@@ -29,7 +30,7 @@ function thrallStatus(player,bundle,players){
 }
 export function cardPool(player, { own=false, blocked=false, selected=null, useSkill=0 } = {}) {
   const gambler=player.skillId==='random_hand';
-  return `<div class="cycle-pool ${player.characterId==='gunner'?'gunner-hand':''} ${gambler?'continuous-hand gambler-hand':''}" data-cycle-pool="${html(player.memberId)}" aria-label="현재 손패 ${cycleCards(player).length}장">${gambler?pileButton(player,'draw',own):''}${cycleCards(player).map(c=>cardComponent(own&&player.skillId==='amplify'&&useSkill&&[selected].flat().includes(c.id)?{...c,value:c.value+Number(useSkill)}:c,{loadout:player.loadout,own,blocked,selected})).join('')}${gambler?pileButton(player,'discard',own):''}</div>`;
+  return `<div class="cycle-pool ${player.characterId==='gunner'?'gunner-hand':player.characterId==='twins'?'twins-hand':''} ${gambler?'continuous-hand gambler-hand':''}" data-cycle-pool="${html(player.memberId)}" aria-label="현재 손패 ${cycleCards(player).length}장">${gambler?pileButton(player,'draw',own):''}${cycleCards(player).map(c=>cardComponent(own&&player.skillId==='amplify'&&useSkill&&[selected].flat().includes(c.id)?{...c,value:c.value+Number(useSkill)}:c,{loadout:player.loadout,own,blocked,restricted:!cardAllowed(player,c),selected})).join('')}${gambler?pileButton(player,'discard',own):''}</div>`;
 }
 export function skillBadge(character) {
   const skill = character.definition?.skill;
@@ -38,6 +39,7 @@ export function skillBadge(character) {
   return `<span class="skill-tooltip"><button type="button" class="skill-badge" data-action="skill-info" data-character="${html(character.id)}" aria-label="${html(skill.name)} 스킬 설명">${html(character.definition.icon)} ${type} · ${html(skill.name)}</button><span class="skill-description" role="tooltip"><b>${html(skill.name)} · ${type}</b>${html(skill.description)}</span></span>`;
 }
 export function revelationGauge(player) {
+  if(player.skillId==='acrobatics')return `<div class="twins-parity"><b>${player.characterRuntimeState?.parity===1?'홀 · 소년':'짝 · 소녀'}</b><span>${player.characterRuntimeState?.parity===1?'1 · 3 선택':'2 · 4 선택'} · 다음 턴 교대</span></div>`;
   if (player.skillId === 'random_hand') return gamblerCharges(player);
   if(player.skillId==='amplify')return resourceGauge('마나',player.characterRuntimeState?.mana||0,4,'mana-gauge');
   if(player.skillId==='toughness')return resourceGauge('강인함 충전',player.characterRuntimeState?.toughnessCharges||0,2,'toughness-gauge');
@@ -55,6 +57,7 @@ export function resourceGauge(label,value,max,extra='') {
 }
 export function nextAmplifyLevel(mana,current){return current===0?mana>=2?1:0:current===1&&mana>=4?2:0;}
 export function activeButton(player, useSkill, blocked, members=[], players={}, hasSelected=false) {
+  if(player.skillId==='acrobatics')return `<button type="button" class="active-skill" data-action="activate-acrobatics" data-network ${blocked||!player.activeSkillState?.available?'disabled':''}>♊ 곡예 <b>${player.activeSkillState?.available?'손패 초기화 · 홀짝 반전':'사이클 완주 시 재충전'}</b></button>`;
   if(player.skillId==='blood_command'){
     const thrallId=player.characterRuntimeState?.thrallId,target=members.find(m=>m.id===thrallId);
     const ready=!!target&&!players[thrallId]?.knockedOut&&!blocked;
@@ -94,7 +97,7 @@ export function partyPanels(bundle, players, { me, result, selected, useSkill })
     const greed=s.monster?.greedTargets?.includes(m.id);
     const thrall=Object.values(players).some(x=>x.skillId==='blood_command'&&x.characterRuntimeState?.thrallId===m.id);
     return `<article class="player-panel illustrated-panel seat-${m.seat_index} ${own ? 'is-me' : ''} ${p.knockedOut ? 'knocked-out' : ''}" data-player="${m.id}" style="--character-color:${html(c.definition?.color || '#dabc85')}">
-      <div class="player-art-stage">${skinIllustration(p.characterId||c.id,p.loadout,p.knockedOut)}</div>
+      <div class="player-art-stage">${skinIllustration(p.characterId||c.id,p.loadout,p.knockedOut,p.characterRuntimeState)}</div>
       <div class="player-info">
         <div class="player-heading"><div class="player-identity player-identity-bar ${thrall?'is-thrall':''}" title="${html(m.display_name)}"><h3>${html(m.display_name)} ${own ? '<em>나</em>' : ''}</h3><small>${html(c.display_name)}${m.ai_type ? ' · AI' : ''}${p.knockedOut ? ' · 기절' : ''}</small></div><div class="hearts" aria-label="HP ${p.hp}/${p.maxHp}">${Array.from({length:p.maxHp},(_,i)=>`<span class="heart ${i<p.hp?'filled':''}">♥</span>`).join('')}</div></div>
         <div class="player-content"><div class="player-stats"><span>SCORE <b>${p.score}</b></span><span>RUN GOLD <b>${p.gold}</b></span><small>${c.definition?.deckType==='continuous'?'운명의 패':`CYCLE ${p.cycleIndex || 1}`} · ${cycleCards(p).filter(card=>!card.used).length}장 남음</small></div>${cardComponent(null,{loadout:p.loadout,blocked:ready,revealId:m.id})}</div>

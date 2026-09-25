@@ -83,6 +83,9 @@ export class GameAudio {
     if (!this.enabled || !this.volume || this.hidden || !this.context || !this.master) return;
     // Synthesized cues are immediate: no audio-file request during combat.
     const cues={
+      twins_thrust:{noise:[.11,3600,.075],tones:[[1350,.12,'triangle',.045,580]]},
+      twins_pierce:{noise:[.09,2300,.1],tones:[[820,.13,'triangle',.055,190],[180,.09,'sine',.055,65]]},
+      skill_acrobatics:{noise:[.17,2900,.05],tones:[[620,.23,'sine',.045,1320],[930,.2,'triangle',.025,1600]]},
       crimson_rush:{noise:[.12,1900,.045],tones:[[180,.14,'sine',.035,460]]},
       crimson_cut_high:{noise:[.19,3400,.14],tones:[[1150,.12,'sawtooth',.05,170],[170,.15,'triangle',.075,60]]},
       crimson_cut_low:{noise:[.22,2200,.15],tones:[[820,.15,'sawtooth',.055,95],[110,.18,'triangle',.09,38]]},

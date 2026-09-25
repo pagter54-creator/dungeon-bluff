@@ -1,5 +1,30 @@
 // Static guide snapshot; tests verify parity with the server catalog.
 export const CHARACTER_CATALOG = {
+  "twins": {
+    "id": "twins",
+    "display_name": "쌍둥이",
+    "deck": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "enabled": true,
+    "definition": {
+      "deckType": "fixed",
+      "role": "교대와 곡예로 예측을 뒤집는 쌍둥이",
+      "icon": "♊",
+      "color": "#f0c184",
+      "attackFx": "twin_thrust",
+      "attackSfx": "sfx_attack_twins",
+      "skill": {
+        "id": "acrobatics",
+        "name": "교대 · 곡예",
+        "type": "hybrid",
+        "description": "첫 턴 홀짝 무작위, 이후 매 턴 교대. 해당 홀짝 카드만 선택할 수 있습니다. 유효 몬스터 공격의 피해 +2. 곡예는 즉시 손패를 초기화하고 홀짝을 반전하며, 새 사이클을 끝까지 완주하면 다시 사용 가능합니다."
+      }
+    }
+  },
   "vampire": {
     "id": "vampire",
     "display_name": "흡혈귀",

@@ -14,7 +14,7 @@ import { characterFor, characterChoices, deckLabel, partyPanels, mobileSelection
 import { characterGuide } from './character-guide.js';
 import {gamblerPileDetails} from './gambler-ui.js';
 import { animateCycle, showSkillEffect } from './character-fx.js';
-import { setKnockoutPose } from './player-pose-fx.js';
+import { setKnockoutPose,animateTwinHandoff } from './player-pose-fx.js';
 import { showGameBackground } from './game-background.js';
 import { initMotionControl } from './motion.js';
 
@@ -238,9 +238,13 @@ function renderGame(result = null) {
   const locked = Boolean(s.roomSummary || (s.lockedMembers.includes(me?.id) && !s.selectionHolds?.[me?.id]));
   const stageIndex = result?.stageIndex || g.stage_index;
   const turnIndex = result?.turnIndex || g.turn_index;
-  const sortedMembers = [...bundle.members].sort((a, b) => a.seat_index - b.seat_index);
+  const previousTwins=new Map([...app.querySelectorAll("[data-player]")].map(el=>[el.dataset.player,el.querySelector(".twins-art")?.dataset.parity]));
   app.innerHTML = `<section class="game-top"><div class="stage-counter"><span>STAGE</span><b>${String(stageIndex).padStart(2, '0')}</b><small>/ 10</small></div><div class="stage-track">${s.stageOrder.map((st, i) => `<span class="stage-node ${i + 1 < stageIndex ? 'passed' : i + 1 === stageIndex ? 'current' : ''}" title="Stage ${i + 1}">${i === 9 ? '♛' : i + 1 < stageIndex ? '✓' : '◇'}</span>`).join('')}</div><div class="knockout-meter"><small>누적 기절</small><b class="${g.party_knockouts >= 7 ? 'danger-text' : ''}">${g.party_knockouts}<span> / 8</span></b></div><button class="icon-button" data-action="leave-confirm" aria-label="원정 나가기">↗</button></section><section class="arena ${stage.category === 'boss' ? 'boss-arena' : ''}" style="--stage-color:${escape(stage.color)}"><div class="arena-grid"></div><div class="encounter-heading"><div class="eyebrow">${categoryLabel[stage.category]}</div><h1>${escape(stage.name)}</h1><p>${escape(stage.subtitle || '당신의 카드가 다음 운명을 결정합니다')}</p></div><div id="enemy-art" class="enemy-art">${monster ? creatureArt(stage.shape, stage.color) : eventArt(stage.category, stage.contentId)}</div><div class="arena-side left"><span>TURN</span><b>${String(turnIndex).padStart(2, '0')}</b><small>${result ? 'REVEALING' : 'SELECTING'}</small></div><div class="arena-side right"><span>${monster ? 'THREAT' : 'ENCOUNTER'}</span><b>${monster ? (stage.category === 'boss' ? 'Ⅲ' : 'Ⅱ') : 'Ⅰ'}</b><small>${monster ? '공격 예고 확인' : '한 턴으로 판정'}</small></div>${monster ? `<div class="enemy-health"><div><span>${stage.category === 'boss' ? 'BOSS' : 'MONSTER'} HP</span><b>${monster.hp} <small>/ ${monster.maxHp}</small></b></div><div class="health-track"><i style="width:${monster.hp / monster.maxHp * 100}%"></i></div></div>` : ''}<div class="intent ${monster?.attackIn === 1 ? 'imminent' : ''}"><span>${monster ? (monster.attackIn === 1 ? (stage.category==='boss'&&monster.nextAction==='special'?'✦ 이번 턴 특수 패턴':'⚠ 이번 턴 공격') : `◷ ${monster.attackIn}턴 후 ${stage.category==='boss'&&monster.nextAction==='special'?'특수 패턴':'공격'}`) : '◇ 방의 규칙'}</span><p>${escape(monster?.intent || stage.rule)}</p></div>${monster?.statusText?`<div class="boss-status"><b>이번 턴 특수 효과</b><p>${escape(monster.statusText)}</p></div>`:''}</section><section class="party-grid">${partyPanels(bundle, players, { me, result:result||s.roomSummary, selected, useSkill })}</section>${s.roomSummary?'':mobileSelection(player, { result, locked, selected, useSkill, twoCards:isShuffleTurn(g) })}<details class="battle-log"><summary>원정 기록 <span>${s.eventLog.length} TURNS</span></summary><div>${[...s.eventLog].reverse().map(log => `<p><span>STAGE ${log.stageIndex} · TURN ${log.turnIndex}</span><b>${escape(log.stage.name)}</b> ${log.cards.filter(c => !c.valid).length}장 중복 · ${log.monsterBefore ? `${log.totalDamage} 피해` : log.success ? '성공' : '조건 미달'}${log.stageCleared ? ' · 다음 방' : ''}</p>`).join('') || '<p>첫 번째 선택을 기다리고 있습니다.</p>'}</div></details>`;
   bindEventArtFallback(app);
+  for(const panel of app.querySelectorAll('[data-player]')){
+    const before=previousTwins.get(panel.dataset.player),after=panel.querySelector('.twins-art')?.dataset.parity;
+    if(before&&after&&before!==after)animateTwinHandoff(panel);
+  }
   if(!result&&s.remakeVersion){
     app.querySelector('.party-grid')?.insertAdjacentHTML('beforebegin',echoHud(bundle,me));
     if(s.selectionHolds?.[me?.id]&&s.lockedMembers.includes(me.id))app.insertAdjacentHTML('beforeend','<div class="echo-hud"><button data-action="confirm-card" data-network>현재 카드 확정 ✓</button><span>다른 카드를 골라 한 번 다시 제출할 수 있습니다.</span></div>');
@@ -278,6 +282,14 @@ document.addEventListener('click', async event => {
     if (skill) showModal(`<div class="eyebrow">${skill.type === 'hybrid' ? 'PASSIVE & ACTIVE' : skill.type.toUpperCase()} · ${escape(c.display_name)}</div><h2>${escape(skill.name)}</h2><p>${escape(skill.description)}</p>`);
   }
   if (action === 'toggle-skill' && !animating) { const p=bundle?.session?.state.players[mine()?.id];useSkill=p?.skillId==='amplify'?nextAmplifyLevel(p.characterRuntimeState.mana||0,Number(useSkill)||0):!useSkill;renderGame(); }
+  if(action==='activate-acrobatics'&&!animating&&bundle?.session){
+    const member=mine(),session=bundle.session;
+    const response=await perform('activate_skill',{session_id:session.id,turn_index:session.turn_index,member_id:member.id});
+    if(response?.session?.state.players[member.id]?.characterRuntimeState.acrobatTurn===session.turn_index){
+      selected=null;useSkill=false;renderGame();
+      void showSkillEffect(document.querySelector(`[data-player="${member.id}"]`),'acrobatics','곡예 · 교대!');
+    }
+  }
   if (action === 'activate-revelation' && !animating && bundle?.session) {
     if(selected!==null&&(!Array.isArray(selected)||selected.length)){toast('카드 선택을 취소한 뒤 계시를 사용해 주세요.');return;}
     const member = mine(), session = bundle.session;

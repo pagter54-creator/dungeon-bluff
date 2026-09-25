@@ -3,6 +3,7 @@ import { getAudio, playTone } from './audio.js';
 import { projectileFlight, impactAt, recoil } from './combat-impact.js';
 import { motionPreference } from './motion.js';
 import {crimsonAttack} from './crimson-fx.js';
+import {twinThrust} from './twins-fx.js';
 function combatCue(name) {
   try { getAudio().combatCue?.(name); } catch (error) { console.warn('Combat sound unavailable:', name, error); }
 }
@@ -24,7 +25,7 @@ const styles = {
   demon_sword: { glyph:'╳', color:'#dd304e', duration:490, freq:180, type:'sawtooth' },
 };
 export function characterAttackOrigin(panel) {
-  const art=panel?.querySelector('.player-art-stage .player-illustration');
+  const art=panel?.querySelector('.twins-art .twin-active')||panel?.querySelector('.player-art-stage .player-illustration');
   const rect=art?.getBoundingClientRect();
   return rect ? {x:rect.left+rect.width/2,y:rect.top+rect.height*.43} : null;
 }
@@ -33,6 +34,7 @@ export async function showSkillEffect(panel,skillId,label){
   const looks={gold_bonus:['✦','#e9cd8e'],toughness:['◇','#f3d486'],low_card_gold:['◆','#8de0b4'],amplify:['✺','#c4a0ff'],blood_heat:['✹','#ff8b85'],revelation:['✧','#91dbff'],score_steal:['♆','#f2a2df'],random_hand:['⚄','#ffe18c']};
   looks.full_burst=['⌖','#ffd08a']; looks.combo=['⋔','#ffac78'];
   looks.blood_command=['♜','#ef3857'];looks.predation=['◆','#a82d43'];looks.soul_slash=['╳','#dd304e'];
+  looks.acrobatics=['♊','#f0c184'];
   const [glyph,color]=looks[skillId]||['✦','#dbc5ee'];
   const el=document.createElement('div');el.className='skill-proc';
   el.style.cssText=`left:${point.x}px;top:${point.y}px;--skill-color:${color}`;
@@ -47,6 +49,7 @@ export async function showSkillEffect(panel,skillId,label){
   ],{duration:720,easing:'ease-out'}));}finally{el.remove();}
 }
 export async function characterAttack(effect, from, to, { burst, ring, tone, reduced }) {
+  if(effect.attackFx==='twin_thrust'){await twinThrust(from,to,{burst,ring,reduced});return;}
   if(['demon_sword','vampire_bite'].includes(effect.attackFx)){await crimsonAttack(effect.attackFx,from,to,{burst,ring,reduced});return;}
   if(effect.attackFx==='fist') {
     await martialAttack(effect,from,to,{burst,ring,reduced});
