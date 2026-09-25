@@ -1,0 +1,6 @@
+.env
+.env.*
+node_modules/
+.npm-cache/
+supabase/.temp/
+.test-results.txt
