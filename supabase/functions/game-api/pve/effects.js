@@ -82,7 +82,7 @@ export function applyOwnedEffects(run,trigger,ctx={}){
   const players=ctx.player?[ctx.player]:run.players;
   const fired=[];
   for(const player of players){
-    const defs=definitionsFor(run,player).filter(e=>e.trigger===trigger).sort((a,b)=>(a.priority||0)-(b.priority||0)||String(a.id).localeCompare(String(b.id)));
+    const defs=definitionsFor(run,player).filter(e=>e.trigger===trigger&&(!ctx.followUp||(e.tags||[]).includes('MULTI_HIT'))).sort((a,b)=>(a.priority||0)-(b.priority||0)||String(a.id).localeCompare(String(b.id)));
     for(const effect of defs){
       const local={...ctx,run,player,privateState:privateState(run,player)};
       if(!conditionMatches(effect.condition,local))continue;
