@@ -1,12 +1,16 @@
 import {choose} from './rng.js';
-const TYPES=['NORMAL_COMBAT','NORMAL_COMBAT','EVENT','REST','SHOP','REWARD_ROOM','ELITE_COMBAT'];
+import {F1_MAP_LAYOUT,F1_MONSTER_DEFINITIONS} from './content-f1.js';
+
 export function generateFloorMap(run,depthCount=8){
   const nodes=[]; const edges={};
   for(let depth=1;depth<=depthCount;depth++){
     const count=depth===depthCount?1:2;
+    const pair=F1_MAP_LAYOUT[(depth-1)%F1_MAP_LAYOUT.length]||['NORMAL_COMBAT','EVENT'];
+    const swapped=count===2&&choose(run,[false,true],`map-lane-swap:${run.floor}:${depth}`);
     for(let lane=0;lane<count;lane++){
       const id=`f${run.floor}-d${depth}-n${lane}`;
-      const type=depth===depthCount?'BOSS':choose(run,TYPES,`map:${run.floor}:${depth}:${lane}`);
+      let type='BOSS';
+      if(depth!==depthCount)type=pair[swapped?1-lane:lane]||pair[0];
       nodes.push({id,depth,type});
     }
   }
@@ -19,7 +23,11 @@ export function generateFloorMap(run,depthCount=8){
       edges[from[i].id]=[...new Set(list)];
     }
   }
-  return {depthCount,nodes,edges,currentNodeId:null,votes:{},voteRound:0,voteDeadline:null};
+  return {
+    depthCount,nodes,edges,currentNodeId:null,votes:{},voteRound:0,voteDeadline:null,
+    bossId:F1_MONSTER_DEFINITIONS.f1_fallen_lord.id,
+    bossName:F1_MONSTER_DEFINITIONS.f1_fallen_lord.name
+  };
 }
 export function startingNodeIds(map){return map.nodes.filter(n=>n.depth===1).map(n=>n.id);}
 export function connectedNodeIds(map){
