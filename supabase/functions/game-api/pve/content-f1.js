@@ -35,9 +35,13 @@ export const F1_MONSTER_DEFINITIONS=Object.freeze({
       {type:'DIRECT_DAMAGE',telegraphText:'성주의 검이 한 명을 겨눈다',payload:{target:'RANDOM_LIVING',amount:1}},
       {type:'DEFEND',telegraphText:'낡은 성벽의 잔해로 몸을 감싼다',payload:{amount:1}},
       {type:'CHARGE',telegraphText:'검은 기운이 홀 안에 퍼진다',payload:{}},
-      {type:'AOE_DAMAGE',telegraphText:'몰락의 파동이 파티 전체를 덮친다',payload:{amount:1}},
+      {type:'CHARGE',telegraphText:'몰락의 파동이 서서히 번진다',payload:{}},
       {type:'CHARGE',telegraphText:'성의 잔향을 끌어모은다',payload:{}},
-      {type:'HEAL',telegraphText:'잔향을 흡수해 상처를 조금 회복한다',payload:{amount:2}},
+      {type:'HEAL',telegraphText:'잔향을 흡수해 상처를 조금 회복한다',payload:{amount:1}},
+      {type:'CHARGE',telegraphText:'왕좌 주변의 기운이 흔들린다',payload:{}},
+      {type:'CHARGE',telegraphText:'홀 전체에 균열이 번진다',payload:{}},
+      {type:'AOE_DAMAGE',telegraphText:'몰락의 파동이 파티 전체를 덮친다',payload:{amount:1}},
+      {type:'CHARGE',telegraphText:'성주가 자세를 고쳐 잡는다',payload:{}},
       {type:'CHARGE',telegraphText:'다음 검격을 준비한다',payload:{}},
     ]
   }
