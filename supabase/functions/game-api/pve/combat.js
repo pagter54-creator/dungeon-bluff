@@ -154,6 +154,7 @@ export function resolveBasicTurn(run){
       return c.publicTurnResult;
     }
     reviveAfterVictory(run);c.phase='COMBAT_END';run.phase='ROOM_RESULT';
+    run.roomResult={roomNodeId:run.currentRoomNodeId,readyPlayerIds:run.players.filter(p=>p.memberType==='ai').map(p=>p.playerId)};
     for(const p of run.players)applyOwnedEffects(run,'MONSTER_KILLED',{player:p,events});
     for(const p of run.players)applyOwnedEffects(run,'COMBAT_END',{player:p,events});
     beginAugmentChoices(run,'ROOM_RESULT');
