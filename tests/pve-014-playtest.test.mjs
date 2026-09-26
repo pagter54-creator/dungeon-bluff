@@ -134,7 +134,9 @@ test('PVE-014 internal API playtest: one human + three AI can enter F1 and reach
         continue;
       }
       const beforeTurn=run.combat.turn;
-      run=await call(admin,{action:'pve.submitCard',run_id:run.id,action_id:actionId(seq++),expected_version:version(),card_instance_id:id,skill_intent:false});
+      const me=run.players.find(p=>p.playerId==='p0'),card=me.cardPool.find(c=>c.id===id);
+      const useSkill=me.characterId==='warrior'&&(me.publicResources.toughnessCharges||0)>0&&card?.baseNumber>=5;
+      run=await call(admin,{action:'pve.submitCard',run_id:run.id,action_id:actionId(seq++),expected_version:version(),card_instance_id:id,skill_intent:useSkill});
       combatTurns[run.currentRoomNodeId]=Math.max(combatTurns[run.currentRoomNodeId]||0,beforeTurn);
       continue;
     }
