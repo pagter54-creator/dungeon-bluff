@@ -1,7 +1,7 @@
 import {choose} from './rng.js';
 import {
   onTurnStartCharacter,onCycleStartCharacter,onTurnEndCharacter,selfModifyCard,collisionImmunity,onValidAttack,
-  isCardSelectableForCharacter,validateCharacterSkillIntent,resolvePostCollisionCharacter,baseDamageForCharacter
+  isCardSelectableForCharacter,validateCharacterSkillIntent,resolvePostCollisionCharacter,baseDamageForCharacter,grantRunGold
 } from './characters.js';
 import {publishMonsterIntent,executeMonsterIntent} from './monster.js';
 import {beginAugmentChoices} from './augments.js';
@@ -80,6 +80,7 @@ function autoSubmitStunned(run){
 export function beginTurn(run){
   const c=run.combat;if(!c||run.phase!=='COMBAT')return;
   if(!c.telemetry)initCombatTelemetry(run,c.roomType||'NORMAL_COMBAT');
+  if(!c.combatStartEffectsApplied){for(const p of run.players)applyOwnedEffects(run,'COMBAT_START',{player:p,events:[]});c.combatStartEffectsApplied=true;}
   c.phase='TURN_START';
   for(const p of run.players){onTurnStartCharacter(p,run);applyOwnedEffects(run,'TURN_START',{player:p,events:[]});}
   c.phase='INTENT_PUBLISH';publishMonsterIntent(run);
@@ -156,11 +157,29 @@ export function resolveBasicTurn(run){
       recordCombatTurnTelemetry(run,c.publicTurnResult);finalizeCombatTelemetry(run,'RUN_FAILED');
       return c.publicTurnResult;
     }
-    reviveAfterVictory(run);c.phase='COMBAT_END';run.phase='ROOM_RESULT';
-    run.roomResult={roomNodeId:run.currentRoomNodeId,readyPlayerIds:run.players.filter(p=>p.memberType==='ai').map(p=>p.playerId)};
+    const rewardEligible=new Set(run.players.filter(p=>p.status!=='DOWNED').map(p=>p.playerId));
+    reviveAfterVictory(run);c.phase='COMBAT_END';
+    const completionGold=c.roomType==='BOSS'?3:c.roomType==='ELITE_COMBAT'?2:1;
+    if(c.roomType==='BOSS'){
+      for(const p of run.players){
+        const lost=Math.max(0,p.maxHp-p.hp);
+        if(lost>0){const heal=Math.max(1,Math.ceil(lost/2));const before=p.hp;p.hp=Math.min(p.maxHp,p.hp+heal);events.push({type:'PLAYER_HEALED',playerId:p.playerId,amount:p.hp-before,hp:p.hp,source:'BOSS_CLEAR'});}
+      }
+      run.flame=Math.min(run.maxFlame,run.flame+1);
+    }
+    for(const p of run.players)if(rewardEligible.has(p.playerId))grantRunGold(p,completionGold);
     for(const p of run.players)applyOwnedEffects(run,'MONSTER_KILLED',{player:p,events});
+    if(c.roomType==='BOSS')for(const p of run.players)applyOwnedEffects(run,'BOSS_CLEAR',{player:p,events});
     for(const p of run.players)applyOwnedEffects(run,'COMBAT_END',{player:p,events});
-    beginAugmentChoices(run,'ROOM_RESULT');
+    if(c.roomType==='BOSS'){
+      run.phase='FLOOR_CLEAR';
+      run.floorClear={floor:run.floor,bossId:c.monster.id,bossName:c.monster.name};
+      beginAugmentChoices(run,'FLOOR_CLEAR');
+    }else{
+      run.phase='ROOM_RESULT';
+      run.roomResult={roomNodeId:run.currentRoomNodeId,readyPlayerIds:run.players.filter(p=>p.memberType==='ai').map(p=>p.playerId)};
+      beginAugmentChoices(run,'ROOM_RESULT');
+    }
     c.publicTurnResult={turn:c.turn,cards,damagePackets:packets,totalDamage,phaseTrace:[...phaseTrace,'COMBAT_END'],events};
     recordCombatTurnTelemetry(run,c.publicTurnResult);finalizeCombatTelemetry(run,'VICTORY');
     return c.publicTurnResult;
