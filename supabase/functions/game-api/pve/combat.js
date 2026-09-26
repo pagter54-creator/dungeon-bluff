@@ -72,7 +72,7 @@ function autoSubmitStunned(run){
     if(!priv.remainingCardIds.length)resetCycleIfNeeded(run,p);
     const choices=selectableIds(run,p);
     if(!choices.length)throw new Error('기절 자동 제출에 사용할 카드가 없습니다.');
-    const cardId=choose(run,choices,`stunned-auto:${c.id}:${c.turn}:${p.playerId}`);
+    const cardId=choose(run,choices,`stunned-auto:${run.floor}:${run.depth}:${run.currentRoomNodeId||c.monster.id}:${c.turn}:${p.playerId}`);
     c.turnSubmissions[p.playerId]={playerId:p.playerId,cardInstanceId:cardId,skillIntent:false,submittedAt:new Date().toISOString(),autoSubmitted:true};
     priv.selectedCardId=cardId;priv.skillIntent=false;
   }
@@ -85,9 +85,14 @@ function autoSubmitAi(run){
     if(!priv.remainingCardIds.length)resetCycleIfNeeded(run,p);
     const choices=selectableIds(run,p);
     if(!choices.length)throw new Error('AI가 제출할 수 있는 합법 카드가 없습니다.');
-    const cardId=choose(run,choices,`combat-ai-card:${c.id}:${c.turn}:${p.playerId}`);
-    c.turnSubmissions[p.playerId]={playerId:p.playerId,cardInstanceId:cardId,skillIntent:false,submittedAt:new Date().toISOString(),autoSubmitted:true};
-    priv.selectedCardId=cardId;priv.skillIntent=false;
+    const cardId=choose(run,choices,`combat-ai-card:${run.floor}:${run.depth}:${run.currentRoomNodeId||c.monster.id}:${c.turn}:${p.playerId}`);
+    const card=cardFor(run,p.playerId,cardId);
+    const skillIntent=(p.characterId==='gunner'&&p.publicResources.fullBurstReady)||
+      (p.characterId==='mage'&&(p.publicResources.mana||0)>=2)||
+      (p.characterId==='warrior'&&(p.publicResources.toughnessCharges||0)>0&&card?.baseNumber===5);
+    validateCharacterSkillIntent(p,priv,Boolean(skillIntent));
+    c.turnSubmissions[p.playerId]={playerId:p.playerId,cardInstanceId:cardId,skillIntent:Boolean(skillIntent),submittedAt:new Date().toISOString(),autoSubmitted:true};
+    priv.selectedCardId=cardId;priv.skillIntent=Boolean(skillIntent);
   }
 }
 export function beginTurn(run){
