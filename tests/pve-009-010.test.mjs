@@ -88,7 +88,8 @@ test('PVE-009 owned relic effects are reused by combat and armor absorbs monster
   const result=submitNumbers(run,[1,2,3,4]);
   assert.equal(result.damagePackets.find(x=>x.sourcePlayerId==='p0').amount,3);
   assert.equal(p.hp,3);
-  assert.equal(p.publicResources.armor,0);
+  // Monster damage consumed the current armor, then the automatically opened next turn granted 1 armor again.
+  assert.equal(p.publicResources.armor,1);
   assert.ok(result.events.some(e=>e.type==='PLAYER_DAMAGED'&&e.playerId==='p0'&&e.blocked===1&&e.amount===0));
 });
 
