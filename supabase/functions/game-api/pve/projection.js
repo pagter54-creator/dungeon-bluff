@@ -14,5 +14,13 @@ export function projectRun(run,viewerPlayerId){
     out.combat.readyPlayerIds=Object.keys(out.combat.turnSubmissions);
     delete out.combat.turnSubmissions;
   }
+  if(out.augmentChoice){
+    const pending=out.augmentChoice.pendingByPlayer?.[viewerPlayerId]||[];
+    const offer=out.augmentChoice.offersByPlayer?.[viewerPlayerId]||[];
+    out.augmentChoice.pendingPlayerIds=Object.entries(out.augmentChoice.pendingByPlayer||{}).filter(([,tiers])=>tiers.length).map(([id])=>id);
+    out.privateAugmentOffer=pending.length?{tier:pending[0],augmentIds:[...offer]}:null;
+    delete out.augmentChoice.pendingByPlayer;
+    delete out.augmentChoice.offersByPlayer;
+  }
   return out;
 }
