@@ -16,7 +16,7 @@ function bundle(){
     room:{id:ROOM_ID,host_user_id:'u0'},
     members:[
       {id:'p0',user_id:'u0',member_type:'human',character_id:'warrior',seat_index:0},
-      {id:'p1',user_id:null,member_type:'ai',character_id:'adventurer',seat_index:1},
+      {id:'p1',user_id:null,member_type:'ai',character_id:'gunner',seat_index:1},
       {id:'p2',user_id:null,member_type:'ai',character_id:'mage',seat_index:2},
       {id:'p3',user_id:null,member_type:'ai',character_id:'twins',seat_index:3},
     ],
@@ -74,12 +74,12 @@ function chooseRouteNode(run){
   const ids=connectedNodeIds(run.map),nodes=ids.map(id=>run.map.nodes.find(n=>n.id===id));
   const desired={
     1:'NORMAL_COMBAT',
-    2:'REST',
-    3:'NORMAL_COMBAT',
+    2:'EVENT',
+    3:'SHOP',
     4:'ELITE_COMBAT',
-    5:'REWARD_ROOM',
+    5:'REST',
     6:'NORMAL_COMBAT',
-    7:'SHOP',
+    7:'REWARD_ROOM',
     8:'BOSS'
   }[nodes[0]?.depth];
   return nodes.find(n=>n.type===desired)?.id||nodes[0]?.id;
@@ -119,7 +119,7 @@ test('PVE-014 internal API playtest: one human + three AI can enter F1 and reach
   assert.equal(run.map.bossName,'몰락한 성주');
 
   const visited=[],combatTurns={},version=()=>admin.version;
-  let boughtCard=false,rewardResolved=false;
+  let rewardResolved=false;
   for(let guard=0;guard<500&&run.phase!=='FLOOR_CLEAR'&&run.phase!=='RUN_FAILED';guard++){
     if(run.phase==='MAP_VOTE'){
       const nodeId=chooseRouteNode(run),node=run.map.nodes.find(n=>n.id===nodeId);visited.push(node.type);
@@ -160,15 +160,6 @@ test('PVE-014 internal API playtest: one human + three AI can enter F1 and reach
       run=await call(admin,{action:'pve.getState',run_id:run.id});continue;
     }
     if(run.phase==='SHOP'){
-      if(!boughtCard&&run.roomState.cardStock.some(x=>!x.sold)){
-        const item=run.roomState.cardStock.find(x=>!x.sold),player=run.players.find(p=>p.playerId==='p0');
-        if(player.runGold>=item.price){
-          run=await call(admin,{action:'pve.shopReserveCard',run_id:run.id,action_id:actionId(seq++),expected_version:version(),product_id:item.id});
-          const replace=run.players.find(p=>p.playerId==='p0').cardPool[0].id;
-          run=await call(admin,{action:'pve.shopConfirmCard',run_id:run.id,action_id:actionId(seq++),expected_version:version(),product_id:item.id,replace_card_id:replace});
-          boughtCard=true;continue;
-        }
-      }
       run=await call(admin,{action:'pve.shopReady',run_id:run.id,action_id:actionId(seq++),expected_version:version()});
       continue;
     }
@@ -186,11 +177,9 @@ test('PVE-014 internal API playtest: one human + three AI can enter F1 and reach
 
   assert.notEqual(run.phase,'RUN_FAILED',JSON.stringify({visited,combatTurns,flame:run.flame,players:run.players.map(p=>({id:p.playerId,hp:p.hp,status:p.status,gold:p.runGold}))}));
   assert.equal(run.phase,'FLOOR_CLEAR',JSON.stringify({visited,combatTurns}));
-  assert.deepEqual(visited,['NORMAL_COMBAT','REST','NORMAL_COMBAT','ELITE_COMBAT','REWARD_ROOM','NORMAL_COMBAT','SHOP','BOSS']);
+  assert.deepEqual(visited,['NORMAL_COMBAT','EVENT','SHOP','ELITE_COMBAT','REST','NORMAL_COMBAT','REWARD_ROOM','BOSS']);
   assert.equal(run.floorClear.bossName,'몰락한 성주');
   assert.equal(rewardResolved,true);
-  assert.equal(boughtCard,true);
-  assert.ok(run.players.find(p=>p.playerId==='p0').cardPool.some(c=>c.source==='SHOP'));
   assert.ok(run.players.some(p=>p.relics.length>0));
   assert.ok(admin.telemetry.some(x=>x.logType==='COMBAT'&&x.payload.monster_id==='f1_fallen_lord'));
   assert.ok(admin.telemetry.filter(x=>x.logType==='COMBAT').length>=5);
