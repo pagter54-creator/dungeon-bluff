@@ -1,5 +1,5 @@
 import {choose,drawIndex} from './rng.js';
-import {pveCharacterDef,selfModifyCard,collisionImmunity,isCardSelectableForCharacter,onCycleStartCharacter,onTurnEndCharacter,baseDamageForCharacter} from './characters.js';
+import {selfModifyCard,collisionImmunity,isCardSelectableForCharacter,onCycleStartCharacter,onTurnStartCharacter,onTurnEndCharacter,initializeCombatCharacter,baseDamageForCharacter} from './characters.js';
 import {applyOwnedEffects} from './effects.js';
 import {relicPool} from './relics.js';
 
@@ -75,6 +75,7 @@ export function enterShopRoom(run){
     ...pickUniqueRelics(run,exclusive,2,`shop-exclusive:${run.currentRoomNodeId}`)
   ].map((r,i)=>({id:`relic-${i+1}`,kind:'RELIC',relicId:r.id,price:r.betaPrice??(r.pool==='SHOP_EXCLUSIVE'?5:4),pool:r.pool,sold:false}));
   run.phase='SHOP';run.roomState={type:'SHOP',cardStock:cards,relicStock:relics,readyPlayerIds:run.players.filter(p=>p.memberType==='ai').map(p=>p.playerId),catalogIncomplete:relics.length<4};
+  if(allIds(run).every(id=>run.roomState.readyPlayerIds.includes(id)))finishRoom(run);
 }
 export function expireShopReservations(run,nowMs=Date.now()){
   if(run.roomState?.type!=='SHOP')return false;let changed=false;
@@ -139,11 +140,13 @@ function fillRewardAiSubmissions(run){
   }
 }
 export function enterRewardRoom(run){
+  for(const p of run.players){initializeCombatCharacter(p);onTurnStartCharacter(p,run);}
   const defs=run.relicCatalog||[],general=relicPool(defs,'GENERAL');
   const offered=pickUniqueRelics(run,general,4,`reward:${run.currentRoomNodeId}`).map(x=>x.id);
   run.phase='REWARD_ROOM';
   run.roomState={type:'REWARD_ROOM',attempt:1,relicIds:offered,catalogIncomplete:offered.length<4,privateByPlayer:Object.fromEntries(run.players.map(p=>[p.playerId,basePrivate(p)])),turnSubmissions:{},pickOrder:[],picks:{},autoAssigned:{},resolved:false};
   fillRewardAiSubmissions(run);
+  if(run.players.filter(p=>p.status!=='DOWNED').every(p=>run.roomState.turnSubmissions[p.playerId]))resolveRewardAttempt(run);
 }
 function rewardSelectable(run,p,id){
   const st=run.roomState.privateByPlayer[p.playerId],card=cardFor(p,id);
@@ -198,24 +201,24 @@ export function resolveRewardAttempt(run){
   if(run.phase!=='REWARD_ROOM'||run.roomState?.type!=='REWARD_ROOM')throw new Error('현재 보상방이 아닙니다.');
   const room=run.roomState,active=run.players.filter(p=>p.status!=='DOWNED');if(active.some(p=>!room.turnSubmissions[p.playerId]))return null;
   const cards=active.map(p=>{const sub=room.turnSubmissions[p.playerId],card=cardFor(p,sub.cardInstanceId);return {playerId:p.playerId,cardInstanceId:card.id,baseNumber:card.baseNumber,workingNumber:card.baseNumber,finalNumber:card.baseNumber,collisionImmune:false,valid:true};});
-  for(const rc of cards){const p=playerFor(run,rc.playerId),sub=room.turnSubmissions[rc.playerId];selfModifyCard(p,rc,sub);applyOwnedEffects(run,'PRE_COLLISION_SELF_MODIFY',{player:p,resolved:rc,events:[]});rc.collisionImmune=collisionImmunity(p,sub);}
+  for(const rc of cards){const p=playerFor(run,rc.playerId),sub=room.turnSubmissions[rc.playerId];selfModifyCard(p,rc,sub);applyOwnedEffects(run,'PRE_COLLISION_SELF_MODIFY',{player:p,resolved:rc,privateState:room.privateByPlayer[rc.playerId],events:[]});rc.collisionImmune=collisionImmunity(p,sub);}
   const counts=cards.reduce((m,c)=>(m[c.finalNumber]=(m[c.finalNumber]||0)+1,m),{});
   for(const c of cards)if(counts[c.finalNumber]>1&&!c.collisionImmune){c.valid=false;c.invalidReason='COLLISION';}
-  for(const c of cards)applyOwnedEffects(run,'CARD_VALIDATED',{player:playerFor(run,c.playerId),resolved:c,events:[]});
+  for(const c of cards)applyOwnedEffects(run,'CARD_VALIDATED',{player:playerFor(run,c.playerId),resolved:c,privateState:room.privateByPlayer[c.playerId],events:[]});
   for(const c of cards){
     const p=playerFor(run,c.playerId),sub=room.turnSubmissions[c.playerId],st=room.privateByPlayer[c.playerId];
     if(p.characterId==='gunner'&&sub.skillIntent){p.publicResources.fullBurstReady=false;if(c.valid){c.followUpCardIds=st.remainingCardIds.filter(id=>id!==c.cardInstanceId);p.publicResources.burstReadyCycle=(st.cycleIndex||1)+2;}else{p.publicResources.burstReadyCycle=(st.cycleIndex||1)+1;p.hp=Math.max(0,p.hp-1);}}
     const engrave=Number(p.engravings?.[String(c.finalNumber)])||0;const primary={amount:Math.max(0,baseDamageForCharacter(p,c)+engrave)},queued=[];
-    applyOwnedEffects(run,'BEFORE_DAMAGE',{player:p,resolved:c,damage:primary,followUps:queued,followUp:false,events:[]});
+    applyOwnedEffects(run,'BEFORE_DAMAGE',{player:p,resolved:c,damage:primary,followUps:queued,followUp:false,privateState:room.privateByPlayer[c.playerId],events:[]});
     c.damage=Math.max(0,primary.amount)+queued.reduce((s,x)=>s+Math.max(0,Number(x.amount)||0),0);
-    for(const id of c.followUpCardIds||[]){const extra=cardFor(p,id);const d={amount:extra.baseNumber+(Number(p.engravings?.[String(extra.baseNumber)])||0)},q=[];applyOwnedEffects(run,'BEFORE_DAMAGE',{player:p,resolved:c,damage:d,followUps:q,followUp:true,events:[]});c.damage+=Math.max(0,d.amount)+q.reduce((s,x)=>s+Math.max(0,Number(x.amount)||0),0);}
+    for(const id of c.followUpCardIds||[]){const extra=cardFor(p,id);const d={amount:extra.baseNumber+(Number(p.engravings?.[String(extra.baseNumber)])||0)},q=[];applyOwnedEffects(run,'BEFORE_DAMAGE',{player:p,resolved:c,damage:d,followUps:q,followUp:true,privateState:room.privateByPlayer[c.playerId],events:[]});c.damage+=Math.max(0,d.amount)+q.reduce((s,x)=>s+Math.max(0,Number(x.amount)||0),0);}
   }
   spendRoomCards(run,cards);room.turnSubmissions={};
   for(const p of run.players)onTurnEndCharacter(p);
   const valid=cards.filter(c=>c.valid);
   if(!valid.length){
     if(room.attempt>=3){autoAssignRemaining(run,run.players.map(p=>p.playerId));return {cards,autoOpened:true};}
-    room.attempt+=1;fillRewardAiSubmissions(run);return {cards,retry:true};
+    room.attempt+=1;for(const p of run.players)onTurnStartCharacter(p,run);fillRewardAiSubmissions(run);if(run.players.filter(p=>p.status!=='DOWNED').every(p=>room.turnSubmissions[p.playerId]))return resolveRewardAttempt(run);return {cards,retry:true};
   }
   if(room.catalogIncomplete){autoAssignRemaining(run,run.players.map(p=>p.playerId));return {cards,catalogIncomplete:true};}
   room.invalidPlayerIds=run.players.filter(p=>!valid.some(c=>c.playerId===p.playerId)).map(p=>p.playerId);
