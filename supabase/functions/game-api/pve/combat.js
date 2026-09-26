@@ -20,7 +20,8 @@ function spendResolvedCards(run,cards){
     priv.remainingCardIds=priv.remainingCardIds.filter(id=>id!==rc.cardInstanceId);
     priv.spentCardIds.push(rc.cardInstanceId);
     delete priv.selectedCardId;delete priv.skillIntent;
-    resetCycleIfNeeded(run,playerFor(run,rc.playerId));
+    const player=playerFor(run,rc.playerId);if(run.combat.turnSubmissions[rc.playerId]?.autoSubmitted&&player.status==='STUNNED_NEXT_TURN')player.status='ACTIVE';
+    resetCycleIfNeeded(run,player);
   }
 }
 function resolveDowns(run){
@@ -51,7 +52,7 @@ function autoSubmitStunned(run){
     if(!priv.remainingCardIds.length)resetCycleIfNeeded(run,p);
     const cardId=choose(run,priv.remainingCardIds,`stunned-auto:${c.id}:${c.turn}:${p.playerId}`);
     c.turnSubmissions[p.playerId]={playerId:p.playerId,cardInstanceId:cardId,skillIntent:false,submittedAt:new Date().toISOString(),autoSubmitted:true};
-    priv.selectedCardId=cardId;priv.skillIntent=false;p.status='ACTIVE';
+    priv.selectedCardId=cardId;priv.skillIntent=false;
   }
 }
 export function beginTurn(run){
