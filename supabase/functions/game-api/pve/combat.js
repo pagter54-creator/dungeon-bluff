@@ -77,22 +77,45 @@ function autoSubmitStunned(run){
     priv.selectedCardId=cardId;priv.skillIntent=false;
   }
 }
+function aiPlan(run,p,priv,cardId){
+  const card=cardFor(run,p.playerId,cardId);
+  let skillIntent=false,finalNumber=card.baseNumber,score=card.baseNumber;
+  if(p.characterId==='mage'&&(p.publicResources.mana||0)>=2){
+    const mana=p.publicResources.mana||0,bonus=mana>=4?2:1;
+    skillIntent=true;finalNumber+=bonus;score=finalNumber;
+  }else if(p.characterId==='gunner'&&p.publicResources.fullBurstReady){
+    skillIntent=true;
+    score=priv.remainingCardIds.reduce((sum,id)=>sum+(cardFor(run,p.playerId,id)?.baseNumber||0),0);
+  }else if(p.characterId==='warrior'&&(p.publicResources.toughnessCharges||0)>0&&card.baseNumber>=5){
+    skillIntent=true;
+  }
+  if(p.characterId==='twins')score+=2;
+  return {cardId,skillIntent,finalNumber,score};
+}
 function autoSubmitAi(run){
-  const c=run.combat;
+  const c=run.combat,usedAiNumbers=new Set();
+  for(const sub of Object.values(c.turnSubmissions)){
+    const owner=playerFor(run,sub.playerId);
+    if(owner?.memberType!=='ai')continue;
+    const card=cardFor(run,sub.playerId,sub.cardInstanceId);
+    if(card)usedAiNumbers.add(card.baseNumber);
+  }
   for(const p of run.players.filter(p=>p.memberType==='ai'&&p.status!=='DOWNED').sort((a,b)=>a.seat-b.seat)){
     if(c.turnSubmissions[p.playerId])continue;
     const priv=c.privateByPlayer[p.playerId];
     if(!priv.remainingCardIds.length)resetCycleIfNeeded(run,p);
     const choices=selectableIds(run,p);
     if(!choices.length)throw new Error('AI가 제출할 수 있는 합법 카드가 없습니다.');
-    const cardId=choose(run,choices,`combat-ai-card:${run.floor}:${run.depth}:${run.currentRoomNodeId||c.monster.id}:${c.turn}:${p.playerId}`);
-    const card=cardFor(run,p.playerId,cardId);
-    const skillIntent=(p.characterId==='gunner'&&p.publicResources.fullBurstReady)||
-      (p.characterId==='mage'&&(p.publicResources.mana||0)>=2)||
-      (p.characterId==='warrior'&&(p.publicResources.toughnessCharges||0)>0&&card?.baseNumber===5);
-    validateCharacterSkillIntent(p,priv,Boolean(skillIntent));
-    c.turnSubmissions[p.playerId]={playerId:p.playerId,cardInstanceId:cardId,skillIntent:Boolean(skillIntent),submittedAt:new Date().toISOString(),autoSubmitted:true};
-    priv.selectedCardId=cardId;priv.skillIntent=Boolean(skillIntent);
+    const plans=choices.map(id=>aiPlan(run,p,priv,id));
+    let pool=plans.filter(plan=>!usedAiNumbers.has(plan.finalNumber));
+    if(!pool.length)pool=plans;
+    const bestScore=Math.max(...pool.map(plan=>plan.score));
+    pool=pool.filter(plan=>plan.score===bestScore);
+    const plan=pool.length===1?pool[0]:choose(run,pool,`combat-ai-card:${run.floor}:${run.depth}:${run.currentRoomNodeId||c.monster.id}:${c.turn}:${p.playerId}`);
+    validateCharacterSkillIntent(p,priv,Boolean(plan.skillIntent));
+    c.turnSubmissions[p.playerId]={playerId:p.playerId,cardInstanceId:plan.cardId,skillIntent:Boolean(plan.skillIntent),submittedAt:new Date().toISOString(),autoSubmitted:true};
+    priv.selectedCardId=plan.cardId;priv.skillIntent=Boolean(plan.skillIntent);
+    usedAiNumbers.add(plan.finalNumber);
   }
 }
 export function beginTurn(run){
