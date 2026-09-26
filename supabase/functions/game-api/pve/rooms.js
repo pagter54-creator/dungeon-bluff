@@ -125,11 +125,25 @@ export function finishShop(run,playerId){
   if(allIds(run).every(id=>run.roomState.readyPlayerIds.includes(id)))finishRoom(run);
 }
 
+function fillRewardAiSubmissions(run){
+  const room=run.roomState;
+  for(const p of run.players.filter(x=>x.memberType==='ai'&&x.status!=='DOWNED').sort((a,b)=>a.seat-b.seat)){
+    if(room.turnSubmissions[p.playerId])continue;
+    const state=room.privateByPlayer[p.playerId];
+    let choices=state.remainingCardIds.filter(id=>rewardSelectable(run,p,id));
+    if(!choices.length){resetRoomCycle(run,p,state);choices=state.remainingCardIds.filter(id=>rewardSelectable(run,p,id));}
+    if(!choices.length)continue;
+    const cardId=choose(run,choices,`reward-ai-card:${run.currentRoomNodeId}:${room.attempt}:${p.playerId}`);
+    room.turnSubmissions[p.playerId]={playerId:p.playerId,cardInstanceId:cardId,skillIntent:false,autoSubmitted:true};
+    state.selectedCardId=cardId;state.skillIntent=false;
+  }
+}
 export function enterRewardRoom(run){
   const defs=run.relicCatalog||[],general=relicPool(defs,'GENERAL');
   const offered=pickUniqueRelics(run,general,4,`reward:${run.currentRoomNodeId}`).map(x=>x.id);
   run.phase='REWARD_ROOM';
   run.roomState={type:'REWARD_ROOM',attempt:1,relicIds:offered,catalogIncomplete:offered.length<4,privateByPlayer:Object.fromEntries(run.players.map(p=>[p.playerId,basePrivate(p)])),turnSubmissions:{},pickOrder:[],picks:{},autoAssigned:{},resolved:false};
+  fillRewardAiSubmissions(run);
 }
 function rewardSelectable(run,p,id){
   const st=run.roomState.privateByPlayer[p.playerId],card=cardFor(p,id);
@@ -164,7 +178,7 @@ function tieOrdered(run,cards){
 function autoAssignRemaining(run,playerIds){
   const room=run.roomState;
   for(const playerId of playerIds){
-    if(!room.relicIds.length)break;
+    if(!room.relicIds.length){room.autoAssigned[playerId]=null;continue;}
     const relicId=choose(run,room.relicIds,`reward-auto:${run.currentRoomNodeId}:${room.attempt}:${playerId}`);
     room.relicIds=room.relicIds.filter(x=>x!==relicId);playerFor(run,playerId).relics.push(relicId);room.autoAssigned[playerId]=relicId;
   }
@@ -174,7 +188,7 @@ function autoResolveAiPickers(run){
   const room=run.roomState;
   while(room.pickOrder.length){
     const pid=room.pickOrder[0],p=playerFor(run,pid);if(p.memberType!=='ai')break;
-    const candidates=room.relicIds.filter(id=>!p.relics.includes(id));const source=candidates.length?candidates:room.relicIds;
+    const candidates=room.relicIds.filter(id=>!p.relics.includes(id));const source=candidates.length?candidates:room.relicIds;if(!source.length){room.pickOrder.shift();continue;}
     const relicId=choose(run,source,`reward-ai-pick:${run.currentRoomNodeId}:${pid}`);
     p.relics.push(relicId);room.picks[pid]=relicId;room.relicIds=room.relicIds.filter(x=>x!==relicId);room.pickOrder.shift();
   }
@@ -198,7 +212,7 @@ export function resolveRewardAttempt(run){
   const valid=cards.filter(c=>c.valid);
   if(!valid.length){
     if(room.attempt>=3){autoAssignRemaining(run,run.players.map(p=>p.playerId));return {cards,autoOpened:true};}
-    room.attempt+=1;return {cards,retry:true};
+    room.attempt+=1;fillRewardAiSubmissions(run);return {cards,retry:true};
   }
   room.invalidPlayerIds=run.players.filter(p=>!valid.some(c=>c.playerId===p.playerId)).map(p=>p.playerId);
   room.pickOrder=tieOrdered(run,valid).map(c=>c.playerId);
