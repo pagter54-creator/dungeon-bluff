@@ -4,6 +4,7 @@ import {projectRun} from './projection.js';
 import {submitCard,resolveBasicTurn,beginTurn} from './combat.js';
 import {activateImmediateCharacterSkill} from './characters.js';
 import {chooseAugment} from './augments.js';
+import {enterRestRoom,applyRestChoice,enterShopRoom,reserveShopCard,cancelShopCardReservation,confirmShopCard,buyShopRelic,finishShop,enterRewardRoom,activateRewardSkill,submitRewardCard,resolveRewardAttempt,chooseRewardRelic,roomReady,expireShopReservations} from './rooms.js';
 
 const uuid=v=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 const fail=(json,message,status=400)=>json({error:message},status);
@@ -12,6 +13,10 @@ function nodeType(run,id){return run.map.nodes.find(n=>n.id===id)?.type;}
 function enterNode(run,id){
   const type=nodeType(run,id);run.currentRoomNodeId=id;run.phase='ROOM_ENTER';
   if(type==='NORMAL_COMBAT'||type==='ELITE_COMBAT'||type==='BOSS'){run.phase='COMBAT';run.combat=newCombatState(run.players,type==='BOSS'?240:type==='ELITE_COMBAT'?160:90);beginTurn(run);}
+  else if(type==='REST')enterRestRoom(run);
+  else if(type==='SHOP')enterShopRoom(run);
+  else if(type==='REWARD_ROOM')enterRewardRoom(run);
+  else if(type==='EVENT')run.phase='EVENT';
 }
 async function readRun(admin,runId,actionId=null){
   const {data,error}=await admin.rpc('pve_read',{p_run:runId,p_action_id:actionId});
@@ -45,7 +50,7 @@ export async function handlePveAction({admin,user,body,json}){
   if(action!=='pve.getState'&&!uuid(actionId))return fail(json,'상태 변경에는 action_id UUID가 필요합니다.');
   const snapshot=await readRun(admin,body.run_id,actionId||null);
   if(!snapshot?.state)return fail(json,'PVE 원정을 찾을 수 없습니다.',404);
-  let run=snapshot.state;run.version=snapshot.version;
+  let run=snapshot.state;run.version=snapshot.version;if(run.phase==='SHOP')expireShopReservations(run);
   const me=viewer(run,user.id);if(!me)return fail(json,'이 PVE 원정의 참가자가 아닙니다.',403);
   if(action==='pve.getState')return json({run:projectRun(run,me.playerId)});
   if(snapshot.action_result)return json({run:projectRun(run,me.playerId),idempotent:true});
@@ -74,6 +79,32 @@ export async function handlePveAction({admin,user,body,json}){
   } else if(action==='pve.chooseAugment'){
     if(typeof body.augment_id!=='string')return fail(json,'augment_id가 필요합니다.');
     chooseAugment(run,me.playerId,body.augment_id);
+  } else if(action==='pve.restChoice'){
+    if(me.memberType!=='human')return fail(json,'인간 플레이어만 직접 휴식 선택을 할 수 있습니다.',403);
+    applyRestChoice(run,me.playerId,body.choice,body.number);
+  } else if(action==='pve.shopReserveCard'){
+    if(me.memberType!=='human')return fail(json,'인간 플레이어만 상점을 이용할 수 있습니다.',403);
+    reserveShopCard(run,me.playerId,body.product_id);
+  } else if(action==='pve.shopCancelCard'){
+    cancelShopCardReservation(run,me.playerId,body.product_id);
+  } else if(action==='pve.shopConfirmCard'){
+    if(typeof body.replace_card_id!=='string')return fail(json,'replace_card_id가 필요합니다.');
+    confirmShopCard(run,me.playerId,body.product_id,body.replace_card_id);
+  } else if(action==='pve.shopBuyRelic'){
+    buyShopRelic(run,me.playerId,body.product_id);
+  } else if(action==='pve.shopReady'){
+    finishShop(run,me.playerId);
+  } else if(action==='pve.rewardActivateSkill'){
+    activateRewardSkill(run,me.playerId);
+  } else if(action==='pve.rewardSubmitCard'){
+    if(typeof body.card_instance_id!=='string')return fail(json,'card_instance_id가 필요합니다.');
+    submitRewardCard(run,me.playerId,body.card_instance_id,body.skill_intent===true);
+    resolveRewardAttempt(run);
+  } else if(action==='pve.rewardChooseRelic'){
+    if(typeof body.relic_id!=='string')return fail(json,'relic_id가 필요합니다.');
+    chooseRewardRelic(run,me.playerId,body.relic_id);
+  } else if(action==='pve.roomReady'){
+    roomReady(run,me.playerId);
   } else return fail(json,'지원하지 않는 PVE action입니다.',400);
 
   run.updatedAt=new Date().toISOString();
