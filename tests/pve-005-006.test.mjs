@@ -84,7 +84,8 @@ test('PVE-006 mage self-modify happens before collision and consumes mana',()=>{
   const r=play(run,[4,5,1,2],[true,false,false,false]);
   assert.equal(r.cards[0].workingNumber,5);assert.equal(r.cards[0].finalNumber,5);
   assert.equal(r.cards[0].valid,false);assert.equal(r.cards[1].valid,false);
-  assert.equal(run.players[0].publicResources.mana,0);
+  // The cast spends 2 mana to 0, then the automatically opened next turn restores +1.
+  assert.equal(run.players[0].publicResources.mana,1);
 });
 
 test('PVE-006 physical card consumption resets cycle and knight gains one charge up to cap two',()=>{
