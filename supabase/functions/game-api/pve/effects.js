@@ -36,7 +36,7 @@ function counter(run,player,effect,ctx){
 }
 function privateState(run,player){return run.combat?.privateByPlayer?.[player.playerId];}
 function recoverCard(run,player,operation,ctx){
-  const priv=privateState(run,player);if(!priv||!priv.spentCardIds.length)return null;
+  const priv=ctx.privateState||privateState(run,player);if(!priv||!priv.spentCardIds.length)return null;
   let id=operation.cardInstanceId;
   if(!id&&operation.number!=null)id=priv.spentCardIds.find(x=>player.cardPool.find(c=>c.id===x)?.baseNumber===operation.number);
   if(!id)id=priv.spentCardIds[0];
@@ -44,8 +44,8 @@ function recoverCard(run,player,operation,ctx){
   priv.spentCardIds=priv.spentCardIds.filter(x=>x!==id);if(!priv.remainingCardIds.includes(id))priv.remainingCardIds.push(id);
   return id;
 }
-function discardCard(run,player,operation){
-  const priv=privateState(run,player);if(!priv)return null;
+function discardCard(run,player,operation,ctx){
+  const priv=ctx.privateState||privateState(run,player);if(!priv)return null;
   let id=operation.cardInstanceId;
   if(!id&&operation.number!=null)id=priv.remainingCardIds.find(x=>player.cardPool.find(c=>c.id===x)?.baseNumber===operation.number);
   if(!id)id=priv.remainingCardIds[0];
@@ -67,7 +67,7 @@ function applyOperation(run,player,op,ctx){
   else if(op.type==='SPEND_RESOURCE')player.publicResources[op.resource]=Math.max(0,(Number(player.publicResources[op.resource])||0)-Math.max(0,amount));
   else if(op.type==='RECOVER_CARD'){const id=recoverCard(run,player,op,ctx);if(id)ctx.events?.push({type:'PRIVATE_CARD_RECOVERED',playerId:player.playerId,cardInstanceId:id});}
   else if(op.type==='DRAW_CARD'){const id=recoverCard(run,player,op,ctx);if(id)ctx.events?.push({type:'PRIVATE_CARD_DRAWN',playerId:player.playerId,cardInstanceId:id});}
-  else if(op.type==='DISCARD_CARD')discardCard(run,player,op);
+  else if(op.type==='DISCARD_CARD')discardCard(run,player,op,ctx);
   else if(op.type==='ADD_RUN_GOLD')player.runGold+=amount;
   else if(op.type==='ADD_EXP')player.growthExp+=amount;
   else if(op.type==='ADD_ARMOR')player.publicResources.armor=(Number(player.publicResources.armor)||0)+Math.max(0,amount);
@@ -84,7 +84,7 @@ export function applyOwnedEffects(run,trigger,ctx={}){
   for(const player of players){
     const defs=definitionsFor(run,player).filter(e=>e.trigger===trigger&&(!ctx.followUp||(e.tags||[]).includes('MULTI_HIT'))).sort((a,b)=>(a.priority||0)-(b.priority||0)||String(a.id).localeCompare(String(b.id)));
     for(const effect of defs){
-      const local={...ctx,run,player,privateState:privateState(run,player)};
+      const local={...ctx,run,player,privateState:ctx.privateState||privateState(run,player)};
       if(!conditionMatches(effect.condition,local))continue;
       const c=counter(run,player,effect,local);
       if(effect.maxTriggers!=null&&c.value>=effect.maxTriggers)continue;
