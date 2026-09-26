@@ -1,5 +1,7 @@
 export function projectRun(run,viewerPlayerId){
   const out=structuredClone(run);
+  delete out.effectCatalog;
+  delete out.relicCatalog;
   for(const player of out.players||[]){
     if(player.playerId!==viewerPlayerId&&Array.isArray(player.cardPool)){
       player.cardPool=player.cardPool.map(({baseNumber,source,tags})=>({baseNumber,source,...(tags?{tags}: {})}));
@@ -13,6 +15,15 @@ export function projectRun(run,viewerPlayerId){
   if(out.combat?.turnSubmissions){
     out.combat.readyPlayerIds=Object.keys(out.combat.turnSubmissions);
     delete out.combat.turnSubmissions;
+  }
+  if(out.roomState?.privateByPlayer){
+    const own=out.roomState.privateByPlayer[viewerPlayerId]||null;
+    delete out.roomState.privateByPlayer;
+    out.privateRoomState=own;
+  }
+  if(out.roomState?.turnSubmissions){
+    out.roomState.readyPlayerIds=Object.keys(out.roomState.turnSubmissions);
+    delete out.roomState.turnSubmissions;
   }
   if(out.augmentChoice){
     const pending=out.augmentChoice.pendingByPlayer?.[viewerPlayerId]||[];
