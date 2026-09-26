@@ -5,6 +5,7 @@ import {
 } from './characters.js';
 import {publishMonsterIntent,executeMonsterIntent} from './monster.js';
 import {beginAugmentChoices} from './augments.js';
+import {applyOwnedEffects} from './effects.js';
 
 function cardFor(run,pid,cardId){return run.players.find(p=>p.playerId===pid)?.cardPool.find(c=>c.id===cardId);}
 function playerFor(run,pid){return run.players.find(p=>p.playerId===pid);}
@@ -18,6 +19,7 @@ function selectableIds(run,player){
 function resetCycleIfNeeded(run,player){
   const priv=run.combat.privateByPlayer[player.playerId];
   if(priv.remainingCardIds.length)return false;
+  applyOwnedEffects(run,'CYCLE_END',{player,privateState:priv,events:[]});
   priv.cycleIndex=(priv.cycleIndex||1)+1;
   priv.spentCardIds=[];
   priv.remainingCardIds=player.cardPool.map(c=>c.id);
@@ -77,7 +79,7 @@ function autoSubmitStunned(run){
 export function beginTurn(run){
   const c=run.combat;if(!c||run.phase!=='COMBAT')return;
   c.phase='TURN_START';
-  for(const p of run.players)onTurnStartCharacter(p,run);
+  for(const p of run.players){onTurnStartCharacter(p,run);applyOwnedEffects(run,'TURN_START',{player:p,events:[]});}
   c.phase='INTENT_PUBLISH';publishMonsterIntent(run);
   c.phase='SELECTION_OPEN';autoSubmitStunned(run);
 }
@@ -103,7 +105,7 @@ export function resolveBasicTurn(run){
     return {playerId:pid,cardInstanceId:card.id,baseNumber:card.baseNumber,workingNumber:card.baseNumber,finalNumber:card.baseNumber,collisionImmune:false,valid:true};
   });
   c.phase='PRE_COLLISION_SELF_MODIFY';phaseTrace.push(c.phase);
-  for(const rc of cards)selfModifyCard(playerFor(run,rc.playerId),rc,c.turnSubmissions[rc.playerId]);
+  for(const rc of cards){const p=playerFor(run,rc.playerId);selfModifyCard(p,rc,c.turnSubmissions[rc.playerId]);applyOwnedEffects(run,'PRE_COLLISION_SELF_MODIFY',{player:p,resolved:rc,events:[]});}
   c.phase='PRE_COLLISION_SWAP';phaseTrace.push(c.phase);
   c.phase='PRE_COLLISION_STEAL';phaseTrace.push(c.phase);
   c.phase='FINAL_NUMBER_REVEAL';phaseTrace.push(c.phase);
@@ -112,21 +114,28 @@ export function resolveBasicTurn(run){
   const groups=new Map();for(const rc of cards){const a=groups.get(rc.finalNumber)||[];a.push(rc);groups.set(rc.finalNumber,a);}
   for(const group of groups.values())if(group.length>1)for(const rc of group)if(!rc.collisionImmune){rc.valid=false;rc.invalidReason='COLLISION';}
   c.phase='VALIDITY_DERIVE';phaseTrace.push(c.phase);
-  for(const rc of cards)resolvePostCollisionCharacter(run,rc,c.turnSubmissions[rc.playerId]);
+  for(const rc of cards){const p=playerFor(run,rc.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player:p,resolved:rc,events:[]});resolvePostCollisionCharacter(run,rc,c.turnSubmissions[rc.playerId]);}
   c.phase='DAMAGE_BUILD';phaseTrace.push(c.phase);
   const defense=Math.max(0,Number(c.monster.defense)||0);
   const packets=[];
   for(const rc of cards.filter(x=>x.valid)){
     const player=playerFor(run,rc.playerId);
-    packets.push({sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,amount:Math.max(0,baseDamageForCharacter(player,rc)-defense),tags:['BASE_CARD'],followUp:false});
+    const primary={sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,amount:Math.max(0,baseDamageForCharacter(player,rc)+(Number(player.engravings?.[String(rc.finalNumber)])||0)-defense),tags:['BASE_CARD'],followUp:false};
+    const primaryDamage={amount:primary.amount},queued=[];
+    applyOwnedEffects(run,'BEFORE_DAMAGE',{player,resolved:rc,damage:primaryDamage,followUps:queued,followUp:false,events:[]});
+    primary.amount=Math.max(0,primaryDamage.amount);packets.push(primary,...queued.map(x=>({...x,sourceCardId:x.sourceCardId||rc.cardInstanceId})));
     for(const extraId of rc.followUpCardIds||[]){
-      const extra=cardFor(run,rc.playerId,extraId);
-      if(extra)packets.push({sourcePlayerId:rc.playerId,sourceCardId:extra.id,amount:Math.max(0,extra.baseNumber-defense),tags:['FOLLOW_UP'],followUp:true});
+      const extra=cardFor(run,rc.playerId,extraId);if(!extra)continue;
+      const packet={sourcePlayerId:rc.playerId,sourceCardId:extra.id,amount:Math.max(0,extra.baseNumber+(Number(player.engravings?.[String(extra.baseNumber)])||0)-defense),tags:['FOLLOW_UP'],followUp:true};
+      const damage={amount:packet.amount},extraQueued=[];
+      applyOwnedEffects(run,'BEFORE_DAMAGE',{player,resolved:rc,damage,followUps:extraQueued,followUp:true,events:[]});
+      packet.amount=Math.max(0,damage.amount);packets.push(packet,...extraQueued.map(x=>({...x,sourceCardId:x.sourceCardId||extra.id})));
     }
   }
   c.monster.defense=0;
   c.phase='DAMAGE_BATCH_APPLY';phaseTrace.push(c.phase);
   const totalDamage=packets.reduce((s,p)=>s+p.amount,0);c.monster.hp=Math.max(0,c.monster.hp-totalDamage);
+  for(const packet of packets){const p=playerFor(run,packet.sourcePlayerId);applyOwnedEffects(run,'AFTER_DAMAGE',{player:p,damage:{amount:packet.amount},followUp:packet.followUp,packet,events:[]});}
   for(const rc of cards)if(rc.valid)onValidAttack(playerFor(run,rc.playerId));
   const events=[];
   c.phase='POST_PLAYER_ATTACK';phaseTrace.push(c.phase);
@@ -145,6 +154,8 @@ export function resolveBasicTurn(run){
       return c.publicTurnResult;
     }
     reviveAfterVictory(run);c.phase='COMBAT_END';run.phase='ROOM_RESULT';
+    for(const p of run.players)applyOwnedEffects(run,'MONSTER_KILLED',{player:p,events});
+    for(const p of run.players)applyOwnedEffects(run,'COMBAT_END',{player:p,events});
     beginAugmentChoices(run,'ROOM_RESULT');
     c.publicTurnResult={turn:c.turn,cards,damagePackets:packets,totalDamage,phaseTrace:[...phaseTrace,'COMBAT_END'],events};
     return c.publicTurnResult;
