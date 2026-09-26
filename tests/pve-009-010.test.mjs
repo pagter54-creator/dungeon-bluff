@@ -168,6 +168,20 @@ test('PVE-010 reward room preserves consumed cards across all-collision retries 
   for(const p of run.players)assert.equal(p.relics.length,1);
 });
 
+test('PVE-010 reward retry keeps active-skill resource consumption instead of refunding it',()=>{
+  const run=makeRun(['mage','adventurer','adventurer','adventurer']);delete run.combat;run.currentRoomNodeId='reward';installRelicCatalog(run,fixtureRelics());
+  enterRewardRoom(run);run.players[0].publicResources.mana=2;
+  submitRewardCard(run,'p0',rewardCard(run,'p0',1),true);
+  submitRewardCard(run,'p1',rewardCard(run,'p1',2));
+  submitRewardCard(run,'p2',rewardCard(run,'p2',3));
+  submitRewardCard(run,'p3',rewardCard(run,'p3',3));
+  const r=resolveRewardAttempt(run);
+  assert.equal(r.retry,true);assert.equal(run.roomState.attempt,2);
+  // Amplify spent 2 -> 0; opening the retry turn grants only the normal +1 mana.
+  assert.equal(run.players[0].publicResources.mana,1);
+  assert.equal(run.roomState.privateByPlayer.p0.spentCardIds.length,1);
+});
+
 test('PVE-010 reward private cycle state is viewer-only and roomReady returns completed rooms to map voting',()=>{
   const run=makeRun();delete run.combat;run.currentRoomNodeId='reward';installRelicCatalog(run,fixtureRelics());enterRewardRoom(run);
   submitRewardCard(run,'p1',rewardCard(run,'p1',2));
