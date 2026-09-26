@@ -21,9 +21,11 @@ export const F1_MONSTER_DEFINITIONS=Object.freeze({
     id:'f1_echo_bat',name:'메아리 박쥐',floor:1,tier:'ELITE',baseHp:160,tags:['F1','ELITE','ECHO'],
     pattern:[
       {type:'CHARGE',telegraphText:'동굴을 울리는 초음파를 모은다',payload:{}},
-      {type:'AOE_DAMAGE',telegraphText:'메아리 충격파가 파티 전체를 덮친다',payload:{amount:1}},
       {type:'DIRECT_DAMAGE',telegraphText:'메아리를 따라 한 명에게 급강하한다',payload:{target:'RANDOM_LIVING',amount:1}},
-      {type:'CHARGE',telegraphText:'천장으로 물러나 다음 메아리를 준비한다',payload:{}},
+      {type:'CHARGE',telegraphText:'천장으로 물러난다',payload:{}},
+      {type:'CHARGE',telegraphText:'동굴 전체가 울리기 시작한다',payload:{}},
+      {type:'AOE_DAMAGE',telegraphText:'메아리 충격파가 파티 전체를 덮친다',payload:{amount:1}},
+      {type:'CHARGE',telegraphText:'다음 메아리를 준비한다',payload:{}},
     ]
   },
   f1_fallen_lord:{
@@ -34,7 +36,9 @@ export const F1_MONSTER_DEFINITIONS=Object.freeze({
       {type:'DEFEND',telegraphText:'낡은 성벽의 잔해로 몸을 감싼다',payload:{amount:1}},
       {type:'CHARGE',telegraphText:'검은 기운이 홀 안에 퍼진다',payload:{}},
       {type:'AOE_DAMAGE',telegraphText:'몰락의 파동이 파티 전체를 덮친다',payload:{amount:1}},
-      {type:'HEAL',telegraphText:'성의 잔향을 흡수해 상처를 회복한다',payload:{amount:4}},
+      {type:'CHARGE',telegraphText:'성의 잔향을 끌어모은다',payload:{}},
+      {type:'HEAL',telegraphText:'잔향을 흡수해 상처를 조금 회복한다',payload:{amount:2}},
+      {type:'CHARGE',telegraphText:'다음 검격을 준비한다',payload:{}},
     ]
   }
 });
