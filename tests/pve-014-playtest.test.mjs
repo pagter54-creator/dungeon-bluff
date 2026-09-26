@@ -254,5 +254,12 @@ test('PVE-014 internal API playtest: four humans can traverse every F1 room fami
   assert.equal(rewardResolved,true);
   assert.ok(run.players.some(p=>p.relics.length>0));
   assert.ok(admin.telemetry.some(x=>x.logType==='COMBAT'&&x.payload.monster_id==='f1_fallen_lord'));
-  assert.ok(admin.telemetry.filter(x=>x.logType==='COMBAT').length>=4);
+  const combatLogs=admin.telemetry.filter(x=>x.logType==='COMBAT').map(x=>x.payload);
+  assert.ok(combatLogs.length>=4);
+  console.log('[PVE-014 F1 playtest]',JSON.stringify({
+    route:visited,
+    combats:combatLogs.map(x=>({room:x.room_type,monster:x.monster_id,turns:x.turn_count,damage:x.party_damage_total,flameSpent:x.flame_spent})),
+    finalFlame:run.flame,
+    finalPlayers:run.players.map(p=>({id:p.playerId,hp:p.hp,gold:p.runGold,relics:p.relics.length}))
+  }));
 });
