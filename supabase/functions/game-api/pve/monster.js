@@ -6,7 +6,7 @@ function materializeIntent(run,template){
   const intent=structuredClone(template);
   if(intent.type==='DIRECT_DAMAGE'&&intent.payload?.target==='RANDOM_LIVING'){
     const living=run.players.filter(p=>p.status!=='DOWNED');
-    const target=choose(run,living,`monster-target:${run.combat.id}:${run.combat.turn}:${run.combat.monster.id}`);
+    const target=choose(run,living,`monster-target:${run.floor}:${run.depth}:${run.currentRoomNodeId||run.combat.monster.id}:${run.combat.turn}:${run.combat.monster.id}`);
     intent.payload.targetPlayerId=target.playerId;delete intent.payload.target;
     intent.telegraphText=`${intent.telegraphText} (${target.seat+1}번 자리)`;
   }
@@ -21,7 +21,7 @@ export function publishMonsterIntent(run){
     const template=def.pattern[(c.turn-1)%def.pattern.length];
     intent=materializeIntent(run,template);
   }else if(c.turn%3===0){
-    const target=choose(run,living,`monster-target:${c.id}:${c.turn}`);
+    const target=choose(run,living,`monster-target:${run.floor}:${run.depth}:${run.currentRoomNodeId||c.monster.id}:${c.turn}:${c.monster.id}`);
     intent={type:'DIRECT_DAMAGE',telegraphText:`${target.seat+1}번 자리 공격`,payload:{targetPlayerId:target.playerId,amount:1}};
   }else intent={type:'CHARGE',telegraphText:'힘을 모으고 있다',payload:{}};
   c.monster.intent=intent;return intent;
