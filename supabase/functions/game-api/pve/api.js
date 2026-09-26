@@ -12,7 +12,7 @@ function viewer(run,userId){return run.players.find(p=>p.userId===userId);}
 function nodeType(run,id){return run.map.nodes.find(n=>n.id===id)?.type;}
 function enterNode(run,id){
   const type=nodeType(run,id);run.currentRoomNodeId=id;run.phase='ROOM_ENTER';
-  if(type==='NORMAL_COMBAT'||type==='ELITE_COMBAT'||type==='BOSS'){run.phase='COMBAT';run.combat=newCombatState(run.players,type==='BOSS'?240:type==='ELITE_COMBAT'?160:90);beginTurn(run);}
+  if(type==='NORMAL_COMBAT'||type==='ELITE_COMBAT'||type==='BOSS'){run.phase='COMBAT';run.combat=newCombatState(run.players,type==='BOSS'?240:type==='ELITE_COMBAT'?160:90,type);beginTurn(run);}
   else if(type==='REST')enterRestRoom(run);
   else if(type==='SHOP')enterShopRoom(run);
   else if(type==='REWARD_ROOM')enterRewardRoom(run);
@@ -27,6 +27,21 @@ async function commitRun(admin,run,expectedVersion,actionId){
   const {data,error}=await admin.rpc('pve_try_commit',{p_run:run.id,p_expected:expectedVersion,p_action_id:actionId,p_state:run});
   if(error)throw new Error(error.message||'PVE 상태를 저장하지 못했습니다.');
   return data;
+}
+async function maintainForRead(admin,run){
+  let changed=false;
+  if(run.phase==='SHOP')changed=expireShopReservations(run)||changed;
+  if(run.phase==='MAP_VOTE'&&run.map?.voteDeadline&&Date.now()>=Date.parse(run.map.voteDeadline)){
+    const humans=run.players.filter(p=>p.memberType==='human').map(p=>p.playerId);
+    const chosen=resolveVote(run,humans);
+    enterNode(run,chosen);
+    changed=true;
+  }
+  if(!changed)return run;
+  run.updatedAt=new Date().toISOString();
+  const saved=await commitRun(admin,run,run.version,crypto.randomUUID());
+  const latest=saved.state;latest.version=saved.version;
+  return latest;
 }
 export async function handlePveAction({admin,user,body,json}){
   const action=body.action;if(typeof action!=='string'||!action.startsWith('pve.'))return null;
@@ -50,12 +65,22 @@ export async function handlePveAction({admin,user,body,json}){
   if(action!=='pve.getState'&&!uuid(actionId))return fail(json,'상태 변경에는 action_id UUID가 필요합니다.');
   const snapshot=await readRun(admin,body.run_id,actionId||null);
   if(!snapshot?.state)return fail(json,'PVE 원정을 찾을 수 없습니다.',404);
-  let run=snapshot.state;run.version=snapshot.version;if(run.phase==='SHOP')expireShopReservations(run);
-  const me=viewer(run,user.id);if(!me)return fail(json,'이 PVE 원정의 참가자가 아닙니다.',403);
-  if(action==='pve.getState')return json({run:projectRun(run,me.playerId)});
-  if(snapshot.action_result)return json({run:projectRun(run,me.playerId),idempotent:true});
+  let run=snapshot.state;run.version=snapshot.version;
+  let me=viewer(run,user.id);if(!me)return fail(json,'이 PVE 원정의 참가자가 아닙니다.',403);
+  if(action==='pve.getState'){
+    run=await maintainForRead(admin,run);
+    me=viewer(run,user.id)||me;
+    return json({run:projectRun(run,me.playerId)});
+  }
+  if(snapshot.action_result){
+    const prior=snapshot.action_result.state||run;
+    prior.version=snapshot.action_result.committed_version??prior.version;
+    const priorMe=viewer(prior,user.id)||me;
+    return json({run:projectRun(prior,priorMe.playerId),idempotent:true});
+  }
   if(!Number.isSafeInteger(body.expected_version))return fail(json,'expected_version이 필요합니다.');
   if(body.expected_version!==snapshot.version)return json({error:'STATE_CONFLICT',run:projectRun(run,me.playerId)},409);
+  if(run.phase==='SHOP')expireShopReservations(run);
 
   if(action==='pve.voteNextRoom'){
     if(run.phase!=='MAP_VOTE')return fail(json,'현재는 다음 방 투표 단계가 아닙니다.');
