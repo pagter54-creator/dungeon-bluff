@@ -1,7 +1,7 @@
 import {newPlayerRunState,newCombatState} from './model.js';
 import {generateFloorMap,connectedNodeIds,resolveVote} from './map.js';
 import {projectRun} from './projection.js';
-import {submitCard,resolveBasicTurn} from './combat.js';
+import {submitCard,resolveBasicTurn,beginTurn} from './combat.js';
 
 const uuid=v=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 const fail=(json,message,status=400)=>json({error:message},status);
@@ -9,7 +9,7 @@ function viewer(run,userId){return run.players.find(p=>p.userId===userId);}
 function nodeType(run,id){return run.map.nodes.find(n=>n.id===id)?.type;}
 function enterNode(run,id){
   const type=nodeType(run,id);run.currentRoomNodeId=id;run.phase='ROOM_ENTER';
-  if(type==='NORMAL_COMBAT'||type==='ELITE_COMBAT'||type==='BOSS'){run.phase='COMBAT';run.combat=newCombatState(run.players,type==='BOSS'?240:type==='ELITE_COMBAT'?160:90);}
+  if(type==='NORMAL_COMBAT'||type==='ELITE_COMBAT'||type==='BOSS'){run.phase='COMBAT';run.combat=newCombatState(run.players,type==='BOSS'?240:type==='ELITE_COMBAT'?160:90);beginTurn(run);}
 }
 async function readRun(admin,runId,actionId=null){
   const {data,error}=await admin.rpc('pve_read',{p_run:runId,p_action_id:actionId});
