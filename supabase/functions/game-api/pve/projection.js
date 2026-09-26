@@ -2,6 +2,7 @@ export function projectRun(run,viewerPlayerId){
   const out=structuredClone(run);
   delete out.effectCatalog;
   delete out.relicCatalog;
+  delete out._telemetryPending;
   for(const player of out.players||[]){
     if(player.playerId!==viewerPlayerId&&Array.isArray(player.cardPool)){
       player.cardPool=player.cardPool.map(({baseNumber,source,tags})=>({baseNumber,source,...(tags?{tags}: {})}));
