@@ -29,7 +29,7 @@ function humanBundle(){
     members:[
       {id:'p0',user_id:'u0',member_type:'human',character_id:'warrior',seat_index:0},
       {id:'p1',user_id:'u1',member_type:'human',character_id:'twins',seat_index:1},
-      {id:'p2',user_id:'u2',member_type:'human',character_id:'adventurer',seat_index:2},
+      {id:'p2',user_id:'u2',member_type:'human',character_id:'gunner',seat_index:2},
       {id:'p3',user_id:'u3',member_type:'human',character_id:'mage',seat_index:3},
     ],
     session:null
@@ -151,10 +151,20 @@ test('PVE-014 internal API playtest: four humans can traverse every F1 room fami
         let cards=(view.privateCombat?.remainingCardIds||[]).map(id=>me.cardPool.find(c=>c.id===id)).filter(Boolean);
         if(me.characterId==='twins')cards=cards.filter(card=>card.baseNumber%2===(me.publicResources.parity||0));
         cards.sort((a,b)=>b.baseNumber-a.baseNumber);
-        const chosen=cards.find(card=>!used.has(card.baseNumber))||cards[0];
+        let chosen=null,useSkill=false,finalNumber=null;
+        if(me.characterId==='mage'&&(me.publicResources.mana||0)>=2){
+          const bonus=(me.publicResources.mana||0)>=4?2:1;
+          chosen=cards.find(card=>!used.has(card.baseNumber+bonus));
+          if(chosen){useSkill=true;finalNumber=chosen.baseNumber+bonus;}
+        }
+        if(!chosen){
+          chosen=cards.find(card=>!used.has(card.baseNumber))||cards[0];
+          finalNumber=chosen?.baseNumber;
+          if(me.characterId==='warrior'&&(me.publicResources.toughnessCharges||0)>0&&chosen?.baseNumber>=5)useSkill=true;
+          if(me.characterId==='gunner'&&me.publicResources.fullBurstReady)useSkill=true;
+        }
         assert.ok(chosen,`no legal combat card for ${userId}`);
-        const useSkill=me.characterId==='warrior'&&(me.publicResources.toughnessCharges||0)>0&&chosen.baseNumber>=5;
-        used.add(chosen.baseNumber);
+        used.add(finalNumber);
         run=await call(admin,{action:'pve.submitCard',run_id:run.id,action_id:actionId(seq++),expected_version:version(),card_instance_id:chosen.id,skill_intent:useSkill},userId);
         combatTurns[run.currentRoomNodeId]=Math.max(combatTurns[run.currentRoomNodeId]||0,turn);
         if(run.phase!=='COMBAT'||run.combat.turn!==turn)break;
