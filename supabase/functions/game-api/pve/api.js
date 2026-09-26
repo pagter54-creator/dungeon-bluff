@@ -2,6 +2,8 @@ import {newPlayerRunState,newCombatState} from './model.js';
 import {generateFloorMap,connectedNodeIds,resolveVote} from './map.js';
 import {projectRun} from './projection.js';
 import {submitCard,resolveBasicTurn,beginTurn} from './combat.js';
+import {activateImmediateCharacterSkill} from './characters.js';
+import {chooseAugment} from './augments.js';
 
 const uuid=v=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 const fail=(json,message,status=400)=>json({error:message},status);
@@ -61,11 +63,17 @@ export async function handlePveAction({admin,user,body,json}){
     const counts=Object.values(run.map.votes).reduce((m,id)=>(m[id]=(m[id]||0)+1,m),{});
     const majority=Object.values(counts).some(n=>n>humans.length/2);
     if(majority||timedOut){const chosen=resolveVote(run,humans);enterNode(run,chosen);}
+  } else if(action==='pve.activateSkill'){
+    if(run.phase!=='COMBAT')return fail(json,'현재 전투 중이 아닙니다.');
+    activateImmediateCharacterSkill(run,me);
   } else if(action==='pve.submitCard'){
     if(run.phase!=='COMBAT')return fail(json,'현재 전투 중이 아닙니다.');
     if(typeof body.card_instance_id!=='string')return fail(json,'card_instance_id가 필요합니다.');
     submitCard(run,me.playerId,body.card_instance_id,body.skill_intent===true);
     resolveBasicTurn(run);
+  } else if(action==='pve.chooseAugment'){
+    if(typeof body.augment_id!=='string')return fail(json,'augment_id가 필요합니다.');
+    chooseAugment(run,me.playerId,body.augment_id);
   } else return fail(json,'지원하지 않는 PVE action입니다.',400);
 
   run.updatedAt=new Date().toISOString();
