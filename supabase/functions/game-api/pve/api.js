@@ -5,6 +5,9 @@ import {submitCard,resolveBasicTurn,beginTurn} from './combat.js';
 import {activateImmediateCharacterSkill} from './characters.js';
 import {chooseAugment} from './augments.js';
 import {enterRestRoom,applyRestChoice,enterShopRoom,reserveShopCard,cancelShopCardReservation,confirmShopCard,buyShopRelic,finishShop,enterRewardRoom,activateRewardSkill,submitRewardCard,resolveRewardAttempt,chooseRewardRelic,roomReady,expireShopReservations} from './rooms.js';
+import {enterEventRoom,chooseEventOption} from './events.js';
+import {F1_RELIC_DEFINITIONS,selectF1Monster,markF1MonsterUsed} from './content-f1.js';
+import {installRelicCatalog} from './relics.js';
 
 const uuid=v=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 const fail=(json,message,status=400)=>json({error:message},status);
@@ -12,11 +15,14 @@ function viewer(run,userId){return run.players.find(p=>p.userId===userId);}
 function nodeType(run,id){return run.map.nodes.find(n=>n.id===id)?.type;}
 function enterNode(run,id){
   const type=nodeType(run,id);run.currentRoomNodeId=id;run.phase='ROOM_ENTER';
-  if(type==='NORMAL_COMBAT'||type==='ELITE_COMBAT'||type==='BOSS'){run.phase='COMBAT';run.combat=newCombatState(run.players,type==='BOSS'?240:type==='ELITE_COMBAT'?160:90,type);beginTurn(run);}
+  if(type==='NORMAL_COMBAT'||type==='ELITE_COMBAT'||type==='BOSS'){
+    const monster=selectF1Monster(run,type);markF1MonsterUsed(run,monster);
+    run.phase='COMBAT';run.combat=newCombatState(run.players,monster.baseHp,type,monster);beginTurn(run);
+  }
   else if(type==='REST')enterRestRoom(run);
   else if(type==='SHOP')enterShopRoom(run);
   else if(type==='REWARD_ROOM')enterRewardRoom(run);
-  else if(type==='EVENT')run.phase='EVENT';
+  else if(type==='EVENT')enterEventRoom(run);
 }
 async function readRun(admin,runId,actionId=null){
   const {data,error}=await admin.rpc('pve_read',{p_run:runId,p_action_id:actionId});
@@ -53,7 +59,8 @@ export async function handlePveAction({admin,user,body,json}){
     if(bundle.members?.length!==4)return fail(json,'PVE 원정은 4인이 필요합니다.');
     if(bundle.session)return fail(json,'기존 PVP 원정이 진행 중입니다.');
     const players=bundle.members.map(newPlayerRunState);
-    const run={id:crypto.randomUUID(),roomId:body.room_id,seed:typeof body.seed==='string'&&body.seed.length<=128?body.seed:crypto.randomUUID(),rngCounter:0,version:0,phase:'MAP_VOTE',floor:1,depth:0,flame:3,maxFlame:5,map:null,currentRoomNodeId:null,players,usedMonsterIds:[],chosenBossIds:{},createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+    const run={id:crypto.randomUUID(),roomId:body.room_id,seed:typeof body.seed==='string'&&body.seed.length<=128?body.seed:crypto.randomUUID(),rngCounter:0,version:0,phase:'MAP_VOTE',floor:1,depth:0,flame:3,maxFlame:5,map:null,currentRoomNodeId:null,players,usedMonsterIds:[],chosenBossIds:{1:'f1_fallen_lord'},contentVersion:'F1_VERTICAL_SLICE_V1',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+    installRelicCatalog(run,F1_RELIC_DEFINITIONS);
     run.map=generateFloorMap(run,Number.isInteger(body.depth_count)&&body.depth_count>=2&&body.depth_count<=12?body.depth_count:8);
     run.map.voteDeadline=new Date(Date.now()+15000).toISOString();
     const {data,error:createError}=await admin.rpc('pve_create_run',{p_run_id:run.id,p_room:body.room_id,p_seed:run.seed,p_state:run});
@@ -104,6 +111,10 @@ export async function handlePveAction({admin,user,body,json}){
   } else if(action==='pve.chooseAugment'){
     if(typeof body.augment_id!=='string')return fail(json,'augment_id가 필요합니다.');
     chooseAugment(run,me.playerId,body.augment_id);
+  } else if(action==='pve.chooseEventOption'){
+    if(me.memberType!=='human')return fail(json,'인간 플레이어만 직접 이벤트 선택을 할 수 있습니다.',403);
+    if(typeof body.option_id!=='string')return fail(json,'option_id가 필요합니다.');
+    chooseEventOption(run,me.playerId,body.option_id);
   } else if(action==='pve.restChoice'){
     if(me.memberType!=='human')return fail(json,'인간 플레이어만 직접 휴식 선택을 할 수 있습니다.',403);
     applyRestChoice(run,me.playerId,body.choice,body.number);
