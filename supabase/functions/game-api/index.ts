@@ -9,6 +9,7 @@ import { updateMonsterIntent } from './boss-patterns.js';
 import { sameLockedMembers,waitForConflictRetry } from './room-concurrency.js';
 import { lobbyReady,beginEntryLoading,finishEntryLoading } from './entry-loading.js';
 import { createSession, openTurn, validateSubmission, advanceAutomaticTurns, fillAutomaticSubmissions, activateSkill, roomReady } from './engine.js';
+import { handlePveAction } from './pve/api.js';
 
 const url = Deno.env.get('SUPABASE_URL')!;
 const secret = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -97,6 +98,8 @@ Deno.serve(async req => {
     check(raw.length <= 8192, '요청이 너무 큽니다.');
     const body = JSON.parse(raw);
     const { action } = body;
+    const pveResponse = await handlePveAction({ admin, user, body, json });
+    if (pveResponse) return pveResponse;
     if (action === 'get_profile') return json({ profile: await profileFor(user.id) });
     if (action === 'set_profile') {
       check(typeof body.display_name === 'string', '닉네임을 입력해 주세요.');
