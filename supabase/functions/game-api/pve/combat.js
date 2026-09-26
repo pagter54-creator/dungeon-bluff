@@ -6,6 +6,7 @@ import {
 import {publishMonsterIntent,executeMonsterIntent} from './monster.js';
 import {beginAugmentChoices} from './augments.js';
 import {applyOwnedEffects} from './effects.js';
+import {initCombatTelemetry,recordCombatTurnTelemetry,finalizeCombatTelemetry} from './telemetry.js';
 
 function cardFor(run,pid,cardId){return run.players.find(p=>p.playerId===pid)?.cardPool.find(c=>c.id===cardId);}
 function playerFor(run,pid){return run.players.find(p=>p.playerId===pid);}
@@ -78,6 +79,7 @@ function autoSubmitStunned(run){
 }
 export function beginTurn(run){
   const c=run.combat;if(!c||run.phase!=='COMBAT')return;
+  if(!c.telemetry)initCombatTelemetry(run,c.roomType||'NORMAL_COMBAT');
   c.phase='TURN_START';
   for(const p of run.players){onTurnStartCharacter(p,run);applyOwnedEffects(run,'TURN_START',{player:p,events:[]});}
   c.phase='INTENT_PUBLISH';publishMonsterIntent(run);
@@ -151,6 +153,7 @@ export function resolveBasicTurn(run){
     if(run.phase==='RUN_FAILED'){
       c.phase='COMBAT_END';phaseTrace.push(c.phase);
       c.publicTurnResult={turn:c.turn,cards,damagePackets:packets,totalDamage,phaseTrace,events};
+      recordCombatTurnTelemetry(run,c.publicTurnResult);finalizeCombatTelemetry(run,'RUN_FAILED');
       return c.publicTurnResult;
     }
     reviveAfterVictory(run);c.phase='COMBAT_END';run.phase='ROOM_RESULT';
@@ -159,6 +162,7 @@ export function resolveBasicTurn(run){
     for(const p of run.players)applyOwnedEffects(run,'COMBAT_END',{player:p,events});
     beginAugmentChoices(run,'ROOM_RESULT');
     c.publicTurnResult={turn:c.turn,cards,damagePackets:packets,totalDamage,phaseTrace:[...phaseTrace,'COMBAT_END'],events};
+    recordCombatTurnTelemetry(run,c.publicTurnResult);finalizeCombatTelemetry(run,'VICTORY');
     return c.publicTurnResult;
   }
   c.phase='MONSTER_ACTION';phaseTrace.push(c.phase);events.push(...executeMonsterIntent(run));
@@ -167,11 +171,13 @@ export function resolveBasicTurn(run){
   if(run.phase==='RUN_FAILED'){
     c.phase='COMBAT_END';phaseTrace.push(c.phase);
     c.publicTurnResult={turn:c.turn,cards,damagePackets:packets,totalDamage,phaseTrace,events};
+    recordCombatTurnTelemetry(run,c.publicTurnResult);finalizeCombatTelemetry(run,'RUN_FAILED');
     return c.publicTurnResult;
   }
   for(const p of run.players){onTurnEndCharacter(p);applyOwnedEffects(run,'TURN_END',{player:p,events});}
   c.phase='TURN_END';phaseTrace.push(c.phase);
   c.publicTurnResult={turn:c.turn,cards,damagePackets:packets,totalDamage,phaseTrace,events};
+  recordCombatTurnTelemetry(run,c.publicTurnResult);
   c.turn+=1;beginTurn(run);
   return c.publicTurnResult;
 }
