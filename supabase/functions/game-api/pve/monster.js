@@ -1,4 +1,5 @@
 import {choose} from './rng.js';
+import {applyOwnedEffects} from './effects.js';
 
 export function publishMonsterIntent(run){
   const c=run.combat;if(!c||c.monster.hp<=0)return null;
@@ -16,7 +17,7 @@ export function publishMonsterIntent(run){
 export function executeMonsterIntent(run){
   const c=run.combat,intent=c?.monster?.intent;if(!c||!intent)return [];
   const events=[];
-  const damage=(player,amount)=>{if(!player||player.status==='DOWNED'||amount<=0)return;player.hp-=amount;events.push({type:'PLAYER_DAMAGED',playerId:player.playerId,amount,hp:player.hp});};
+  const damage=(player,amount)=>{if(!player||player.status==='DOWNED'||amount<=0)return;const armor=Math.max(0,Number(player.publicResources.armor)||0),blocked=Math.min(armor,amount);if(blocked)player.publicResources.armor=armor-blocked;const actual=Math.max(0,amount-blocked);if(actual)player.hp-=actual;events.push({type:'PLAYER_DAMAGED',playerId:player.playerId,amount:actual,blocked,hp:player.hp});applyOwnedEffects(run,'PLAYER_DAMAGED',{player,damage:{amount:actual},events});};
   if(intent.type==='DIRECT_DAMAGE'){
     const target=run.players.find(p=>p.playerId===intent.payload?.targetPlayerId&&p.status!=='DOWNED')||run.players.filter(p=>p.status!=='DOWNED').sort((a,b)=>a.seat-b.seat)[0];
     damage(target,Number(intent.payload?.amount)||0);
