@@ -4,14 +4,14 @@ import fs from 'node:fs';
 import {newPlayerRunState,newCombatState,COMBAT_PHASES} from '../supabase/functions/game-api/pve/model.js';
 import {generateFloorMap,resolveVote} from '../supabase/functions/game-api/pve/map.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
-import {submitCard,resolveBasicTurn} from '../supabase/functions/game-api/pve/combat.js';
+import {submitCard,resolveBasicTurn,beginTurn} from '../supabase/functions/game-api/pve/combat.js';
 
 function members(){
   return Array.from({length:4},(_,i)=>({id:`p${i}`,user_id:`u${i}`,member_type:'human',character_id:'adventurer',seat_index:i}));
 }
 function combatRun(){
   const players=members().map(newPlayerRunState);
-  return {id:'run',seed:'seed',rngCounter:0,version:0,phase:'COMBAT',floor:1,depth:1,players,map:{nodes:[],edges:{}},combat:newCombatState(players,100)};
+  const run={id:'run',seed:'seed',rngCounter:0,version:0,phase:'COMBAT',floor:1,depth:1,flame:3,maxFlame:5,players,map:{nodes:[],edges:{}},combat:newCombatState(players,100)};beginTurn(run);return run;
 }
 function cardId(run,pid,n){return run.players.find(p=>p.playerId===pid).cardPool.find(c=>c.baseNumber===n).id;}
 function play(run,values,order=[0,1,2,3]){
