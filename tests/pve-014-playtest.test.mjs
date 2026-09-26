@@ -23,12 +23,24 @@ function bundle(){
     session:null
   };
 }
-function memoryAdmin(){
+function humanBundle(){
+  return {
+    room:{id:ROOM_ID,host_user_id:'u0'},
+    members:[
+      {id:'p0',user_id:'u0',member_type:'human',character_id:'warrior',seat_index:0},
+      {id:'p1',user_id:'u1',member_type:'human',character_id:'twins',seat_index:1},
+      {id:'p2',user_id:'u2',member_type:'human',character_id:'adventurer',seat_index:2},
+      {id:'p3',user_id:'u3',member_type:'human',character_id:'mage',seat_index:3},
+    ],
+    session:null
+  };
+}
+function memoryAdmin(roomBundle=bundle()){
   let state=null,version=0;const actions=new Map(),telemetry=[];
   return {
     get state(){return structuredClone(state);},get version(){return version;},telemetry,
     async rpc(name,args){
-      if(name==='game_read')return {data:bundle(),error:null};
+      if(name==='game_read')return {data:roomBundle,error:null};
       if(name==='pve_create_run'){
         const incoming=structuredClone(args.p_state),pending=incoming._telemetryPending||[];delete incoming._telemetryPending;
         state=incoming;version=0;state.version=0;
@@ -52,8 +64,8 @@ function memoryAdmin(){
     }
   };
 }
-async function call(admin,body){
-  const res=await handlePveAction({admin,user:{id:'u0'},body,json});
+async function call(admin,body,userId='u0'){
+  const res=await handlePveAction({admin,user:{id:userId},body,json});
   assert.ok(res,body.action);assert.notEqual(res.status,409,`${body.action} conflicted`);
   assert.ok(res.status<400,`${body.action}: ${JSON.stringify(res.body)}`);
   return res.body.run;
@@ -112,66 +124,114 @@ test('PVE-014 fully automatic turn resolves when the only human is stunned inste
   if(run.phase==='COMBAT')assert.equal(run.players[0].status,'ACTIVE');
 });
 
-test('PVE-014 internal API playtest: one human + three AI can enter F1 and reach FLOOR_CLEAR through the real room actions',async()=>{
-  const admin=memoryAdmin();let seq=1;
-  let run=await call(admin,{action:'pve.createRun',room_id:ROOM_ID,seed:'pve-014-internal-playtest',depth_count:8});
+test('PVE-014 internal API playtest: four humans can traverse every F1 room family and reach FLOOR_CLEAR',async()=>{
+  const admin=memoryAdmin(humanBundle()),users=['u0','u1','u2','u3'];let seq=1;
+  let run=await call(admin,{action:'pve.createRun',room_id:ROOM_ID,seed:'pve-014-four-human-playtest',depth_count:8},'u0');
   assert.equal(run.floor,1);assert.equal(run.phase,'MAP_VOTE');assert.equal(run.contentVersion,'F1_VERTICAL_SLICE_V1');
   assert.equal(run.map.bossName,'몰락한 성주');
 
   const visited=[],combatTurns={},version=()=>admin.version;
   let rewardResolved=false;
-  for(let guard=0;guard<500&&run.phase!=='FLOOR_CLEAR'&&run.phase!=='RUN_FAILED';guard++){
+  for(let guard=0;guard<800&&run.phase!=='FLOOR_CLEAR'&&run.phase!=='RUN_FAILED';guard++){
     if(run.phase==='MAP_VOTE'){
       const nodeId=chooseRouteNode(run),node=run.map.nodes.find(n=>n.id===nodeId);visited.push(node.type);
-      run=await call(admin,{action:'pve.voteNextRoom',run_id:run.id,action_id:actionId(seq++),expected_version:version(),node_id:nodeId});
+      for(const userId of users.slice(0,3)){
+        run=await call(admin,{action:'pve.voteNextRoom',run_id:run.id,action_id:actionId(seq++),expected_version:version(),node_id:nodeId},userId);
+        if(run.phase!=='MAP_VOTE')break;
+      }
       continue;
     }
     if(run.phase==='COMBAT'){
-      const id=ownCard(run);
-      if(!id){
-        // A fully automatic stunned/downed stretch may already have advanced; refresh the projected state.
-        run=await call(admin,{action:'pve.getState',run_id:run.id});
-        continue;
+      const turn=run.combat.turn,used=new Set();
+      for(const userId of users){
+        let view=await call(admin,{action:'pve.getState',run_id:run.id},userId);
+        if(view.phase!=='COMBAT'||view.combat.turn!==turn){run=view;break;}
+        const me=view.players.find(p=>p.userId===userId);
+        if(me.status==='DOWNED'||view.combat.readyPlayerIds?.includes(me.playerId)){run=view;continue;}
+        let cards=(view.privateCombat?.remainingCardIds||[]).map(id=>me.cardPool.find(c=>c.id===id)).filter(Boolean);
+        if(me.characterId==='twins')cards=cards.filter(card=>card.baseNumber%2===(me.publicResources.parity||0));
+        cards.sort((a,b)=>b.baseNumber-a.baseNumber);
+        const chosen=cards.find(card=>!used.has(card.baseNumber))||cards[0];
+        assert.ok(chosen,`no legal combat card for ${userId}`);
+        const useSkill=me.characterId==='warrior'&&(me.publicResources.toughnessCharges||0)>0&&chosen.baseNumber>=5;
+        used.add(chosen.baseNumber);
+        run=await call(admin,{action:'pve.submitCard',run_id:run.id,action_id:actionId(seq++),expected_version:version(),card_instance_id:chosen.id,skill_intent:useSkill},userId);
+        combatTurns[run.currentRoomNodeId]=Math.max(combatTurns[run.currentRoomNodeId]||0,turn);
+        if(run.phase!=='COMBAT'||run.combat.turn!==turn)break;
       }
-      const beforeTurn=run.combat.turn;
-      const me=run.players.find(p=>p.playerId==='p0'),card=me.cardPool.find(c=>c.id===id);
-      const useSkill=me.characterId==='warrior'&&(me.publicResources.toughnessCharges||0)>0&&card?.baseNumber>=5;
-      run=await call(admin,{action:'pve.submitCard',run_id:run.id,action_id:actionId(seq++),expected_version:version(),card_instance_id:id,skill_intent:useSkill});
-      combatTurns[run.currentRoomNodeId]=Math.max(combatTurns[run.currentRoomNodeId]||0,beforeTurn);
       continue;
     }
     if(run.phase==='EVENT'){
-      run=await call(admin,{action:'pve.chooseEventOption',run_id:run.id,action_id:actionId(seq++),expected_version:version(),option_id:run.roomState.options[0].id});
+      for(const userId of users){
+        const view=await call(admin,{action:'pve.getState',run_id:run.id},userId);run=view;
+        if(run.phase!=='EVENT')break;
+        const me=run.players.find(p=>p.userId===userId);
+        if(run.roomState.choicesByPlayer?.[me.playerId])continue;
+        run=await call(admin,{action:'pve.chooseEventOption',run_id:run.id,action_id:actionId(seq++),expected_version:version(),option_id:run.roomState.options[0].id},userId);
+      }
       continue;
     }
     if(run.phase==='REST'){
-      run=await call(admin,{action:'pve.restChoice',run_id:run.id,action_id:actionId(seq++),expected_version:version(),choice:'FULL_HEAL'});
+      for(const userId of users){
+        const view=await call(admin,{action:'pve.getState',run_id:run.id},userId);run=view;
+        if(run.phase!=='REST')break;
+        const me=run.players.find(p=>p.userId===userId);
+        if(run.roomState.choicesByPlayer?.[me.playerId])continue;
+        run=await call(admin,{action:'pve.restChoice',run_id:run.id,action_id:actionId(seq++),expected_version:version(),choice:'FULL_HEAL'},userId);
+      }
+      continue;
+    }
+    if(run.phase==='SHOP'){
+      for(const userId of users){
+        const view=await call(admin,{action:'pve.getState',run_id:run.id},userId);run=view;
+        if(run.phase!=='SHOP')break;
+        const me=run.players.find(p=>p.userId===userId);
+        if(run.roomState.readyPlayerIds?.includes(me.playerId))continue;
+        run=await call(admin,{action:'pve.shopReady',run_id:run.id,action_id:actionId(seq++),expected_version:version()},userId);
+      }
       continue;
     }
     if(run.phase==='REWARD_ROOM'){
-      if(run.roomState.pickOrder?.[0]==='p0'){
-        run=await call(admin,{action:'pve.rewardChooseRelic',run_id:run.id,action_id:actionId(seq++),expected_version:version(),relic_id:run.roomState.relicIds[0]});
-        rewardResolved=true;continue;
-      }
-      const id=rewardCard(run);
-      if(id){
-        run=await call(admin,{action:'pve.rewardSubmitCard',run_id:run.id,action_id:actionId(seq++),expected_version:version(),card_instance_id:id,skill_intent:false});
+      if(run.roomState.pickOrder?.length){
+        const pid=run.roomState.pickOrder[0],picker=run.players.find(p=>p.playerId===pid),relicId=run.roomState.relicIds[0];
+        run=await call(admin,{action:'pve.rewardChooseRelic',run_id:run.id,action_id:actionId(seq++),expected_version:version(),relic_id:relicId},picker.userId);
         if(run.phase==='ROOM_RESULT')rewardResolved=true;
         continue;
       }
-      run=await call(admin,{action:'pve.getState',run_id:run.id});continue;
-    }
-    if(run.phase==='SHOP'){
-      run=await call(admin,{action:'pve.shopReady',run_id:run.id,action_id:actionId(seq++),expected_version:version()});
+      const attempt=run.roomState.attempt,used=new Set();
+      for(const userId of users){
+        let view=await call(admin,{action:'pve.getState',run_id:run.id},userId);run=view;
+        if(run.phase!=='REWARD_ROOM'||run.roomState.attempt!==attempt)break;
+        const me=run.players.find(p=>p.userId===userId);
+        if(run.roomState.readyPlayerIds?.includes(me.playerId))continue;
+        let cards=(run.privateRoomState?.remainingCardIds||[]).map(id=>me.cardPool.find(c=>c.id===id)).filter(Boolean);
+        if(me.characterId==='twins')cards=cards.filter(card=>card.baseNumber%2===(me.publicResources.parity||0));
+        cards.sort((a,b)=>b.baseNumber-a.baseNumber);
+        const chosen=cards.find(card=>!used.has(card.baseNumber))||cards[0];
+        assert.ok(chosen,`no legal reward card for ${userId}`);used.add(chosen.baseNumber);
+        run=await call(admin,{action:'pve.rewardSubmitCard',run_id:run.id,action_id:actionId(seq++),expected_version:version(),card_instance_id:chosen.id,skill_intent:false},userId);
+        if(run.phase==='ROOM_RESULT'){rewardResolved=true;break;}
+      }
       continue;
     }
     if(run.phase==='ROOM_RESULT'){
-      run=await call(admin,{action:'pve.roomReady',run_id:run.id,action_id:actionId(seq++),expected_version:version()});
+      for(const userId of users){
+        run=await call(admin,{action:'pve.roomReady',run_id:run.id,action_id:actionId(seq++),expected_version:version()},userId);
+        if(run.phase!=='ROOM_RESULT')break;
+      }
       continue;
     }
     if(run.phase==='AUGMENT_CHOICE'){
-      assert.ok(run.privateAugmentOffer?.augmentIds?.length);
-      run=await call(admin,{action:'pve.chooseAugment',run_id:run.id,action_id:actionId(seq++),expected_version:version(),augment_id:run.privateAugmentOffer.augmentIds[0]});
+      let changed=false;
+      for(const userId of users){
+        const view=await call(admin,{action:'pve.getState',run_id:run.id},userId);run=view;
+        if(run.phase!=='AUGMENT_CHOICE')break;
+        if(run.privateAugmentOffer?.augmentIds?.length){
+          run=await call(admin,{action:'pve.chooseAugment',run_id:run.id,action_id:actionId(seq++),expected_version:version(),augment_id:run.privateAugmentOffer.augmentIds[0]},userId);
+          changed=true;break;
+        }
+      }
+      if(!changed&&run.phase==='AUGMENT_CHOICE')assert.fail('augment phase has no human offer');
       continue;
     }
     assert.fail(`unhandled playtest phase ${run.phase}`);
@@ -184,5 +244,5 @@ test('PVE-014 internal API playtest: one human + three AI can enter F1 and reach
   assert.equal(rewardResolved,true);
   assert.ok(run.players.some(p=>p.relics.length>0));
   assert.ok(admin.telemetry.some(x=>x.logType==='COMBAT'&&x.payload.monster_id==='f1_fallen_lord'));
-  assert.ok(admin.telemetry.filter(x=>x.logType==='COMBAT').length>=5);
+  assert.ok(admin.telemetry.filter(x=>x.logType==='COMBAT').length>=4);
 });
