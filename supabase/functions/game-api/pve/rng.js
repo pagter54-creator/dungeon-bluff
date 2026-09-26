@@ -1,3 +1,4 @@
+import {recordRngTelemetry} from './telemetry.js';
 // Deterministic PVE RNG. Every draw consumes exactly one counter value.
 function hash32(text){
   let h=2166136261>>>0;
@@ -13,6 +14,7 @@ export function drawIndex(run,length,contextKey){
   const counter=run.rngCounter;
   const index=Math.floor(deterministicFloat(run.seed,counter,contextKey)*length);
   run.rngCounter+=1;
+  recordRngTelemetry(run,{contextKey,counter,index,length});
   return {index,counter};
 }
 export function choose(run,items,contextKey){
