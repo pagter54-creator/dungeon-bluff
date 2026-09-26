@@ -77,6 +77,19 @@ function autoSubmitStunned(run){
     priv.selectedCardId=cardId;priv.skillIntent=false;
   }
 }
+function autoSubmitAi(run){
+  const c=run.combat;
+  for(const p of run.players.filter(p=>p.memberType==='ai'&&p.status!=='DOWNED').sort((a,b)=>a.seat-b.seat)){
+    if(c.turnSubmissions[p.playerId])continue;
+    const priv=c.privateByPlayer[p.playerId];
+    if(!priv.remainingCardIds.length)resetCycleIfNeeded(run,p);
+    const choices=selectableIds(run,p);
+    if(!choices.length)throw new Error('AI가 제출할 수 있는 합법 카드가 없습니다.');
+    const cardId=choose(run,choices,`combat-ai-card:${c.id}:${c.turn}:${p.playerId}`);
+    c.turnSubmissions[p.playerId]={playerId:p.playerId,cardInstanceId:cardId,skillIntent:false,submittedAt:new Date().toISOString(),autoSubmitted:true};
+    priv.selectedCardId=cardId;priv.skillIntent=false;
+  }
+}
 export function beginTurn(run){
   const c=run.combat;if(!c||run.phase!=='COMBAT')return;
   if(!c.telemetry)initCombatTelemetry(run,c.roomType||'NORMAL_COMBAT');
@@ -84,7 +97,9 @@ export function beginTurn(run){
   c.phase='TURN_START';
   for(const p of run.players){onTurnStartCharacter(p,run);applyOwnedEffects(run,'TURN_START',{player:p,events:[]});}
   c.phase='INTENT_PUBLISH';publishMonsterIntent(run);
-  c.phase='SELECTION_OPEN';autoSubmitStunned(run);
+  c.phase='SELECTION_OPEN';autoSubmitStunned(run);autoSubmitAi(run);
+  const active=run.players.filter(p=>p.status!=='DOWNED').map(p=>p.playerId);
+  if(active.length&&active.every(pid=>c.turnSubmissions[pid]?.autoSubmitted))return resolveBasicTurn(run);
 }
 export function submitCard(run,playerId,cardInstanceId,skillIntent=false){
   const c=run.combat;if(!c||c.phase!=='SELECTION_OPEN')throw new Error('Card selection is closed.');
