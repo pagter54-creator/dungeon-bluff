@@ -46,10 +46,10 @@ function resolveDowns(run){
   for(const p of newlyDown){
     if(run.flame>0){
       run.flame-=1;p.hp=1;p.status='STUNNED_NEXT_TURN';
-      events.push({type:'PLAYER_DOWNED',playerId:p.playerId,rescued:true,flame:run.flame,hp:1});
+      events.push({type:'PLAYER_DOWNED',playerId:p.playerId,rescued:true,flame:run.flame,hp:1});applyOwnedEffects(run,'PLAYER_DOWNED',{player:p,events});
     }else{
       p.hp=0;p.status='DOWNED';
-      events.push({type:'PLAYER_DOWNED',playerId:p.playerId,rescued:false,flame:run.flame,hp:0});
+      events.push({type:'PLAYER_DOWNED',playerId:p.playerId,rescued:false,flame:run.flame,hp:0});applyOwnedEffects(run,'PLAYER_DOWNED',{player:p,events});
     }
   }
   if(run.flame===0&&run.players.every(p=>p.status==='DOWNED')){
@@ -168,7 +168,7 @@ export function resolveBasicTurn(run){
     c.publicTurnResult={turn:c.turn,cards,damagePackets:packets,totalDamage,phaseTrace,events};
     return c.publicTurnResult;
   }
-  for(const p of run.players)onTurnEndCharacter(p);
+  for(const p of run.players){onTurnEndCharacter(p);applyOwnedEffects(run,'TURN_END',{player:p,events});}
   c.phase='TURN_END';phaseTrace.push(c.phase);
   c.publicTurnResult={turn:c.turn,cards,damagePackets:packets,totalDamage,phaseTrace,events};
   c.turn+=1;beginTurn(run);
