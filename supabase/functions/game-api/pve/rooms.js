@@ -201,11 +201,14 @@ export function resolveRewardAttempt(run){
   for(const rc of cards){const p=playerFor(run,rc.playerId),sub=room.turnSubmissions[rc.playerId];selfModifyCard(p,rc,sub);applyOwnedEffects(run,'PRE_COLLISION_SELF_MODIFY',{player:p,resolved:rc,events:[]});rc.collisionImmune=collisionImmunity(p,sub);}
   const counts=cards.reduce((m,c)=>(m[c.finalNumber]=(m[c.finalNumber]||0)+1,m),{});
   for(const c of cards)if(counts[c.finalNumber]>1&&!c.collisionImmune){c.valid=false;c.invalidReason='COLLISION';}
+  for(const c of cards)applyOwnedEffects(run,'CARD_VALIDATED',{player:playerFor(run,c.playerId),resolved:c,events:[]});
   for(const c of cards){
     const p=playerFor(run,c.playerId),sub=room.turnSubmissions[c.playerId],st=room.privateByPlayer[c.playerId];
     if(p.characterId==='gunner'&&sub.skillIntent){p.publicResources.fullBurstReady=false;if(c.valid){c.followUpCardIds=st.remainingCardIds.filter(id=>id!==c.cardInstanceId);p.publicResources.burstReadyCycle=(st.cycleIndex||1)+2;}else{p.publicResources.burstReadyCycle=(st.cycleIndex||1)+1;p.hp=Math.max(0,p.hp-1);}}
-    const engrave=Number(p.engravings?.[String(c.finalNumber)])||0;c.damage=Math.max(0,baseDamageForCharacter(p,c)+engrave);
-    for(const id of c.followUpCardIds||[]){const extra=cardFor(p,id);c.damage+=extra.baseNumber+(Number(p.engravings?.[String(extra.baseNumber)])||0);}
+    const engrave=Number(p.engravings?.[String(c.finalNumber)])||0;const primary={amount:Math.max(0,baseDamageForCharacter(p,c)+engrave)},queued=[];
+    applyOwnedEffects(run,'BEFORE_DAMAGE',{player:p,resolved:c,damage:primary,followUps:queued,followUp:false,events:[]});
+    c.damage=Math.max(0,primary.amount)+queued.reduce((s,x)=>s+Math.max(0,Number(x.amount)||0),0);
+    for(const id of c.followUpCardIds||[]){const extra=cardFor(p,id);const d={amount:extra.baseNumber+(Number(p.engravings?.[String(extra.baseNumber)])||0)},q=[];applyOwnedEffects(run,'BEFORE_DAMAGE',{player:p,resolved:c,damage:d,followUps:q,followUp:true,events:[]});c.damage+=Math.max(0,d.amount)+q.reduce((s,x)=>s+Math.max(0,Number(x.amount)||0),0);}
   }
   spendRoomCards(run,cards);room.turnSubmissions={};
   for(const p of run.players)onTurnEndCharacter(p);
@@ -214,6 +217,7 @@ export function resolveRewardAttempt(run){
     if(room.attempt>=3){autoAssignRemaining(run,run.players.map(p=>p.playerId));return {cards,autoOpened:true};}
     room.attempt+=1;fillRewardAiSubmissions(run);return {cards,retry:true};
   }
+  if(room.catalogIncomplete){autoAssignRemaining(run,run.players.map(p=>p.playerId));return {cards,catalogIncomplete:true};}
   room.invalidPlayerIds=run.players.filter(p=>!valid.some(c=>c.playerId===p.playerId)).map(p=>p.playerId);
   room.pickOrder=tieOrdered(run,valid).map(c=>c.playerId);
   autoResolveAiPickers(run);
