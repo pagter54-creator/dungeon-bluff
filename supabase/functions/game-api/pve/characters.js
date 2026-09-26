@@ -19,6 +19,7 @@ export function initializeCombatCharacter(player){
   }
   if(player.characterId==='twins'){
     player.publicResources.acrobaticsReady=true;
+    delete player.publicResources.parity;
     delete player.persistentCharacterState.acrobaticsLockCycle;
   }
 }
