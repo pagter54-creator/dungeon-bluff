@@ -108,9 +108,13 @@ export function resolveBasicTurn(run){
   c.phase='MONSTER_ACTION';phaseTrace.push(c.phase);events.push(...executeMonsterIntent(run));
   c.phase='DOWN_RESOLVE';phaseTrace.push(c.phase);events.push(...resolveDowns(run));
   spendResolvedCards(run,cards);c.turnSubmissions={};
+  if(run.phase==='RUN_FAILED'){
+    c.phase='COMBAT_END';phaseTrace.push(c.phase);
+    c.publicTurnResult={turn:c.turn,cards,damagePackets:packets,totalDamage,phaseTrace,events};
+    return c.publicTurnResult;
+  }
   c.phase='TURN_END';phaseTrace.push(c.phase);
   c.publicTurnResult={turn:c.turn,cards,damagePackets:packets,totalDamage,phaseTrace,events};
-  if(run.phase==='RUN_FAILED')return c.publicTurnResult;
   c.turn+=1;beginTurn(run);
   return c.publicTurnResult;
 }
