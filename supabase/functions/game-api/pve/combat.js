@@ -2,7 +2,7 @@ import {choose} from './rng.js';
 import {
   onTurnStartCharacter,onCycleStartCharacter,onTurnEndCharacter,selfModifyCard,collisionImmunity,onValidAttack,
   isCardSelectableForCharacter,validateCharacterSkillIntent,resolvePostCollisionCharacter,resolvePostCollisionEffects,resolveGuardianWallCollisions,
-  applyPostPlayerAttackCharacter,baseDamageForCharacter,grantRunGold,onCombatEndCharacter
+  applyPostPlayerAttackCharacter,baseDamageForCharacter,grantRunGold,onCombatEndCharacter,handleCycleExhaustedCharacter,onMonsterKilledCharacter
 } from './characters.js';
 import {publishMonsterIntent,executeMonsterIntent} from './monster.js';
 import {beginAugmentChoices} from './augments.js';
@@ -26,6 +26,7 @@ function selectableIds(run,player){
 function resetCycleIfNeeded(run,player){
   const priv=run.combat.privateByPlayer[player.playerId];
   if(priv.remainingCardIds.length)return false;
+  if(handleCycleExhaustedCharacter(player,priv,run))return true;
   applyOwnedEffects(run,'CYCLE_END',{player,privateState:priv,events:[]});
   priv.cycleIndex=(priv.cycleIndex||1)+1;
   priv.spentCardIds=[];
@@ -194,24 +195,53 @@ export function resolveBasicTurn(run){
   attachValidity(cards);
   c.phase='DAMAGE_BUILD';phaseTrace.push(c.phase);
   const defense=Math.max(0,Number(c.monster.defense)||0);
-  const packets=[];
+  const packets=[],monsterHpBeforeBatch=c.monster.hp;
+  const packetIds=new Set();
+  const burstPacket=(packet,{resolved,player,followUp=false,parentDamageEventId=null,baseNumber=null,baseDamage=null,classBonus=0,augmentBonus=0}={})=>{
+    const rootActionId=`action:${c.id}:${c.turn}:${resolved.playerId}:${resolved.cardInstanceId}`;
+    const burstChainId=`burst:${c.id}:${c.turn}:${resolved.playerId}:${resolved.cardInstanceId}`;
+    const ordinal=packets.length+1,damageEventId=`player-damage:${burstChainId}:${ordinal}`;
+    if(packetIds.has(damageEventId)){const error=new Error('동일 player damage packet ID가 중복 생성되었습니다.');error.code='DUPLICATE_DAMAGE_PACKET';throw error;}
+    packetIds.add(damageEventId);
+    return {...packet,damageEventId,rootActionId,burstChainId,parentDamageEventId,followUpDepth:followUp?1:0,
+      sourceClass:player.characterId,baseNumber:baseNumber??packet.numberUsed??null,baseDamage:baseDamage??0,classBonus,augmentBonus};
+  };
   for(const rc of cards.filter(x=>x.valid)){
-    const player=playerFor(run,rc.playerId);
-    const primary={sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,amount:Math.max(0,baseDamageForCharacter(player,rc)+(Number(player.engravings?.[String(rc.finalNumber)])||0)-defense),tags:['BASE_CARD'],followUp:false};
+    const player=playerFor(run,rc.playerId),engraving=Number(player.engravings?.[String(rc.finalNumber)])||0;
+    const classBonus=(player.characterId==='berserker'?1:0)+(player.characterId==='martial_artist'?Math.max(0,Number(rc.martialComboBonus)||0):0);
+    const augmentBonus=Math.max(0,Number(rc.crushBonusDamage)||0)+Math.max(0,Number(rc.revengeBonusDamage)||0)+Math.max(0,Number(rc.finisherBonusDamage)||0)+Math.max(0,Number(rc.bloodFrenzyBonusDamage)||0)+Math.max(0,Number(rc.ghostSlashBonusDamage)||0);
+    let primary=burstPacket({sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,amount:Math.max(0,baseDamageForCharacter(player,rc)+engraving-defense),tags:['BASE_CARD'],followUp:false},
+      {resolved:rc,player,baseNumber:rc.finalNumber,baseDamage:rc.finalNumber,classBonus,augmentBonus});
     const primaryDamage={amount:primary.amount},queued=[];
     applyOwnedEffects(run,'BEFORE_DAMAGE',{player,resolved:rc,damage:primaryDamage,followUps:queued,followUp:false,events:[]});
-    primary.amount=Math.max(0,primaryDamage.amount);packets.push(primary,...queued.map(x=>({...x,sourceCardId:x.sourceCardId||rc.cardInstanceId})));
+    primary.amount=Math.max(0,primaryDamage.amount);packets.push(primary);
+    for(const q of queued){
+      if((Number(q.followUpDepth)||1)>1){const error=new Error('follow-up depth가 Tier-I 허용 범위를 초과했습니다.');error.code='FOLLOW_UP_DEPTH_EXCEEDED';throw error;}
+      packets.push(burstPacket({...q,sourceCardId:q.sourceCardId||rc.cardInstanceId,followUp:true},{resolved:rc,player,followUp:true,parentDamageEventId:primary.damageEventId,baseNumber:q.numberUsed??rc.finalNumber,baseDamage:Number(q.amount)||0}));
+    }
+    const followSeen=new Set();
     for(const extraId of rc.followUpCardIds||[]){
+      if(followSeen.has(extraId)){const error=new Error('Full Burst가 동일 physical card를 두 번 사용했습니다.');error.code='FOLLOW_UP_CARD_DUPLICATE';throw error;}followSeen.add(extraId);
       const extra=cardFor(run,rc.playerId,extraId);if(!extra)continue;
-      const packet={sourcePlayerId:rc.playerId,sourceCardId:extra.id,amount:Math.max(0,extra.baseNumber+(Number(player.engravings?.[String(extra.baseNumber)])||0)-defense),tags:['FOLLOW_UP'],followUp:true};
+      let packet=burstPacket({sourcePlayerId:rc.playerId,sourceCardId:extra.id,numberUsed:extra.baseNumber,amount:Math.max(0,extra.baseNumber+(Number(player.engravings?.[String(extra.baseNumber)])||0)-defense),tags:['FOLLOW_UP'],followUp:true},
+        {resolved:rc,player,followUp:true,parentDamageEventId:primary.damageEventId,baseNumber:extra.baseNumber,baseDamage:extra.baseNumber});
       const damage={amount:packet.amount},extraQueued=[];
       applyOwnedEffects(run,'BEFORE_DAMAGE',{player,resolved:rc,damage,followUps:extraQueued,followUp:true,events:[]});
-      packet.amount=Math.max(0,damage.amount);packets.push(packet,...extraQueued.map(x=>({...x,sourceCardId:x.sourceCardId||extra.id})));
+      if(extraQueued.length){const error=new Error('Tier-I Full Burst follow-up이 추가 follow-up을 재귀 생성했습니다.');error.code='RECURSIVE_FOLLOW_UP';throw error;}
+      packet.amount=Math.max(0,damage.amount);packets.push(packet);
     }
   }
   c.monster.defense=0;
   c.phase='DAMAGE_BATCH_APPLY';phaseTrace.push(c.phase);
-  const totalDamage=packets.reduce((s,p)=>s+p.amount,0);c.monster.hp=Math.max(0,c.monster.hp-totalDamage);
+  const totalDamage=packets.reduce((s,p)=>s+p.amount,0);
+  let virtualHp=monsterHpBeforeBatch;
+  const thresholdValues=[.75,.5,.25].map(r=>({ratio:r,hp:c.monster.maxHp*r}));
+  for(const packet of packets){
+    packet.bossHpBefore=virtualHp;const next=Math.max(0,virtualHp-packet.amount);packet.bossHpAfter=next;
+    packet.bossThresholdsCrossed=c.roomType==='BOSS'?thresholdValues.filter(t=>virtualHp>t.hp&&next<=t.hp).map(t=>t.ratio):[];
+    packet.bossPhasesSkipped='NOT_MEASURABLE';virtualHp=next;
+  }
+  c.monster.hp=Math.max(0,c.monster.hp-totalDamage);
   attachDamage(cards,packets);
   validateNumberMutationState(run,cards,mutationEvents,{packets});
   const buildTurnResult=(trace=phaseTrace)=>({
@@ -231,6 +261,7 @@ export function resolveBasicTurn(run){
   }
   c.phase='KILL_CHECK';phaseTrace.push(c.phase);
   if(c.monster.hp<=0){
+    onMonsterKilledCharacter(run,cards,packets,events);
     events.push(...resolveDowns(run));
     spendResolvedCards(run,cards);c.turnSubmissions={};
     if(run.phase==='RUN_FAILED'){
@@ -279,7 +310,7 @@ export function resolveBasicTurn(run){
     recordCombatTurnTelemetry(run,c.publicTurnResult);finalizeCombatTelemetry(run,'RUN_FAILED');
     return c.publicTurnResult;
   }
-  for(const p of run.players){onTurnEndCharacter(p);applyOwnedEffects(run,'TURN_END',{player:p,events});}
+  for(const p of run.players){onTurnEndCharacter(p,run,events);applyOwnedEffects(run,'TURN_END',{player:p,events});}
   c.phase='TURN_END';phaseTrace.push(c.phase);
   c.publicTurnResult=buildTurnResult();
   recordCombatTurnTelemetry(run,c.publicTurnResult);
