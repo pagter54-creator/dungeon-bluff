@@ -197,21 +197,30 @@ export function resolveBasicTurn(run){
   const defense=Math.max(0,Number(c.monster.defense)||0);
   const packets=[],monsterHpBeforeBatch=c.monster.hp;
   const packetIds=new Set();
-  const burstPacket=(packet,{resolved,player,followUp=false,parentDamageEventId=null,baseNumber=null,baseDamage=null,classBonus=0,augmentBonus=0}={})=>{
+  const burstPacket=(packet,{resolved,player,followUp=false,parentDamageEventId=null,baseNumber=null,baseDamage=null,classBonus=0,augmentBonus=0,modifierIds=[]}={})=>{
     const rootActionId=`action:${c.id}:${c.turn}:${resolved.playerId}:${resolved.cardInstanceId}`;
     const burstChainId=`burst:${c.id}:${c.turn}:${resolved.playerId}:${resolved.cardInstanceId}`;
     const ordinal=packets.length+1,damageEventId=`player-damage:${burstChainId}:${ordinal}`;
     if(packetIds.has(damageEventId)){const error=new Error('동일 player damage packet ID가 중복 생성되었습니다.');error.code='DUPLICATE_DAMAGE_PACKET';throw error;}
     packetIds.add(damageEventId);
     return {...packet,damageEventId,rootActionId,burstChainId,parentDamageEventId,followUpDepth:followUp?1:0,
-      sourceClass:player.characterId,baseNumber:baseNumber??packet.numberUsed??null,baseDamage:baseDamage??0,classBonus,augmentBonus};
+      sourceClass:player.characterId,baseNumber:baseNumber??packet.numberUsed??null,baseDamage:baseDamage??0,classBonus,augmentBonus,modifierIds:[...modifierIds]};
   };
   for(const rc of cards.filter(x=>x.valid)){
     const player=playerFor(run,rc.playerId),engraving=Number(player.engravings?.[String(rc.finalNumber)])||0;
     const classBonus=(player.characterId==='berserker'?1:0)+(player.characterId==='martial_artist'?Math.max(0,Number(rc.martialComboBonus)||0):0);
     const augmentBonus=Math.max(0,Number(rc.crushBonusDamage)||0)+Math.max(0,Number(rc.revengeBonusDamage)||0)+Math.max(0,Number(rc.finisherBonusDamage)||0)+Math.max(0,Number(rc.bloodFrenzyBonusDamage)||0)+Math.max(0,Number(rc.ghostSlashBonusDamage)||0);
+    const modifierIds=[
+      ...(player.characterId==='berserker'?['BERSERKER_BASE']:[]),
+      ...(player.characterId==='martial_artist'&&Number(rc.martialComboBonus)>0?['MARTIAL_COMBO']:[]),
+      ...(Number(rc.crushBonusDamage)>0?['AUG_051_CRUSH']:[]),
+      ...(Number(rc.revengeBonusDamage)>0?['AUG_131_REVENGE']:[]),
+      ...(Number(rc.finisherBonusDamage)>0?['AUG_291_ONE_HIT_KILL']:[]),
+      ...(Number(rc.bloodFrenzyBonusDamage)>0?['AUG_121_BLOOD_FRENZY']:[]),
+      ...(Number(rc.ghostSlashBonusDamage)>0?['GHOST_SLASH']:[])
+    ];
     let primary=burstPacket({sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,amount:Math.max(0,baseDamageForCharacter(player,rc)+engraving-defense),tags:['BASE_CARD'],followUp:false},
-      {resolved:rc,player,baseNumber:rc.finalNumber,baseDamage:rc.finalNumber,classBonus,augmentBonus});
+      {resolved:rc,player,baseNumber:rc.finalNumber,baseDamage:rc.finalNumber,classBonus,augmentBonus,modifierIds});
     const primaryDamage={amount:primary.amount},queued=[];
     applyOwnedEffects(run,'BEFORE_DAMAGE',{player,resolved:rc,damage:primaryDamage,followUps:queued,followUp:false,events:[]});
     primary.amount=Math.max(0,primaryDamage.amount);packets.push(primary);
