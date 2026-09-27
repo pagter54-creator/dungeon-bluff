@@ -117,7 +117,7 @@ before(async () => {
   await db.exec(await readFile(new URL('../supabase/migrations/202609280001_game_modes_pve_beta.sql', import.meta.url), 'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/202609280002_pve_beta_reward_canonical.sql', import.meta.url), 'utf8'));
   globalThis.__testCreateClient = () => admin;
-  globalThis.Deno = { env: { get: () => 'test-value' }, serve: fn => { handler = fn; } };
+  globalThis.Deno = { env: { get: key => key==='COOP_PVE_ENABLED'?'true':'test-value' }, serve: fn => { handler = fn; } };
   let router = stripTypeScriptTypes(await readFile(new URL('../supabase/functions/game-api/index.ts', import.meta.url), 'utf8'));
   router = router.replace(/import \{ createClient \} from 'npm:[^']+';/, 'const createClient = globalThis.__testCreateClient;');
   router = router.replaceAll(/(['"])\.\/([^'"]+)\1/g, (_, quote, file) => `${quote}${new URL(`../supabase/functions/game-api/${file}`, import.meta.url).href}${quote}`);
