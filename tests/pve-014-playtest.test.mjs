@@ -131,10 +131,14 @@ test('PVE-014 internal API playtest: four humans can traverse every F1 room fami
   assert.equal(run.map.bossName,'몰락한 성주');
 
   const visited=[],combatTurns={},version=()=>admin.version;
-  let rewardResolved=false;
+  let rewardResolved=false,lastVisitedNodeId=null;
   for(let guard=0;guard<800&&run.phase!=='FLOOR_CLEAR'&&run.phase!=='RUN_FAILED';guard++){
+    if(run.currentRoomNodeId&&run.currentRoomNodeId!==lastVisitedNodeId){
+      visited.push(run.map.nodes.find(n=>n.id===run.currentRoomNodeId)?.type);
+      lastVisitedNodeId=run.currentRoomNodeId;
+    }
     if(run.phase==='MAP_VOTE'){
-      const nodeId=chooseRouteNode(run),node=run.map.nodes.find(n=>n.id===nodeId);visited.push(node.type);
+      const nodeId=chooseRouteNode(run);
       for(const userId of users.slice(0,3)){
         run=await call(admin,{action:'pve.voteNextRoom',run_id:run.id,action_id:actionId(seq++),expected_version:version(),node_id:nodeId},userId);
         if(run.phase!=='MAP_VOTE')break;
