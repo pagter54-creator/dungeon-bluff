@@ -131,11 +131,11 @@ async function preparePveEntry(){
   try{
     await loadPveEntryAssets(run,bundle.members,(done,total)=>{if(bundle?.run?.id!==run.id)return;pveEntryProgress='일러스트 '+done+' / '+total;renderPveEntryLoading();});
     if(bundle?.run?.id!==run.id)return;
-    pveEntryCompleted=run.id;pveEntryProgress='완료 · 동료를 기다리는 중';
     const response=await api.request('assets_loaded',{room_id:bundle.room.id,run_id:run.id,expected_version:run.version,action_id:crypto.randomUUID()});
     if(bundle?.run?.id!==run.id)return;
+    pveEntryCompleted=run.id;pveEntryProgress='완료 · 동료를 기다리는 중';
     await accept(response);
-  }catch(error){if(bundle?.run?.id===run.id){pveEntryError=error.message;renderPveEntryLoading();}}
+  }catch(error){if(bundle?.run?.id===run.id){pveEntryCompleted=null;pveEntryError=error.message;renderPveEntryLoading();}}
   finally{if(pveEntryWork===run.id)pveEntryWork=null;}
 }
 function pveEncounterArt(run){
@@ -189,7 +189,11 @@ function renderPveRoom(run){
   if(run.phase==='REST')app.insertAdjacentHTML('beforeend',pveRestActionsMarkup(run,{engraveMode:pveEngraveMode,selectedNumber:pveSelectorNumber(run,pveSelected)}));
   if(run.phase==='SHOP')app.insertAdjacentHTML('beforeend',pveShopMarkup(run,{reservation:pveShopReservation,selectedCardId:pveSelected}));
   if(run.phase==='REWARD_ROOM')app.insertAdjacentHTML('beforeend',pveRewardPromptMarkup(run,pvePlayerForUser(run,api.user?.id)));
-  if(run.phase==='AUGMENT_CHOICE')app.insertAdjacentHTML('beforeend',pveAugmentPopupMarkup(run));
+  if(run.phase==='AUGMENT_CHOICE'){
+    if(run.augmentChoice?.resumePhase==='ROOM_RESULT')app.insertAdjacentHTML('beforeend',pveRoomResultOverlayMarkup(bundle,run,{interactive:false}));
+    else if(run.augmentChoice?.resumePhase==='FLOOR_CLEAR')app.insertAdjacentHTML('beforeend','<section class="room-result-overlay pve-room-result"><div class="room-result-card"><div class="eyebrow">FLOOR CLEAR</div><h2>Floor '+escape(run.floor)+' 공략 완료</h2><p>증강 선택 후 다음 층 진행을 계속합니다.</p></div></section>');
+    app.insertAdjacentHTML('beforeend',pveAugmentPopupMarkup(run));
+  }
   if(run.phase==='ROOM_RESULT')app.insertAdjacentHTML('beforeend',pveRoomResultOverlayMarkup(bundle,run));
   if(run.phase==='FLOOR_CLEAR'||run.phase==='FLOOR_TRANSITION')app.insertAdjacentHTML('beforeend','<section class="room-result-overlay pve-room-result"><div class="room-result-card"><div class="eyebrow">FLOOR CLEAR</div><h2>Floor '+escape(run.floor)+' 공략 완료</h2><button class="button secondary" data-action="pve-map-open">지도 확인 ◇</button></div></section>');
   if(pveMapOpen)app.insertAdjacentHTML('beforeend',pveMapOverlayMarkup(run,api.user?.id,{visitedNodes:[...pveVisitedNodes]}));
@@ -471,11 +475,14 @@ document.addEventListener('click', async event => {
   if(action==='pve-rest')void performPve('pve.restChoice',{choice:button.dataset.choice});
   if(action==='pve-rest-engrave'){pveEngraveMode=true;pveSelected=null;renderPve();}
   if(action==='pve-rest-engrave-cancel'){pveEngraveMode=false;pveSelected=null;renderPve();}
-  if(action==='pve-rest-engrave-confirm'&&pveSelected){const number=pveSelectorNumber(bundle.run,pveSelected);if(number!=null){pveEngraveMode=false;pveSelected=null;void performPve('pve.restChoice',{choice:'ENGRAVE',number});}}
-  if(action==='pve-shop-item'){const room=bundle.run?.roomState||{},item=[...(room.cardStock||[]),...(room.relicStock||[])].find(x=>x.id===button.dataset.productId);if(item){if(item.kind==='CARD')showModal('<div class="eyebrow">SHOP · CARD</div><h2>숫자 '+escape(item.value)+' 카드</h2><p>가격 '+escape(item.price)+'G · 구매하면 내 카드 한 장과 교체합니다.</p><button class="button primary full" data-action="pve-shop-reserve" data-product-id="'+escape(item.id)+'">교체 카드 선택 →</button>');else{const relic=relicUi(item.relicId);showModal('<div class="eyebrow">SHOP · RELIC</div><h2>'+escape(relic.name)+'</h2><p>'+escape(relic.text)+'</p><p>'+escape(item.price)+'G</p><button class="button primary full" data-action="pve-shop-buy-relic" data-product-id="'+escape(item.id)+'">구매 확인 →</button>');}}}
+  if(action==='pve-rest-engrave-confirm'&&pveSelected){const number=pveSelectorNumber(bundle.run,pveSelected);if(number!=null)showModal('<div class="eyebrow">NUMBER ENGRAVING · CONFIRM</div><h2>숫자 '+escape(number)+'을 각인할까요?</h2><p>각인은 물리 카드 슬롯이 아니라 이 숫자 값에 적용됩니다.</p><button class="button primary full" data-action="pve-rest-engrave-apply" data-number="'+escape(number)+'">각인 적용 →</button>');}
+  if(action==='pve-rest-engrave-apply'){const number=Number(button.dataset.number);modal.close();if(Number.isInteger(number)){pveEngraveMode=false;pveSelected=null;void performPve('pve.restChoice',{choice:'ENGRAVE',number});}}
+  if(action==='pve-shop-item'){const room=bundle.run?.roomState||{},item=[...(room.cardStock||[]),...(room.relicStock||[])].find(x=>x.id===button.dataset.productId);if(item){if(item.kind==='CARD')showModal('<div class="eyebrow">SHOP · CARD</div><h2>숫자 '+escape(item.value)+' 카드</h2><p>가격 '+escape(item.price)+'G · 구매하면 내 카드 한 장과 교체합니다.</p><button class="button primary full" data-action="pve-shop-reserve" data-product-id="'+escape(item.id)+'">교체 카드 선택 →</button>');else{const relic=relicUi(item.relicId);showModal('<div class="eyebrow">SHOP · RELIC</div><h2>'+escape(relic.name)+'</h2><p>'+escape(relic.text)+'</p><p>'+escape(item.price)+'G</p><button class="button primary full" data-action="pve-shop-buy-relic-confirm" data-product-id="'+escape(item.id)+'">구매 확인 →</button>');}}}
   if(action==='pve-shop-reserve'){const productId=button.dataset.productId;modal.close();pveShopReservation=productId;pveSelected=null;void performPve('pve.shopReserveCard',{product_id:productId});}
-  if(action==='pve-shop-buy-relic'){modal.close();void performPve('pve.shopBuyRelic',{product_id:button.dataset.productId});}
-  if(action==='pve-shop-confirm-card'&&pveShopReservation&&pveSelected){const productId=pveShopReservation,replaceId=pveSelected;pveShopReservation=null;pveSelected=null;void performPve('pve.shopConfirmCard',{product_id:productId,replace_card_id:replaceId});}
+  if(action==='pve-shop-buy-relic-confirm'){const room=bundle.run?.roomState||{},item=(room.relicStock||[]).find(x=>x.id===button.dataset.productId);if(item){const relic=relicUi(item.relicId);showModal('<div class="eyebrow">SHOP · CONFIRM</div><h2>'+escape(relic.name)+'을 구매할까요?</h2><p>'+escape(item.price)+'G를 사용합니다.</p><button class="button primary full" data-action="pve-shop-buy-relic-apply" data-product-id="'+escape(item.id)+'">구매 확정 →</button>');}}
+  if(action==='pve-shop-buy-relic-apply'){modal.close();void performPve('pve.shopBuyRelic',{product_id:button.dataset.productId});}
+  if(action==='pve-shop-confirm-card'&&pveShopReservation&&pveSelected){const room=bundle.run?.roomState||{},item=(room.cardStock||[]).find(x=>x.id===pveShopReservation),number=pveSelectorNumber(bundle.run,pveSelected);showModal('<div class="eyebrow">SHOP · CARD REPLACEMENT · CONFIRM</div><h2>이 카드를 교체할까요?</h2><p>내 숫자 '+escape(number)+' 카드 → 상점 숫자 '+escape(item?.value)+' 카드 · '+escape(item?.price)+'G</p><button class="button primary full" data-action="pve-shop-confirm-card-apply" data-product-id="'+escape(pveShopReservation)+'" data-replace-card-id="'+escape(pveSelected)+'">구매 + 교체 확정 →</button>');}
+  if(action==='pve-shop-confirm-card-apply'){const productId=button.dataset.productId,replaceId=button.dataset.replaceCardId;modal.close();pveShopReservation=null;pveSelected=null;void performPve('pve.shopConfirmCard',{product_id:productId,replace_card_id:replaceId});}
   if(action==='pve-shop-cancel-card'&&pveShopReservation){const productId=pveShopReservation;pveShopReservation=null;pveSelected=null;void performPve('pve.shopCancelCard',{product_id:productId});}
   if(action==='pve-shop-ready')void performPve('pve.shopReady');
   if(action==='pve-reward-card')void performPve('pve.rewardSubmitCard',{card_instance_id:button.dataset.cardId,skill_intent:false});
