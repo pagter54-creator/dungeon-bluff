@@ -1,9 +1,11 @@
 import {choose} from './rng.js';
+import {clearCombatResources,resourceMax} from './resources.js';
 
 export const PVE_CHARACTER_DEFS={
   adventurer:{deck:[1,2,3,4,5],skillId:'gold_bonus'},
   warrior:{deck:[2,3,4,5,5],skillId:'toughness'},
   mage:{deck:[1,2,3,4,4],skillId:'amplify'},
+  rogue:{deck:[1,1,3,4,5],skillId:'sneaky_strike'},
   gunner:{deck:[1,2,3],skillId:'full_burst'},
   twins:{deck:[1,2,3,4],skillId:'acrobatics'},
 };
@@ -11,6 +13,7 @@ const fallback={deck:[1,2,3,4,5],skillId:null};
 
 export function pveCharacterDef(characterId){return PVE_CHARACTER_DEFS[characterId]||fallback;}
 export function initializeCombatCharacter(player){
+  clearCombatResources(player);
   if(player.characterId==='warrior')player.publicResources.toughnessCharges=1;
   if(player.characterId==='mage')player.publicResources.mana=0;
   if(player.characterId==='gunner'){
@@ -20,18 +23,17 @@ export function initializeCombatCharacter(player){
   if(player.characterId==='twins'){
     player.publicResources.acrobaticsReady=true;
     delete player.publicResources.parity;
-    delete player.persistentCharacterState.acrobaticsLockCycle;
   }
 }
 export function onTurnStartCharacter(player,run){
   if(player.status==='DOWNED')return;
-  if(player.characterId==='mage')player.publicResources.mana=Math.min(4,(player.publicResources.mana||0)+1);
+  if(player.characterId==='mage')player.publicResources.mana=Math.min(resourceMax(player,'mana',4),(player.publicResources.mana||0)+1);
   if(player.characterId==='twins'&&!Number.isInteger(player.publicResources.parity)){
     player.publicResources.parity=choose(run,[0,1],`twins-parity:${player.playerId}`);
   }
 }
 export function onCycleStartCharacter(player,privateState){
-  if(player.characterId==='warrior')player.publicResources.toughnessCharges=Math.min(2,(player.publicResources.toughnessCharges||0)+1);
+  if(player.characterId==='warrior')player.publicResources.toughnessCharges=Math.min(resourceMax(player,'toughnessCharges',2),(player.publicResources.toughnessCharges||0)+1);
   if(player.characterId==='gunner'){
     player.publicResources.fullBurstReady=(privateState.cycleIndex||1)>=(player.publicResources.burstReadyCycle||1);
   }
@@ -71,14 +73,16 @@ export function activateImmediateCharacterSkill(run,player){
 }
 export function selfModifyCard(player,resolved,submission){
   if(player.characterId!=='mage'||!submission.skillIntent)return;
-  const mana=player.publicResources.mana||0;
+  const mana=player.publicResources.mana||0,maxMana=resourceMax(player,'mana',4);
   if(mana<2)throw new Error('마나가 부족합니다.');
-  const spend=mana>=4?4:2, bonus=spend===4?2:1;
+  const spend=maxMana>=6&&mana>=6?6:mana>=4?4:2;
+  const bonus=spend===6?3:spend===4?2:1;
   player.publicResources.mana=mana-spend;
   resolved.workingNumber+=bonus;
   resolved.finalNumber=resolved.workingNumber;
   resolved.skillUsed='amplify';
   resolved.skillValue=bonus;
+  resolved.resourceSpent=spend;
 }
 export function collisionImmunity(player,submission){
   if(player.characterId!=='warrior'||!submission.skillIntent)return false;
@@ -103,8 +107,10 @@ export function resolvePostCollisionCharacter(run,resolved,submission){
   }
 }
 export function baseDamageForCharacter(player,resolved){
+  if(player.characterId==='rogue'&&resolved.soloLowest)return 5;
   return resolved.finalNumber+(player.characterId==='twins'?2:0);
 }
+export function onCombatEndCharacter(player){clearCombatResources(player);}
 export function onValidAttack(player){
   if(player.characterId==='adventurer')player.growthExp+=1;
 }
