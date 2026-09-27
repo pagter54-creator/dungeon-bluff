@@ -4,7 +4,7 @@ import {
   runT09Fixtures,runT09,replayScenario,scenarioAvailability,STRESS_SCENARIOS
 } from '../scripts/pve-stress-lib.mjs';
 import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/pve/model.js';
-import {beginTurn,submitCard} from '../supabase/functions/game-api/pve/combat.js';
+import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-api/pve/combat.js';
 import {activateImmediateCharacterSkill} from '../supabase/functions/game-api/pve/characters.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 
@@ -33,19 +33,23 @@ test('T09 F2 Mage exact 2-cost spends exactly once and modifies by +1',()=>{
   assert.equal(f.workingNumber,2);
 });
 
-test('T09 duplicate committed Mage skill request rejects ALREADY_USED and cannot double-spend Mana',()=>{
+test('T09 repeated Mage resubmission during SELECTION_OPEN does not spend Mana until resolve and spends once',()=>{
   const ids=['warrior','mage','prophet','gunner'];
   const players=ids.map((character_id,i)=>newPlayerRunState({id:`p${i}`,user_id:`u${i}`,member_type:'human',character_id,seat_index:i}));
-  const monster={id:'duplicate-dummy',name:'Duplicate Dummy',tier:'NORMAL',baseHp:999,pattern:[{type:'CHARGE',telegraphText:'fixture',payload:{}}]};
-  const run={id:'dup-run',roomId:'r',seed:'dup-seed',rngCounter:0,version:0,phase:'COMBAT',floor:1,depth:1,flame:4,maxFlame:5,currentRoomNodeId:'dup-node',players,map:{nodes:[],edges:{}},usedMonsterIds:[],chosenBossIds:{}};
+  const monster={id:'resubmit-dummy',name:'Resubmit Dummy',tier:'NORMAL',baseHp:999,pattern:[{type:'CHARGE',telegraphText:'fixture',payload:{}}]};
+  const run={id:'resubmit-run',roomId:'r',seed:'resubmit-seed',rngCounter:0,version:0,phase:'COMBAT',floor:1,depth:1,flame:4,maxFlame:5,currentRoomNodeId:'resubmit-node',players,map:{nodes:[],edges:{}},usedMonsterIds:[],chosenBossIds:{}};
   run.combat=newCombatState(players,999,'NORMAL_COMBAT',monster);beginTurn(run);
   players[1].publicResources.mana=2;
-  const mageCard=players[1].cardPool.find(card=>card.baseNumber===1);
-  submitCard(run,'p1',mageCard.id,true,{manaSpend:2});
+  const mage1=players[1].cardPool.find(card=>card.baseNumber===1),mage2=players[1].cardPool.find(card=>card.baseNumber===2);
+  submitCard(run,'p1',mage1.id,true,{manaSpend:2});
+  submitCard(run,'p1',mage2.id,true,{manaSpend:2});
   assert.equal(players[1].publicResources.mana,2);
-  assert.throws(()=>submitCard(run,'p1',mageCard.id,true,{manaSpend:2}),error=>error?.code==='ALREADY_USED');
-  assert.equal(players[1].publicResources.mana,2);
-  assert.equal(run.combat.turnSubmissions.p1.cardInstanceId,mageCard.id);
+  assert.equal(run.combat.turnSubmissions.p1.cardInstanceId,mage2.id);
+  submitCard(run,'p0',players[0].cardPool.find(card=>card.baseNumber===5).id,false);
+  submitCard(run,'p2',players[2].cardPool.find(card=>card.baseNumber===4).id,false);
+  submitCard(run,'p3',players[3].cardPool.find(card=>card.baseNumber===3).id,false);
+  resolveBasicTurn(run);
+  assert.equal(players[1].publicResources.mana,0);
 });
 
 test('T09 F3 Knight Toughness 0 is rejected and normal submission still advances',()=>{
