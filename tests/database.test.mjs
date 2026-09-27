@@ -198,11 +198,12 @@ test('revelation activation commits once under concurrent retries and exposes on
 
 test('real migration parses and enforces service-only RPC and private table access', async () => {
   const { rows } = await db.query(`select tablename from pg_tables where schemaname='public'`);
-  assert.equal(rows.length, 18);
+  assert.equal(rows.length, 19);
   await db.exec(`set role authenticated`);
   try {
     await assert.rejects(db.query('select * from public.turn_submissions'), /permission denied/);
     await assert.rejects(db.query('select * from public.room_secrets'), /permission denied/);
+    await assert.rejects(db.query('select * from public.pve_runtime_flags'), /permission denied/);
     await assert.rejects(db.query('select public.game_read($1)', [crypto.randomUUID()]), /permission denied/);
     await assert.rejects(db.query('update public.characters set enabled=false'), /permission denied/);
     await assert.rejects(db.query('select public.game_profile($1,$2)', [users[0], '침입자']), /permission denied/);
