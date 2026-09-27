@@ -2,7 +2,7 @@ import {choose} from './rng.js';
 import {
   onTurnStartCharacter,onCycleStartCharacter,onTurnEndCharacter,selfModifyCard,collisionImmunity,onValidAttack,
   isCardSelectableForCharacter,validateCharacterSkillIntent,resolvePostCollisionCharacter,baseDamageForCharacter,grantRunGold,
-  onCombatEndCharacter,PveSkillError
+  onCombatEndCharacter
 } from './characters.js';
 import {publishMonsterIntent,executeMonsterIntent} from './monster.js';
 import {beginAugmentChoices} from './augments.js';
@@ -148,7 +148,7 @@ export function beginTurn(run){
 export function submitCard(run,playerId,cardInstanceId,skillIntent=false,skillData=null){
   const c=run.combat;if(!c||c.phase!=='SELECTION_OPEN')throw new Error('Card selection is closed.');
   const p=playerFor(run,playerId);if(!p||p.status==='DOWNED')throw new Error('Player cannot act.');
-  if(c.turnSubmissions[playerId])throw new PveSkillError('ALREADY_USED',c.turnSubmissions[playerId]?.autoSubmitted?'Stunned player already auto-submitted.':'이번 턴 카드를 이미 확정 제출했습니다.');
+  if(c.turnSubmissions[playerId]?.autoSubmitted)throw new Error('Stunned player already auto-submitted.');
   const priv=c.privateByPlayer[playerId],card=cardFor(run,playerId,cardInstanceId);
   if(!priv||!priv.remainingCardIds.includes(cardInstanceId)||!card)throw new Error('Card is not available.');
   if(!isCardSelectableForCharacter(p,card))throw new Error('현재 쌍둥이 홀짝 상태에 맞는 카드만 선택할 수 있습니다.');
