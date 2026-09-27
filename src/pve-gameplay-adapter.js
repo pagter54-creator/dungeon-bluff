@@ -150,7 +150,6 @@ export function adaptPveTurnResult(bundle,beforeRun,afterRun){
   const afterMonster=structuredClone(afterRun?.combat?.monster||beforeMonster||null);
   const effects=[...mutationEffects(turnResult),...combatEventEffects(turnResult)];
   for(const packet of turnResult.damagePackets||[]){
-    if(packet.followUp)continue;
     const player=(afterRun.players||[]).find(p=>p.playerId===packet.sourcePlayerId);
     const character=characterForPlayer(bundle,player);
     effects.push({
@@ -159,6 +158,11 @@ export function adaptPveTurnResult(bundle,beforeRun,afterRun){
       attackSfx:character?.definition?.attackSfx||undefined,
       hits:1
     });
+  }
+  if(beforeMonster&&afterRun?.combat?.monster){
+    const hpAfterAttacks=Math.max(0,beforeMonster.hp-(Number(turnResult.totalDamage)||0));
+    const healedHp=Math.max(0,Number(afterRun.combat.monster.hp)||0);
+    if(healedHp>hpAfterAttacks)effects.push({type:'monster_heal_after',amount:healedHp-hpAfterAttacks});
   }
   const cards=(turnResult.cards||[]).map(card=>{
     const skillId=mappedSkill(card);
