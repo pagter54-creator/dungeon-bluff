@@ -230,11 +230,22 @@ export function activateImmediateCharacterSkill(run,player,skillData=null){
       const target=run.players.find(p=>p.playerId===targetPlayerId&&p.playerId!==player.playerId&&p.status!=='DOWNED');
       if(!target)rejectSkill('INVALID_SKILL_REQUEST','운명 조작자 대상이 올바르지 않습니다.');
       const targetPriv=c.privateByPlayer[target.playerId];
-      const recoverable=(targetPriv?.spentCardIds||[]).filter(id=>{
+      let recoverable=(targetPriv?.spentCardIds||[]).filter(id=>{
         const card=target.cardPool.find(x=>x.id===id);
         return card?.source==='BASE'&&!(card.tags||[]).some(tag=>['TEMPORARY','TRANSFORMED','SPECIAL'].includes(tag));
       }).sort();
-      if(!recoverable.length)rejectSkill('SKILL_NOT_READY','대상 아군의 현재 사이클에 복구 가능한 사용 카드가 없습니다.');
+      if(target.characterId==='twins'){
+        const submittedId=c.turnSubmissions[target.playerId]?.cardInstanceId||null;
+        const currentParity=Number(target.publicResources.parity)||0;
+        recoverable=recoverable.filter(candidateId=>{
+          const ids=[...(targetPriv.remainingCardIds||[]),candidateId].filter(id=>id!==submittedId);
+          const startParity=submittedId?1-currentParity:currentParity;
+          const counts=[0,0];
+          for(const id of ids){const card=target.cardPool.find(x=>x.id===id);if(card)counts[card.baseNumber%2]++;}
+          return counts[startParity]===Math.ceil(ids.length/2)&&counts[1-startParity]===Math.floor(ids.length/2);
+        });
+      }
+      if(!recoverable.length)rejectSkill('SKILL_NOT_READY','대상 아군의 현재 사이클에 안전하게 복구 가능한 사용 카드가 없습니다.');
       const cardId=choose(run,recoverable,`fate-manipulator:${run.floor}:${run.depth}:${run.currentRoomNodeId||c.monster.id}:${c.turn}:${player.playerId}:${target.playerId}`);
       const card=target.cardPool.find(x=>x.id===cardId);
       if(!card||!targetPriv.spentCardIds.includes(cardId)||targetPriv.remainingCardIds.includes(cardId))rejectSkill('INVALID_STATE','복구 대상 physical card zone이 올바르지 않습니다.');
