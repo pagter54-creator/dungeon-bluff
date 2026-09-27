@@ -130,6 +130,20 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
     specialHandlers:['REVERSE_MATH'],
     effects:[]
   },
+  'aug-051':{
+    executable:true,
+    source:'BETA_v0.1',
+    specialHandlers:['CRUSH_KNIGHT'],
+    config:{crushDamagePerCard:1,crushDamageCap:2},
+    effects:[]
+  },
+  'aug-131':{
+    executable:true,
+    source:'BETA_v0.1',
+    specialHandlers:['IMMORTAL_FIGHTER'],
+    config:{collisionHealCapMode:'MAX_HP',revengeMax:1,revengeBonusDamage:2},
+    effects:[]
+  },
   'aug-181':{
     executable:true,
     source:'BETA_v0.1',
