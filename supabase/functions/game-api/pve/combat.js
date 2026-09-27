@@ -1,8 +1,8 @@
 import {choose} from './rng.js';
 import {
   onTurnStartCharacter,onCycleStartCharacter,onTurnEndCharacter,selfModifyCard,collisionImmunity,onValidAttack,
-  isCardSelectableForCharacter,validateCharacterSkillIntent,resolvePostCollisionCharacter,baseDamageForCharacter,grantRunGold,
-  onCombatEndCharacter
+  isCardSelectableForCharacter,validateCharacterSkillIntent,resolvePostCollisionCharacter,resolvePostCollisionEffects,
+  applyPostPlayerAttackCharacter,baseDamageForCharacter,grantRunGold,onCombatEndCharacter
 } from './characters.js';
 import {publishMonsterIntent,executeMonsterIntent} from './monster.js';
 import {beginAugmentChoices} from './augments.js';
@@ -182,6 +182,9 @@ export function resolveBasicTurn(run){
     if(group.length>1)for(const rc of group)if(!rc.collisionImmune){rc.valid=false;rc.invalidReason='COLLISION';}
   }
   assignVampireThralls(run,cards,groups,events);
+  c.phase='POST_COLLISION_EFFECTS';phaseTrace.push(c.phase);
+  const processedCollisionEventIds=new Set();
+  const collisionGroups=resolvePostCollisionEffects(run,cards,groups,events,mutationEvents,processedCollisionEventIds);
   c.phase='VALIDITY_DERIVE';phaseTrace.push(c.phase);
   const validCards=cards.filter(x=>x.valid),lowestNumber=validCards.length?Math.min(...validCards.map(x=>x.finalNumber)):null;
   const lowestCards=validCards.filter(x=>x.finalNumber===lowestNumber);
@@ -212,12 +215,14 @@ export function resolveBasicTurn(run){
   validateNumberMutationState(run,cards,mutationEvents,{packets});
   const buildTurnResult=(trace=phaseTrace)=>({
     turn:c.turn,cards,damagePackets:packets,totalDamage,phaseTrace:trace,events,
+    collisionGroups:structuredClone(collisionGroups),collisionResolutionPasses:1,postCollisionEffectPasses:1,
     numberHistories:cards.map(card=>structuredClone(card.numberHistory)),
     mutationEvents:structuredClone(mutationEvents)
   });
   for(const packet of packets){const p=playerFor(run,packet.sourcePlayerId);applyOwnedEffects(run,'AFTER_DAMAGE',{player:p,damage:{amount:packet.amount},followUp:packet.followUp,packet,events:[]});}
   for(const rc of cards)if(rc.valid)onValidAttack(playerFor(run,rc.playerId));
   c.phase='POST_PLAYER_ATTACK';phaseTrace.push(c.phase);
+  for(const rc of cards.filter(x=>x.valid))applyPostPlayerAttackCharacter(run,rc,events);
   for(const rc of cards.filter(x=>x.burstMisfire)){
     const p=playerFor(run,rc.playerId);
     p.hp-=1;
