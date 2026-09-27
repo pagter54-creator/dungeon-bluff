@@ -140,6 +140,18 @@ export const SPEC_AMBIGUITIES=Object.freeze([
     scenarioId:'T09',
     topic:'Prophet Revelation target priority when multiple teammates are READY',
     detail:'PVE combat UX forbids direct player targeting, while the current Prophet base rule does not define a class-specific priority among multiple READY teammates. The executable T09 path uses the existing stable automatic-target convention: first eligible READY teammate by lobby seat. The reveal scope is fixed, but a future class-content rule may replace this target priority without changing resource semantics.'
+  },
+  {
+    id:'AMB-T04-REVENGE-ZERO-DIRECT',
+    scenarioId:'T04',
+    topic:'Immortal Fighter Revenge when DIRECT damage is fully prevented',
+    detail:'The BETA runtime config defines Revenge max=1 and bonus damage=2 but does not independently specify whether a DIRECT packet reduced to actualDamage=0 grants Revenge. T04 follows the current engine meaning of actual damage received: only DIRECT with actualDamage>0 grants Revenge. If the canonical content rule later says blocked DIRECT still counts as being hit, this edge must be revised without changing T04 collision ordering.'
+  },
+  {
+    id:'AMB-T04-PENDING-DOWN-COLLISION-HEAL',
+    scenarioId:'T04',
+    topic:'Berserker collision heal while already pendingDown',
+    detail:'In the current canonical turn pipeline POST_COLLISION_EFFECTS occurs before monster action damage and DOWN_RESOLVE, so a Berserker cannot normally become pendingDown from monster damage and then receive same-turn collision heal afterward. RULE-02 is therefore unchanged; this edge is recorded rather than inventing a new reordering.'
   }
 ]);
 
