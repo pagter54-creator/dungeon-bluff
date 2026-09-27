@@ -37,7 +37,7 @@ function resolve(run,fail){const result=resolveBasicTurn(run);if(!result)hard(fa
 const cardsById=result=>Object.fromEntries((result.cards||[]).map(c=>[c.playerId,c]));
 const eventsOf=(result,type)=>(result?.events||[]).filter(e=>e.type===type);
 function snapshot(id,run,result=null,extra={}){
-  return {id,cards:result?Object.fromEntries((result.cards||[]).map(c=>[c.playerId,{finalNumber:c.finalNumber,valid:c.valid,invalidReason:c.invalidReason||null,guardianSacrifice:Boolean(c.guardianSacrifice),guardianRescued:Boolean(c.guardianRescued),whiteMagicHeal:Number(c.whiteMagicHeal)||0}])):{},hp:Object.fromEntries(run.players.map(p=>[p.playerId,p.hp])),blood:Number(run.players[1].publicResources.blood)||0,mana:Number(run.players[3].publicResources.mana)||0,revenge:Number(run.players[2].publicResources.revenge)||0,guardianTarget:run.players[0].publicResources.guardianTargetPlayerId||null,events:structuredClone((result?.events||[]).filter(e=>['GUARDIAN_WALL_RESCUE','DAMAGE_REDIRECTED','PLAYER_DAMAGED','PLAYER_HEALED','TRANSFUSION_USED','VAMPIRE_BLOOD_GAINED','WHITE_MAGIC_HEAL','BERSERKER_COLLISION_HEAL','BERSERKER_REVENGE_GAINED','BERSERKER_REVENGE_CONSUMED'].includes(e.type))),...extra};
+  return {id,cards:result?Object.fromEntries((result.cards||[]).map(c=>[c.playerId,{finalNumber:c.finalNumber,valid:c.valid,invalidReason:c.invalidReason||null,guardianSacrifice:Boolean(c.guardianSacrifice),guardianRescued:Boolean(c.guardianRescued),whiteMagicHeal:Number(c.whiteMagicHeal)||0,resourceSpent:Number(c.resourceSpent)||0}])):{},statuses:Object.fromEntries(run.players.map(p=>[p.playerId,p.status])),pendingDown:[...(run.combat?.pendingDownPlayerIds||[])],hp:Object.fromEntries(run.players.map(p=>[p.playerId,p.hp])),blood:Number(run.players[1].publicResources.blood)||0,mana:Number(run.players[3].publicResources.mana)||0,revenge:Number(run.players[2].publicResources.revenge)||0,guardianTarget:run.players[0].publicResources.guardianTargetPlayerId||null,events:structuredClone((result?.events||[]).filter(e=>['GUARDIAN_WALL_RESCUE','DAMAGE_REDIRECTED','PLAYER_DAMAGED','PLAYER_HEALED','TRANSFUSION_USED','VAMPIRE_BLOOD_GAINED','WHITE_MAGIC_HEAL','BERSERKER_COLLISION_HEAL','BERSERKER_REVENGE_GAINED','BERSERKER_REVENGE_CONSUMED'].includes(e.type))),...extra};
 }
 
 export function runT03Fixtures(seed,fail){
@@ -150,7 +150,34 @@ export function runT03Scenario(seed,{simulateCombat,fail}){
 }
 
 export function t03GoldenComparable(result){
-  const eventFields=['type','phase','damageEventId','healEventId','collisionEventId','playerId','targetId','originalTarget','redirectedTarget','redirectSource','rawDamage','preventedDamage','amount','before','after','bloodBefore','bloodSpent','bloodAfter'];
-  const compact=items=>(items||[]).map(e=>eventFields.map(k=>e?.[k]??null));
-  return {scenarioId:result.scenarioId,status:result.status,eventFields,fixtures:(result.fixtures||[]).map(f=>({id:f.id,cards:f.cards,hp:f.hp,blood:f.blood,mana:f.mana,revenge:f.revenge,guardianTarget:f.guardianTarget,events:compact(f.events),directEvents:compact(f.directEvents),rejectCode:f.rejectCode??null,skillEvent:f.skillEvent?eventFields.map(k=>f.skillEvent?.[k]??null):null,redirectCount:f.redirectCount??null,healCount:f.healCount??null}))};
+  const byId=Object.fromEntries((result.fixtures||[]).map(f=>[f.id,f]));
+  const event=(f,type)=>[...(f?.events||[]),...(f?.directEvents||[])].find(e=>e.type===type)||null;
+  const compactDamage=e=>e?{
+    type:e.type,damageEventId:e.damageEventId||null,originalTarget:e.originalTarget||null,
+    redirectedTarget:e.redirectedTarget||null,playerId:e.playerId||null,redirectSource:e.redirectSource||null,
+    rawDamage:e.rawDamage??e.damageBeforeReduction??null,preventedDamage:e.preventedDamage??null,actualDamage:e.actualDamage??e.amount??null
+  }:null;
+  const compactHeal=e=>e?{
+    type:e.type,healEventId:e.healEventId||null,playerId:e.playerId||null,targetId:e.targetId||null,
+    amount:e.amount??null,before:e.before??null,after:e.after??null,bloodBefore:e.bloodBefore??null,bloodSpent:e.bloodSpent??null,bloodAfter:e.bloodAfter??null
+  }:null;
+  const f1=byId.F1_GUARD_COLLISION_RESCUE,f4=byId.F4_DAMAGE_REDIRECT,f8=byId.F8_TRANSFUSION_SUCCESS,
+    f11=byId.F11_WHITE_MAGIC_SUCCESS,f15=byId.F15_REVENGE_DIRECT,f16=byId.F16_ZERO_DAMAGE_NO_REVENGE,
+    f19=byId.F19_FULL_SUSTAIN_CHAIN,f20=byId.F20_NO_SUSTAIN_RECURSION;
+  return {
+    scenarioId:result.scenarioId,status:result.status,
+    guard:{cards:f1?.cards,statuses:f1?.statuses,pendingDown:f1?.pendingDown,guardianTarget:f1?.guardianTarget},
+    redirect:{redirect:compactDamage(event(f4,'DAMAGE_REDIRECTED')),damage:compactDamage(event(f4,'PLAYER_DAMAGED')),hp:f4?.hp,statuses:f4?.statuses,pendingDown:f4?.pendingDown},
+    transfusion:{skill:compactHeal(f8?.skillEvent),hp:f8?.hp,blood:f8?.blood,statuses:f8?.statuses,pendingDown:f8?.pendingDown},
+    whiteMagic:{mageCard:f11?.cards?.p3,heal:compactHeal(event(f11,'WHITE_MAGIC_HEAL')),hp:f11?.hp,mana:f11?.mana,statuses:f11?.statuses,pendingDown:f11?.pendingDown},
+    revenge:{direct:compactDamage(event(f15,'PLAYER_DAMAGED')),revengeGain:event(f15,'BERSERKER_REVENGE_GAINED')?.amount??0,revengeAfter:f15?.revenge,zeroDamage:compactDamage(event(f16,'PLAYER_DAMAGED')),zeroDamageRevenge:f16?.revenge},
+    fullChain:{
+      hp:f19?.hp,blood:f19?.blood,mana:f19?.mana,revenge:f19?.revenge,statuses:f19?.statuses,pendingDown:f19?.pendingDown,
+      mageCard:f19?.cards?.p3,
+      eventTypes:(f19?.events||[]).map(e=>e.type),directEventTypes:(f19?.directEvents||[]).map(e=>e.type),
+      whiteHeal:compactHeal(event(f19,'WHITE_MAGIC_HEAL')),redirect:compactDamage(event(f19,'DAMAGE_REDIRECTED')),
+      redirectedDamage:compactDamage(event(f19,'PLAYER_DAMAGED')),transfusion:compactHeal(f19?.skillEvent)
+    },
+    noRecursion:{redirectCount:f20?.redirectCount,healCount:f20?.healCount,hp:f20?.hp,statuses:f20?.statuses,pendingDown:f20?.pendingDown}
+  };
 }
