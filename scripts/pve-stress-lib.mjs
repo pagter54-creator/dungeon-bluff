@@ -123,6 +123,12 @@ export const SPEC_AMBIGUITIES=Object.freeze([
     scenarioId:'T05',
     topic:'multiple Imp PRE_COLLISION_STEAL ordering',
     detail:'The current BETA rules define one Imp stealing from matching non-Imp players but do not define simultaneous ordering when multiple Imps are present. T05 contains exactly one Imp. The mutation resolver hard-fails MULTI_IMP_STEAL_UNDEFINED instead of inventing a rule.'
+  },
+  {
+    id:'AMB-T09-SEER-PEEK-TARGET',
+    scenarioId:'T09',
+    topic:'Prophet Revelation target priority when multiple teammates are READY',
+    detail:'PVE combat UX forbids direct player targeting, while the current Prophet base rule does not define a class-specific priority among multiple READY teammates. The executable T09 path uses the existing stable automatic-target convention: first eligible READY teammate by lobby seat. The reveal scope is fixed, but a future class-content rule may replace this target priority without changing resource semantics.'
   }
 ]);
 
