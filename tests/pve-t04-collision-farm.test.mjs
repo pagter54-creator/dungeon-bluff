@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {
-  runT04Fixtures,runT04,replayScenario,scenarioAvailability,STRESS_SCENARIOS
+  runT04Fixtures,runT04,replayScenario,t04GoldenComparable,scenarioAvailability,STRESS_SCENARIOS
 } from '../scripts/pve-stress-lib.mjs';
 import {buildCollisionFarmIntent,planCollisionFarmTurn,planCollisionSafeTurn} from '../scripts/pve-collision-farm-policy.mjs';
 import {PVE_CHARACTER_DEFS} from '../supabase/functions/game-api/pve/characters.js';
@@ -176,6 +177,12 @@ test('T04 collision farm and safe policies are deterministic and share only volu
   const farm=planCollisionFarmTurn(intents,{seed:'policy',contextKey:'turn'});
   assert.ok(farm.intentionalParticipantIds.length>=2);
   assert.ok(farm.decisions.every(x=>!Object.hasOwn(x,'cardInstanceId')));
+});
+
+test('T04 semantic golden locks mutation, collision, Revenge, damage and HP timelines',()=>{
+  const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/pve-stress-t04-golden.json',import.meta.url),'utf8'));
+  const result=replayScenario('T04','smoke:T04:0000');
+  assert.deepEqual(t04GoldenComparable(result),golden);
 });
 
 test('T04 same-seed stress replay reproduces collision timelines and comparison',()=>{
