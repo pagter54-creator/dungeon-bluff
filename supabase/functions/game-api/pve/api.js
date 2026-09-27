@@ -59,7 +59,7 @@ export async function handlePveAction({admin,user,body,json}){
     if(bundle.members?.length!==4)return fail(json,'PVE 원정은 4인이 필요합니다.');
     if(bundle.session)return fail(json,'기존 PVP 원정이 진행 중입니다.');
     const players=bundle.members.map(newPlayerRunState);
-    const run={id:crypto.randomUUID(),roomId:body.room_id,seed:typeof body.seed==='string'&&body.seed.length<=128?body.seed:crypto.randomUUID(),rngCounter:0,version:0,phase:'MAP_VOTE',floor:1,depth:0,flame:3,maxFlame:5,map:null,currentRoomNodeId:null,players,usedMonsterIds:[],chosenBossIds:{1:'f1_fallen_lord'},contentVersion:'F1_VERTICAL_SLICE_V1',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+    const run={id:crypto.randomUUID(),roomId:body.room_id,seed:typeof body.seed==='string'&&body.seed.length<=128?body.seed:crypto.randomUUID(),rngCounter:0,version:0,phase:'MAP_VOTE',floor:1,depth:0,flame:4,maxFlame:5,map:null,currentRoomNodeId:null,players,usedMonsterIds:[],chosenBossIds:{1:'f1_fallen_lord'},contentVersion:'F1_VERTICAL_SLICE_V1',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
     installRelicCatalog(run,F1_RELIC_DEFINITIONS);
     run.map=generateFloorMap(run,Number.isInteger(body.depth_count)&&body.depth_count>=2&&body.depth_count<=12?body.depth_count:8);
     run.map.voteDeadline=new Date(Date.now()+15000).toISOString();
