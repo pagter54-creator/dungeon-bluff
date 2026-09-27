@@ -19,7 +19,7 @@ create table if not exists public.pve_results(
   rating_before integer not null,
   rating_delta integer not null default 0 check(rating_delta=0),
   rating_after integer not null,
-  outcome text not null check(outcome in ('RUN_CLEAR')),
+  outcome text not null check(outcome in ('RUN_CLEAR','RUN_FAILED','ABANDONED')),
   created_at timestamptz not null default now(),
   primary key(run_id,user_id)
 );
@@ -27,14 +27,17 @@ alter table public.pve_results enable row level security;
 revoke all on public.pve_results from anon,authenticated;
 grant all on public.pve_results to service_role;
 
--- Closing/expiring a room also terminates an unfinished PVE run without
--- inventing any failure/abandon Gold payout.
+-- Closing/expiring a room canonically abandons an unfinished PVE run.
+-- ABANDONED grants 0 permanent Gold and 0 RP, so the zero settlement can be
+-- committed immediately without consulting any client payload.
 create or replace function public.pve_abandon_closed_room() returns trigger
 language plpgsql security definer set search_path='' as $$
 begin
   if new.status='closed' and old.status is distinct from 'closed' then
     update public.pve_runs
-      set state=jsonb_set(state,'{phase}','"ABANDONED"'::jsonb,true),updated_at=now()
+      set state=jsonb_set(state,'{phase}','"ABANDONED"'::jsonb,true),
+          rewards_committed=true,
+          updated_at=now()
       where room_id=new.id
         and coalesce(state->>'phase','') not in ('RUN_CLEAR','RUN_FAILED','ABANDONED');
   end if;
@@ -200,8 +203,10 @@ exception when unique_violation then
   raise exception 'PVE_RUN_EXISTS';
 end $$;
 
--- PVE clear pays server-owned runGold only. It never mutates rating_points.
--- Failure/abandon Gold is intentionally not invented here; the API reports it as unresolved.
+-- RULE-PVE-REWARD-01..04
+-- RUN_CLEAR: server-owned runGold is paid once to registered players who
+-- remained in the room through clear. RUN_FAILED / ABANDONED: 0 Gold.
+-- COOP_PVE never mutates rating_points. Client gold/RP fields are ignored.
 create or replace function public.pve_settle_rewards(p_run uuid) returns jsonb
 language plpgsql security definer set search_path='' as $$
 declare
@@ -210,21 +215,27 @@ declare
   uid uuid;
   gold integer;
   old_rating integer;
+  terminal_phase text;
   inserted_count integer:=0;
   paid_gold integer:=0;
-  unresolved_departures integer:=0;
+  forfeited_players integer:=0;
 begin
   select * into r from public.pve_runs where id=p_run for update;
   if not found then return jsonb_build_object('missing',true); end if;
+
+  terminal_phase:=coalesce(r.state->>'phase','');
+  if terminal_phase not in ('RUN_CLEAR','RUN_FAILED','ABANDONED') then
+    return jsonb_build_object('settled',false,'reason','RUN_NOT_TERMINAL','rp_delta',0);
+  end if;
+
   if r.rewards_committed then
-    return jsonb_build_object('settled',true,'idempotent',true,'paid_gold',
-      coalesce((select sum(run_gold) from public.pve_results where run_id=p_run),0));
-  end if;
-  if coalesce(r.state->>'phase','') in ('RUN_FAILED','ABANDONED') then
-    return jsonb_build_object('settled',false,'reason','AMBIGUOUS_FAILURE_GOLD','rp_delta',0);
-  end if;
-  if coalesce(r.state->>'phase','')<>'RUN_CLEAR' then
-    return jsonb_build_object('settled',false,'reason','RUN_NOT_CLEAR','rp_delta',0);
+    return jsonb_build_object(
+      'settled',true,
+      'idempotent',true,
+      'outcome',terminal_phase,
+      'paid_gold',coalesce((select sum(run_gold) from public.pve_results where run_id=p_run),0),
+      'rp_delta',0
+    );
   end if;
 
   for player in select value from jsonb_array_elements(coalesce(r.state->'players','[]'::jsonb))
@@ -232,36 +243,45 @@ begin
     if nullif(player->>'userId','') is null then continue; end if;
     uid:=(player->>'userId')::uuid;
     if not exists(select 1 from public.profiles p where p.user_id=uid and p.account_type='registered') then continue; end if;
-    if coalesce((player->>'departed')::boolean,false)
-       or not exists(select 1 from public.room_members rm where rm.room_id=r.room_id and rm.user_id=uid) then
-      unresolved_departures:=unresolved_departures+1;
-      continue;
-    end if;
-    gold:=greatest(0,coalesce((player->>'runGold')::integer,0));
+
     select rating_points into old_rating from public.player_stats where user_id=uid for update;
     if old_rating is null then continue; end if;
+
+    gold:=0;
+    if terminal_phase='RUN_CLEAR'
+       and not coalesce((player->>'departed')::boolean,false)
+       and exists(select 1 from public.room_members rm where rm.room_id=r.room_id and rm.user_id=uid)
+    then
+      gold:=greatest(0,coalesce((player->>'runGold')::integer,0));
+    elsif greatest(0,coalesce((player->>'runGold')::integer,0))>0 then
+      forfeited_players:=forfeited_players+1;
+    end if;
+
     insert into public.pve_results(run_id,user_id,run_gold,rating_before,rating_delta,rating_after,outcome)
-      values(p_run,uid,gold,old_rating,0,old_rating,'RUN_CLEAR')
+      values(p_run,uid,gold,old_rating,0,old_rating,terminal_phase)
       on conflict(run_id,user_id) do nothing;
     if found then
-      update public.player_stats
-        set account_gold=account_gold+gold,
-            lifetime_gold_earned=lifetime_gold_earned+gold,
-            updated_at=now()
-        where user_id=uid;
+      if gold>0 then
+        update public.player_stats
+          set account_gold=account_gold+gold,
+              lifetime_gold_earned=lifetime_gold_earned+gold,
+              updated_at=now()
+          where user_id=uid;
+      end if;
       inserted_count:=inserted_count+1;
       paid_gold:=paid_gold+gold;
     end if;
   end loop;
-  if unresolved_departures=0 then
-    update public.pve_runs set rewards_committed=true,updated_at=now() where id=p_run;
-  end if;
+
+  update public.pve_runs set rewards_committed=true,updated_at=now() where id=p_run;
   return jsonb_build_object(
-    'settled',unresolved_departures=0,
-    'partial',unresolved_departures>0 and inserted_count>0,
-    'reason',case when unresolved_departures>0 then 'AMBIGUOUS_ABANDON_GOLD' else null end,
-    'unresolved_departures',unresolved_departures,
-    'idempotent',false,'players',inserted_count,'paid_gold',paid_gold,'rp_delta',0
+    'settled',true,
+    'idempotent',false,
+    'outcome',terminal_phase,
+    'players',inserted_count,
+    'paid_gold',paid_gold,
+    'forfeited_players',forfeited_players,
+    'rp_delta',0
   );
 end $$;
 
