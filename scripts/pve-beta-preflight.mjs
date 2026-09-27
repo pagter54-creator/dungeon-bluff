@@ -7,6 +7,7 @@ export const REPO_ROOT=fileURLToPath(new URL('../',import.meta.url));
 export const REQUIRED_BETA_FILES=Object.freeze([
   'supabase/migrations/202609280001_game_modes_pve_beta.sql',
   'supabase/migrations/202609280002_pve_beta_reward_canonical.sql',
+  'scripts/prepare-pve-beta-frontend.mjs',
   'supabase/functions/game-api/index.ts',
   'supabase/functions/game-api/game-mode.js',
   'supabase/functions/game-api/pve/api.js',
@@ -39,11 +40,11 @@ export function assertBetaTarget({targetRef,productionUrl,targetUrl=null}){
   const productionRef=projectRefFromSupabaseUrl(productionUrl);
   if(!productionRef)throw new Error('config.js에서 production Supabase project ref를 확인할 수 없습니다.');
   if(ref===productionRef)throw new Error('중단: 테스트 target이 현재 production Supabase project ref와 같습니다.');
-  if(targetUrl){
-    const urlRef=projectRefFromSupabaseUrl(targetUrl);
-    if(!urlRef)throw new Error('PVE_BETA_SUPABASE_URL은 *.supabase.co 테스트 URL이어야 합니다.');
-    if(urlRef!==ref)throw new Error('PVE_BETA_PROJECT_REF와 PVE_BETA_SUPABASE_URL의 project ref가 다릅니다.');
-  }
+  const targetUrlValue=String(targetUrl||'').trim();
+  if(!targetUrlValue)throw new Error('PVE_BETA_SUPABASE_URL이 필요합니다.');
+  const urlRef=projectRefFromSupabaseUrl(targetUrlValue);
+  if(!urlRef)throw new Error('PVE_BETA_SUPABASE_URL은 *.supabase.co 테스트 URL이어야 합니다.');
+  if(urlRef!==ref)throw new Error('PVE_BETA_PROJECT_REF와 PVE_BETA_SUPABASE_URL의 project ref가 다릅니다.');
   return {targetRef:ref,productionRef};
 }
 async function exists(filename){try{await access(filename);return true;}catch{return false;}}
@@ -92,7 +93,7 @@ async function main(){
   const branch=currentGitBranch();
   if(branch==='main')throw new Error('중단: PVE BETA preflight는 main 브랜치에서 실행하지 않습니다.');
   const repo=await inspectBetaRepo();
-  if(process.env.PVE_BETA_PUBLISHABLE_KEY)assertPublishableKey(process.env.PVE_BETA_PUBLISHABLE_KEY);
+  assertPublishableKey(process.env.PVE_BETA_PUBLISHABLE_KEY);
   console.log(JSON.stringify({
     ok:true,
     branch:branch||'UNKNOWN',

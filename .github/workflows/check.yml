@@ -34,6 +34,7 @@ jobs:
         env:
           PVE_BETA_PROJECT_REF: aaaaaaaaaaaaaaaaaaaa
           PVE_BETA_SUPABASE_URL: https://aaaaaaaaaaaaaaaaaaaa.supabase.co
+          PVE_BETA_PUBLISHABLE_KEY: sb_publishable_ci_preflight_only
         run: npm run pve:beta:preflight
 
       - name: Run PVE stress smoke
