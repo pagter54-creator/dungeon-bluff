@@ -220,7 +220,7 @@ The four definitions use the shared effect structure: trigger, condition, operat
 | T00 Reference | ACTIVE | four required classes/build effects executable |
 | T14 Flame Boundary | ACTIVE | six canonical boundary fixtures |
 | T05 Number Mutation | ACTIVE | Mage Reverse Math + Vampire/Full Thrall + Imp/Bold Steal + Knight executable |
-| T09 Resource Starvation | SKIP | Prophet PVE engine unavailable |
+| T09 Resource Starvation | ACTIVE | Knight/Mage/Prophet/Gunner basic resource capabilities + starvation policy executable |
 | T02 Burst Ceiling | SKIP | Demon Swordsman / Martial Artist / Berserker PVE engines and required build effects unavailable |
 | T03 Sustain Fortress | SKIP | Vampire / Berserker PVE engines and required build effects unavailable |
 | T04 Collision Farm | SKIP | Imp / Berserker / Vampire PVE engines and required build effects unavailable |
@@ -328,6 +328,106 @@ The semantic golden contains F1-F8 required chain fixtures plus:
 
 `AMB-T05-MULTI-IMP`: the current BETA rules do not define ordering for multiple simultaneous Imps. T05 contains exactly one Imp. The resolver rejects that undefined case instead of inventing an ordering rule.
 
+## T09 Resource Starvation
+
+T09 is ACTIVE with the base-character party:
+
+- Knight — Toughness
+- Mage — Mana / basic Amplify
+- Prophet — Revelation / deterministic spent-card recovery / private reveal
+- Gunner — 1/2/3 cycle / base Full Burst
+
+No Tier-I build is required for T09.
+
+### Resource contract
+
+- Mana: combat start 0, turn start +1, base max 4.
+- Toughness: existing base charge/cycle rules and base max are reused.
+- Revelation: combat resource, base max 1. Prophet collision gains 1 up to cap.
+- Full Burst: existing base readiness/cycle state is reused.
+
+Invalid resource requests are rejected during validation before committed card/resource mutation. Structured rejection codes used by T09 include:
+
+- `INSUFFICIENT_RESOURCE`
+- `SKILL_NOT_READY`
+- `INVALID_PHASE`
+- `ALREADY_USED`
+- `INVALID_SKILL_REQUEST`
+
+A rejected request must leave resource, card zones, current committed submission and deterministic RNG state unchanged.
+
+### Prophet Revelation
+
+Revelation is an immediate pre-submit skill. It can be used while selection is open and the Prophet has not committed a card. No card-submit cancellation path is required.
+
+On use:
+
+1. spend Revelation 1,
+2. privately reveal one eligible READY teammate's submitted card number,
+3. deterministically choose one physical card from the Prophet's current-cycle spent zone,
+4. move that same card instance from spent to remaining.
+
+If the current cycle has no spent recovery candidate, the reveal still succeeds and Revelation is spent; recovery is a no-op.
+
+If the Prophet's subsequently submitted card collides in the same turn, collision resolution can regain Revelation:
+
+`1 → use → 0 → collision → 1`.
+
+The private reveal is stored only in the Prophet's private combat projection and is cleared on the next turn/combat end. Raw `turnSubmissions`, target remaining cards and target spent cards are never exposed.
+
+### Resource starvation policy
+
+The T09 policy is intentionally non-optimal:
+
+- plays low remaining numbers to drive cycles toward exhaustion,
+- spends Knight Toughness whenever available,
+- spends Mage Mana at 2 as soon as possible,
+- spends Revelation as soon as an eligible READY reveal exists,
+- attempts base Full Burst whenever ready,
+- injects invalid probes at resource/readiness boundaries,
+- follows every rejected request with normal legal play.
+
+All policy decisions are made from owner PlayerView plus public READY information.
+
+### T09 hard invariants
+
+- Mana, Toughness and Revelation never become negative.
+- resource values never exceed their current registry-defined cap.
+- rejected requests cannot consume resource or mutate card/submission state.
+- committed duplicate submissions reject with `ALREADY_USED`.
+- remaining + spent is an exact partition of existing physical card IDs.
+- recovery moves an existing card ID and never creates a new instance.
+- an active empty hand cannot persist without cycle reset.
+- Full Burst success consumes follow-ups once and resets the cycle once.
+- Full Burst collision failure consumes no follow-up cards.
+- combat-scoped resource entries do not survive COMBAT_END.
+- same-seed resource timeline must be identical.
+
+### T09 synthetic fixtures
+
+1. Mage Mana 0 illegal 2-cost cast.
+2. Mage exact Mana 2 cost.
+3. Knight Toughness 0 illegal activation.
+4. Prophet collision gain 0→1.
+5. Prophet max collision remains 1.
+6. Prophet use + deterministic physical-card recovery.
+7. Prophet use + same-turn collision regain.
+8. Prophet use with no recovery candidate.
+9. Gunner final card cycle reset.
+10. Full Burst success.
+11. Full Burst collision failure.
+12. repeated invalid resource requests.
+
+Generated artifacts include:
+
+- `pve_resource_starvation_turns.jsonl`
+- `pve_t09_fixtures.json`
+- `tests/fixtures/pve-stress-t09-golden.json` once the semantic golden is locked.
+
+### T09 known ambiguity
+
+`AMB-T09-SEER-PEEK-TARGET`: PVE combat disallows direct teammate targeting, but the current base Prophet text does not define a class-specific priority when multiple teammates are already READY. The executable path uses the existing stable automatic-target convention — first eligible READY teammate by lobby seat. Reveal scope/resource semantics are fixed independently of this future content-rule choice.
+
 ## T14 fixtures
 
 T14 retains six fixtures:
@@ -397,6 +497,8 @@ Default: `artifacts/pve-stress/`
 - `pve_reference_turns.jsonl` when T00 runs
 - `pve_number_mutation_turns.jsonl` when T05 runs
 - `pve_t05_fixtures.json` when T05 runs
+- `pve_resource_starvation_turns.jsonl` when T09 runs
+- `pve_t09_fixtures.json` when T09 runs
 - `scenarios/<scenarioId>.csv`
 
 GitHub Actions uploads the whole directory as `pve-stress-smoke-<sha>`.
@@ -454,6 +556,7 @@ Project Checks run:
 npm run pve:stress:smoke
 npm run pve:stress:balance -- --scenario T00 --output artifacts/pve-stress-balance
 npm run pve:stress:balance -- --scenario T05 --output artifacts/pve-stress-t05-balance
+npm run pve:stress:balance -- --scenario T09 --output artifacts/pve-stress-t09-balance
 ```
 
-T00 and T05 100-seed sweeps are uploaded separately. Neither balance sweep changes production combat values or warning thresholds.
+T00, T05 and T09 100-seed sweeps are uploaded separately. Neither balance sweep changes production combat values or warning thresholds.
