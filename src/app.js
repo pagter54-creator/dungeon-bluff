@@ -104,6 +104,7 @@ async function performPve(action,params={}){
       bundle={...bundle,run:response.run,pveSettlement:response.settlement??bundle.pveSettlement,pveRewardsCommitted:response.settlement?.settled===true?true:bundle.pveRewardsCommitted};
       if(response.run.map?.currentNodeId)pveVisitedNodes.add(response.run.map.currentNodeId);
       if(before.phase!=='MAP_VOTE'&&response.run.phase==='MAP_VOTE')pveMapOpen=true;
+      if(before.phase==='MAP_VOTE'&&response.run.phase!=='MAP_VOTE')pveMapOpen=false;
       if(['RUN_CLEAR','RUN_FAILED','ABANDONED'].includes(response.run.phase))void refreshAccount().catch(()=>{});
       const presentation=adaptPveTurnResult(bundle,before,response.run);
       const rewardPresentation=adaptPveRewardResult(before,response.run);
@@ -253,6 +254,7 @@ async function accept(next, restoring = false) {
     pveRunIdentity=next.run.id;
     if(next.run.map?.currentNodeId)pveVisitedNodes.add(next.run.map.currentNodeId);
     if(previousPve?.phase!=='MAP_VOTE'&&next.run.phase==='MAP_VOTE')pveMapOpen=true;
+    if(previousPve?.phase==='MAP_VOTE'&&next.run.phase!=='MAP_VOTE')pveMapOpen=false;
     if(['RUN_CLEAR','RUN_FAILED','ABANDONED'].includes(next.run.phase)&&rewardRefreshSession!==next.run.id){rewardRefreshSession=next.run.id;void refreshAccount().catch(()=>{});}
     // Keep the current reveal DOM until every attack and hit animation has finished.
     if(pveAnimating){updateBusy();return;}
