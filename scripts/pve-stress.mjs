@@ -232,6 +232,30 @@ function aggregateScenario(def,results,failures){
     avgTriggeredEffectsPerCollision:totalCollisionGroups?collisionRows.reduce((s,x)=>s+(x.avgTriggeredEffectsPerCollision||0)*(x.collisionGroups||0),0)/totalCollisionGroups:0,
     recursiveCollisionTriggerCount:collisionRows.reduce((s,x)=>s+(x.recursiveCollisionTriggerCount||0),0)
   }:null;
+  const sustainRows=passed.map(x=>x.sustainMetrics).filter(Boolean);
+  const sustainMetrics=def.id==='T03'&&sustainRows.length?{
+    rawIncomingDamage:sustainRows.reduce((n,x)=>n+(Number(x.rawIncomingDamage)||0),0),
+    redirectedDamage:sustainRows.reduce((n,x)=>n+(Number(x.redirectedDamage)||0),0),
+    preventedDamage:sustainRows.reduce((n,x)=>n+(Number(x.preventedDamage)||0),0),
+    actualDamage:sustainRows.reduce((n,x)=>n+(Number(x.actualDamage)||0),0),
+    healing:sustainRows.reduce((n,x)=>n+(Number(x.healing)||0),0),
+    wastedHeal:sustainRows.reduce((n,x)=>n+(Number(x.wastedHeal)||0),0),
+    healEvents:sustainRows.reduce((n,x)=>n+(Number(x.healEvents)||0),0),
+    protectionEvents:sustainRows.reduce((n,x)=>n+(Number(x.protectionEvents)||0),0),
+    redirectEvents:sustainRows.reduce((n,x)=>n+(Number(x.redirectEvents)||0),0),
+    revengeGains:sustainRows.reduce((n,x)=>n+(Number(x.revengeGains)||0),0),
+    collisionHeals:sustainRows.reduce((n,x)=>n+(Number(x.collisionHeals)||0),0),
+    transfusions:sustainRows.reduce((n,x)=>n+(Number(x.transfusions)||0),0),
+    whiteMagicHeals:sustainRows.reduce((n,x)=>n+(Number(x.whiteMagicHeals)||0),0),
+    hp1Rescues:sustainRows.reduce((n,x)=>n+(Number(x.hp1Rescues)||0),0),
+    pendingDownSaved:sustainRows.reduce((n,x)=>n+(Number(x.pendingDownSaved)||0),0),
+    recursiveHealCount:sustainRows.reduce((n,x)=>n+(Number(x.recursiveHealCount)||0),0),
+    recursiveRedirectCount:sustainRows.reduce((n,x)=>n+(Number(x.recursiveRedirectCount)||0),0),
+    avgHealingRatio:avg(sustainRows.map(x=>x.healingRatio)),
+    avgMitigationRatio:avg(sustainRows.map(x=>x.mitigationRatio)),
+    avgEffectiveSustainValue:avg(sustainRows.map(x=>x.effectiveSustainValue)),
+    avgFinalPartyHp:avg(sustainRows.map(x=>x.finalPartyHp))
+  }:null;
   const comparisonRows=passed.map(x=>x.comparison).filter(Boolean);
   const collisionComparison=def.id==='T04'&&comparisonRows.length?{
     avgFarmDpt:avg(comparisonRows.map(x=>x.farmDpt)),
@@ -245,6 +269,21 @@ function aggregateScenario(def,results,failures){
     avgSafeFinalFlame:avg(comparisonRows.map(x=>x.safeFinalFlame)),
     farmDominatesCount:comparisonRows.filter(x=>x.farmDominates).length,
     farmDominatesRate:comparisonRows.filter(x=>x.farmDominates).length/comparisonRows.length
+  }:null;
+  const sustainComparison=def.id==='T03'&&comparisonRows.length?{
+    avgSustainDpt:avg(comparisonRows.map(x=>x.sustainDpt)),
+    avgNormalDpt:avg(comparisonRows.map(x=>x.normalDpt)),
+    avgDptRatio:avg(comparisonRows.map(x=>x.dptRatio)),
+    avgSustainTurns:avg(comparisonRows.map(x=>x.sustainTurns)),
+    avgNormalTurns:avg(comparisonRows.map(x=>x.normalTurns)),
+    avgSustainFinalPartyHp:avg(comparisonRows.map(x=>x.sustainFinalPartyHp)),
+    avgNormalFinalPartyHp:avg(comparisonRows.map(x=>x.normalFinalPartyHp)),
+    avgSustainFlameSpent:avg(comparisonRows.map(x=>x.sustainFlameSpent)),
+    avgNormalFlameSpent:avg(comparisonRows.map(x=>x.normalFlameSpent)),
+    avgSustainKo:avg(comparisonRows.map(x=>x.sustainKo)),
+    avgNormalKo:avg(comparisonRows.map(x=>x.normalKo)),
+    fortressDominatesCount:comparisonRows.filter(x=>x.fortressDominates).length,
+    fortressDominatesRate:comparisonRows.filter(x=>x.fortressDominates).length/comparisonRows.length
   }:null;
   const fairnessWarnings=def.id==='T00'?referenceFairnessWarnings(referenceCommunication,avgCharacterDamageShare,passed.length):[];
   const allWarnings=[...warnings,...fairnessWarnings];
@@ -265,6 +304,8 @@ function aggregateScenario(def,results,failures){
     resourceMetrics,
     collisionMetrics,
     collisionComparison,
+    sustainMetrics,
+    sustainComparison,
     fairnessWarnings,
     warnings:allWarnings,failedSeeds:failures.map(x=>x.seed)
   };
@@ -283,8 +324,8 @@ export async function main(argv=process.argv.slice(2)){
     : STRESS_SCENARIOS;
   if(opts.scenario&&!selected.length)throw new Error(`Unknown scenario: ${opts.scenario}`);
 
-  const allRows=[],failedSeeds=[],scenarioSummaries=[],referenceTurnRows=[],numberMutationTurnRows=[],resourceStarvationRows=[],collisionFarmRows=[],collisionSafeRows=[];
-  let t04FixtureArtifact=null,t05FixtureArtifact=null,t09FixtureArtifact=null;
+  const allRows=[],failedSeeds=[],scenarioSummaries=[],referenceTurnRows=[],numberMutationTurnRows=[],resourceStarvationRows=[],collisionFarmRows=[],collisionSafeRows=[],sustainRows=[],normalSustainRows=[];
+  let t03FixtureArtifact=null,t04FixtureArtifact=null,t05FixtureArtifact=null,t09FixtureArtifact=null;
   let hardFailures=0;
   for(const def of selected){
     const availability=scenarioAvailability(def);
@@ -304,6 +345,9 @@ export async function main(argv=process.argv.slice(2)){
         for(const turn of result.resourceTimeline||[])resourceStarvationRows.push({scenarioId:def.id,seed,...turn});
         for(const turn of result.collisionTurns||[])collisionFarmRows.push({scenarioId:def.id,seed,...turn});
         for(const turn of result.safePlayTurns||[])collisionSafeRows.push({scenarioId:def.id,seed,...turn});
+        for(const turn of result.sustainTurns||[])sustainRows.push({scenarioId:def.id,seed,...turn});
+        for(const turn of result.normalSustainTurns||[])normalSustainRows.push({scenarioId:def.id,seed,...turn});
+        if(def.id==='T03'&&!t03FixtureArtifact&&result.fixtures)t03FixtureArtifact={scenarioId:'T03',seed,fixtures:result.fixtures};
         if(def.id==='T04'&&!t04FixtureArtifact&&result.fixtures)t04FixtureArtifact={scenarioId:'T04',seed,fixtures:result.fixtures};
         if(def.id==='T05'&&!t05FixtureArtifact&&result.fixtures)t05FixtureArtifact={scenarioId:'T05',seed,fixtures:result.fixtures};
         if(def.id==='T09'&&!t09FixtureArtifact&&result.fixtures)t09FixtureArtifact={scenarioId:'T09',seed,fixtures:result.fixtures};
@@ -363,6 +407,9 @@ export async function main(argv=process.argv.slice(2)){
   if(resourceStarvationRows.length)fs.writeFileSync(path.join(outDir,'pve_resource_starvation_turns.jsonl'),resourceStarvationRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
   if(collisionFarmRows.length)fs.writeFileSync(path.join(outDir,'pve_collision_farm_turns.jsonl'),collisionFarmRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
   if(collisionSafeRows.length)fs.writeFileSync(path.join(outDir,'pve_collision_safe_turns.jsonl'),collisionSafeRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
+  if(sustainRows.length)fs.writeFileSync(path.join(outDir,'pve_sustain_turns.jsonl'),sustainRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
+  if(normalSustainRows.length)fs.writeFileSync(path.join(outDir,'pve_normal_sustain_turns.jsonl'),normalSustainRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
+  if(t03FixtureArtifact)fs.writeFileSync(path.join(outDir,'pve_t03_fixtures.json'),JSON.stringify(t03FixtureArtifact,null,2)+'\n');
   if(t04FixtureArtifact)fs.writeFileSync(path.join(outDir,'pve_t04_fixtures.json'),JSON.stringify(t04FixtureArtifact,null,2)+'\n');
   if(t05FixtureArtifact)fs.writeFileSync(path.join(outDir,'pve_t05_fixtures.json'),JSON.stringify(t05FixtureArtifact,null,2)+'\n');
   if(t09FixtureArtifact)fs.writeFileSync(path.join(outDir,'pve_t09_fixtures.json'),JSON.stringify(t09FixtureArtifact,null,2)+'\n');
