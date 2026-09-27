@@ -74,7 +74,8 @@ test('T00 Grand Amplification raises Mana cap to 6 and 6 Mana changes the actual
   const card=result.cards.find(x=>x.playerId==='p0');
   assert.equal(card.baseNumber,4);assert.equal(card.finalNumber,7);
   assert.equal(card.skillUsed,'amplify');assert.equal(card.skillValue,3);assert.equal(card.resourceSpent,6);
-  assert.equal(mage.publicResources.mana,0);
+  // The resolve immediately opens the next turn, so spending 6 is followed by the normal TURN_START +1.
+  assert.equal(mage.publicResources.mana,1);
 });
 
 test('T00 Rogue base Sneaky Strike sets solo-lowest damage to 5 and tier-1 sneakiness strengthens the next solo-lowest hit',()=>{
@@ -91,7 +92,8 @@ test('T00 Rogue base Sneaky Strike sets solo-lowest damage to 5 and tier-1 sneak
   assert.equal(card.soloLowest,true);assert.equal(card.sneakyBonus,1);assert.equal(packet.amount,6);
   assert.equal(rogue.publicResources.sneakyStack,1);
 
-  result=submitNums(run,[3,3,2,1]);
+  // Keep physical-card consumption honest: p3 still owns an unused 3 for the collision fixture.
+  result=submitNums(run,[3,4,5,3]);
   card=result.cards.find(x=>x.playerId==='p0');
   assert.equal(card.valid,false);assert.equal(card.invalidReason,'COLLISION');
   assert.equal(rogue.publicResources.sneakyStack,0);
