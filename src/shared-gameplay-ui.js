@@ -31,3 +31,12 @@ export function sharedEncounterMarkup({
     ${bossStatus?`<div class="boss-status"><b>이번 턴 특수 효과</b><p>${esc(bossStatus)}</p></div>`:''}
   </section>`;
 }
+
+
+export function sharedResultOverlayMarkup({
+  contentMarkup='',animate=false,extraClass='',sheetClass='',titleId='room-result-title'
+}={}){
+  const overlayClasses=['room-result-overlay',animate?'summary-enter':'',extraClass].filter(Boolean).map(esc).join(' ');
+  const sheetClasses=['room-result-sheet',sheetClass].filter(Boolean).map(esc).join(' ');
+  return `<section class="${overlayClasses}" role="dialog" aria-modal="true" aria-labelledby="${esc(titleId)}"><div class="${sheetClasses}">${contentMarkup}</div></section>`;
+}
