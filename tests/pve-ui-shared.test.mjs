@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {pveMapGeometry,pveMapOverlayMarkup,pveShopMarkup,pveRestActionsMarkup,pveRelicStripMarkup,pveAugmentPopupMarkup,pveRoomResultOverlayMarkup} from '../src/pve-roguelike-ui.js';
-import {pveGameplayPlayers,adaptPveTurnResult} from '../src/pve-gameplay-adapter.js';
+import {pveGameplayPlayers,adaptPveTurnResult,adaptPveRewardResult} from '../src/pve-gameplay-adapter.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 import {beginEntryLoading,finishEntryLoading} from '../supabase/functions/game-api/entry-loading.js';
 
@@ -95,13 +95,17 @@ test('PVE-UI-11/12 shop is data-driven and card purchase enters shared replaceme
  const run=projectRun(baseRun(),'p0');run.phase='SHOP';run.roomState={type:'SHOP',cardStock:Array.from({length:4},(_,i)=>({id:'card-'+i,kind:'CARD',value:i+1,price:2,sold:false})),relicStock:Array.from({length:4},(_,i)=>({id:'relic-'+i,kind:'RELIC',relicId:'f1_worn_whetstone',price:4,sold:false}))};
  const html=pveShopMarkup(run);assert.equal((html.match(/data-action="pve-shop-item"/g)||[]).length,8);
  const replacement=pveShopMarkup(run,{reservation:'card-0',selectedCardId:'c2'});assert.match(replacement,/교체할 내 카드를 선택/);assert.match(replacement,/구매 \+ 교체 확정/);
- const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');assert.match(app,/pve\.shopReserveCard/);assert.match(app,/pve\.shopConfirmCard/);
+ const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
+ assert.match(app,/pve\.shopReserveCard/);assert.match(app,/pve\.shopConfirmCard/);
+ assert.match(app,/pve-shop-buy-relic-confirm/);assert.match(app,/pve-shop-buy-relic-apply/);
+ assert.match(app,/pve-shop-confirm-card-apply/);
 });
 test('PVE-UI-13/14 Rest includes heal, Flame, and number engraving using card selector number value',async()=>{
  const run=projectRun(baseRun(),'p0');run.phase='REST';run.roomState={type:'REST',choicesByPlayer:{}};
  const html=pveRestActionsMarkup(run);assert.match(html,/FULL_HEAL/);assert.match(html,/FLAME/);assert.match(html,/Number Engraving/);
  const engraving=pveRestActionsMarkup(run,{engraveMode:true,selectedNumber:2});assert.match(engraving,/숫자 2 선택/);
- const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');assert.match(app,/choice:'ENGRAVE',number/);
+ const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
+ assert.match(app,/pve-rest-engrave-apply/);assert.match(app,/choice:'ENGRAVE',number/);
 });
 test('PVE-UI-15 Event uses shared encounter shell rather than a separate PVE battle screen',async()=>{
  const source=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
@@ -113,18 +117,38 @@ test('PVE-UI-16 relic strip is per-player and tap/click inspectable',()=>{
 });
 test('PVE-UI-17 augment offer renders three card-style choices when server provides three',()=>{
  const run=projectRun(baseRun(),'p0');run.phase='AUGMENT_CHOICE';run.privateAugmentOffer={tier:1,augmentIds:['aug-091','aug-101','aug-111']};
- const html=pveAugmentPopupMarkup(run);assert.equal((html.match(/data-action="pve-augment"/g)||[]).length,3);
+ const html=pveAugmentPopupMarkup(run);assert.equal((html.match(/data-action="pve-augment"/g)||[]).length,3);assert.match(html,/aria-hidden="true">◇/);
 });
-test('PVE-UI-18 Result overlay leads back to map',()=>{
+test('PVE-UI-18 Result overlay leads back to map and augment can layer above a passive result',async()=>{
  const run=projectRun(baseRun(),'p0');run.phase='ROOM_RESULT';
  const html=pveRoomResultOverlayMarkup(bundle(run),run);assert.match(html,/ROOM COMPLETE/);assert.match(html,/data-action="pve-map-open"/);
+ const passive=pveRoomResultOverlayMarkup(bundle(run),run,{interactive:false});assert.doesNotMatch(passive,/data-action="pve-room-ready"/);assert.match(passive,/증강 선택 후/);
+ const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');assert.match(app,/resumePhase==='ROOM_RESULT'.*interactive:false/s);
 });
-test('PVE-UI-19 Reward Room uses shared card selection and authoritative reward submit',async()=>{
+test('PVE-UI-19 Reward Room uses shared card selection, reveal and collision presentation',async()=>{
+ const before=projectRun(baseRun(),'p0');before.phase='REWARD_ROOM';before.roomState={type:'REWARD_ROOM',attempt:1,publicCardCycles:{},readyPlayerIds:[]};
+ const after=structuredClone(before);after.roomState.publicTurnResult={attempt:1,success:true,cards:[
+  {playerId:'p0',finalNumber:2,valid:false,collisionImmune:false,collisionGroupSize:2,damage:0},
+  {playerId:'p1',finalNumber:2,valid:false,collisionImmune:false,collisionGroupSize:2,damage:0}
+ ]};
+ const presentation=adaptPveRewardResult(before,after);
+ assert.equal(presentation.key,'n1:1');assert.equal(presentation.cards.length,2);assert.equal(presentation.cards[0].valid,false);
  const source=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
  assert.match(source,/scope=run\.phase==='REWARD_ROOM'\?'room'/);assert.match(source,/pve\.rewardSubmitCard/);assert.match(source,/mobileSelection\(mePlayer/);
+ assert.match(source,/presentPveRewardAttempt/);assert.match(source,/renderPveRewardGameplay/);assert.match(source,/await reveal\(presentation\)/);
 });
 test('PVE-UI shared player adapter maps EXP, Run Gold, skills and used cards into competitive panel model',()=>{
  const run=projectRun(baseRun(),'p0'),players=pveGameplayPlayers(bundle(run),run);
  assert.equal(players.p0.score,4);assert.equal(players.p0.gold,2);assert.equal(players.p0.skillId,'amplify');
  assert.equal(players.p0.cycleCards[0].used,true);assert.equal(players.p0.cycleCards[1].used,false);
+});
+
+test('PVE preload marks local completion only after authoritative assets_loaded succeeds',async()=>{
+ const source=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
+ const start=source.indexOf('async function preparePveEntry');
+ const end=source.indexOf('function pveEncounterArt',start);
+ const block=source.slice(start,end);
+ assert.ok(block.indexOf("api.request('assets_loaded'")>=0);
+ assert.ok(block.indexOf("api.request('assets_loaded'")<block.indexOf('pveEntryCompleted=run.id'));
+ assert.match(block,/pveEntryCompleted=null;pveEntryError=error\.message/);
 });
