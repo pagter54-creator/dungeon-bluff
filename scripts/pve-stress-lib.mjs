@@ -132,7 +132,7 @@ export function scenarioAvailability(def){
 export const CANONICAL_RULES=Object.freeze([
   {id:'RULE-01',topic:'Boss kill + full wipe',rule:'Flame 0에서 같은 resolve에 보스 처치와 파티 전원 DOWNED가 동시에 확정되면 RUN_FAILED가 boss clear보다 우선한다.'},
   {id:'RULE-02',topic:'Heal + lethal same resolve',rule:'lethal은 pending 상태로 두고 즉시 회복/보호/구조를 먼저 처리한 뒤 DOWN_RESOLVE에서 HP<=0인 플레이어만 DOWNED로 확정한다.'},
-  {id:'RULE-03',topic:'Executable augments',rule:'390장 metadata는 유지하되 실제 effects가 있는 증강만 executable로 취급한다. 이번 범위에서 T00의 4개 1차 증강만 executable이다.'},
+  {id:'RULE-03',topic:'Executable augments',rule:'390장 metadata는 유지하되 실제 effects 또는 명시적 special handler가 구현된 증강만 executable로 취급한다. metadata-only 증강은 stress scenario 활성 조건을 충족하지 않는다.'},
   {id:'RULE-04',topic:'DOWNED vs STUNNED_NEXT_TURN',rule:'DOWNED=쓰러짐/행동 불가, STUNNED_NEXT_TURN=기절/생존/다음 턴 자동 제출 대상으로 서로 다른 상태다.'},
   {id:'RULE-05',topic:'Combat-only resource lifecycle',rule:'COMBAT_END에서 resetScope=COMBAT 자원을 clear하고 COMBAT_START에서도 방어적으로 initialize한다. run-persistent 자원은 유지한다.'},
   {id:'RULE-T04-A',topic:'Zero-damage DIRECT and Revenge',rule:'DIRECT damage가 protection/reduction으로 actualDamage 0이 되면 Revenge를 획득하지 않는다. actualDamage>0일 때만 획득한다.'},
