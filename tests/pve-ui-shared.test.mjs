@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {pveMapGeometry,pveMapOverlayMarkup,pveShopMarkup,pveRestActionsMarkup,pveRelicStripMarkup,pveAugmentPopupMarkup,pveRoomResultOverlayMarkup} from '../src/pve-roguelike-ui.js';
+import {pveMapGeometry,pveMapOverlayMarkup,pveOwnShopReservation,pveShopMarkup,pveRestActionsMarkup,pveRelicStripMarkup,pveAugmentPopupMarkup,pveRoomResultOverlayMarkup} from '../src/pve-roguelike-ui.js';
 import {pveGameplayPlayers,adaptPveTurnResult,adaptPveRewardResult} from '../src/pve-gameplay-adapter.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 import {beginEntryLoading,finishEntryLoading} from '../supabase/functions/game-api/entry-loading.js';
@@ -125,6 +125,25 @@ test('PVE-UI-11/12 shop is data-driven and card purchase enters shared replaceme
  assert.match(app,/pve-shop-buy-relic-confirm/);assert.match(app,/pve-shop-buy-relic-apply/);
  assert.match(app,/pve-shop-confirm-card-apply/);
 });
+test('PVE-UI-12 shop replacement restores from server reservation after reconnect',async()=>{
+ const run=projectRun(baseRun(),'p0');run.phase='SHOP';run.roomState={
+  type:'SHOP',
+  cardStock:[
+   {id:'card-mine',kind:'CARD',value:5,price:2,sold:false,reservedByPlayerId:'p0',reservedUntil:Date.now()+20_000},
+   {id:'card-other',kind:'CARD',value:4,price:2,sold:false,reservedByPlayerId:'p1',reservedUntil:Date.now()+20_000}
+  ],
+  relicStock:[]
+ };
+ const reservation=pveOwnShopReservation(run,'p0');
+ assert.equal(reservation,'card-mine');
+ const html=pveShopMarkup(run,{reservation,selectedCardId:'c2'});
+ assert.match(html,/data-action="pve-shop-confirm-card" data-product-id="card-mine"/);
+ assert.match(html,/data-action="pve-shop-cancel-card" data-product-id="card-mine"/);
+ const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
+ assert.match(app,/shopReservation=pveOwnShopReservation\(run,member\?\.id\)/);
+ assert.doesNotMatch(app,/pveShopReservation/);
+});
+
 test('PVE-UI-13/14 Rest includes heal, Flame, and number engraving using card selector number value',async()=>{
  const run=projectRun(baseRun(),'p0');run.phase='REST';run.roomState={type:'REST',choicesByPlayer:{}};
  const html=pveRestActionsMarkup(run);assert.match(html,/FULL_HEAL/);assert.match(html,/FLAME/);assert.match(html,/Number Engraving/);
