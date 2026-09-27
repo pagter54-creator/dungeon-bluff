@@ -48,8 +48,12 @@ test('T09 repeated Mage resubmission during SELECTION_OPEN does not spend Mana u
   submitCard(run,'p0',players[0].cardPool.find(card=>card.baseNumber===5).id,false);
   submitCard(run,'p2',players[2].cardPool.find(card=>card.baseNumber===4).id,false);
   submitCard(run,'p3',players[3].cardPool.find(card=>card.baseNumber===3).id,false);
-  resolveBasicTurn(run);
-  assert.equal(players[1].publicResources.mana,0);
+  const result=resolveBasicTurn(run);
+  const resolvedMage=result.cards.find(card=>card.playerId==='p1');
+  assert.equal(resolvedMage.resourceBefore,2);
+  assert.equal(resolvedMage.resourceSpent,2);
+  assert.equal(resolvedMage.resourceAfter,0);
+  assert.equal(players[1].publicResources.mana,1);
 });
 
 test('T09 F3 Knight Toughness 0 is rejected and normal submission still advances',()=>{
