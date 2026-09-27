@@ -16,7 +16,7 @@ test('T03 is ACTIVE only with Guardian Wall Transfusion White Mage and sustain r
   assert.equal(a.available,true);assert.deepEqual(a.missingCharacters,[]);assert.deepEqual(a.missingBuildEffects,[]);assert.deepEqual(a.missingCapabilities,[]);
   const status=Object.fromEntries(STRESS_SCENARIOS.map(s=>[s.id,scenarioAvailability(s).available]));
   for(const id of ['T00','T03','T04','T05','T09','T14'])assert.equal(status[id],true,id);
-  for(const id of ['T02','T06'])assert.equal(status[id],false,id);
+  assert.equal(status.T02,true);assert.equal(status.T06,false);
 });
 
 test('T03 uses the locked BETA Tier-I sustain configs without balance invention',()=>{
@@ -88,6 +88,7 @@ test('T03 sustain policy uses voluntary projected numbers and never physical car
 test('T03 canonicalizes T04 zero-damage Revenge semantics and reports only unresolved T03 ambiguities',()=>{
   assert.ok(CANONICAL_RULES.some(x=>x.id==='RULE-T04-A'));assert.ok(CANONICAL_RULES.some(x=>x.id==='RULE-T04-B'));
   assert.equal(SPEC_AMBIGUITIES.some(x=>x.id==='AMB-T04-REVENGE-ZERO-DIRECT'),false);
-  assert.ok(SPEC_AMBIGUITIES.some(x=>x.id==='AMB-T03-GUARD-OVERWRITE'));
-  assert.ok(SPEC_AMBIGUITIES.some(x=>x.id==='AMB-T03-WHITE-MULTI-TARGET'));
+  assert.ok(CANONICAL_RULES.some(x=>x.id==='RULE-T03-A'));assert.ok(CANONICAL_RULES.some(x=>x.id==='RULE-T03-B'));
+  assert.equal(SPEC_AMBIGUITIES.some(x=>x.id==='AMB-T03-GUARD-OVERWRITE'),false);
+  assert.equal(SPEC_AMBIGUITIES.some(x=>x.id==='AMB-T03-WHITE-MULTI-TARGET'),false);
 });
