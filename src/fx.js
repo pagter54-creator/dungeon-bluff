@@ -219,6 +219,14 @@ export async function reveal(result) {
         await sleep(50);
       }
     }));
+    for(const effect of result.effects.filter(e=>e.type==='monster_heal_after'&&e.amount>0)){
+      remainingHp=Math.min(result.monsterBefore.maxHp,remainingHp+effect.amount);
+      textAt(target(),`+${effect.amount} HP`,'heal');burst(target(),'#a5ef76',90,9);ring(target(),'#b6fa82');
+      const healedText=document.querySelector('.enemy-health b'),healedBar=document.querySelector('.enemy-health .health-track i');
+      if(healedText)healedText.innerHTML=`${remainingHp} <small>/ ${result.monsterBefore.maxHp}</small>`;
+      if(healedBar)healedBar.style.width=`${remainingHp/result.monsterBefore.maxHp*100}%`;
+      await sleep(420);
+    }
     const finalHp=result.monsterAfter?.hp??remainingHp;
     const hpText=document.querySelector('.enemy-health b'),hpBar=document.querySelector('.enemy-health .health-track i');
     if(hpText)hpText.innerHTML=`${finalHp} <small>/ ${result.monsterBefore.maxHp}</small>`;
