@@ -208,9 +208,16 @@ export function runT14(seed){
   {
     const run=makeCombatRun(seed,{caseId:'T14-3',flame:0});
     for(let i=1;i<4;i++){run.players[i].hp=0;run.players[i].status='DOWNED';}
+    run.combat.monster.intent={type:'CHARGE',telegraphText:'fixture',payload:{}};
+    const view=projectRun(run,'p0');assertNoHiddenInfo(view,'p0');
+    const card=cardFromView(view,'p0',1);
+    if(!card)fail('BOT_NO_LEGAL_ACTION','T14-3 survivor has no legal card');
+    submitCard(run,'p0',card.id,false);actionCount++;
+    const result=resolveBasicTurn(run);actionCount++;
+    if(!result)fail('SOFTLOCK','T14-3 survivor could not advance the turn');
     assertRunInvariants(run);
     const snap=caseSnapshot('T14-3',run);
-    if(snap.phase!=='COMBAT'||snap.statuses[0]!=='ACTIVE'||snap.statuses.slice(1).some(x=>x!=='DOWNED'))fail('T14_FLAME_ZERO_ONE_SURVIVOR','Flame 0 with one survivor should remain in combat',{snap});
+    if(snap.phase!=='COMBAT'||snap.statuses[0]!=='ACTIVE'||snap.statuses.slice(1).some(x=>x!=='DOWNED')||snap.turn!==2)fail('T14_FLAME_ZERO_ONE_SURVIVOR','Flame 0 with one survivor did not advance normally',{snap});
     cases.push(snap);
   }
   {
@@ -256,6 +263,7 @@ export function runT14(seed){
 
 export function assertNoHiddenInfo(view,viewerPlayerId){
   if(view.combat?.privateByPlayer||view.roomState?.privateByPlayer)fail('HIDDEN_INFORMATION_LEAK','privateByPlayer leaked into PlayerView',{viewerPlayerId});
+  if(view.combat?.turnSubmissions||view.roomState?.turnSubmissions)fail('HIDDEN_INFORMATION_LEAK','raw turn submissions leaked into PlayerView',{viewerPlayerId});
   for(const p of view.players||[]){
     if(p.playerId===viewerPlayerId)continue;
     if((p.cardPool||[]).some(card=>Object.hasOwn(card,'id')))fail('HIDDEN_INFORMATION_LEAK','opponent physical card id leaked through cardPool',{viewerPlayerId,opponent:p.playerId});
@@ -282,9 +290,17 @@ export function assertRunInvariants(run){
     if(!finite(p.hp)||p.hp<0||p.hp>p.maxHp)fail('INVALID_HP','HP outside allowed range',{playerId:p.playerId,hp:p.hp,maxHp:p.maxHp});
     if(!finite(p.runGold)||p.runGold<0||!finite(p.growthExp)||p.growthExp<0)fail('NEGATIVE_RESOURCE','negative/invalid persistent resource',{playerId:p.playerId,runGold:p.runGold,growthExp:p.growthExp});
     for(const [name,value] of Object.entries(p.publicResources||{}))if(typeof value==='number'&&(!finite(value)||value<0))fail('NEGATIVE_RESOURCE','negative/invalid combat resource',{playerId:p.playerId,name,value});
+    if(Number(p.publicResources?.mana)>4)fail('INVALID_RESOURCE','mage mana exceeded cap 4',{playerId:p.playerId,value:p.publicResources.mana});
+    if(Number(p.publicResources?.toughnessCharges)>2)fail('INVALID_RESOURCE','warrior toughness exceeded cap 2',{playerId:p.playerId,value:p.publicResources.toughnessCharges});
+    if(p.publicResources?.parity!=null&&![0,1].includes(p.publicResources.parity))fail('INVALID_RESOURCE','twins parity must be 0 or 1',{playerId:p.playerId,value:p.publicResources.parity});
     for(const [number,value] of Object.entries(p.engravings||{}))if(!finite(value)||value<0)fail('NEGATIVE_RESOURCE','negative/invalid engraving',{playerId:p.playerId,number,value});
     validateZone(p,run.combat?.privateByPlayer?.[p.playerId],'combat');
     validateZone(p,run.roomState?.privateByPlayer?.[p.playerId],'room');
+    if(p.status==='DOWNED'&&(run.combat?.turnSubmissions?.[p.playerId]||run.roomState?.turnSubmissions?.[p.playerId]))fail('DOWNED_PLAYER_SUBMITTED','DOWNED player participated in a card submission',{playerId:p.playerId,phase:run.phase});
+    if(run.combat?.phase==='COMBAT_END'&&run.phase!=='COMBAT'){
+      const leaked=['mana','toughnessCharges','fullBurstReady','burstReadyCycle','acrobaticsReady','parity','armor'].filter(k=>Object.hasOwn(p.publicResources||{},k));
+      if(leaked.length)fail('COMBAT_RESOURCE_LEAK','combat-only resources remained after combat end',{playerId:p.playerId,resources:leaked});
+    }
   }
   for(const p of run.players||[])assertNoHiddenInfo(projectRun(run,p.playerId),p.playerId);
   return true;
@@ -383,6 +399,8 @@ export function balanceWarnings(result){
     if(!rows.length)continue;
     const avg=rows.reduce((s,x)=>s+x.turns,0)/rows.length;
     if(avg<target*.65||avg>target*1.35)warnings.push({code:'TURN_LENGTH_OUTSIDE_35_PERCENT',roomType:room,target,average:avg});
+    if(room==='BOSS'&&rows.some(x=>x.turns>=30))warnings.push({code:'BOSS_30_TURNS_OR_MORE',roomType:room,maxTurns:Math.max(...rows.map(x=>x.turns))});
+    if(room==='BOSS'&&rows.some(x=>x.turns<=4))warnings.push({code:'BOSS_4_TURNS_OR_LESS',roomType:room,minTurns:Math.min(...rows.map(x=>x.turns))});
   }
   return warnings;
 }
