@@ -20,7 +20,7 @@ import { initMotionControl } from './motion.js';
 import {GAME_MODE,roomGameMode,gameModeMeta,gameModeBadge,gameModeSelectorMarkup,PVE_SUPPORTED_LOBBY_CHARACTER_IDS} from './game-mode.js';
 import {sharedGameTopMarkup,sharedEncounterMarkup} from './shared-gameplay-ui.js';
 import {pveGameplayPlayers,pveGameplayBundle,pveStageModel,adaptPveTurnResult,adaptPveRewardResult} from './pve-gameplay-adapter.js';
-import {pvePlayerForUser,pveMapOverlayMarkup,pveRelicStripMarkup,pveEventActionsMarkup,pveRestActionsMarkup,pveShopMarkup,pveRewardPromptMarkup,pveAugmentPopupMarkup,pveRoomResultOverlayMarkup,pveTerminalMarkup,PVE_ROOM_LABELS} from './pve-roguelike-ui.js';
+import {pvePlayerForUser,pveOwnShopReservation,pveMapOverlayMarkup,pveRelicStripMarkup,pveEventActionsMarkup,pveRestActionsMarkup,pveShopMarkup,pveRewardPromptMarkup,pveAugmentPopupMarkup,pveRoomResultOverlayMarkup,pveTerminalMarkup,PVE_ROOM_LABELS} from './pve-roguelike-ui.js';
 import {relicUi} from './pve-ui-catalog.js';
 
 const app = document.querySelector('#app');
@@ -180,11 +180,6 @@ function renderPveGameplay(run,{presentation=null}={}){
 }
 function pveSelectorNumber(run,cardId){
   const me=pvePlayerForUser(run,api.user?.id);return me?.cardPool?.find(card=>card.id===cardId)?.baseNumber??null;
-}
-function pveOwnShopReservation(run,playerId){
-  if(run?.phase!=='SHOP'||!playerId)return null;
-  const item=(run.roomState?.cardStock||[]).find(product=>!product.sold&&product.reservedByPlayerId===playerId);
-  return item?.id||null;
 }
 function renderPveRoom(run){
   const member=mine(),scope=run.phase==='REWARD_ROOM'?'room':'combat',adaptedBundle=pveGameplayBundle(bundle,run,{scope}),players=pveGameplayPlayers(bundle,run,{scope}),mePlayer=players[member?.id],shopReservation=pveOwnShopReservation(run,member?.id);
