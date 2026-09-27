@@ -110,6 +110,12 @@ test('PVE-UI-07 server reuses the existing human entry-loading barrier',async()=
  assert.match(app,/api\.request\('assets_loaded'/);assert.match(app,/run\.entryLoading/);
  assert.match(api,/markPveEntryAssetsLoaded/);assert.match(api,/action==='assets_loaded'/);
 });
+test('PVE map closes when a vote enters the selected room',async()=>{
+  const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
+  assert.ok(app.includes("if(before.phase==='MAP_VOTE'&&response.run.phase!=='MAP_VOTE')pveMapOpen=false"));
+  assert.ok(app.includes("if(previousPve?.phase==='MAP_VOTE'&&next.run.phase!=='MAP_VOTE')pveMapOpen=false"));
+});
+
 test('PVE-UI-08/09 map draws actual DAG and combat map cannot vote',()=>{
  const run=projectRun(baseRun(),'p0'),geo=pveMapGeometry(run);
  assert.equal(geo.edges.length,6);assert.equal(geo.nodes.length,5);

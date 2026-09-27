@@ -9,6 +9,7 @@ import {
   enterRewardRoom,submitRewardCard,resolveRewardAttempt,chooseRewardRelic,roomReady
 } from '../supabase/functions/game-api/pve/rooms.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
+import {generateFloorMap,connectedNodeIds,resolveVote} from '../supabase/functions/game-api/pve/map.js';
 
 function members(ids=['adventurer','adventurer','adventurer','adventurer'],ai=[]){
   return ids.map((character_id,i)=>({id:`p${i}`,user_id:ai.includes(i)?null:`u${i}`,member_type:ai.includes(i)?'ai':'human',character_id,seat_index:i}));
@@ -222,4 +223,28 @@ test('PVE-010 missing production relic content never fabricates relics and does 
   const r=submitRewardNumbers(run,[1,2,3,4]);
   assert.equal(r.catalogIncomplete,true);assert.equal(run.phase,'ROOM_RESULT');
   assert.ok(run.players.every(p=>p.relics.length===0));
+});
+
+test('PVE map has forced stretches, real forks, and reachable boss routes',()=>{
+  const run={seed:'map-route-test',floor:1,depth:0,rngCounter:0};
+  const map=generateFloorMap(run,8);
+  const byId=new Map(map.nodes.map(node=>[node.id,node]));
+  assert.equal(map.nodes.filter(node=>node.depth===1).length,2);
+  assert.ok(map.nodes.some(node=>(map.edges[node.id]||[]).length===1&&node.depth<7));
+  assert.ok(map.nodes.some(node=>(map.edges[node.id]||[]).length===2&&node.depth>1));
+  for(const start of map.nodes.filter(node=>node.depth===1)){
+    const visit=(id)=>{
+      const node=byId.get(id);
+      assert.ok(node);
+      if(node.depth===8){assert.equal(node.type,'BOSS');return;}
+      const next=map.edges[id]||[];
+      assert.ok(next.length>=1);
+      next.forEach(target=>{assert.equal(byId.get(target)?.depth,node.depth+1);visit(target);});
+    };
+    visit(start.id);
+  }
+  const forced=map.nodes.find(node=>node.depth===2);
+  map.currentNodeId=forced.id;run.map=map;run.depth=forced.depth;
+  assert.equal(connectedNodeIds(map).length,1);
+  assert.equal(resolveVote(run,[]),map.edges[forced.id][0]);
 });
