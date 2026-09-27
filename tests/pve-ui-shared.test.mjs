@@ -232,10 +232,10 @@ test('PVE choice popup stacks above the shared competitive result overlay',async
 test('Reward Room adapter exposes only server-supported active skill controls',()=>{
  const raw=baseRun();
  raw.players=[
-  {...raw.players[0],characterId:'mage',publicResources:{mana:4}},
-  {...raw.players[1],characterId:'prophet',publicResources:{revelation:1}},
-  {...raw.players[2],characterId:'vampire',publicResources:{thrallPlayerId:'p0'}},
-  {...raw.players[3],characterId:'twins',publicResources:{acrobaticsReady:true,parity:0}}
+  {...structuredClone(raw.players[0]),characterId:'mage',lobbyCharacterId:'mage',publicResources:{mana:4}},
+  {...structuredClone(raw.players[1]),characterId:'prophet',lobbyCharacterId:'seer',publicResources:{revelation:1}},
+  {...structuredClone(raw.players[1]),playerId:'p2',seat:2,characterId:'vampire',lobbyCharacterId:'vampire',publicResources:{thrallPlayerId:'p0'},cardPool:[{id:'v1',baseNumber:1,source:'BASE'}]},
+  {...structuredClone(raw.players[1]),playerId:'p3',seat:3,characterId:'twins',lobbyCharacterId:'twins',publicResources:{acrobaticsReady:true,parity:0},cardPool:[{id:'t1',baseNumber:1,source:'BASE'}]}
  ];
  raw.phase='REWARD_ROOM';raw.roomState={type:'REWARD_ROOM',publicCardCycles:{},privateByPlayer:{},turnSubmissions:{}};
  const view=projectRun(raw,'p0'),players=pveGameplayPlayers(bundle(view),view,{scope:'room'});
