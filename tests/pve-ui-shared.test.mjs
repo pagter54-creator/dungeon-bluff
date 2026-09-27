@@ -172,6 +172,26 @@ test('PVE-UI-18 Result overlay leads back to map and augment can layer above a p
  const passive=pveRoomResultOverlayMarkup(bundle(run),run,{interactive:false});assert.doesNotMatch(passive,/data-action="pve-room-ready"/);assert.match(passive,/증강 선택 후/);
  const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');assert.match(app,/resumePhase==='ROOM_RESULT'.*interactive:false/s);
 });
+test('PVE room result shows server-baselined HP EXP Gold relic and Flame deltas',async()=>{
+ const raw=baseRun();raw.phase='ROOM_RESULT';raw.roomResult={readyPlayerIds:[]};
+ raw.roomPresentationBaseline={
+  roomNodeId:'n1',roomType:'NORMAL_COMBAT',flame:3,
+  players:{
+   p0:{hp:3,growthExp:2,runGold:1,relics:[],engravings:{}},
+   p1:{hp:3,growthExp:0,runGold:0,relics:[],engravings:{}}
+  }
+ };
+ raw.flame=4;raw.players[0].hp=2;raw.players[0].growthExp=5;raw.players[0].runGold=2;raw.players[0].relics=['f1_worn_whetstone'];
+ const view=projectRun(raw,'p0'),html=pveRoomResultOverlayMarkup(bundle(view),view,{playerId:'p0'});
+ assert.match(html,/HP 2\/3 \(-1\)/);
+ assert.match(html,/EXP 5 \(\+3\)/);
+ assert.match(html,/RUN GOLD 2G \(\+1\)/);
+ assert.match(html,/획득 · 닳은 숫돌/);
+ assert.match(html,/EXPEDITION FLAME[\s\S]*\(\+1\)/);
+ const apiSource=await readFile(new URL('../supabase/functions/game-api/pve/api.js',import.meta.url),'utf8');
+ assert.match(apiSource,/captureRoomPresentationBaseline\(run,id,type\);run\.currentRoomNodeId=id/);
+});
+
 test('PVE-UI-19 Reward Room uses shared card selection, reveal and collision presentation',async()=>{
  const before=projectRun(baseRun(),'p0');before.phase='REWARD_ROOM';before.roomState={type:'REWARD_ROOM',attempt:1,publicCardCycles:{},readyPlayerIds:[]};
  const after=structuredClone(before);after.roomState.publicTurnResult={attempt:1,success:true,cards:[
