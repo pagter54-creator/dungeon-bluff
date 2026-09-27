@@ -290,8 +290,7 @@ export function assertRunInvariants(run){
   return true;
 }
 
-export function deterministicBotDecision(run,playerId,{policy='reference',seed=run.seed}={}){
-  const view=projectRun(run,playerId);
+export function deterministicBotDecisionFromView(view,playerId,{policy='reference',seed=view.seed}={}){
   assertNoHiddenInfo(view,playerId);
   const player=view.players.find(p=>p.playerId===playerId);
   if(!player||player.status==='DOWNED')return null;
@@ -302,7 +301,7 @@ export function deterministicBotDecision(run,playerId,{policy='reference',seed=r
   else if(policy==='collision_farm')ordered.sort((a,b)=>a.baseNumber-b.baseNumber||a.id.localeCompare(b.id));
   else ordered.sort((a,b)=>b.baseNumber-a.baseNumber||a.id.localeCompare(b.id));
   const top=ordered.filter(c=>c.baseNumber===ordered[0].baseNumber);
-  const card=top[seededIndex(seed,`${policy}:${run.currentRoomNodeId}:${run.combat?.turn}:${playerId}`,top.length)];
+  const card=top[seededIndex(seed,`${policy}:${view.currentRoomNodeId}:${view.combat?.turn}:${playerId}`,top.length)];
   let skillIntent=false;
   if(policy!=='resource_starvation'){
     if(player.characterId==='gunner'&&player.publicResources.fullBurstReady)skillIntent=true;
@@ -315,6 +314,10 @@ export function deterministicBotDecision(run,playerId,{policy='reference',seed=r
   }
   return {cardInstanceId:card.id,skillIntent};
 }
+export function deterministicBotDecision(run,playerId,options={}){
+  const view=projectRun(run,playerId);
+  return deterministicBotDecisionFromView(view,playerId,{...options,seed:options.seed??view.seed});
+}
 
 export function simulateCombat({seed,characterIds,monsterDef=F1_MONSTER_DEFINITIONS.f1_armored_boar,policy='reference',flame=4,maxTurns=HARD_MAX_TURNS}){
   const run=makeCombatRun(seed,{caseId:'generic-combat',characterIds,flame,monsterDef});
@@ -324,7 +327,8 @@ export function simulateCombat({seed,characterIds,monsterDef=F1_MONSTER_DEFINITI
     const turn=run.combat.turn;
     for(const p of run.players){
       if(p.status==='DOWNED'||run.combat.turnSubmissions[p.playerId])continue;
-      const decision=deterministicBotDecision(run,p.playerId,{policy,seed});
+      const view=projectRun(run,p.playerId);
+      const decision=deterministicBotDecisionFromView(view,p.playerId,{policy,seed});
       if(!decision)fail('SOFTLOCK','active player has no legal bot action',{seed,playerId:p.playerId,turn});
       submitCard(run,p.playerId,decision.cardInstanceId,decision.skillIntent);actions++;
       assertRunInvariants(run);
@@ -336,7 +340,21 @@ export function simulateCombat({seed,characterIds,monsterDef=F1_MONSTER_DEFINITI
     if(run.phase==='COMBAT'&&run.combat.turn===turn)fail('SOFTLOCK','combat turn did not advance after resolve',{seed,turn});
     if(actions>HARD_MAX_ACTIONS)fail('INFINITE_LOOP','simulation action ceiling exceeded',{seed,actions});
   }
-  return {seed,outcome:run.phase,actions,resolves,finalFlame:run.flame,players:run.players.map(p=>({playerId:p.playerId,hp:p.hp,status:p.status,runGold:p.runGold,growthExp:p.growthExp})),combat:semantic(run.combat)};
+  const combatLog=(run._telemetryPending||[]).filter(x=>x.logType==='COMBAT').at(-1)?.payload||null;
+  const combatMetric=combatLog?{
+    roomType:combatLog.room_type,monsterId:combatLog.monster_id,outcome:combatLog.outcome,
+    turns:combatLog.turn_count,partyDamage:combatLog.party_damage_total,
+    partyDpt:combatLog.turn_count?combatLog.party_damage_total/combatLog.turn_count:0,
+    ko:Object.values(combatLog.down_count||{}).reduce((a,b)=>a+b,0),
+    flameSpent:combatLog.flame_spent,
+    collisions:Object.values(combatLog.collision_count||{}).reduce((a,b)=>a+b,0),
+    validAttacks:Object.values(combatLog.valid_attack_count||{}).reduce((a,b)=>a+b,0)
+  }:null;
+  return {
+    seed,outcome:run.phase,actions,resolves,finalFlame:run.flame,
+    players:run.players.map(p=>({playerId:p.playerId,hp:p.hp,status:p.status,runGold:p.runGold,growthExp:p.growthExp})),
+    combat:semantic(run.combat),combats:combatMetric?[combatMetric]:[]
+  };
 }
 
 export function runScenario(scenarioId,seed){
