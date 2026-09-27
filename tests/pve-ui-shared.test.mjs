@@ -69,6 +69,30 @@ test('PVE-UI-06 attack presentation reuses competitive attackFx metadata',()=>{
  const result=adaptPveTurnResult(bundle(after),before,after);
  assert.equal(result.effects.find(x=>x.type==='attack').attackFx,'magic');
 });
+test('PVE reveal presents follow-up attacks and server healing before final HP',()=>{
+ const before=projectRun(baseRun(),'p0'),after=structuredClone(before);
+ after.combat.monster.hp=68;
+ after.combat.publicTurnResult={turn:2,totalDamage:5,cards:[{playerId:'p0',cardInstanceId:'c2',finalNumber:2,valid:true}],damagePackets:[
+  {sourcePlayerId:'p0',sourceCardId:'c2',amount:2,followUp:false},
+  {sourcePlayerId:'p0',sourceCardId:'c3',amount:3,followUp:true}
+ ],events:[],presentationMutations:[]};
+ const result=adaptPveTurnResult(bundle(after),before,after);
+ assert.deepEqual(result.effects.filter(x=>x.type==='attack').map(x=>x.amount),[2,3]);
+ assert.equal(result.effects.find(x=>x.type==='monster_heal_after')?.amount,3);
+});
+test('PVE map popup stays above the result sheet and remains dismissible',async()=>{
+ const run=projectRun(baseRun(),'p0'),html=pveMapOverlayMarkup(run,user);
+ assert.match(html,/pve-map-layer/);assert.match(html,/pve-map-backdrop/);
+ assert.match(html,/data-action="pve-map-close"/);
+ const css=await readFile(new URL('../src/pve-beta.css',import.meta.url),'utf8');
+ const resultCss=await readFile(new URL('../src/battle-layout.css',import.meta.url),'utf8');
+ const mapZ=Number(css.match(/\\.pve-map-layer\\{[^}]*z-index:(\\d+)/)?.[1]);
+ const resultZ=Number(resultCss.match(/\\.room-result-overlay\\{[^}]*z-index:(\\d+)/)?.[1]);
+ assert.ok(mapZ>resultZ);
+ const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
+ assert.match(app,/button\\.closest\\('\\.pve-map-layer'\\)\\?\\.remove\\(\\)/);
+ assert.match(app,/if\\(pveAnimating\\)\\{updateBusy\\(\\);return;\\}/);
+});
 test('PVE-UI-07 human asset preload reuses battle loading module',async()=>{
  const source=await readFile(new URL('../src/battle-loading.js',import.meta.url),'utf8');
  assert.match(source,/loadPveEntryAssets/);assert.match(source,/member=>member\.member_type==='human'/);
