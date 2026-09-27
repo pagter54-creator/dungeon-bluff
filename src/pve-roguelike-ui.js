@@ -1,6 +1,7 @@
 import {PVE_CHARACTER_TO_LOBBY} from './game-mode.js';
 import {skinPortrait} from './skins.js';
 import {augmentUi,relicUi} from './pve-ui-catalog.js';
+import {sharedResultOverlayMarkup} from './shared-gameplay-ui.js';
 
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 export const PVE_ROOM_LABELS=Object.freeze({
@@ -104,7 +105,8 @@ export function pveRoomResultOverlayMarkup(bundle,run,{interactive=true,playerId
   const mineReady=Boolean(playerId&&ready.has(playerId)),readyText=readyIds.length+' / '+(run.players?.length||0)+' 확인';
   const flameDelta=baseline?Number(run.flame)-Number(baseline.flame):null,flameText='EXPEDITION FLAME <b>'+esc(run.flame)+' / '+esc(run.maxFlame)+'</b>'+(flameDelta==null?'':' <small>('+delta(flameDelta)+')</small>');
   const actions=interactive?'<footer><span>'+readyText+'</span><button class="button secondary" data-action="pve-map-open">지도 미리보기 ◇</button><button class="button primary" data-action="pve-room-ready" data-network '+(mineReady?'disabled data-unavailable="true"':'')+'>'+(mineReady?'확인 완료 ✓':'지도로 →')+'</button></footer>':'<footer><span>증강 선택 후 결과 확인을 계속합니다.</span></footer>';
-  return '<section class="room-result-overlay pve-room-result" role="dialog" aria-modal="true" aria-labelledby="pve-room-result-title"><div class="room-result-sheet pve-room-result-sheet"><small class="eyebrow">ROOM COMPLETE</small><h2 id="pve-room-result-title">방 공략 완료 <small>협력 탐험</small></h2><div class="room-result-party">'+rows+'</div><div class="summary-party">'+flameText+'</div>'+actions+'</div></section>';
+  const content='<small class="eyebrow">ROOM COMPLETE</small><h2 id="pve-room-result-title">방 공략 완료 <small>협력 탐험</small></h2><div class="room-result-party">'+rows+'</div><div class="summary-party">'+flameText+'</div>'+actions;
+  return sharedResultOverlayMarkup({contentMarkup:content,extraClass:'pve-room-result',sheetClass:'pve-room-result-sheet',titleId:'pve-room-result-title'});
 }
 export function pveTerminalMarkup(bundle,run,me){
   const clear=run.phase==='RUN_CLEAR',mineGold=Number(me?.runGold)||0,settlement=bundle.pveSettlement;
