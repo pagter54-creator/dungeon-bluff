@@ -5,20 +5,43 @@ import os from 'node:os';
 import path from 'node:path';
 import {main as stressMain} from '../scripts/pve-stress.mjs';
 import {
-  STRESS_SCENARIOS,StressHardFailure,assertRunInvariants,replayScenario,runT14,
+  STRESS_SCENARIOS,StressHardFailure,assertRunInvariants,replayScenario,runT00,runT14,CANONICAL_RULES,
   scenarioAvailability,semanticFingerprint,skippedScenarioReport,t14GoldenComparable,assertNoHiddenInfo
 } from '../scripts/pve-stress-lib.mjs';
 
 const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/pve-stress-t14-golden.json',import.meta.url),'utf8'));
 
-test('PVE stress scenario availability SKIPs missing characters/build effects instead of substituting them',()=>{
+test('PVE stress scenario availability activates T00 only when its four builds are executable',()=>{
   const status=Object.fromEntries(STRESS_SCENARIOS.map(s=>[s.id,scenarioAvailability(s)]));
+  assert.equal(status.T00.available,true);
   assert.equal(status.T14.available,true);
-  for(const id of ['T00','T05','T09','T02','T03','T04','T06'])assert.equal(status[id].available,false,id);
-  assert.ok(status.T00.missingCharacters.includes('rogue'));
+  for(const id of ['T05','T09','T02','T03','T04','T06'])assert.equal(status[id].available,false,id);
+  assert.deepEqual(status.T00.missingCharacters,[]);
+  assert.deepEqual(status.T00.missingBuildEffects,[]);
   assert.ok(status.T09.missingCharacters.includes('prophet'));
   assert.ok(status.T05.missingCharacters.includes('vampire'));
   assert.ok(skippedScenarioReport().some(x=>x.scenarioId==='T06'));
+});
+
+test('PVE stress T00 reference runner executes three deterministic F1 encounters with executable effects',()=>{
+  const result=runT00('unit-t00-reference');
+  assert.equal(result.status,'PASS');
+  assert.equal(result.combats.length,3);
+  assert.deepEqual(result.combats.map(x=>x.roomType),['NORMAL_COMBAT','ELITE_COMBAT','BOSS']);
+  for(const id of ['aug-001-veteran-valid','aug-031-toughness-cap','aug-061-sneaky-success','aug-091-mana-cap']){
+    assert.ok((result.effectTriggerCounts[id]||0)>=1,id);
+  }
+  assert.ok((result.expGainByCharacter.adventurer||0)>=1);
+});
+
+test('PVE stress T00 same-seed replay is deterministic',()=>{
+  const a=replayScenario('T00','golden-t00-seed');
+  const b=replayScenario('T00','golden-t00-seed');
+  assert.equal(a.replayFingerprint,b.replayFingerprint);
+});
+
+test('PVE canonical rule registry contains RULE-01 through RULE-05',()=>{
+  assert.deepEqual(CANONICAL_RULES.map(x=>x.id),['RULE-01','RULE-02','RULE-03','RULE-04','RULE-05']);
 });
 
 test('PVE stress T14 executes all six Flame/wipe ordering fixtures without hard failure',()=>{
@@ -67,7 +90,7 @@ test('PVE stress CLI writes required JSON and seed CSV outputs',async()=>{
   assert.equal(code,0);
   for(const name of [
     'pve_stress_summary.json','pve_failed_seeds.json','pve_stress_seeds.csv',
-    'pve_skipped_scenarios.json','pve_spec_ambiguities.json'
+    'pve_skipped_scenarios.json','pve_spec_ambiguities.json','pve_canonical_rules.json'
   ])assert.equal(fs.existsSync(path.join(dir,name)),true,name);
   assert.equal(fs.existsSync(path.join(dir,'scenarios','T14.csv')),true);
   const summary=JSON.parse(fs.readFileSync(path.join(dir,'pve_stress_summary.json'),'utf8'));
