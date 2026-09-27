@@ -8,6 +8,8 @@ export const PVE_RESOURCE_DEFS=Object.freeze({
   fullBurstReady:{resetScope:'COMBAT'},
   burstReadyCycle:{resetScope:'COMBAT'},
   acrobaticsReady:{resetScope:'COMBAT'},
+  acrobaticsRechargeProgress:{resetScope:'COMBAT',baseMax:3},
+  acrobaticsBoostReady:{resetScope:'COMBAT'},
   parity:{resetScope:'COMBAT'},
   armor:{resetScope:'COMBAT'},
   veteranStreak:{resetScope:'COMBAT'},
