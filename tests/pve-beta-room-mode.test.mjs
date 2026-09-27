@@ -43,8 +43,9 @@ test('COOP_PVE kill switch requires explicit enable and returns the canonical st
  for(const value of ['false','0','off','no','disabled',''])assert.equal(coopPveEnabled(value),false);
  assert.throws(()=>assertCoopPveEnabled('false'),error=>error.code==='COOP_PVE_TEMPORARILY_DISABLED');
  const source=await readFile(new URL('../supabase/functions/game-api/index.ts',import.meta.url),'utf8');
- assert.match(source,/gameMode===GAME_MODE\.COOP_PVE\)assertCoopPveEnabledNow\(\)/);
- assert.match(source,/if\(roomGameMode\(b\.room\)===GAME_MODE\.COOP_PVE\)\{\s*assertCoopPveEnabledNow\(\)/);
+ assert.match(source,/gameMode===GAME_MODE\.COOP_PVE\)await assertCoopPveEnabledNow\(\)/);
+ assert.match(source,/if\(roomGameMode\(b\.room\)===GAME_MODE\.COOP_PVE\)\{\s*await assertCoopPveEnabledNow\(\)/);
+ assert.match(source,/from\('pve_runtime_flags'\)/);
  assert.match(source,/get_public_config/);
 });
 
