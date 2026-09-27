@@ -112,6 +112,18 @@ test('PVE stress CLI writes required JSON and seed CSV outputs',async()=>{
   assert.deepEqual(failed,[]);
 });
 
+test('PVE stress T09 CLI emits resource timeline and fixture artifacts',async()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'pve-stress-t09-'));
+  const code=await stressMain(['--scenario','T09','--seed','cli-t09-seed','--output',dir]);
+  assert.equal(code,0);
+  for(const name of ['pve_resource_starvation_turns.jsonl','pve_t09_fixtures.json'])assert.equal(fs.existsSync(path.join(dir,name)),true,name);
+  const fixtures=JSON.parse(fs.readFileSync(path.join(dir,'pve_t09_fixtures.json'),'utf8'));
+  assert.equal(fixtures.scenarioId,'T09');
+  assert.equal(fixtures.fixtures.length,12);
+  const summary=JSON.parse(fs.readFileSync(path.join(dir,'pve_stress_summary.json'),'utf8'));
+  assert.ok(summary.scenarios[0].resourceMetrics.invalidSkillRequestCount>0);
+});
+
 test('PVE stress T05 CLI emits mutation history and fixture artifacts',async()=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'pve-stress-t05-'));
   const code=await stressMain(['--scenario','T05','--seed','cli-t05-seed','--output',dir]);
