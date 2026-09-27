@@ -1,0 +1,50 @@
+{
+  "scenarioId": "T03",
+  "status": "PASS",
+  "guard": {
+    "cards": {
+      "p0": {"finalNumber":5,"valid":false,"invalidReason":"COLLISION","guardianSacrifice":true,"guardianRescued":false,"whiteMagicHeal":0,"resourceSpent":0},
+      "p1": {"finalNumber":5,"valid":true,"invalidReason":null,"guardianSacrifice":false,"guardianRescued":true,"whiteMagicHeal":0,"resourceSpent":0},
+      "p2": {"finalNumber":2,"valid":true,"invalidReason":null,"guardianSacrifice":false,"guardianRescued":false,"whiteMagicHeal":0,"resourceSpent":0},
+      "p3": {"finalNumber":3,"valid":true,"invalidReason":null,"guardianSacrifice":false,"guardianRescued":false,"whiteMagicHeal":0,"resourceSpent":0}
+    },
+    "statuses":{"p0":"ACTIVE","p1":"ACTIVE","p2":"ACTIVE","p3":"ACTIVE"},
+    "pendingDown":[],
+    "guardianTarget":"p1"
+  },
+  "redirect":{
+    "redirect":{"type":"DAMAGE_REDIRECTED","damageEventId":"t03:F4","originalTarget":"p1","redirectedTarget":"p0","playerId":null,"redirectSource":"p0","rawDamage":1,"preventedDamage":null,"actualDamage":null},
+    "damage":{"type":"PLAYER_DAMAGED","damageEventId":"t03:F4","originalTarget":"p1","redirectedTarget":null,"playerId":"p0","redirectSource":"p0","rawDamage":1,"preventedDamage":0,"actualDamage":1},
+    "hp":{"p0":2,"p1":3,"p2":3,"p3":3},"statuses":{"p0":"ACTIVE","p1":"ACTIVE","p2":"ACTIVE","p3":"ACTIVE"},"pendingDown":[]
+  },
+  "transfusion":{
+    "skill":{"type":"TRANSFUSION_USED","healEventId":"heal:transfusion:1:1:t03_fixture_dummy:1:p1","playerId":"p1","targetId":"p0","amount":1,"before":2,"after":3,"bloodBefore":4,"bloodSpent":4,"bloodAfter":0},
+    "hp":{"p0":3,"p1":3,"p2":3,"p3":3},"blood":0,"statuses":{"p0":"ACTIVE","p1":"ACTIVE","p2":"ACTIVE","p3":"ACTIVE"},"pendingDown":[]
+  },
+  "whiteMagic":{
+    "mageCard":{"finalNumber":4,"valid":false,"invalidReason":"COLLISION","guardianSacrifice":false,"guardianRescued":false,"whiteMagicHeal":1,"resourceSpent":2},
+    "heal":{"type":"WHITE_MAGIC_HEAL","healEventId":"heal:white:collision:stress-combat:smoke:T03:0000:F11:1:4:p1,p3:p3:p1","playerId":"p3","targetId":"p1","amount":1,"before":2,"after":3,"bloodBefore":null,"bloodSpent":null,"bloodAfter":null},
+    "hp":{"p0":3,"p1":3,"p2":2,"p3":3},"mana":1,"statuses":{"p0":"ACTIVE","p1":"ACTIVE","p2":"ACTIVE","p3":"ACTIVE"},"pendingDown":[]
+  },
+  "revenge":{
+    "direct":{"type":"PLAYER_DAMAGED","damageEventId":"t03:F15","originalTarget":"p2","redirectedTarget":null,"playerId":"p2","redirectSource":null,"rawDamage":1,"preventedDamage":0,"actualDamage":1},
+    "revengeGain":1,"revengeAfter":1,
+    "zeroDamage":{"type":"PLAYER_DAMAGED","damageEventId":"t03:F16","originalTarget":"p2","redirectedTarget":null,"playerId":"p2","redirectSource":null,"rawDamage":1,"preventedDamage":1,"actualDamage":0},
+    "zeroDamageRevenge":0
+  },
+  "fullChain":{
+    "hp":{"p0":2,"p1":3,"p2":2,"p3":3},"blood":0,"mana":1,"revenge":1,
+    "statuses":{"p0":"ACTIVE","p1":"ACTIVE","p2":"ACTIVE","p3":"ACTIVE"},"pendingDown":[],
+    "mageCard":{"finalNumber":5,"valid":false,"invalidReason":"COLLISION","guardianSacrifice":false,"guardianRescued":false,"whiteMagicHeal":1,"resourceSpent":2},
+    "eventTypes":["GUARDIAN_WALL_RESCUE","WHITE_MAGIC_HEAL","PLAYER_HEALED","VAMPIRE_BLOOD_GAINED"],
+    "directEventTypes":["DAMAGE_REDIRECTED","PLAYER_DAMAGED","PLAYER_DAMAGED","BERSERKER_REVENGE_GAINED"],
+    "whiteHeal":{"type":"WHITE_MAGIC_HEAL","healEventId":"heal:white:collision:stress-combat:smoke:T03:0000:F19:1:5:p0,p1,p3:p3:p0","playerId":"p3","targetId":"p0","amount":1,"before":2,"after":3,"bloodBefore":null,"bloodSpent":null,"bloodAfter":null},
+    "redirect":{"type":"DAMAGE_REDIRECTED","damageEventId":"t03:F19:guard","originalTarget":"p1","redirectedTarget":"p0","playerId":null,"redirectSource":"p0","rawDamage":1,"preventedDamage":null,"actualDamage":null},
+    "redirectedDamage":{"type":"PLAYER_DAMAGED","damageEventId":"t03:F19:guard","originalTarget":"p1","redirectedTarget":null,"playerId":"p0","redirectSource":"p0","rawDamage":1,"preventedDamage":0,"actualDamage":1},
+    "transfusion":{"type":"TRANSFUSION_USED","healEventId":"heal:transfusion:1:1:t03_fixture_dummy:2:p1","playerId":"p1","targetId":"p2","amount":1,"before":1,"after":2,"bloodBefore":4,"bloodSpent":4,"bloodAfter":0}
+  },
+  "noRecursion":{
+    "redirectCount":1,"healCount":1,"hp":{"p0":2,"p1":3,"p2":3,"p3":3},
+    "statuses":{"p0":"ACTIVE","p1":"ACTIVE","p2":"ACTIVE","p3":"ACTIVE"},"pendingDown":[]
+  }
+}
