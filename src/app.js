@@ -90,7 +90,7 @@ async function perform(action, params = {}) {
   finally { busy = false; updateBusy(); }
 }
 async function performPve(action,params={}){
-  if(busy||!bundle?.run)return null;
+  if(busy||pveAnimating||!bundle?.run)return null;
   const before=structuredClone(bundle.run);
   busy=true;updateBusy();
   try{
@@ -254,6 +254,8 @@ async function accept(next, restoring = false) {
     if(next.run.map?.currentNodeId)pveVisitedNodes.add(next.run.map.currentNodeId);
     if(previousPve?.phase!=='MAP_VOTE'&&next.run.phase==='MAP_VOTE')pveMapOpen=true;
     if(['RUN_CLEAR','RUN_FAILED','ABANDONED'].includes(next.run.phase)&&rewardRefreshSession!==next.run.id){rewardRefreshSession=next.run.id;void refreshAccount().catch(()=>{});}
+    // Keep the current reveal DOM until every attack and hit animation has finished.
+    if(pveAnimating){updateBusy();return;}
     const presentation=previousPve?adaptPveTurnResult(bundle,previousPve,next.run):null;
     const rewardPresentation=previousPve?adaptPveRewardResult(previousPve,next.run):null;
     if(presentation&&presentation.turnIndex>pveLastPresentedTurn&&!pveAnimating&&!document.hidden)await presentPveTurn(previousPve,next.run,presentation);
@@ -486,7 +488,7 @@ document.addEventListener('click', async event => {
   if (action === 'remove-ai') void perform('remove_ai', { member_id: button.dataset.id });
   if (action === 'start') void perform('start_game');
   if(action==='pve-map-open'){pveMapOpen=true;if(pveAnimating)app.insertAdjacentHTML('beforeend',pveMapOverlayMarkup(bundle.run,api.user?.id,{visitedNodes:[...pveVisitedNodes]}));else renderPve();}
-  if(action==='pve-map-close'){pveMapOpen=false;if(pveAnimating)button.closest('.pve-map-overlay')?.remove();else renderPve();}
+  if(action==='pve-map-close'){pveMapOpen=false;if(pveAnimating)button.closest('.pve-map-layer')?.remove();else renderPve();}
   if(action==='pve-vote')void performPve('pve.voteNextRoom',{node_id:button.dataset.nodeId});
   if(action==='pve-relic-info'){const relic=relicUi(button.dataset.relicId);showModal('<div class="eyebrow">RELIC</div><h2>'+escape(relic.name)+'</h2><p>'+escape(relic.text)+'</p>');}
   if(action==='pve-submit-card')void performPve('pve.submitCard',{card_instance_id:button.dataset.cardId,skill_intent:button.dataset.useSkill==='true'});
