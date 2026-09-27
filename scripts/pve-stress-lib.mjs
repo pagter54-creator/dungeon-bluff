@@ -387,10 +387,58 @@ function referenceTurnPlan(run,seed){
   };
 }
 
+function t09ResourceValue(player){
+  if(player.characterId==='mage')return Number(player.publicResources.mana)||0;
+  if(player.characterId==='warrior')return Number(player.publicResources.toughnessCharges)||0;
+  if(player.characterId==='prophet')return Number(player.publicResources.revelation)||0;
+  if(player.characterId==='gunner')return {
+    fullBurstReady:player.publicResources.fullBurstReady===true,
+    burstReadyCycle:Number(player.publicResources.burstReadyCycle)||0
+  };
+  return null;
+}
+function t09State(run,playerId){
+  const player=run.players.find(p=>p.playerId===playerId),priv=run.combat?.privateByPlayer?.[playerId];
+  return {
+    resource:t09ResourceValue(player),
+    cycle:priv?.cycleIndex??null,
+    remaining:[...(priv?.remainingCardIds||[])],
+    spent:[...(priv?.spentCardIds||[])],
+    selectedCardId:priv?.selectedCardId??null,
+    submission:run.combat?.turnSubmissions?.[playerId]?semantic(run.combat.turnSubmissions[playerId]):null,
+    rngCounter:run.rngCounter
+  };
+}
+function assertT09CardPartition(run,playerId){
+  const player=run.players.find(p=>p.playerId===playerId),priv=run.combat?.privateByPlayer?.[playerId];
+  if(!player||!priv)return;
+  const pool=player.cardPool.map(card=>card.id),zones=[...(priv.remainingCardIds||[]),...(priv.spentCardIds||[])];
+  if(new Set(zones).size!==zones.length)fail('CARD_DUPLICATION','T09 physical card is duplicated across zones',{playerId,zones});
+  if(zones.length!==pool.length||pool.some(id=>!zones.includes(id)))fail('CARD_STATE_MISMATCH','T09 physical card left the cycle zones or a new card appeared',{playerId,pool,zones});
+  if(run.phase==='COMBAT'&&!priv.remainingCardIds.length&&!run.combat.turnSubmissions[playerId])fail('EMPTY_HAND_SOFTLOCK','T09 active cycle has no remaining card without reset',{playerId,cycleIndex:priv.cycleIndex});
+}
+function attemptT09InvalidProbe(run,playerId,probe,turn){
+  if(!probe)return null;
+  const before=t09State(run,playerId);
+  let caught=null;
+  try{
+    if(probe.kind==='IMMEDIATE_SKILL')activateImmediateCharacterSkill(run,run.players.find(p=>p.playerId===playerId));
+    else submitCard(run,playerId,probe.cardInstanceId,probe.skillIntent,probe.skillData??null);
+  }catch(error){caught=error;}
+  if(!caught)fail('INVALID_REQUEST_ACCEPTED','T09 invalid request was unexpectedly accepted',{playerId,turn,probe});
+  const code=caught instanceof PveSkillError?caught.code:(typeof caught?.code==='string'?caught.code:'UNSTRUCTURED_REJECTION');
+  if(probe.expectedCode&&code!==probe.expectedCode)fail('INVALID_REJECTION_CODE','T09 rejection reason diverged',{playerId,turn,expected:probe.expectedCode,actual:code,message:caught.message});
+  const after=t09State(run,playerId);
+  if(stableStringify(before)!==stableStringify(after))fail('REJECTED_REQUEST_MUTATED_STATE','T09 rejected request changed resource/card/submission state',{playerId,turn,probe,before,after});
+  assertT09CardPartition(run,playerId);
+  return {skillRequested:true,skillAccepted:false,skillRejected:true,rejectReason:code};
+}
+
 export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterDef=F1_MONSTER_DEFINITIONS.f1_armored_boar,policy='reference',flame=4,maxTurns=HARD_MAX_TURNS,caseId='generic-combat'}){
   const run=makeCombatRun(seed,{caseId,characterIds,augmentIdsByPlayer,flame,monsterDef});
   let actions=0,resolves=0;
-  const referenceTurns=[],numberMutationTurns=[];
+  const referenceTurns=[],numberMutationTurns=[],resourceTimeline=[];
+  const t09PriorResource=new Map(run.players.map(p=>[p.playerId,t09ResourceValue(p)]));
   while(run.phase==='COMBAT'){
     if(run.combat.turn>maxTurns)fail('INFINITE_LOOP','simulation exceeded turn ceiling',{seed,turn:run.combat.turn});
     const turn=run.combat.turn;
@@ -422,6 +470,55 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
         submitCard(run,decision.playerId,card.id,decision.skillIntent,decision.skillData);actions++;
         assertRunInvariants(run);
       }
+    }else if(policy==='resource_starvation'){
+      const contextKey=`${run.currentRoomNodeId||run.combat?.monster?.id||'combat'}:turn:${turn}`;
+      const active=run.players.filter(p=>p.status!=='DOWNED'&&!run.combat.turnSubmissions[p.playerId]);
+      const records=new Map();
+      for(const p of active){
+        const view=projectRun(run,p.playerId);assertNoHiddenInfo(view,p.playerId);
+        const start=t09State(run,p.playerId);
+        const probe=invalidResourceProbe(view,p.playerId);
+        const rejection=attemptT09InvalidProbe(run,p.playerId,probe,turn);
+        if(rejection)actions++;
+        records.set(p.playerId,{
+          turn,playerId:p.playerId,classId:p.characterId,
+          resourceBefore:structuredClone(start.resource),resourceGained:0,resourceSpent:0,resourceAfter:null,
+          skillRequested:rejection?1:0,skillAccepted:0,skillRejected:rejection?1:0,
+          rejectReasons:rejection?[rejection.rejectReason]:[],
+          cycleBefore:start.cycle,cycleAfter:null,
+          remainingCardsBefore:start.remaining.length,remainingCardsAfter:null,recoveredCardId:null
+        });
+      }
+      const ordered=[...active].sort((a,b)=>{
+        const ap=a.characterId==='prophet'?1:0,bp=b.characterId==='prophet'?1:0;
+        return ap-bp||a.seat-b.seat;
+      });
+      for(const p of ordered.filter(x=>x.characterId!=='prophet')){
+        const view=projectRun(run,p.playerId);assertNoHiddenInfo(view,p.playerId);
+        const decision=buildResourceStarvationDecision(view,p.playerId,{seed,contextKey});
+        if(!decision)fail('SOFTLOCK','T09 active player has no legal starvation action',{seed,playerId:p.playerId,turn});
+        submitCard(run,p.playerId,decision.cardInstanceId,decision.skillIntent,decision.skillData);actions++;
+        const rec=records.get(p.playerId);rec.skillRequested+=decision.skillIntent?1:0;rec.skillAccepted+=decision.skillIntent?1:0;
+        assertRunInvariants(run);assertT09CardPartition(run,p.playerId);
+      }
+      for(const p of ordered.filter(x=>x.characterId==='prophet')){
+        let view=projectRun(run,p.playerId);assertNoHiddenInfo(view,p.playerId);
+        let decision=buildResourceStarvationDecision(view,p.playerId,{seed,contextKey});
+        if(!decision)fail('SOFTLOCK','T09 Prophet has no legal starvation action',{seed,playerId:p.playerId,turn});
+        const rec=records.get(p.playerId);
+        if(decision.requestRevelation){
+          const evt=activateImmediateCharacterSkill(run,p);actions++;
+          rec.skillRequested++;rec.skillAccepted++;rec.resourceSpent++;
+          rec.recoveredCardId=evt.recoveredCardId||null;
+          view=projectRun(run,p.playerId);assertNoHiddenInfo(view,p.playerId);
+          const repeat=attemptT09InvalidProbe(run,p.playerId,{kind:'IMMEDIATE_SKILL',expectedCode:'INSUFFICIENT_RESOURCE'},turn);
+          actions++;rec.skillRequested++;rec.skillRejected++;rec.rejectReasons.push(repeat.rejectReason);
+          decision=buildResourceStarvationDecision(view,p.playerId,{seed,contextKey});
+        }
+        submitCard(run,p.playerId,decision.cardInstanceId,false,null);actions++;
+        assertRunInvariants(run);assertT09CardPartition(run,p.playerId);
+      }
+      run.combat._t09PendingRecords=[...records.values()];
     }else{
       for(const p of run.players){
         if(p.status==='DOWNED'||run.combat.turnSubmissions[p.playerId])continue;
@@ -440,6 +537,36 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
         numberHistories:structuredClone(result.numberHistories||[]),
         mutationEvents:structuredClone(result.mutationEvents||[])
       });
+    }
+    if(policy==='resource_starvation'){
+      const pending=run.combat?._t09PendingRecords||[];
+      for(const rec of pending){
+        const player=run.players.find(p=>p.playerId===rec.playerId);
+        const resolved=(result.cards||[]).find(card=>card.playerId===rec.playerId);
+        const after=t09State(run,rec.playerId);
+        if(player?.characterId==='mage'&&resolved?.resourceSpent){
+          rec.resourceSpent+=resolved.resourceSpent;
+          rec.resourceAfter=resolved.resourceAfter;
+        }else{
+          rec.resourceAfter=structuredClone(after.resource);
+          if(player?.characterId==='warrior'&&resolved?.collisionImmune)rec.resourceSpent+=1;
+        }
+        if(player?.characterId==='prophet'){
+          rec.resourceGained=(result.events||[]).filter(e=>e.type==='REVELATION_GAINED'&&e.playerId===rec.playerId).reduce((sum,e)=>sum+Math.max(0,(Number(e.after)||0)-(Number(e.before)||0)),0);
+        }else{
+          const prior=t09PriorResource.get(rec.playerId);
+          if(typeof rec.resourceBefore==='number'&&typeof prior==='number')rec.resourceGained=Math.max(0,rec.resourceBefore-prior);
+        }
+        rec.cycleAfter=after.cycle;rec.remainingCardsAfter=after.remaining.length;
+        if(player?.characterId==='gunner'){
+          rec.fullBurstOutcome=resolved?.fullBurstOutcome||null;
+          rec.resourceSpent+=resolved?.skillUsed==='full_burst'?1:0;
+        }
+        resourceTimeline.push(rec);
+        t09PriorResource.set(rec.playerId,structuredClone(rec.resourceAfter));
+        assertT09CardPartition(run,rec.playerId);
+      }
+      if(run.combat)delete run.combat._t09PendingRecords;
     }
     if(referenceTelemetry){
       const damageByPlayer={};
@@ -481,7 +608,8 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
     combat:semantic(run.combat),combats:combatMetric?[combatMetric]:[],
     referenceTurns,
     referenceCommunication:summarizeReferenceTurns(referenceTurns),
-    numberMutationTurns
+    numberMutationTurns,
+    resourceTimeline
   };
 }
 
