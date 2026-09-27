@@ -175,6 +175,19 @@ function aggregateScenario(def,results,failures){
   const referenceCommunication=def.id==='T00'
     ?mergeReferenceRows(passed.map(x=>x.referenceCommunication).filter(Boolean))
     :null;
+  const mutationRows=passed.map(x=>x.mutationMetrics).filter(Boolean);
+  const mutationMetrics=def.id==='T05'&&mutationRows.length?{
+    avgSelfModificationsPerCombat:avg(mutationRows.map(x=>x.selfModifications/Math.max(1,x.combatCount||1))),
+    avgSwapsPerCombat:avg(mutationRows.map(x=>x.swaps/Math.max(1,x.combatCount||1))),
+    avgStealEventsPerCombat:avg(mutationRows.map(x=>x.stealEvents/Math.max(1,x.combatCount||1))),
+    avgStolenAmountPerCombat:avg(mutationRows.map(x=>x.stolenAmount/Math.max(1,x.combatCount||1))),
+    mutationCreatedCollisionCount:mutationRows.reduce((s,x)=>s+(x.mutationCreatedCollisionCount||0),0),
+    mutationResolvedCollisionCount:mutationRows.reduce((s,x)=>s+(x.mutationResolvedCollisionCount||0),0),
+    knightImmunityUses:mutationRows.reduce((s,x)=>s+(x.knightImmunityUses||0),0),
+    invalidMutationAttempts:mutationRows.reduce((s,x)=>s+(x.invalidMutationAttempts||0),0),
+    numberHistoryMismatchCount:mutationRows.reduce((s,x)=>s+(x.numberHistoryMismatchCount||0),0),
+    deterministicReplayMismatchCount:mutationRows.reduce((s,x)=>s+(x.deterministicReplayMismatchCount||0),0)
+  }:null;
   const fairnessWarnings=def.id==='T00'?referenceFairnessWarnings(referenceCommunication,avgCharacterDamageShare,passed.length):[];
   const allWarnings=[...warnings,...fairnessWarnings];
   return {
@@ -190,6 +203,7 @@ function aggregateScenario(def,results,failures){
     avgHealing:avg(combats.map(x=>Object.values(x.healingDone||{}).reduce((a,b)=>a+b,0))),
     effectTriggerCounts,avgCharacterDamageShare,avgExpGainByCharacter,
     referenceCommunication,
+    mutationMetrics,
     fairnessWarnings,
     warnings:allWarnings,failedSeeds:failures.map(x=>x.seed)
   };
@@ -208,7 +222,8 @@ export async function main(argv=process.argv.slice(2)){
     : STRESS_SCENARIOS;
   if(opts.scenario&&!selected.length)throw new Error(`Unknown scenario: ${opts.scenario}`);
 
-  const allRows=[],failedSeeds=[],scenarioSummaries=[],referenceTurnRows=[];
+  const allRows=[],failedSeeds=[],scenarioSummaries=[],referenceTurnRows=[],numberMutationTurnRows=[];
+  let t05FixtureArtifact=null;
   let hardFailures=0;
   for(const def of selected){
     const availability=scenarioAvailability(def);
@@ -224,6 +239,8 @@ export async function main(argv=process.argv.slice(2)){
         const warnings=balanceWarnings(result);
         result.balanceWarnings=warnings;results.push(result);
         for(const turn of result.referenceTurns||[])referenceTurnRows.push({scenarioId:def.id,seed,...turn});
+        for(const turn of result.numberMutationTurns||[])numberMutationTurnRows.push({scenarioId:def.id,seed,...turn});
+        if(def.id==='T05'&&!t05FixtureArtifact&&result.fixtures)t05FixtureArtifact={scenarioId:'T05',seed,fixtures:result.fixtures};
         const row={
           scenarioId:def.id,seed,status:warnings.length?'BALANCE_WARNING':'PASS',
           actionCount:result.actionCount??result.actions??0,
@@ -276,6 +293,8 @@ export async function main(argv=process.argv.slice(2)){
   fs.writeFileSync(path.join(outDir,'pve_spec_ambiguities.json'),JSON.stringify(SPEC_AMBIGUITIES,null,2)+'\n');
   fs.writeFileSync(path.join(outDir,'pve_canonical_rules.json'),JSON.stringify(CANONICAL_RULES,null,2)+'\n');
   if(referenceTurnRows.length)fs.writeFileSync(path.join(outDir,'pve_reference_turns.jsonl'),referenceTurnRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
+  if(numberMutationTurnRows.length)fs.writeFileSync(path.join(outDir,'pve_number_mutation_turns.jsonl'),numberMutationTurnRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
+  if(t05FixtureArtifact)fs.writeFileSync(path.join(outDir,'pve_t05_fixtures.json'),JSON.stringify(t05FixtureArtifact,null,2)+'\n');
   writeCsv(path.join(outDir,'pve_stress_seeds.csv'),allRows);
 
   console.log('[PVE_STRESS_SUMMARY]',JSON.stringify(summary));
