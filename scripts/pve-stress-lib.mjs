@@ -14,6 +14,8 @@ import {buildResourceStarvationDecision,invalidResourceProbe} from './pve-resour
 import {buildCollisionFarmIntent,planCollisionFarmTurn,planCollisionSafeTurn} from './pve-collision-farm-policy.mjs';
 import {buildSustainIntent,planSustainTurn} from './pve-sustain-fortress-policy.mjs';
 import {runT03Scenario,t03GoldenComparable as t03Golden} from './pve-t03-sustain.mjs';
+import {buildBurstIntent,planBurstTurn} from './pve-burst-ceiling-policy.mjs';
+import {runT02Scenario,t02GoldenComparable as t02Golden} from './pve-t02-burst.mjs';
 
 export const STRESS_SCHEMA_VERSION=1;
 export const HARD_MAX_TURNS=100;
@@ -70,7 +72,8 @@ const EXECUTABLE_RUNTIME_CAPABILITIES=new Set([
   'full_thrall',
   'collision_farm_policy',
   'collision_safe_policy',
-  'guardian_wall','transfusion','white_mage','sustain_policy','t03_runner','direct_damage_identity'
+  'guardian_wall','transfusion','white_mage','sustain_policy','t03_runner','direct_damage_identity',
+  'demon_swordsman_base','martial_artist_base','full_barrage','released_demon_sword','one_hit_kill','blood_frenzy','burst_policy','steady_burst_policy','burst_chain_identity','t02_runner'
 ]);
 export const STRESS_SCENARIOS=Object.freeze([
   {
@@ -92,7 +95,8 @@ export const STRESS_SCENARIOS=Object.freeze([
   {
     id:'T02',name:'Burst Ceiling',runner:'boss',policy:'burst',
     characters:['gunner','demon_swordsman','martial_artist','berserker'],
-    builds:[['gunner','전탄 난사'],['demon_swordsman','해방된 귀검'],['martial_artist','일격필살'],['berserker','피의 광전']]
+    builds:[['gunner','전탄 난사'],['demon_swordsman','해방된 귀검'],['martial_artist','일격필살'],['berserker','피의 광전']],
+    requires:['gunner_basic_cycle','gunner_full_burst','full_barrage','demon_swordsman_base','released_demon_sword','martial_artist_base','one_hit_kill','berserker_base','blood_frenzy','burst_policy','steady_burst_policy','burst_chain_identity','t02_runner']
   },
   {
     id:'T03',name:'Sustain Fortress',runner:'floor',policy:'sustain',
@@ -132,7 +136,9 @@ export const CANONICAL_RULES=Object.freeze([
   {id:'RULE-04',topic:'DOWNED vs STUNNED_NEXT_TURN',rule:'DOWNED=쓰러짐/행동 불가, STUNNED_NEXT_TURN=기절/생존/다음 턴 자동 제출 대상으로 서로 다른 상태다.'},
   {id:'RULE-05',topic:'Combat-only resource lifecycle',rule:'COMBAT_END에서 resetScope=COMBAT 자원을 clear하고 COMBAT_START에서도 방어적으로 initialize한다. run-persistent 자원은 유지한다.'},
   {id:'RULE-T04-A',topic:'Zero-damage DIRECT and Revenge',rule:'DIRECT damage가 protection/reduction으로 actualDamage 0이 되면 Revenge를 획득하지 않는다. actualDamage>0일 때만 획득한다.'},
-  {id:'RULE-T04-B',topic:'pendingDown + collision heal',rule:'현재 phase ordering에서 POST_COLLISION_EFFECTS가 MONSTER_ACTION과 DOWN_RESOLVE보다 먼저이므로 monster damage pendingDown 이후 같은 resolve collision heal은 구조적으로 발생하지 않는다.'}
+  {id:'RULE-T04-B',topic:'pendingDown + collision heal',rule:'현재 phase ordering에서 POST_COLLISION_EFFECTS가 MONSTER_ACTION과 DOWN_RESOLVE보다 먼저이므로 monster damage pendingDown 이후 같은 resolve collision heal은 구조적으로 발생하지 않는다.'},
+  {id:'RULE-T03-A',topic:'Guardian Wall overwrite',rule:'기본 Tier-I 수호벽은 호위를 stack하지 않는다. 새 호위가 생성되면 기존 미소비 호위를 교체한다.'},
+  {id:'RULE-T03-B',topic:'White Magic multi-target',rule:'Tier-I 백마도사는 여러 eligible 아군과 동시에 충돌하면 lobby seat가 가장 빠른 1명만 HP 1 회복한다.'}
 ]);
 
 export const SPEC_AMBIGUITIES=Object.freeze([
@@ -149,16 +155,10 @@ export const SPEC_AMBIGUITIES=Object.freeze([
     detail:'PVE combat UX forbids direct player targeting, while the current Prophet base rule does not define a class-specific priority among multiple READY teammates. The executable T09 path uses the existing stable automatic-target convention: first eligible READY teammate by lobby seat. The reveal scope is fixed, but a future class-content rule may replace this target priority without changing resource semantics.'
   },
   {
-    id:'AMB-T03-GUARD-OVERWRITE',
-    scenarioId:'T03',
-    topic:'Guardian Wall active escort replacement',
-    detail:'BETA v0.1 defines one escorted ally and one next DIRECT redirect but does not state whether a new successful Guardian Wall before consumption stacks or replaces the old escort. Runtime keeps exactly one active guardianTargetPlayerId per Knight and a later successful guard replaces the prior unconsumed target; no stacking occurs.'
-  },
-  {
-    id:'AMB-T03-WHITE-MULTI-TARGET',
-    scenarioId:'T03',
-    topic:'White Mage Tier-I target when one modified Mage card collides with multiple allies',
-    detail:'Tier-I BETA allows only one heal and excludes the Mage, but does not give a multi-ally priority. Runtime uses stable lobby-seat priority; Chain Heal is not implemented.'
+    id:'AMB-T02-MARTIAL-COMBO-DAMAGE-TIMING',
+    scenarioId:'T02',
+    topic:'Martial Artist current-hit Combo damage timing',
+    detail:'Canonical docs fix previous-card comparison to prior revealed final_number and define valid higher card => Combo +1, but do not explicitly say whether that same attack uses Combo before or after the increment. Runtime follows engine phase order CARD_VALIDATED before DAMAGE_BUILD, so the current valid higher attack uses the post-increment Combo. This is isolated as an ambiguity rather than a balance value.'
   }
 ]);
 
@@ -344,6 +344,8 @@ export function assertRunInvariants(run){
     if(Number(p.publicResources?.revelation)>resourceMax(p,'revelation',1))fail('INVALID_RESOURCE','prophet revelation exceeded current cap',{playerId:p.playerId,value:p.publicResources.revelation,max:resourceMax(p,'revelation',1)});
     if(Number(p.publicResources?.revenge)>resourceMax(p,'revenge',1))fail('INVALID_RESOURCE','berserker revenge exceeded current cap',{playerId:p.playerId,value:p.publicResources.revenge,max:resourceMax(p,'revenge',1)});
     if(Number(p.publicResources?.blood)>resourceMax(p,'blood',6))fail('INVALID_RESOURCE','vampire blood exceeded current cap',{playerId:p.playerId,value:p.publicResources.blood,max:resourceMax(p,'blood',6)});
+    if(Number(p.publicResources?.combo)>resourceMax(p,'combo',3))fail('INVALID_RESOURCE','martial combo exceeded current cap',{playerId:p.playerId,value:p.publicResources.combo,max:resourceMax(p,'combo',3)});
+    if(Number(p.publicResources?.devour)<0)fail('INVALID_RESOURCE','demon swordsman Devour became negative',{playerId:p.playerId,value:p.publicResources.devour});
     if(p.publicResources?.parity!=null&&![0,1].includes(p.publicResources.parity))fail('INVALID_RESOURCE','twins parity must be 0 or 1',{playerId:p.playerId,value:p.publicResources.parity});
     for(const [number,value] of Object.entries(p.engravings||{}))if(!finite(value)||value<0)fail('NEGATIVE_RESOURCE','negative/invalid engraving',{playerId:p.playerId,number,value});
     validateZone(p,run.combat?.privateByPlayer?.[p.playerId],'combat');
@@ -579,7 +581,7 @@ function assertT03SustainTurn(run,result,policyPlan){
 export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterDef=F1_MONSTER_DEFINITIONS.f1_armored_boar,policy='reference',flame=4,maxTurns=HARD_MAX_TURNS,caseId='generic-combat'}){
   const run=makeCombatRun(seed,{caseId,characterIds,augmentIdsByPlayer,flame,monsterDef});
   let actions=0,resolves=0;
-  const referenceTurns=[],numberMutationTurns=[],resourceTimeline=[],collisionTurns=[],sustainTurns=[];
+  const referenceTurns=[],numberMutationTurns=[],resourceTimeline=[],collisionTurns=[],sustainTurns=[],burstTurns=[];
   const t09PriorResource=new Map(run.players.map(p=>[p.playerId,t09ResourceValue(p)]));
   while(run.phase==='COMBAT'){
     if(run.combat.turn>maxTurns)fail('INFINITE_LOOP','simulation exceeded turn ceiling',{seed,turn:run.combat.turn});
@@ -661,6 +663,25 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
         assertRunInvariants(run);assertT09CardPartition(run,p.playerId);
       }
       run.combat._t09PendingRecords=[...records.values()];
+    }else if(policy==='burst'||policy==='steady_burst'){
+      const contextKey=`${run.currentRoomNodeId||run.combat?.monster?.id||'combat'}:turn:${turn}`;
+      const intents=[],views=new Map();
+      for(const p of run.players){
+        if(p.status==='DOWNED'||run.combat.turnSubmissions[p.playerId])continue;
+        const view=projectRun(run,p.playerId);assertNoHiddenInfo(view,p.playerId);
+        const intent=buildBurstIntent(view,p.playerId);
+        if(!intent)fail('BOT_NO_LEGAL_ACTION','T02 bot could not build owner burst intent',{seed,playerId:p.playerId,turn,policy});
+        intents.push(intent);views.set(p.playerId,view);
+      }
+      const plan=planBurstTurn(intents,{seed,contextKey,optimized:policy==='burst'});
+      for(const decision of plan.decisions){
+        const view=views.get(decision.playerId);
+        const choices=legalCardsFromView(view,decision.playerId).filter(card=>card.baseNumber===decision.baseNumber).sort((a,b)=>a.id.localeCompare(b.id));
+        if(!choices.length)fail('BOT_NO_LEGAL_ACTION','T02 planned card unavailable in owner projection',{seed,turn,policy,decision});
+        const card=choices[seededIndex(seed,`${contextKey}:${decision.playerId}:physical:${decision.baseNumber}`,choices.length)];
+        submitCard(run,decision.playerId,card.id,decision.skillIntent,decision.skillData);actions++;assertRunInvariants(run);
+      }
+      run.combat._t02PendingPolicy=structuredClone(plan);
     }else if(policy==='sustain'||policy==='normal_sustain'){
       const contextKey=`${run.currentRoomNodeId||run.combat?.monster?.id||'combat'}:turn:${turn}`;
       const intents=[],views=new Map();
@@ -762,6 +783,11 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
       collisionTurns.push(assertT04CollisionTurn(run,result,plan));
       if(run.combat)delete run.combat._t04PendingPolicy;
     }
+    if(policy==='burst'||policy==='steady_burst'){
+      const plan=run.combat?._t02PendingPolicy||null;
+      burstTurns.push(assertT02BurstTurn(run,result,plan));
+      if(run.combat)delete run.combat._t02PendingPolicy;
+    }
     if(policy==='sustain'||policy==='normal_sustain'){
       const plan=run.combat?._t03PendingPolicy||null;
       sustainTurns.push(assertT03SustainTurn(run,result,plan));
@@ -811,6 +837,7 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
     resourceTimeline,
     collisionTurns,
     sustainTurns,
+    burstTurns,
     combatResourceLeakCount:run.players.reduce((sum,p)=>sum+Object.entries(PVE_RESOURCE_DEFS)
       .filter(([key,def])=>def.resetScope==='COMBAT'&&Object.hasOwn(p.publicResources||{},key))
       .length,0)
@@ -1474,6 +1501,7 @@ export function runScenario(scenarioId,seed){
   const availability=scenarioAvailability(def);
   if(!availability.available)return {scenarioId,seed,status:'SKIP',skipReasons:availability.reasons};
   if(scenarioId==='T00')return runT00(seed);
+  if(scenarioId==='T02')return runT02Scenario(seed,{simulateCombat,fail});
   if(scenarioId==='T05')return runT05(seed);
   if(scenarioId==='T04')return runT04(seed);
   if(scenarioId==='T03')return runT03Scenario(seed,{simulateCombat,fail});
@@ -1502,6 +1530,13 @@ export function balanceWarnings(result){
     if(room==='BOSS'&&rows.some(x=>x.turns>=30))warnings.push({code:'BOSS_30_TURNS_OR_MORE',roomType:room,maxTurns:Math.max(...rows.map(x=>x.turns))});
     if(room==='BOSS'&&rows.some(x=>x.turns<=4))warnings.push({code:'BOSS_4_TURNS_OR_LESS',roomType:room,minTurns:Math.min(...rows.map(x=>x.turns))});
   }
+  if(result.scenarioId==='T02'){
+    const m=result.burstMetrics||{},c=result.comparison||{};
+    if((Number(m.maxPartyTurnDamage)||0)>=(Number(m.bossMaxHp)||Infinity)*0.5)warnings.push({code:'BURST_TOO_HIGH',maxPartyTurnDamage:m.maxPartyTurnDamage,bossMaxHp:m.bossMaxHp});
+    if((Number(m.multiThresholdBurstCount)||0)>0)warnings.push({code:'MULTI_THRESHOLD_BURST',count:m.multiThresholdBurstCount});
+    if((Number(m.maxConsecutiveBurstTurns)||0)>=2)warnings.push({code:'REPEATED_BURST',maxConsecutiveBurstTurns:m.maxConsecutiveBurstTurns});
+    if(c.burstDominates)warnings.push({code:'BURST_DOMINATES',dptRatio:c.dptRatio,burstDpt:c.burstDpt,steadyDpt:c.steadyDpt,costLow:c.costLow});
+  }
   if(result.scenarioId==='T04'&&result.comparison?.farmDominates){
     warnings.push({code:'FARM_DOMINATES',dptRatio:result.comparison.dptRatio,farmDpt:result.comparison.farmDpt,safeDpt:result.comparison.safeDpt,survivalNotWorse:true});
   }
@@ -1520,6 +1555,8 @@ export function skippedScenarioReport(){
     .filter(x=>!x.availability.available)
     .map(({def,availability})=>({scenarioId:def.id,name:def.name,reasons:availability.reasons,missingCharacters:availability.missingCharacters,missingBuildEffects:availability.missingBuildEffects,missingCapabilities:availability.missingCapabilities||[]}));
 }
+
+export function t02GoldenComparable(result){return t02Golden(result);}
 
 export function t03GoldenComparable(result){return t03Golden(result);}
 
