@@ -33,6 +33,21 @@ test('T09 F2 Mage exact 2-cost spends exactly once and modifies by +1',()=>{
   assert.equal(f.workingNumber,2);
 });
 
+test('T09 duplicate committed Mage skill request rejects ALREADY_USED and cannot double-spend Mana',()=>{
+  const ids=['warrior','mage','prophet','gunner'];
+  const players=ids.map((character_id,i)=>newPlayerRunState({id:`p${i}`,user_id:`u${i}`,member_type:'human',character_id,seat_index:i}));
+  const monster={id:'duplicate-dummy',name:'Duplicate Dummy',tier:'NORMAL',baseHp:999,pattern:[{type:'CHARGE',telegraphText:'fixture',payload:{}}]};
+  const run={id:'dup-run',roomId:'r',seed:'dup-seed',rngCounter:0,version:0,phase:'COMBAT',floor:1,depth:1,flame:4,maxFlame:5,currentRoomNodeId:'dup-node',players,map:{nodes:[],edges:{}},usedMonsterIds:[],chosenBossIds:{}};
+  run.combat=newCombatState(players,999,'NORMAL_COMBAT',monster);beginTurn(run);
+  players[1].publicResources.mana=2;
+  const mageCard=players[1].cardPool.find(card=>card.baseNumber===1);
+  submitCard(run,'p1',mageCard.id,true,{manaSpend:2});
+  assert.equal(players[1].publicResources.mana,2);
+  assert.throws(()=>submitCard(run,'p1',mageCard.id,true,{manaSpend:2}),error=>error?.code==='ALREADY_USED');
+  assert.equal(players[1].publicResources.mana,2);
+  assert.equal(run.combat.turnSubmissions.p1.cardInstanceId,mageCard.id);
+});
+
 test('T09 F3 Knight Toughness 0 is rejected and normal submission still advances',()=>{
   const f=byId(cases(),'F3_KNIGHT_TOUGHNESS_0');
   assert.equal(f.reject.code,'INSUFFICIENT_RESOURCE');
