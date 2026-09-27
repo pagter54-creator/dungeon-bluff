@@ -127,7 +127,7 @@ test('PVE-014 fully automatic turn resolves when the only human is stunned inste
 test('PVE-014 internal API playtest: four humans can traverse every F1 room family and reach FLOOR_CLEAR',async()=>{
   const admin=memoryAdmin(humanBundle()),users=['u0','u1','u2','u3'];let seq=1;
   let run=await call(admin,{action:'pve.createRun',room_id:ROOM_ID,seed:'pve-014-four-human-playtest',depth_count:8},'u0');
-  assert.equal(run.floor,1);assert.equal(run.phase,'MAP_VOTE');assert.equal(run.contentVersion,'F1_VERTICAL_SLICE_V1');
+  assert.equal(run.floor,1);assert.equal(run.phase,'MAP_VOTE');assert.equal(run.contentVersion,'F1_VERTICAL_SLICE_V1');assert.equal(run.flame,4);assert.equal(run.maxFlame,5);
   assert.equal(run.map.bossName,'몰락한 성주');
 
   const visited=[],combatTurns={},version=()=>admin.version;
