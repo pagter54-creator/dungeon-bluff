@@ -51,3 +51,47 @@
   .pve-party{grid-template-columns:1fr}
   .pve-card{width:100%;justify-content:space-between}
 }
+
+
+/* PVE-UI shared Gameplay integration */
+.pve-shared-top{grid-template-columns:auto minmax(120px,1fr) auto auto auto}
+.pve-map-button{align-self:center;white-space:nowrap}
+.pve-relic-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:8px 0 12px;padding:8px 10px;border:1px solid #493d55;border-radius:9px;background:#17131db8}
+.pve-relic-owner{min-width:0}.pve-relic-owner>b{display:block;margin-bottom:5px;font-size:10px;color:#b9aac4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pve-relic-owner>div{display:flex;gap:4px;flex-wrap:wrap}
+.pve-relic-icon{display:inline-flex;align-items:center;gap:4px;max-width:100%;padding:4px 7px;border:1px solid #75647d;border-radius:999px;background:#27202f;color:#e8d7a0;font-size:10px}
+.pve-relic-icon span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pve-context-panel{margin:10px 0;padding:14px;border:1px solid #54445f;border-radius:10px;background:linear-gradient(160deg,#221c29e8,#18151eea);box-shadow:0 12px 30px #0004}
+.pve-context-panel h3{margin:5px 0 10px}.pve-context-panel p{margin:6px 0;color:#baacbf}
+.pve-action-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.pve-inline-confirm{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.pve-inline-confirm>span{flex:1;min-width:160px}
+.pve-selector-shell .panel-controls{display:none}
+.pve-shop-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.pve-shop-item{display:flex;min-height:120px;flex-direction:column;align-items:flex-start;gap:5px;padding:12px;border:1px solid #5a4a64;border-radius:9px;background:linear-gradient(150deg,#2a2232,#1d1824);text-align:left;color:#eee}
+.pve-shop-item:hover:not(:disabled){border-color:#b69b63;transform:translateY(-2px)}
+.pve-shop-item>i{font-style:normal;font-size:27px;color:#e7c780}.pve-shop-item>b{font-size:13px}.pve-shop-item>span{color:#efcf79;font-weight:800}.pve-shop-item>small{color:#aa9bb0;line-height:1.35}
+.pve-shop-item.sold{opacity:.38}.pve-shop-ready{margin-top:10px}
+.pve-modal-layer{position:fixed;inset:0;z-index:65;display:grid;place-items:center;padding:18px;background:#09070cbb;backdrop-filter:blur(5px)}
+.pve-choice-popup{width:min(840px,94vw);max-height:88vh;overflow:auto;padding:22px;border:1px solid #65526f;border-radius:12px;background:linear-gradient(160deg,#292032,#17131e);box-shadow:0 30px 80px #0009}
+.pve-choice-popup h2{margin:6px 0 16px}.pve-choice-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.pve-choice-cards>button{min-height:170px;padding:16px;border:1px solid #6d5a77;border-radius:10px;background:linear-gradient(150deg,#30263a,#211927);color:#eee;text-align:left}
+.pve-choice-cards>button:hover{border-color:#d0ae6b;transform:translateY(-3px)}.pve-choice-cards i{display:block;font-size:28px;color:#edca78;font-style:normal}.pve-choice-cards b{display:block;margin:8px 0;font-size:15px}.pve-choice-cards p{color:#b9aabd;line-height:1.45}
+.pve-result-players{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:13px 0}
+.pve-result-players>div{display:grid;gap:3px;padding:9px;border:1px solid #4a3e52;border-radius:7px;background:#17131d}.pve-result-players b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pve-result-players span{font-size:10px;color:#bbaec1}
+.pve-map-overlay{position:fixed;inset:0;z-index:60;display:grid;grid-template-rows:auto 1fr auto;background:radial-gradient(circle at 50% 20%,#342940,#100d15 72%);color:#eee}
+.pve-map-toolbar{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:18px 22px;border-bottom:1px solid #594762;background:#17121dcf}.pve-map-toolbar h2{margin:4px 0}.pve-map-toolbar p{margin:0;color:#b6a9ba}
+.pve-map-scroll{overflow:auto;padding:10px 18px 28px}.pve-map-canvas{position:relative;width:min(900px,100%);min-width:520px;margin:0 auto}
+.pve-map-edges{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.pve-map-edges line{stroke:#50445a;stroke-width:5;vector-effect:non-scaling-stroke}.pve-map-edges line.reachable{stroke:#b59a62;filter:drop-shadow(0 0 5px #c6a66a55)}
+.pve-map-node{position:absolute;left:var(--map-x);top:var(--map-y);width:108px;min-height:74px;transform:translate(-50%,-50%);display:grid;place-items:center;gap:2px;padding:8px;border:1px solid #574a60;border-radius:50% 50% 44% 44%;background:#221b2a;color:#c8bacd;box-shadow:0 8px 18px #0007}
+.pve-map-node i{font-size:20px;font-style:normal}.pve-map-node b{font-size:10px}.pve-map-node small{font-size:8px}
+.pve-map-node.current{border-color:#e3c476;color:#ffe6a2;box-shadow:0 0 24px #dcb45b55}.pve-map-node.visited{border-color:#668978;color:#a8d7be}.pve-map-node.reachable{border-color:#a789b9;color:#ead9f1;cursor:pointer}.pve-map-node.reachable:not(:disabled):hover{scale:1.05}.pve-map-node.mine{outline:2px solid #f0cb73;outline-offset:3px}.pve-map-node.locked,.pve-map-node.past{opacity:.38}
+.pve-map-legend{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;padding:10px 16px;border-top:1px solid #493d52;background:#151119}.pve-map-legend span{display:flex;gap:4px;align-items:center;font-size:9px;color:#aa9cb0}.pve-map-legend i{font-style:normal;color:#d9be7e}
+@media(max-width:760px){
+ .pve-shared-top{grid-template-columns:auto 1fr auto auto}.pve-shared-top .knockout-meter{display:none}.pve-map-button{padding:6px 8px}
+ .pve-relic-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .pve-action-grid,.pve-shop-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .pve-choice-cards{grid-template-columns:1fr}.pve-result-players{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .pve-map-toolbar{padding:13px}.pve-map-toolbar p{font-size:10px}.pve-map-scroll{padding:6px 8px 25px}.pve-map-canvas{min-width:480px}
+ .pve-map-node{width:94px;min-height:66px}
+}
