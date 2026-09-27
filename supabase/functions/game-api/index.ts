@@ -297,6 +297,8 @@ Deno.serve(async req => {
     }
     return json({ error: '요청이 겹쳤습니다. 잠시 후 다시 시도해 주세요.' }, 409);
   } catch (error) {
-    return json({ error: error instanceof SyntaxError ? '올바른 JSON이 필요합니다.' : error instanceof Error ? error.message : '요청을 처리하지 못했습니다.' }, 400);
+    const message=error instanceof SyntaxError?'올바른 JSON이 필요합니다.':error instanceof Error?error.message:'요청을 처리하지 못했습니다.';
+    const errorCode=error&&typeof error==='object'&&typeof (error as any).code==='string'?(error as any).code:null;
+    return json({error:message,...(errorCode?{code:errorCode}:{})},400);
   }
 });
