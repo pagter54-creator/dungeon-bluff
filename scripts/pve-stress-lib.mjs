@@ -388,7 +388,7 @@ export function runT00(seed){
   for(const r of runs)for(const [id,count] of Object.entries(r.effectTriggerCounts||{}))effectTriggerCounts[id]=(effectTriggerCounts[id]||0)+count;
   const expectedAugmentEffects=['aug-001-veteran-valid','aug-031-toughness-cap','aug-061-sneaky-success','aug-091-mana-cap'];
   if(expectedAugmentEffects.some(id=>(effectTriggerCounts[id]||0)<1))fail('T00_EFFECT_NOT_EXERCISED','reference run did not exercise every T00 executable augment',{seed,effectTriggerCounts});
-  const playerDamage=Object.fromEntries(characterIds.map((id,i)=>[id,combats.reduce((s,x)=>s+(Number(x.playerDamage?.[`p${i}])||0),0)]));
+  const playerDamage=Object.fromEntries(characterIds.map((id,i)=>[id,combats.reduce((s,x)=>s+(Number(x.playerDamage?.['p'+i])||0),0)]));
   const partyDamage=Object.values(playerDamage).reduce((a,b)=>a+b,0);
   const characterDamageShare=Object.fromEntries(Object.entries(playerDamage).map(([id,v])=>[id,partyDamage?v/partyDamage:0]));
   return {
