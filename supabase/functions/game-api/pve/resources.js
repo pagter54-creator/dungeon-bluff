@@ -20,7 +20,15 @@ export const PVE_RESOURCE_DEFS=Object.freeze({
   revenge:{resetScope:'COMBAT',baseMax:1},
   blood:{resetScope:'COMBAT',baseMax:6},
   guardianTargetPlayerId:{resetScope:'COMBAT'},
-  combo:{resetScope:'COMBAT'},
+  combo:{resetScope:'COMBAT',baseMax:3},
+  lastSubmittedNumber:{resetScope:'COMBAT'},
+  transformationActive:{resetScope:'COMBAT'},
+  transformationPending:{resetScope:'COMBAT'},
+  transformationTurn:{resetScope:'COMBAT'},
+  devourAtTransform:{resetScope:'COMBAT'},
+  devour:{resetScope:'RUN'},
+  ghostSlashLevel:{resetScope:'RUN'},
+  ghostSlashReady:{resetScope:'COMBAT'},
   poison:{resetScope:'COMBAT'},
   break:{resetScope:'COMBAT'},
   prank:{resetScope:'COMBAT'},
@@ -29,7 +37,8 @@ export const PVE_RESOURCE_DEFS=Object.freeze({
 
 export const PVE_PERSISTENT_STATE_DEFS=Object.freeze({
   acrobaticsLockCycle:{resetScope:'COMBAT'},
-  bloodCommandUsedCycle:{resetScope:'COMBAT'}
+  bloodCommandUsedCycle:{resetScope:'COMBAT'},
+  finisherUsedCycle:{resetScope:'COMBAT'}
 });
 
 export function resourceDefinition(resource){return PVE_RESOURCE_DEFS[resource]||null;}
