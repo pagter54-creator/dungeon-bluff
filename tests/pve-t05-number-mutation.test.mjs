@@ -9,6 +9,7 @@ const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/pve-stress-t05-golde
 import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/pve/model.js';
 import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-api/pve/combat.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
+import {planNumberMutationTurn} from '../scripts/pve-number-mutation-policy.mjs';
 
 const fixtureSet=()=>runT05Fixtures('unit-t05-fixtures').fixtures;
 const byId=(fixtures,id)=>{const f=fixtures.find(x=>x.id===id);assert.ok(f,id);return f;};
@@ -153,6 +154,20 @@ test('T05 fixture mutation event order is deterministic',()=>{
 test('T05 full number-history golden locks every intermediate mutation stage',()=>{
   const result=replayScenario('T05','smoke:T05:0000');
   assert.deepEqual(t05GoldenComparable(result),golden);
+});
+
+test('T05 stress policy uses seed only for deterministic tie diversity, never Math.random',()=>{
+  const intents=[
+    {playerId:'p0',characterId:'mage',seat:0,availableNumbers:[1,2,3],publicResources:{mana:0},privateCycle:{cycleIndex:1,bloodCommandUsedCycle:null}},
+    {playerId:'p1',characterId:'vampire',seat:1,availableNumbers:[1,2,3],publicResources:{},privateCycle:{cycleIndex:1,bloodCommandUsedCycle:null}},
+    {playerId:'p2',characterId:'imp',seat:2,availableNumbers:[1,2,3],publicResources:{},privateCycle:{cycleIndex:1,bloodCommandUsedCycle:null}},
+    {playerId:'p3',characterId:'warrior',seat:3,availableNumbers:[1,2,3],publicResources:{toughnessCharges:1},privateCycle:{cycleIndex:1,bloodCommandUsedCycle:null}}
+  ];
+  const a=planNumberMutationTurn(intents,{seed:'same-seed',contextKey:'tie'});
+  const b=planNumberMutationTurn(intents,{seed:'same-seed',contextKey:'tie'});
+  assert.deepEqual(a,b);
+  const targets=new Set(Array.from({length:20},(_,i)=>planNumberMutationTurn(intents,{seed:`tie-${i}`,contextKey:'tie'}).targetNumber));
+  assert.ok(targets.size>1);
 });
 
 test('T05 same-seed stress replay includes identical intermediate history',()=>{
