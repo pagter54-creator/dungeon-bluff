@@ -27,6 +27,24 @@ alter table public.pve_results enable row level security;
 revoke all on public.pve_results from anon,authenticated;
 grant all on public.pve_results to service_role;
 
+-- Closing/expiring a room also terminates an unfinished PVE run without
+-- inventing any failure/abandon Gold payout.
+create or replace function public.pve_abandon_closed_room() returns trigger
+language plpgsql security definer set search_path='' as $
+begin
+  if new.status='closed' and old.status is distinct from 'closed' then
+    update public.pve_runs
+      set state=jsonb_set(state,'{phase}','"ABANDONED"'::jsonb,true),updated_at=now()
+      where room_id=new.id
+        and coalesce(state->>'phase','') not in ('RUN_CLEAR','RUN_FAILED','ABANDONED');
+  end if;
+  return new;
+end $;
+drop trigger if exists pve_abandon_on_room_close on public.rooms;
+create trigger pve_abandon_on_room_close
+after update of status on public.rooms
+for each row execute function public.pve_abandon_closed_room();
+
 -- Preserve the current room CAS contract, but persist game_mode on creation only.
 -- Updates intentionally never change game_mode: room mode is immutable after create.
 create or replace function public.game_commit(
@@ -68,6 +86,33 @@ begin
   insert into public.room_members(id, room_id, user_id, display_name, member_type, ai_type, character_id, seat_index, joined_at, lobby_ready)
   select id, room_id, user_id, display_name, member_type, ai_type, character_id, seat_index, joined_at, coalesce(lobby_ready, member_type = 'ai')
   from jsonb_populate_recordset(null::public.room_members, p_members);
+  -- During an active COOP_PVE run, a departed human becomes an AI for gameplay
+  -- but retains its server-owned userId + departed marker so Gold can remain
+  -- unresolved instead of silently choosing a payout rule.
+  if (select game_mode from public.rooms where id=rid)='COOP_PVE'
+     and p_room->>'status'='playing'
+     and exists(select 1 from public.pve_runs where room_id=rid) then
+    update public.pve_runs pr set
+      state=jsonb_set(
+        pr.state,
+        '{players}',
+        coalesce((
+          select jsonb_agg(
+            case when not exists(
+              select 1 from jsonb_array_elements(p_members) m
+              where m->>'id'=player->>'playerId'
+            ) then
+              jsonb_set(jsonb_set(player,'{memberType}','"ai"'::jsonb,true),'{departed}','true'::jsonb,true)
+            else player end
+            order by ord
+          )
+          from jsonb_array_elements(coalesce(pr.state->'players','[]'::jsonb)) with ordinality as x(player,ord)
+        ),'[]'::jsonb),
+        true
+      ),
+      updated_at=now()
+    where pr.room_id=rid;
+  end if;
   if p_session is not null and p_session != 'null'::jsonb then
     insert into public.game_sessions select * from jsonb_populate_record(null::public.game_sessions, p_session)
     on conflict(id) do update set status=excluded.status,stage_index=excluded.stage_index,
@@ -167,6 +212,7 @@ declare
   old_rating integer;
   inserted_count integer:=0;
   paid_gold integer:=0;
+  unresolved_departures integer:=0;
 begin
   select * into r from public.pve_runs where id=p_run for update;
   if not found then return jsonb_build_object('missing',true); end if;
@@ -186,6 +232,11 @@ begin
     if nullif(player->>'userId','') is null then continue; end if;
     uid:=(player->>'userId')::uuid;
     if not exists(select 1 from public.profiles p where p.user_id=uid and p.account_type='registered') then continue; end if;
+    if coalesce((player->>'departed')::boolean,false)
+       or not exists(select 1 from public.room_members rm where rm.room_id=r.room_id and rm.user_id=uid) then
+      unresolved_departures:=unresolved_departures+1;
+      continue;
+    end if;
     gold:=greatest(0,coalesce((player->>'runGold')::integer,0));
     select rating_points into old_rating from public.player_stats where user_id=uid for update;
     if old_rating is null then continue; end if;
@@ -202,8 +253,16 @@ begin
       paid_gold:=paid_gold+gold;
     end if;
   end loop;
-  update public.pve_runs set rewards_committed=true,updated_at=now() where id=p_run;
-  return jsonb_build_object('settled',true,'idempotent',false,'players',inserted_count,'paid_gold',paid_gold,'rp_delta',0);
+  if unresolved_departures=0 then
+    update public.pve_runs set rewards_committed=true,updated_at=now() where id=p_run;
+  end if;
+  return jsonb_build_object(
+    'settled',unresolved_departures=0,
+    'partial',unresolved_departures>0 and inserted_count>0,
+    'reason',case when unresolved_departures>0 then 'AMBIGUOUS_ABANDON_GOLD' else null end,
+    'unresolved_departures',unresolved_departures,
+    'idempotent',false,'players',inserted_count,'paid_gold',paid_gold,'rp_delta',0
+  );
 end $$;
 
 revoke all on function public.pve_start_room(uuid,uuid,bigint,text,jsonb) from public,anon,authenticated;
