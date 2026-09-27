@@ -70,7 +70,9 @@ export function activeButton(player, useSkill, blocked, members=[], players={}, 
   }
   if(player.skillId==='amplify'){
     const mana=player.characterRuntimeState?.mana||0,level=Number(useSkill)||0;
-    return `<button type="button" class="active-skill ${level?'armed':''}" data-action="toggle-skill" aria-pressed="${Boolean(level)}" ${blocked||mana<2?'disabled':''}>✺ 증폭 <b>마나 ${mana-level*2}/4 · ${level?'숫자 +'+level:'2마나 필요'}${level?' · 다시 눌러 변경/취소':''}</b></button>`;
+    const reverse=Boolean(player.characterRuntimeState?.reverseMath),manaMax=player.characterRuntimeState?.manaMax||4;
+    const cost=Math.abs(level)*2,delta=level>0?('+'+level):String(level);
+    return `<button type="button" class="active-skill ${level?'armed':''}" data-action="toggle-skill" aria-pressed="${Boolean(level)}" ${blocked||mana<2?'disabled':''}>✺ ${reverse?'역산술':'증폭'} <b>마나 ${Math.max(0,mana-cost)}/${manaMax} · ${level?'숫자 '+delta:'2마나 필요'}${level?' · 다시 눌러 변경/취소':''}</b></button>`;
   }
   if (player.skillId === 'revelation') {
     const active = Boolean(player.characterRuntimeState?.revealExpiresTurn);
@@ -83,7 +85,7 @@ export function activeButton(player, useSkill, blocked, members=[], players={}, 
   if(player.skillId==='full_burst')return `<button type="button" class="active-skill ${useSkill&&ready?'armed':''}" data-action="toggle-skill" aria-pressed="${Boolean(useSkill&&ready)}" ${blocked||!ready?'disabled':''}>⌖ 전탄발사 <b>${ready?(useSkill?'ON · 손패 전체 사용':'READY'):'다음 사이클에 충전'}</b></button>`;
   return `<button type="button" class="active-skill ${useSkill && ready ? 'armed' : ''}" data-action="toggle-skill" aria-pressed="${Boolean(useSkill && ready)}" ${blocked || !ready ? 'disabled' : ''}>${knight?'◇ 강인함':'✺ 증폭'} <b>${ready ? useSkill ? knight?'ON · 충전 1 소모':'ON · +2' : 'READY' : 'USED'}</b></button>`;
 }
-export function partyPanels(bundle, players, { me, result, selected, useSkill }) {
+export function partyPanels(bundle, players, { me, result, selected, useSkill, statLabel='SCORE' }) {
   const s = bundle.session.state;
   const privateState = result ? {} : bundle.privateState || {};
   return [...bundle.members].sort((a,b) => a.seat_index-b.seat_index).map(m => {
@@ -100,7 +102,7 @@ export function partyPanels(bundle, players, { me, result, selected, useSkill })
       <div class="player-art-stage">${skinIllustration(p.characterId||c.id,p.loadout,p.knockedOut,p.characterRuntimeState)}</div>
       <div class="player-info">
         <div class="player-heading"><div class="player-identity player-identity-bar ${thrall?'is-thrall':''}" title="${html(m.display_name)}"><h3>${html(m.display_name)} ${own ? '<em>나</em>' : ''}</h3><small>${html(c.display_name)}${m.ai_type ? ' · AI' : ''}${p.knockedOut ? ' · 기절' : ''}</small></div><div class="hearts" aria-label="HP ${p.hp}/${p.maxHp}">${Array.from({length:p.maxHp},(_,i)=>`<span class="heart ${i<p.hp?'filled':''}">♥</span>`).join('')}</div></div>
-        <div class="player-content"><div class="player-stats"><span>SCORE <b>${p.score}</b></span><span>RUN GOLD <b>${p.gold}</b></span><small>${c.definition?.deckType==='continuous'?'운명의 패':`CYCLE ${p.cycleIndex || 1}`} · ${cycleCards(p).filter(card=>!card.used).length}장 남음</small></div>${cardComponent(null,{loadout:p.loadout,blocked:ready,revealId:m.id})}</div>
+        <div class="player-content"><div class="player-stats"><span>${html(statLabel)} <b>${p.score}</b></span><span>RUN GOLD <b>${p.gold}</b></span><small>${c.definition?.deckType==='continuous'?'운명의 패':`CYCLE ${p.cycleIndex || 1}`} · ${cycleCards(p).filter(card=>!card.used).length}장 남음</small></div>${cardComponent(null,{loadout:p.loadout,blocked:ready,revealId:m.id})}</div>
         ${cardPool(p,{own,blocked:ready || p.knockedOut,selected,useSkill})}
         <div class="player-bottom"><div class="player-skill">${skillBadge(c)}${p.skillId==='soul_slash'&&own?'':revelationGauge(p)}${p.skillId==='blood_command'?thrallStatus(p,bundle,players):''}</div><span class="lock-state ${ready?'ready':''}">${result ? '공개 중' : seen ? `선택: ${seen.value}` : p.knockedOut ? '자동 제출' : ready ? '✓ 선택 완료' : '선택 중'}</span></div>
         ${greed?'<div class="boss-player-mark">탐욕 표식 · 다음 기본 공격 대상</div>':''}${marked ? `<div class="seer-vision">✧ ${publicMark?'표적 지정 · 전체 공개':own&&p.skillId==='blood_command'?'권속 관찰':'계시 대상'} · ${seen ? `선택: <b>${seen.value}</b>` : '제출을 기다리는 중'}</div>` : ''}${own ? activeButton(p,useSkill,ready || p.knockedOut,bundle.members,players,selected!==null&&selected!==undefined&&(!Array.isArray(selected)||selected.length>0)) : ''}${own ? panelControls(p,{result,locked:ready,selected,useSkill,twoCards:isShuffleTurn(bundle.session)}) : ''}

@@ -9,7 +9,7 @@ import { updateMonsterIntent } from './boss-patterns.js';
 import { sameLockedMembers,waitForConflictRetry } from './room-concurrency.js';
 import { lobbyReady,beginEntryLoading,finishEntryLoading } from './entry-loading.js';
 import { createSession, openTurn, validateSubmission, advanceAutomaticTurns, fillAutomaticSubmissions, activateSkill, roomReady } from './engine.js';
-import { handlePveAction,buildInitialPveRun,projectPveRunForUser,unsupportedPveRoomCharacters } from './pve/api.js';
+import { handlePveAction,buildInitialPveRun,projectPveRunForUser,unsupportedPveRoomCharacters,markPveEntryAssetsLoaded } from './pve/api.js';
 import { GAME_MODE,parseRequestedGameMode,roomGameMode,coopPveEnabled,assertCoopPveEnabled } from './game-mode.js';
 
 const url = Deno.env.get('SUPABASE_URL')!;
@@ -243,6 +243,12 @@ Deno.serve(async req => {
           if(me.lobby_ready===body.ready)return json(await publicBundleView(b,user.id));
           me.lobby_ready=body.ready;
         } else if(action==='assets_loaded'){
+          if(roomGameMode(b.room)===GAME_MODE.COOP_PVE){
+            check(uuid(body.run_id),'올바른 run_id가 필요합니다.');
+            await markPveEntryAssetsLoaded({admin,user,runId:body.run_id,expectedVersion:body.expected_version,actionId:body.action_id});
+            await admin.rpc('account_touch',{p_user_id:user.id});
+            return json(await publicBundleView(await read(roomId),user.id));
+          }
           check(b.session?.id===body.session_id,'원정이 변경되었습니다.');
           const loading=b.session.state.entryLoading;
           if(!loading||loading.ready.includes(me.id))return json(await publicBundleView(b,user.id));
@@ -265,7 +271,7 @@ Deno.serve(async req => {
               await assertCoopPveEnabledNow();
               const unsupported=unsupportedPveRoomCharacters(b.members);
               check(!unsupported.length,`협력 탐험에서 아직 지원하지 않는 캐릭터가 있습니다: ${unsupported.join(', ')}`);
-              const run=buildInitialPveRun(b);
+              const run=buildInitialPveRun(b);beginEntryLoading(run);
               const {data:start,error:startError}=await admin.rpc('pve_start_room',{p_run_id:run.id,p_room:roomId,p_expected:expected,p_seed:run.seed,p_state:run});
               if(startError)throw new Error(startError.message||'협력 탐험을 시작하지 못했습니다.');
               if(start?.conflict){await waitForConflictRetry(attempt);continue;}

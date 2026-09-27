@@ -1,8 +1,29 @@
+function publicCardCycles(players,privateByPlayer){
+  const states={};
+  for(const player of players||[]){
+    const state=privateByPlayer?.[player.playerId];
+    if(!state)continue;
+    const remaining=new Set(state.remainingCardIds||[]);
+    states[player.playerId]={
+      cycleIndex:Number(state.cycleIndex)||1,
+      cards:(player.cardPool||[]).map(card=>({baseNumber:card.baseNumber,used:!remaining.has(card.id)}))
+    };
+  }
+  return states;
+}
+
 export function projectRun(run,viewerPlayerId){
   const out=structuredClone(run);
   delete out.effectCatalog;
   delete out.relicCatalog;
   delete out._telemetryPending;
+
+  // Card counting is public in the shared Gameplay UI. Expose only numbers and
+  // spent/remaining state; never expose another player's physical card IDs or
+  // current selectedCardId/skillIntent.
+  if(out.combat?.privateByPlayer)out.combat.publicCardCycles=publicCardCycles(out.players,out.combat.privateByPlayer);
+  if(out.roomState?.privateByPlayer)out.roomState.publicCardCycles=publicCardCycles(out.players,out.roomState.privateByPlayer);
+
   for(const player of out.players||[]){
     if(player.playerId!==viewerPlayerId&&Array.isArray(player.cardPool)){
       player.cardPool=player.cardPool.map(({baseNumber,source,tags})=>({baseNumber,source,...(tags?{tags}: {})}));
@@ -10,6 +31,13 @@ export function projectRun(run,viewerPlayerId){
   }
   if(out.combat?.pendingDownPlayerIds)delete out.combat.pendingDownPlayerIds;
   if(out.combat?.publicTurnResult){
+    const mutations=out.combat.publicTurnResult.mutationEvents||[];
+    out.combat.publicTurnResult.presentationMutations=mutations.map(event=>{
+      const safe={phase:event.phase,effectId:event.effectId,actorId:event.actorId??null,targetId:event.targetId??null};
+      for(const key of ['before','after','actorBefore','targetBefore','actorAfter','targetAfter','stolen','totalActuallyStolen'])if(Number.isFinite(event[key]))safe[key]=event[key];
+      if(Array.isArray(event.targetIds))safe.targetIds=[...event.targetIds];
+      return safe;
+    });
     delete out.combat.publicTurnResult.numberHistories;
     delete out.combat.publicTurnResult.mutationEvents;
     for(const card of out.combat.publicTurnResult.cards||[]){

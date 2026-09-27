@@ -225,7 +225,7 @@ export async function reveal(result) {
     if(hpBar)hpBar.style.width=`${finalHp/result.monsterBefore.maxHp*100}%`;
   } else {
     for (const c of result.cards.filter(c => c.valid)) await bolt(center(cardFor(c.memberId)), target(), result.success ? '#89e0ba' : '#b39af3');
-    banner(result.success ? '이벤트 성공' : '조건 미달', result.stage.name, result.success ? 'success' : 'danger');
+    banner(result.resolutionLabel || (result.success ? '이벤트 성공' : '조건 미달'), result.stage.name, result.success ? 'success' : 'danger');
     impactAt(target(),result.success?'#99f0cb':'#fd8c91',true,reduced.matches);
     burst(target(), result.success ? '#99f0cb' : '#fd8c91', 120, 12); tone(result.success ? 660 : 110, .4, 'triangle', .1, result.success ? 880 : 40);
     await sleep(560);

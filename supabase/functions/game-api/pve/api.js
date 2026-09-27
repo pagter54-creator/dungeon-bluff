@@ -1,6 +1,7 @@
 import {newPlayerRunState,newCombatState} from './model.js';
 import {PVE_CHARACTER_DEFS} from './characters.js';
 import {GAME_MODE,roomGameMode} from '../game-mode.js';
+import {beginEntryLoading,finishEntryLoading} from '../entry-loading.js';
 import {generateFloorMap,connectedNodeIds,resolveVote} from './map.js';
 import {projectRun} from './projection.js';
 import {submitCard,resolveBasicTurn,beginTurn} from './combat.js';
@@ -54,8 +55,22 @@ async function settleIfTerminal(admin,run){
 const fail=(json,message,status=400)=>json({error:message},status);
 function viewer(run,userId){return run.players.find(p=>p.userId===userId);}
 function nodeType(run,id){return run.map.nodes.find(n=>n.id===id)?.type;}
+function captureRoomPresentationBaseline(run,id,type){
+  run.roomPresentationBaseline={
+    roomNodeId:id,
+    roomType:type,
+    flame:Number(run.flame)||0,
+    players:Object.fromEntries((run.players||[]).map(player=>[player.playerId,{
+      hp:Number(player.hp)||0,
+      growthExp:Number(player.growthExp)||0,
+      runGold:Number(player.runGold)||0,
+      relics:[...(player.relics||[])],
+      engravings:{...(player.engravings||{})}
+    }]))
+  };
+}
 function enterNode(run,id){
-  const type=nodeType(run,id);run.currentRoomNodeId=id;run.phase='ROOM_ENTER';
+  const type=nodeType(run,id);captureRoomPresentationBaseline(run,id,type);run.currentRoomNodeId=id;run.phase='ROOM_ENTER';
   if(type==='NORMAL_COMBAT'||type==='ELITE_COMBAT'||type==='BOSS'){
     const monster=selectF1Monster(run,type);markF1MonsterUsed(run,monster);
     run.phase='COMBAT';run.combat=newCombatState(run.players,monster.baseHp,type,monster);beginTurn(run);
@@ -76,6 +91,7 @@ async function commitRun(admin,run,expectedVersion,actionId){
   return data;
 }
 async function maintainForRead(admin,run){
+  if(run.entryLoading)return run;
   let changed=false;
   if(run.phase==='SHOP')changed=expireShopReservations(run)||changed;
   if(run.phase==='MAP_VOTE'&&run.map?.voteDeadline&&Date.now()>=Date.parse(run.map.voteDeadline)){
@@ -90,6 +106,29 @@ async function maintainForRead(admin,run){
   const latest=saved.state;latest.version=saved.version;
   return latest;
 }
+export async function markPveEntryAssetsLoaded({admin,user,runId,expectedVersion,actionId}){
+  if(!uuid(runId)||!uuid(actionId))throw new Error('올바른 PVE 로딩 요청이 필요합니다.');
+  const snapshot=await readRun(admin,runId,actionId);
+  if(!snapshot?.state)throw new Error('PVE 원정을 찾을 수 없습니다.');
+  if(snapshot.action_result)return snapshot.action_result;
+  const run=snapshot.state;run.version=snapshot.version;
+  const me=viewer(run,user.id);if(!me)throw new Error('이 PVE 원정의 참가자가 아닙니다.');
+  if(typeof admin.from==='function'){
+    const {data:membership,error}=await admin.from('room_members').select('id').eq('room_id',run.roomId).eq('user_id',user.id).maybeSingle();
+    if(error||!membership)throw new Error('현재 이 PVE 방의 참가자가 아닙니다.');
+  }
+  if(!Number.isSafeInteger(expectedVersion)||expectedVersion!==snapshot.version){
+    const error=new Error('STATE_CONFLICT');error.code='STATE_CONFLICT';throw error;
+  }
+  if(!run.entryLoading||run.entryLoading.ready.includes(me.playerId))return {state:run,version:run.version};
+  run.entryLoading.ready.push(me.playerId);
+  finishEntryLoading(run,run.players.map(p=>({id:p.playerId,member_type:p.memberType})));
+  run.updatedAt=new Date().toISOString();
+  const saved=await commitRun(admin,run,expectedVersion,actionId);
+  if(saved.conflict){const error=new Error('STATE_CONFLICT');error.code='STATE_CONFLICT';throw error;}
+  return saved;
+}
+
 export async function handlePveAction({admin,user,body,json}){
   const action=body.action;if(typeof action!=='string'||!action.startsWith('pve.'))return null;
   if(action==='pve.createRun'){
@@ -105,6 +144,7 @@ export async function handlePveAction({admin,user,body,json}){
     if(bundle.session)return fail(json,'기존 PVP 원정이 진행 중입니다.');
     let run;try{run=buildInitialPveRun(bundle,{seed:body.seed,depthCount:body.depth_count});}
     catch(error){return fail(json,error.message||'PVE 캐릭터 구성을 확인해 주세요.',409);}
+    if(canonicalRoomMode)beginEntryLoading(run);
     const createArgs=canonicalRoomMode
       ? {name:'pve_start_room',args:{p_run_id:run.id,p_room:body.room_id,p_expected:bundle.room.version,p_seed:run.seed,p_state:run}}
       : {name:'pve_create_run',args:{p_run_id:run.id,p_room:body.room_id,p_seed:run.seed,p_state:run}};
@@ -139,6 +179,7 @@ export async function handlePveAction({admin,user,body,json}){
   }
   if(!Number.isSafeInteger(body.expected_version))return fail(json,'expected_version이 필요합니다.');
   if(body.expected_version!==snapshot.version)return json({error:'STATE_CONFLICT',run:projectRun(run,me.playerId)},409);
+  if(run.entryLoading)return fail(json,'원정대 이미지 로딩을 기다리는 중입니다.',409);
   if(run.phase==='SHOP')expireShopReservations(run);
 
   if(action==='pve.voteNextRoom'){
@@ -186,7 +227,7 @@ export async function handlePveAction({admin,user,body,json}){
     activateRewardSkill(run,me.playerId);
   } else if(action==='pve.rewardSubmitCard'){
     if(typeof body.card_instance_id!=='string')return fail(json,'card_instance_id가 필요합니다.');
-    submitRewardCard(run,me.playerId,body.card_instance_id,body.skill_intent===true);
+    submitRewardCard(run,me.playerId,body.card_instance_id,body.skill_intent===true,body.skill_data??null);
     resolveRewardAttempt(run);
   } else if(action==='pve.rewardChooseRelic'){
     if(typeof body.relic_id!=='string')return fail(json,'relic_id가 필요합니다.');

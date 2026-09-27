@@ -1,5 +1,6 @@
 // Compact, four-column room receipts. Details use the existing accessible modal.
 import {skinPortrait} from './skins.js';
+import {sharedResultOverlayMarkup} from './shared-gameplay-ui.js';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const signed=n=>n>0?'+'+n:String(n);
 export function roomSummaryMarkup(bundle,me,animate=false){
@@ -15,10 +16,11 @@ export function roomSummaryMarkup(bundle,me,animate=false){
  if(decision)choices='<small class="summary-decision">선택 완료 ✓</small>';
  const echoes=r.echoes||[],gained=echoes.filter(e=>e.status==='획득'),spent=echoes.filter(e=>e.status!=='획득');
  const partyGold=Object.values(r.deltas).reduce((a,d)=>a+d.gold,0);
- return `<section class="room-result-overlay ${animate?'summary-enter':''}" role="dialog" aria-modal="true" aria-labelledby="room-result-title"><div class="room-result-sheet"><small class="eyebrow">ROOM ${r.stageIndex} · ${r.success?'COMPLETE':'RESULT'}</small><h2 id="room-result-title">${esc(r.name)} <small>${r.success?'완료':'조건 미달'}</small></h2><div class="room-result-party">${[...bundle.members].sort((a,b)=>a.seat_index-b.seat_index).map(m=>{
+ const content=`<small class="eyebrow">ROOM ${r.stageIndex} · ${r.success?'COMPLETE':'RESULT'}</small><h2 id="room-result-title">${esc(r.name)} <small>${r.success?'완료':'조건 미달'}</small></h2><div class="room-result-party">${[...bundle.members].sort((a,b)=>a.seat_index-b.seat_index).map(m=>{
   const p=s.players[m.id],d=r.deltas[m.id]||{hp:0,gold:0,score:0};const values=[['HP',d.hp],['G',d.gold],['점수',d.score]].filter(([,v])=>v!==0);
   return `<article><div class="summary-portrait">${skinPortrait(p.characterId,p.loadout)}</div><b title="${esc(m.display_name)}">${esc(m.display_name)}</b><div class="summary-changes">${values.length?values.map(([label,n],i)=>`<span class="${n>0?'gain':'loss'}" style="--receipt-delay:${i*65}ms">${label} ${signed(n)}</span>`).join(''):'<small>변화 없음</small>'}</div><small class="summary-ready">${r.ready.includes(m.id)?'✓ 준비':'대기'}</small></article>`;
- }).join('')}</div><div class="summary-party">${partyGold?`파티 골드 <b>${signed(partyGold)}G</b>`:''}</div>${echoes.length?`<button class="summary-echo" data-action="echo-details" data-summary-details title="${esc(echoes.map(e=>e.name+': '+e.description).join(' / '))}"><b>${gained.length?'✦ '+esc(gained[0].name)+(gained.length>1?' 외 '+(gained.length-1)+'개':''):'잔향 정산'}</b><small>${gained.length?'획득 ':''}${spent.length?'· '+spent.length+'개 발동/종료':''} ⓘ</small></button>`:''}<div class="summary-choices">${choices}</div><footer><span>${r.ready.length} / ${bundle.members.length} 준비</span><button class="button primary" data-action="room-ready" data-network data-unavailable="${ready||needsChoice}" ${ready||needsChoice?'disabled':''}>${ready?'준비 완료 ✓':'준비 완료'}</button></footer><button class="summary-leave" data-action="leave-confirm">원정 나가기</button></div></section>`;
+ }).join('')}</div><div class="summary-party">${partyGold?`파티 골드 <b>${signed(partyGold)}G</b>`:''}</div>${echoes.length?`<button class="summary-echo" data-action="echo-details" data-summary-details title="${esc(echoes.map(e=>e.name+': '+e.description).join(' / '))}"><b>${gained.length?'✦ '+esc(gained[0].name)+(gained.length>1?' 외 '+(gained.length-1)+'개':''):'잔향 정산'}</b><small>${gained.length?'획득 ':''}${spent.length?'· '+spent.length+'개 발동/종료':''} ⓘ</small></button>`:''}<div class="summary-choices">${choices}</div><footer><span>${r.ready.length} / ${bundle.members.length} 준비</span><button class="button primary" data-action="room-ready" data-network data-unavailable="${ready||needsChoice}" ${ready||needsChoice?'disabled':''}>${ready?'준비 완료 ✓':'준비 완료'}</button></footer><button class="summary-leave" data-action="leave-confirm">원정 나가기</button>`;
+ return sharedResultOverlayMarkup({contentMarkup:content,animate,titleId:'room-result-title'});
 }
 export function echoHud(bundle,me){
  const s=bundle.session.state,echoes=[s.echo,...Object.values(s.personalEchoes||{})].filter(Boolean);

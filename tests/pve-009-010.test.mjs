@@ -168,6 +168,27 @@ test('PVE-010 reward room preserves consumed cards across all-collision retries 
   for(const p of run.players)assert.equal(p.relics.length,1);
 });
 
+test('PVE-010 reward room preserves Mage skill_data selected by the shared Gameplay UI',()=>{
+  const run=makeRun(['mage','adventurer','adventurer','adventurer']);delete run.combat;run.currentRoomNodeId='reward';installRelicCatalog(run,fixtureRelics());
+  enterRewardRoom(run);run.players[0].publicResources.mana=4;
+  submitRewardCard(run,'p0',rewardCard(run,'p0',1),true,{manaSpend:2});
+  assert.deepEqual(run.roomState.turnSubmissions.p0.skillData,{manaSpend:2});
+  submitRewardCard(run,'p1',rewardCard(run,'p1',4));
+  submitRewardCard(run,'p2',rewardCard(run,'p2',3));
+  submitRewardCard(run,'p3',rewardCard(run,'p3',5));
+  const result=resolveRewardAttempt(run),mage=result.cards.find(card=>card.playerId==='p0');
+  assert.equal(mage.finalNumber,2);assert.equal(run.players[0].publicResources.mana,2);
+
+  const reverse=makeRun(['mage','adventurer','adventurer','adventurer']);delete reverse.combat;reverse.currentRoomNodeId='reward';installRelicCatalog(reverse,fixtureRelics());
+  reverse.players[0].augments.push('aug-111');enterRewardRoom(reverse);reverse.players[0].publicResources.mana=2;
+  submitRewardCard(reverse,'p0',rewardCard(reverse,'p0',1),true,{direction:-1,manaSpend:2});
+  submitRewardCard(reverse,'p1',rewardCard(reverse,'p1',2));
+  submitRewardCard(reverse,'p2',rewardCard(reverse,'p2',3));
+  submitRewardCard(reverse,'p3',rewardCard(reverse,'p3',4));
+  const reverseResult=resolveRewardAttempt(reverse),reverseMage=reverseResult.cards.find(card=>card.playerId==='p0');
+  assert.equal(reverseMage.finalNumber,0);assert.equal(reverse.players[0].publicResources.mana,0);
+});
+
 test('PVE-010 reward retry keeps active-skill resource consumption instead of refunding it',()=>{
   const run=makeRun(['mage','adventurer','adventurer','adventurer']);delete run.combat;run.currentRoomNodeId='reward';installRelicCatalog(run,fixtureRelics());
   enterRewardRoom(run);run.players[0].publicResources.mana=2;
