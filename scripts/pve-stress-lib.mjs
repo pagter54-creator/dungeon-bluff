@@ -452,10 +452,53 @@ function attemptT09InvalidProbe(run,playerId,probe,turn){
   return {skillRequested:true,skillAccepted:false,skillRejected:true,rejectReason:code};
 }
 
+function assertT04CollisionTurn(run,result,policyPlan){
+  if(result.collisionResolutionPasses!==1||result.postCollisionEffectPasses!==1){
+    fail('COLLISION_PHASE_REENTRY','collision resolution or post-collision effects ran more or less than once',{
+      collisionResolutionPasses:result.collisionResolutionPasses,postCollisionEffectPasses:result.postCollisionEffectPasses
+    });
+  }
+  const seenEvents=new Set();
+  for(const group of result.collisionGroups||[]){
+    if(seenEvents.has(group.collisionEventId))fail('COLLISION_REWARD_DUPLICATE','same collisionEventId appeared more than once',{collisionEventId:group.collisionEventId});
+    seenEvents.add(group.collisionEventId);
+    const memberCards=(result.cards||[]).filter(card=>(group.members||[]).includes(card.playerId));
+    if(memberCards.length!==(group.members||[]).length||memberCards.some(card=>card.finalNumber!==group.finalNumber)){
+      fail('COLLISION_FINAL_NUMBER_MISMATCH','collision group does not match finalNumber inputs',{group,memberCards});
+    }
+    if((Number(group.berserkerHeal)||0)>1)fail('BERSERKER_COLLISION_MULTI_HEAL','one collision event healed Berserker more than once',{group});
+    const crushed=group.crushedCardIds||[];
+    if(new Set(crushed).size!==crushed.length)fail('CRUSH_DUPLICATE_CARD','same card was crushed more than once',{group});
+    for(const id of crushed){
+      const card=(result.cards||[]).find(x=>x.cardInstanceId===id);
+      if(!card||card.invalidReason!=='COLLISION'||card.valid)fail('CRUSH_NON_COLLISION_CARD','crushed card was not finally invalidated by collision',{group,id,card});
+    }
+    if((Number(group.recursiveCollisionTriggerCount)||0)!==0)fail('RECURSIVE_COLLISION_TRIGGER','collision reward triggered collision processing recursively',{group});
+  }
+  assertRunInvariants(run);
+  return {
+    turn:result.turn,
+    policy:policyPlan?.policy||null,
+    targetNumber:policyPlan?.targetNumber??null,
+    intentionalParticipantIds:[...(policyPlan?.intentionalParticipantIds||[])],
+    intentionalCollisionAttempt:Boolean(policyPlan?.intentionalCollisionAttempt),
+    numberHistories:structuredClone(result.numberHistories||[]),
+    mutationEvents:structuredClone(result.mutationEvents||[]),
+    collisionGroups:structuredClone(result.collisionGroups||[]),
+    combatEvents:structuredClone((result.events||[]).filter(event=>
+      ['THRALL_MARKED','BERSERKER_COLLISION_HEAL','KNIGHT_CRUSH_CAPTURE','BERSERKER_REVENGE_GAINED','BERSERKER_REVENGE_CONSUMED','BERSERKER_ATTACK_HP_COST'].includes(event.type)
+    )),
+    damagePackets:structuredClone(result.damagePackets||[]),
+    phaseTrace:[...(result.phaseTrace||[])],
+    hpAfter:Object.fromEntries(run.players.map(player=>[player.playerId,player.hp])),
+    revengeAfter:Object.fromEntries(run.players.filter(p=>p.characterId==='berserker').map(player=>[player.playerId,Number(player.publicResources.revenge)||0]))
+  };
+}
+
 export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterDef=F1_MONSTER_DEFINITIONS.f1_armored_boar,policy='reference',flame=4,maxTurns=HARD_MAX_TURNS,caseId='generic-combat'}){
   const run=makeCombatRun(seed,{caseId,characterIds,augmentIdsByPlayer,flame,monsterDef});
   let actions=0,resolves=0;
-  const referenceTurns=[],numberMutationTurns=[],resourceTimeline=[];
+  const referenceTurns=[],numberMutationTurns=[],resourceTimeline=[],collisionTurns=[];
   const t09PriorResource=new Map(run.players.map(p=>[p.playerId,t09ResourceValue(p)]));
   while(run.phase==='COMBAT'){
     if(run.combat.turn>maxTurns)fail('INFINITE_LOOP','simulation exceeded turn ceiling',{seed,turn:run.combat.turn});
@@ -537,6 +580,30 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
         assertRunInvariants(run);assertT09CardPartition(run,p.playerId);
       }
       run.combat._t09PendingRecords=[...records.values()];
+    }else if(policy==='collision_farm'||policy==='safe_play'){
+      const contextKey=`${run.currentRoomNodeId||run.combat?.monster?.id||'combat'}:turn:${turn}`;
+      const intents=[],views=new Map();
+      for(const p of run.players){
+        if(p.status==='DOWNED'||run.combat.turnSubmissions[p.playerId])continue;
+        const view=projectRun(run,p.playerId);assertNoHiddenInfo(view,p.playerId);
+        const intent=buildCollisionFarmIntent(view,p.playerId);
+        if(!intent)fail('BOT_NO_LEGAL_ACTION','T04 bot could not build owner intent',{seed,playerId:p.playerId,turn,policy});
+        intents.push(intent);views.set(p.playerId,view);
+      }
+      const plan=policy==='collision_farm'
+        ?planCollisionFarmTurn(intents,{seed,contextKey})
+        :planCollisionSafeTurn(intents,{seed,contextKey});
+      for(const decision of plan.decisions){
+        const view=views.get(decision.playerId);
+        const choices=legalCardsFromView(view,decision.playerId)
+          .filter(card=>card.baseNumber===decision.baseNumber)
+          .sort((a,b)=>a.id.localeCompare(b.id));
+        if(!choices.length)fail('BOT_NO_LEGAL_ACTION','T04 negotiated card unavailable in owner projection',{seed,turn,policy,decision});
+        const card=choices[seededIndex(seed,`${contextKey}:${decision.playerId}:physical:${decision.baseNumber}`,choices.length)];
+        submitCard(run,decision.playerId,card.id,decision.skillIntent,decision.skillData);actions++;
+        assertRunInvariants(run);
+      }
+      run.combat._t04PendingPolicy=structuredClone(plan);
     }else{
       for(const p of run.players){
         if(p.status==='DOWNED'||run.combat.turnSubmissions[p.playerId])continue;
@@ -586,6 +653,11 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
       }
       if(run.combat)delete run.combat._t09PendingRecords;
     }
+    if(policy==='collision_farm'||policy==='safe_play'){
+      const plan=run.combat?._t04PendingPolicy||null;
+      collisionTurns.push(assertT04CollisionTurn(run,result,plan));
+      if(run.combat)delete run.combat._t04PendingPolicy;
+    }
     if(referenceTelemetry){
       const damageByPlayer={};
       for(const packet of result.damagePackets||[])damageByPlayer[packet.sourcePlayerId]=(damageByPlayer[packet.sourcePlayerId]||0)+(Number(packet.amount)||0);
@@ -628,6 +700,7 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
     referenceCommunication:summarizeReferenceTurns(referenceTurns),
     numberMutationTurns,
     resourceTimeline,
+    collisionTurns,
     combatResourceLeakCount:run.players.reduce((sum,p)=>sum+Object.entries(PVE_RESOURCE_DEFS)
       .filter(([key,def])=>def.resetScope==='COMBAT'&&Object.hasOwn(p.publicResources||{},key))
       .length,0)
