@@ -160,14 +160,14 @@ export function activateRewardSkill(run,playerId){
   const st=room.privateByPlayer[playerId];st.cycleIndex=(st.cycleIndex||1)+1;st.spentCardIds=[];st.remainingCardIds=p.cardPool.map(c=>c.id);
   p.publicResources.parity=1-(p.publicResources.parity||0);p.publicResources.acrobaticsReady=false;p.persistentCharacterState.acrobaticsLockCycle=st.cycleIndex;
 }
-export function submitRewardCard(run,playerId,cardInstanceId,skillIntent=false){
+export function submitRewardCard(run,playerId,cardInstanceId,skillIntent=false,skillData=null){
   if(run.phase!=='REWARD_ROOM'||run.roomState?.type!=='REWARD_ROOM'||run.roomState.resolved)throw new Error('현재 보상방 카드 제출 단계가 아닙니다.');
   const p=playerFor(run,playerId),room=run.roomState,st=room.privateByPlayer[playerId];if(!p||p.status==='DOWNED')throw new Error('카드를 제출할 수 없습니다.');
   if(room.turnSubmissions[playerId])throw new Error('이미 제출했습니다.');
   if(!rewardSelectable(run,p,cardInstanceId))throw new Error('사용 가능한 카드가 아닙니다.');
   if(p.characterId==='twins'&&skillIntent)throw new Error('곡예는 카드 제출 전에 별도로 사용해야 합니다.');
   if(p.characterId==='gunner'&&skillIntent&&!p.publicResources.fullBurstReady)throw new Error('전탄발사가 아직 재충전되지 않았습니다.');
-  room.turnSubmissions[playerId]={playerId,cardInstanceId,skillIntent:Boolean(skillIntent)};st.selectedCardId=cardInstanceId;st.skillIntent=Boolean(skillIntent);
+  room.turnSubmissions[playerId]={playerId,cardInstanceId,skillIntent:Boolean(skillIntent),...(skillData?{skillData:structuredClone(skillData)}:{})};st.selectedCardId=cardInstanceId;st.skillIntent=Boolean(skillIntent);
 }
 function tieOrdered(run,cards){
   const groups=new Map();for(const c of cards){const a=groups.get(c.damage)||[];a.push(c);groups.set(c.damage,a);}
