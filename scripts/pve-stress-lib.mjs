@@ -474,12 +474,13 @@ function t05CardId(run,playerId,number){
   const choices=legalCardsFromView(view,playerId).filter(card=>card.baseNumber===number).sort((a,b)=>a.id.localeCompare(b.id));
   return choices[0]?.id||null;
 }
-function t05Fixture(seed,id,{numbers,skills={},mageMana=null,thrallId=null}){
+function t05Fixture(seed,id,{numbers,skills={},mageMana=null,thrallId=null,dominance=null}){
   const run=makeCombatRun(`${seed}:${id}`,{
     caseId:`T05-${id}`,characterIds:T05_CHARACTER_IDS,augmentIdsByPlayer:T05_AUGMENTS,flame:4,monsterDef:T05_FIXTURE_MONSTER
   });
   if(mageMana!=null)run.players[0].publicResources.mana=mageMana;
   if(thrallId)run.players[1].publicResources.thrallPlayerId=thrallId;
+  if(dominance!=null)run.players[1].publicResources.dominance=dominance;
   const ownershipBefore=Object.fromEntries(run.players.map(p=>[p.playerId,p.cardPool.map(card=>card.id)]));
   for(let i=0;i<numbers.length;i++){
     const pid=`p${i}`,cardId=t05CardId(run,pid,numbers[i]);
@@ -534,6 +535,12 @@ export function runT05Fixtures(seed){
     }),
     t05Fixture(seed,'F10_STEAL_MIN_BOUNDARY',{
       numbers:[1,5,1,4]
+    }),
+    t05Fixture(seed,'F11_BOLD_STEAL_BONUS',{
+      numbers:[3,3,3,4]
+    }),
+    t05Fixture(seed,'F12_FULL_THRALL_DOMINANCE_DAMAGE',{
+      numbers:[2,5,1,4],thrallId:'p0',dominance:2,skills:{p1:{enabled:true}}
     })
   ];
   return {scenarioId:'T05_FIXTURES',seed,status:'PASS',fixtures};
