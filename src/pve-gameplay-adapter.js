@@ -31,9 +31,13 @@ function activeSkillAvailable(player){
 }
 function runtimeState(player){
   const r=player.publicResources||{};
+  const reverseMath=(player.augments||[]).includes('aug-111');
+  const manaMax=(player.augments||[]).includes('aug-091')?6:4;
   return {
     ...r,
     mana:r.mana||0,
+    manaMax,
+    reverseMath,
     toughnessCharges:r.toughnessCharges||0,
     revelationStacks:r.revelationStacks??r.revelation??0,
     predation:r.predation||0,
