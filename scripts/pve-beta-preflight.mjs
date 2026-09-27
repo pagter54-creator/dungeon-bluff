@@ -6,6 +6,7 @@ import {execFileSync} from 'node:child_process';
 export const REPO_ROOT=fileURLToPath(new URL('../',import.meta.url));
 export const REQUIRED_BETA_FILES=Object.freeze([
   'supabase/migrations/202609280001_game_modes_pve_beta.sql',
+  'supabase/migrations/202609280002_pve_beta_reward_canonical.sql',
   'supabase/functions/game-api/index.ts',
   'supabase/functions/game-api/game-mode.js',
   'supabase/functions/game-api/pve/api.js',
@@ -50,19 +51,28 @@ export async function inspectBetaRepo(root=REPO_ROOT){
   const missing=[];
   for(const rel of REQUIRED_BETA_FILES)if(!await exists(path.join(root,rel)))missing.push(rel);
   if(missing.length)throw new Error('PVE BETA 필수 파일 누락: '+missing.join(', '));
-  const migration=await readFile(path.join(root,'supabase/migrations/202609280001_game_modes_pve_beta.sql'),'utf8');
-  const requiredSql=[
+  const modeMigration=await readFile(path.join(root,'supabase/migrations/202609280001_game_modes_pve_beta.sql'),'utf8');
+  const rewardMigration=await readFile(path.join(root,'supabase/migrations/202609280002_pve_beta_reward_canonical.sql'),'utf8');
+  const modeTokens=[
     "game_mode text not null default 'COMPETITIVE'",
     "check(game_mode in ('COMPETITIVE','COOP_PVE'))",
     "check(rating_delta=0)",
-    "'RUN_CLEAR','RUN_FAILED','ABANDONED'",
     'create or replace function public.pve_start_room',
-    'create or replace function public.pve_settle_rewards',
-    'rewards_committed=true'
+    'create or replace function public.pve_settle_rewards'
   ];
-  const missingSql=requiredSql.filter(token=>!migration.includes(token));
+  const rewardTokens=[
+    "'RUN_CLEAR','RUN_FAILED','ABANDONED'",
+    'RULE-PVE-REWARD-01',
+    'RULE-PVE-REWARD-04',
+    'rewards_committed=true',
+    "terminal_phase='RUN_CLEAR'"
+  ];
+  const missingSql=[
+    ...modeTokens.filter(token=>!modeMigration.includes(token)).map(token=>'0001:'+token),
+    ...rewardTokens.filter(token=>!rewardMigration.includes(token)).map(token=>'0002:'+token)
+  ];
   if(missingSql.length)throw new Error('PVE BETA migration contract 누락: '+missingSql.join(' | '));
-  return {migration:'202609280001_game_modes_pve_beta.sql',requiredFiles:REQUIRED_BETA_FILES.length};
+  return {migrations:['202609280001_game_modes_pve_beta.sql','202609280002_pve_beta_reward_canonical.sql'],requiredFiles:REQUIRED_BETA_FILES.length};
 }
 export function currentGitBranch(root=REPO_ROOT){
   try{return execFileSync('git',['rev-parse','--abbrev-ref','HEAD'],{cwd:root,encoding:'utf8'}).trim();}catch{return null;}
@@ -89,7 +99,7 @@ async function main(){
     head:currentGitHead()||'UNKNOWN',
     targetProjectRef:String(targetRef).toLowerCase(),
     productionProjectRef:productionRef,
-    migration:repo.migration,
+    migrations:repo.migrations,
     requiredFiles:repo.requiredFiles,
     productionDeploy:false
   },null,2));
