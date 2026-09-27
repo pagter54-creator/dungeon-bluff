@@ -434,8 +434,16 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
 }
 
 export function runT00(seed){
-  const characterIds=['adventurer','warrior','mage','rogue'];
-  const augmentIdsByPlayer=[['aug-001'],['aug-031'],['aug-091'],['aug-061']];
+  const baseParty=[
+    {characterId:'adventurer',augments:['aug-001']},
+    {characterId:'warrior',augments:['aug-031']},
+    {characterId:'mage',augments:['aug-091']},
+    {characterId:'rogue',augments:['aug-061']}
+  ];
+  const seatRotation=seededIndex(seed,'T00:reference-seat-rotation',baseParty.length);
+  const party=[...baseParty.slice(seatRotation),...baseParty.slice(0,seatRotation)];
+  const characterIds=party.map(x=>x.characterId);
+  const augmentIdsByPlayer=party.map(x=>x.augments);
   const encounters=[
     ['normal',F1_MONSTER_DEFINITIONS.f1_armored_boar],
     ['elite',F1_MONSTER_DEFINITIONS.f1_echo_bat],
@@ -458,7 +466,7 @@ export function runT00(seed){
     scenarioId:'T00',seed,status:'PASS',
     outcome:runs.some(x=>x.outcome==='RUN_FAILED')?'RUN_FAILED':'COMPLETED',
     actionCount:runs.reduce((s,x)=>s+x.actions,0),
-    combats,effectTriggerCounts,characterDamageShare,referenceTurns,referenceCommunication,
+    combats,effectTriggerCounts,characterDamageShare,referenceTurns,referenceCommunication,seatRotation,
     expGainByCharacter:Object.fromEntries(characterIds.map((id,i)=>[id,combats.reduce((s,x)=>s+(Number(x.expGained?.['p'+i])||0),0)])),
     finalFlame:runs.at(-1)?.finalFlame??null
   };
