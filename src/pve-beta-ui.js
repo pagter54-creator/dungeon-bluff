@@ -71,8 +71,7 @@ function roomResultMarkup(){
 function terminalMarkup(bundle,me){
   const run=bundle.run,clear=run.phase==='RUN_CLEAR',mineGold=Number(me?.runGold)||0;
   const settlement=bundle.pveSettlement;
-  const settlementText=!clear?'실패/중도 종료 Gold 지급 범위는 Beta 규칙 확정 전까지 영구 정산하지 않습니다.'
-    : settlement?.reason==='AMBIGUOUS_ABANDON_GOLD'?'남아 있던 플레이어의 Gold는 정산되며, 중도 탈주자의 Gold는 규칙 확정 전까지 보류됩니다.'
+  const settlementText=!clear?'실패 또는 중도 종료된 협력 탐험의 Run Gold는 영구 지급되지 않습니다.'
     : bundle.pveRewardsCommitted||settlement?.settled?'계정 Gold 정산 완료':'계정 Gold를 서버에서 정산 중입니다.';
   return `<section class="end-screen ${clear?'victory':'failure'}"><div class="end-emblem">${clear?'♛':'♠'}</div><div class="eyebrow">CO-OP EXPEDITION · BETA</div><h1>${clear?'협력 탐험 완료':'협력 탐험 종료'}</h1><p>${clear?'PVE 런을 완료했습니다.':'이번 협력 탐험은 여기까지입니다.'}</p><div class="account-notice"><b>RP 변동 없음</b><br>협력 탐험은 경쟁 RP와 랭킹에 영향을 주지 않습니다.</div><div class="end-stats"><span>내 Run Gold <b>${mineGold}G</b></span><span>FLOOR <b>${run.floor}</b></span><span>FLAME <b>${run.flame}</b></span></div><p class="muted">${settlementText}</p><button class="button primary" data-action="leave" data-network>원정대 나가기 →</button></section>`;
 }
