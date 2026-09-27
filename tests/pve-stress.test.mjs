@@ -6,7 +6,7 @@ import path from 'node:path';
 import {main as stressMain} from '../scripts/pve-stress.mjs';
 import {
   STRESS_SCENARIOS,StressHardFailure,assertRunInvariants,replayScenario,runT14,
-  scenarioAvailability,semanticFingerprint,skippedScenarioReport,t14GoldenComparable
+  scenarioAvailability,semanticFingerprint,skippedScenarioReport,t14GoldenComparable,assertNoHiddenInfo
 } from '../scripts/pve-stress-lib.mjs';
 
 const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/pve-stress-t14-golden.json',import.meta.url),'utf8'));
@@ -38,6 +38,14 @@ test('PVE stress T14 same-seed replay is deterministic',()=>{
 test('PVE stress T14 golden preserves the current boundary-resolution contract',()=>{
   const result=replayScenario('T14','golden-t14-seed');
   assert.deepEqual(t14GoldenComparable(result),golden);
+});
+
+test('PVE stress invariant checker hard-fails hidden submissions and invalid resource caps',()=>{
+  const run=runT14('invariant-resource-control');assert.equal(run.status,'PASS');
+  const fakeView={players:[{playerId:'p0',cardPool:[]}],combat:{turnSubmissions:{p0:{cardInstanceId:'secret'}}}};
+  assert.throws(()=>assertNoHiddenInfo(fakeView,'p0'),e=>e instanceof StressHardFailure&&e.code==='HIDDEN_INFORMATION_LEAK');
+  const fake={flame:1,maxFlame:5,phase:'COMBAT',players:[{playerId:'p0',hp:3,maxHp:3,runGold:0,growthExp:0,publicResources:{mana:5},engravings:{},cardPool:[],status:'ACTIVE'}],combat:{turn:1,privateByPlayer:{p0:{playerId:'p0',remainingCardIds:[],spentCardIds:[]}},turnSubmissions:{}}};
+  assert.throws(()=>assertRunInvariants(fake),e=>e instanceof StressHardFailure&&e.code==='INVALID_RESOURCE');
 });
 
 test('PVE stress invariant checker hard-fails duplicate physical card zones',()=>{
