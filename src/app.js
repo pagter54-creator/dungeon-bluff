@@ -121,8 +121,8 @@ function pveTopMarkup(run){
   return sharedGameTopMarkup({counterLabel:'FLOOR',counterValue:run.floor,counterTotal:3,progressMarkup:pveProgressMarkup(run),meterLabel:'EXPEDITION FLAME',meterValue:run.flame,meterTotal:run.maxFlame,mapButton:true,extraClass:'pve-shared-top'});
 }
 function renderPveEntryLoading(){
-  const humans=(bundle?.members||[]).filter(member=>member.member_type==='human');
-  app.innerHTML='<section class="entry-loading"><div class="eyebrow">CO-OP EXPEDITION · ASSET LOADING</div><h1>원정대를 준비합니다</h1><p role="status">'+escape(pveEntryError||pveEntryProgress||'인간 플레이어 일러스트 확인 중')+'</p><div class="entry-members">'+humans.map(member=>'<div><b>'+escape(member.display_name)+'</b><span>'+(pveEntryCompleted===bundle.run.id?'✓ 로딩 완료':'이미지 준비 중')+'</span></div>').join('')+'</div>'+(pveEntryError?'<button class="button primary" data-action="retry-pve-entry">다시 시도</button>':'')+'<button class="button secondary" data-action="leave-confirm">나가기</button></section>';
+  const humans=(bundle?.members||[]).filter(member=>member.member_type==='human'),ready=bundle?.run?.entryLoading?.ready||[];
+  app.innerHTML='<section class="entry-loading"><div class="eyebrow">CO-OP EXPEDITION · ASSET LOADING</div><h1>원정대를 준비합니다</h1><p role="status">'+escape(pveEntryError||pveEntryProgress||'인간 플레이어 일러스트 확인 중')+'</p><div class="entry-members">'+humans.map(member=>'<div><b>'+escape(member.display_name)+'</b><span>'+(ready.includes(member.id)||pveEntryCompleted===bundle.run.id?'✓ 로딩 완료':'이미지 준비 중')+'</span></div>').join('')+'</div>'+(pveEntryError?'<button class="button primary" data-action="retry-pve-entry">다시 시도</button>':'')+'<button class="button secondary" data-action="leave-confirm">나가기</button></section>';
   updateBusy();
 }
 async function preparePveEntry(){
@@ -131,7 +131,10 @@ async function preparePveEntry(){
   try{
     await loadPveEntryAssets(run,bundle.members,(done,total)=>{if(bundle?.run?.id!==run.id)return;pveEntryProgress='일러스트 '+done+' / '+total;renderPveEntryLoading();});
     if(bundle?.run?.id!==run.id)return;
-    pveEntryCompleted=run.id;pveEntryProgress='완료';renderPve();
+    pveEntryCompleted=run.id;pveEntryProgress='완료 · 동료를 기다리는 중';
+    const response=await api.request('assets_loaded',{room_id:bundle.room.id,run_id:run.id,expected_version:run.version,action_id:crypto.randomUUID()});
+    if(bundle?.run?.id!==run.id)return;
+    await accept(response);
   }catch(error){if(bundle?.run?.id===run.id){pveEntryError=error.message;renderPveEntryLoading();}}
   finally{if(pveEntryWork===run.id)pveEntryWork=null;}
 }
@@ -202,7 +205,8 @@ async function presentPveTurn(beforeRun,afterRun,presentation){
 function renderPve(){
   if(!bundle?.run)return;view='pve';
   const run=bundle.run;
-  if(pveEntryCompleted!==run.id){renderPveEntryLoading();if(!pveEntryWork&&!pveEntryError)void preparePveEntry();return;}
+  if(run.entryLoading){renderPveEntryLoading();const me=mine();if(!pveEntryWork&&!pveEntryError&&!run.entryLoading.ready?.includes(me?.id)&&pveEntryCompleted!==run.id)void preparePveEntry();return;}
+  pveEntryCompleted=run.id;
   const me=pvePlayerForUser(run,api.user?.id);
   if(['RUN_CLEAR','RUN_FAILED','ABANDONED'].includes(run.phase)){app.innerHTML=pveTerminalMarkup(bundle,run,me);updateBusy();return;}
   if(run.phase==='COMBAT')renderPveGameplay(run);else renderPveRoom(run);
