@@ -925,10 +925,18 @@ export function runT09(seed){
   };
 }
 export function t09GoldenComparable(result){
+  const fields=[
+    'turn','playerId','classId','resourceBefore','resourceGained','resourceSpent','resourceAfter',
+    'skillRequested','skillAccepted','skillRejected','rejectReasons','cycleBefore','cycleAfter',
+    'remainingCardsBefore','remainingCardsAfter','recoveredCardId','fullBurstOutcome'
+  ];
   return {
     scenarioId:result.scenarioId,status:result.status,
     fixtures:(result.fixtures||[]).map(x=>semantic(x)),
-    resourceTimeline:(result.resourceTimeline||[]).map(x=>semantic(x))
+    resourceTimeline:{
+      fields,
+      rows:(result.resourceTimeline||[]).map(row=>fields.map(field=>row[field]??null))
+    }
   };
 }
 
