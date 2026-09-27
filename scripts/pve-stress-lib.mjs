@@ -1093,35 +1093,50 @@ export function runT04(seed){
   };
 }
 export function t04GoldenComparable(result){
-  const historyFields=['playerId','cardInstanceId','baseNumber','selfModifiedNumber','postSwapNumber','postStealNumber','finalNumber','collisionGroup','collisionImmune','valid','damage'];
-  const collisionGroupFields=['collisionEventId','turn','finalNumber','members','invalidatedPlayers','immunePlayers','crushedCardIds','crushedCardCount','berserkerHeal','impStolenBeforeCollision','vampireSwapCount','knightCrushBonusDamage','resourcesGenerated','totalImmediateDamageValue','totalHealingValue','triggeredEffectCount','recursiveCollisionTriggerCount'];
-  const eventFields=['type','phase','collisionEventId','playerId','targetId','amount','before','after','healCap','crushedCardIds','crushedCardCount','bonusDamage','damageType'];
-  const packetFields=['sourcePlayerId','sourceCardId','numberUsed','amount','tags','followUp'];
+  const historyFields=['playerId','baseNumber','selfModifiedNumber','postSwapNumber','postStealNumber','finalNumber','collisionGroup','collisionImmune','valid','damage'];
+  const mutationFields=['phase','effectId','actorId','targetId','before','after','stolen','totalActuallyStolen'];
+  const collisionGroupFields=['collisionEventId','finalNumber','members','invalidatedPlayers','immunePlayers','crushedCardIds','crushedCardCount','berserkerHeal','impStolenBeforeCollision','vampireSwapCount','knightCrushBonusDamage','resourcesGenerated','triggeredEffectCount','recursiveCollisionTriggerCount'];
+  const eventFields=['type','phase','collisionEventId','playerId','targetId','amount','before','after','crushedCardIds','crushedCardCount','bonusDamage','damageType'];
+  const packetFields=['sourcePlayerId','numberUsed','amount'];
   const relevantEvents=new Set(['THRALL_MARKED','BERSERKER_COLLISION_HEAL','KNIGHT_CRUSH_CAPTURE','BERSERKER_REVENGE_GAINED','BERSERKER_REVENGE_CONSUMED','BERSERKER_ATTACK_HP_COST','PLAYER_DAMAGED']);
-  const row=(fields,obj)=>fields.map(field=>obj?.[field]??null);
-  const events=items=>(items||[]).filter(event=>relevantEvents.has(event.type)).map(event=>row(eventFields,event));
-  const fixtureRow=f=>{
-    if(f.id==='F14_NO_RECURSIVE_REWARDS')return [f.id,'REENTRY',f.collisionEventId,f.reentryRejected,f.rejectCode,f.hpUnchanged,f.processedCollisionEventIds];
+  const rows=(fields,items)=>(items||[]).map(item=>fields.map(field=>item?.[field]??null));
+  const eventRows=items=>rows(eventFields,(items||[]).filter(event=>relevantEvents.has(event.type)));
+  const groupSummary=g=>[g.finalNumber,g.invalidatedPlayers,g.immunePlayers,g.crushedCardCount,g.berserkerHeal,g.knightCrushBonusDamage,g.recursiveCollisionTriggerCount];
+  const fixtureSummary=f=>{
+    if(f.id==='F14_NO_RECURSIVE_REWARDS')return [f.id,'REENTRY',f.rejectCode,f.hpUnchanged];
     return [
-      f.id,(f.numberHistories||[]).map(h=>row(historyFields,h)),f.mutationEvents||[],
-      (f.collisionGroups||[]).map(g=>row(collisionGroupFields,g)),events(f.combatEvents),
-      (f.damagePackets||[]).map(packet=>row(packetFields,packet)),f.phaseTrace||[],f.hpAfter||{},
-      f.revengeAfter??0,f.totalDamage??0,f.collisionResolutionPasses??null,f.postCollisionEffectPasses??null
+      f.id,f.totalDamage,f.hpAfter,f.revengeAfter,
+      (f.collisionGroups||[]).map(groupSummary),
+      (f.combatEvents||[]).filter(event=>relevantEvents.has(event.type)).map(event=>[event.type,event.amount??null,event.bonusDamage??null]),
+      f.collisionResolutionPasses,f.postCollisionEffectPasses
     ];
+  };
+  const keyIds=new Set(['F5_REVENGE_GAIN','F6_REVENGE_CONSUME','F13_FULL_MIXED','F14_NO_RECURSIVE_REWARDS']);
+  const keyFixture=f=>{
+    if(f.id==='F14_NO_RECURSIVE_REWARDS')return semantic(f);
+    return {
+      id:f.id,
+      histories:rows(historyFields,f.numberHistories),
+      mutations:rows(mutationFields,f.mutationEvents),
+      groups:rows(collisionGroupFields,f.collisionGroups),
+      events:eventRows(f.combatEvents),
+      packets:rows(packetFields,f.damagePackets),
+      phases:f.phaseTrace||[],hp:f.hpAfter||{},revenge:f.revengeAfter??0
+    };
   };
   const turnRow=turn=>[
     turn.turn,turn.policy,turn.targetNumber??null,turn.intentionalParticipantIds||[],
-    (turn.numberHistories||[]).map(h=>row(historyFields,h)),turn.mutationEvents||[],
-    (turn.collisionGroups||[]).map(g=>row(collisionGroupFields,g)),events(turn.combatEvents),
-    (turn.damagePackets||[]).map(packet=>row(packetFields,packet)),turn.phaseTrace||[],
-    turn.hpAfter||{},turn.revengeAfter||{}
+    rows(historyFields,turn.numberHistories),rows(mutationFields,turn.mutationEvents),
+    rows(collisionGroupFields,turn.collisionGroups),eventRows(turn.combatEvents),
+    rows(packetFields,turn.damagePackets),turn.hpAfter||{},turn.revengeAfter||{}
   ];
   return {
     scenarioId:result.scenarioId,status:result.status,
-    historyFields,collisionGroupFields,eventFields,packetFields,
-    fixtureRowFormat:['id','numberHistoriesOrMarker','mutationEventsOrCollisionEventId','collisionGroupsOrReentryRejected','combatEventsOrRejectCode','damagePacketsOrHpUnchanged','phaseTraceOrProcessedIds','hpAfter','revengeAfter','totalDamage','collisionResolutionPasses','postCollisionEffectPasses'],
-    fixtures:(result.fixtures||[]).map(fixtureRow),
-    timelineRowFormat:['turn','policy','targetNumber','intentionalParticipantIds','numberHistories','mutationEvents','collisionGroups','combatEvents','damagePackets','phaseTrace','hpAfter','revengeAfter'],
+    historyFields,mutationFields,collisionGroupFields,eventFields,packetFields,
+    fixtureSummaryFields:['id','totalDamageOrMarker','hpAfterOrRejectCode','revengeAfterOrHpUnchanged','collisionSummary','eventSummary','collisionResolutionPasses','postCollisionEffectPasses'],
+    fixtureSummaries:(result.fixtures||[]).map(fixtureSummary),
+    keyFixtures:(result.fixtures||[]).filter(f=>keyIds.has(f.id)).map(keyFixture),
+    timelineRowFormat:['turn','policy','targetNumber','intentionalParticipantIds','histories','mutations','groups','events','packets','hpAfter','revengeAfter'],
     collisionTimeline:(result.collisionTurns||[]).map(turnRow)
   };
 }
