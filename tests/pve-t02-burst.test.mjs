@@ -15,15 +15,14 @@ const fixture=(r,id)=>{const f=r.fixtures.find(x=>x.id===id);assert.ok(f,id);ret
 const card=(f,pid)=>{const c=f.result?.cards?.find(x=>x.playerId===pid);assert.ok(c,`${f.id}:${pid}`);return c;};
 const packets=(f,pid)=>f.result?.packets?.filter(x=>x.sourcePlayerId===pid)||[];
 
-test('T02 is ACTIVE while T06 remains unavailable',()=>{
+test('T02 remains ACTIVE after T06 activation',()=>{
   const def=STRESS_SCENARIOS.find(x=>x.id==='T02'),a=scenarioAvailability(def);
   assert.equal(a.available,true);
   assert.deepEqual(a.missingCharacters,[]);
   assert.deepEqual(a.missingBuildEffects,[]);
   assert.deepEqual(a.missingCapabilities,[]);
   const status=Object.fromEntries(STRESS_SCENARIOS.map(s=>[s.id,scenarioAvailability(s).available]));
-  for(const id of ['T00','T02','T03','T04','T05','T09','T14'])assert.equal(status[id],true,id);
-  assert.equal(status.T06,false);
+  for(const id of ['T00','T02','T03','T04','T05','T06','T09','T14'])assert.equal(status[id],true,id);
 });
 
 test('T02 locks canonical Tier-I decks and BETA configs without retuning',()=>{
