@@ -124,7 +124,7 @@ function pveTopMarkup(run){
 }
 function renderPveEntryLoading(){
   const humans=(bundle?.members||[]).filter(member=>member.member_type==='human'),ready=bundle?.run?.entryLoading?.ready||[];
-  app.innerHTML='<section class="entry-loading"><div class="eyebrow">CO-OP EXPEDITION · ASSET LOADING</div><h1>원정대를 준비합니다</h1><p role="status">'+escape(pveEntryError||pveEntryProgress||'인간 플레이어 일러스트 확인 중')+'</p><div class="entry-members">'+humans.map(member=>'<div><b>'+escape(member.display_name)+'</b><span>'+(ready.includes(member.id)||pveEntryCompleted===bundle.run.id?'✓ 로딩 완료':'이미지 준비 중')+'</span></div>').join('')+'</div>'+(pveEntryError?'<button class="button primary" data-action="retry-pve-entry">다시 시도</button>':'')+'<button class="button secondary" data-action="leave-confirm">나가기</button></section>';
+  app.innerHTML='<section class="entry-loading"><div class="eyebrow">CO-OP EXPEDITION · ASSET LOADING</div><h1>원정대를 준비합니다</h1><p role="status">'+escape(pveEntryError||pveEntryProgress||'인간 플레이어 일러스트 확인 중')+'</p><div class="entry-members">'+humans.map(member=>'<div><b>'+escape(member.display_name)+'</b><span>'+(ready.includes(member.id)?'✓ 로딩 완료':'이미지 준비 중')+'</span></div>').join('')+'</div>'+(pveEntryError?'<button class="button primary" data-action="retry-pve-entry">다시 시도</button>':'')+'<button class="button secondary" data-action="leave-confirm">나가기</button></section>';
   updateBusy();
 }
 async function preparePveEntry(){
