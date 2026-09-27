@@ -44,7 +44,7 @@ function semantic(value){
 export function semanticFingerprint(value){return hash(semantic(value));}
 
 const EXECUTABLE_BUILD_NAMES=new Set(
-  AUGMENT_DEFINITIONS.filter(x=>Array.isArray(x.effects)&&x.effects.length>0).map(x=>`${x.characterId}:${x.build}`)
+  AUGMENT_DEFINITIONS.filter(x=>x.executable===true).map(x=>`${x.characterId}:${x.build}`)
 );
 export const STRESS_SCENARIOS=Object.freeze([
   {
