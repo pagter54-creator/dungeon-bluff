@@ -205,6 +205,7 @@ export function negotiateReferenceIntents(intents,{seed='reference',contextKey='
       finalChoice:final.finalNumber,
       negotiationChanged,
       changeReason:negotiationChanged?reasons.get(intent.playerId):'KEEP_FIRST_CHOICE',
+      yielded:reasons.get(intent.playerId)==='YIELD_TO_AVOID_COLLISION',
       collisionExpectedBeforeNegotiation:Boolean(before.get(intent.playerId)),
       collisionExpectedAfterNegotiation:Boolean(after.get(intent.playerId)),
       candidateTransitions:transitionCounts.get(intent.playerId)||0
@@ -220,11 +221,11 @@ export function summarizeReferenceTurns(turns){
     const row=bucket[key]||(bucket[key]={
       intents:0,firstChoiceKept:0,yieldCount:0,actualCollisionCount:0,validAttackCount:0,
       availableNumberTotal:0,beforeConflictCount:0,afterConflictCount:0,damage:0,
-      availableBuckets:{}
+      availableBuckets:{},availableSignatureBuckets:{}
     });
     row.intents++;
     if(!record.negotiationChanged)row.firstChoiceKept++;
-    if(record.negotiationChanged)row.yieldCount++;
+    if(record.yielded)row.yieldCount++;
     if(record.actualCollision)row.actualCollisionCount++;
     if(record.validAttack)row.validAttackCount++;
     row.availableNumberTotal+=(record.availableNumbers||[]).length;
@@ -234,6 +235,9 @@ export function summarizeReferenceTurns(turns){
     const count=String((record.availableNumbers||[]).length);
     const b=row.availableBuckets[count]||(row.availableBuckets[count]={intents:0,collisions:0});
     b.intents++;if(record.actualCollision)b.collisions++;
+    const signature=(record.availableNumbers||[]).join(',');
+    const s=row.availableSignatureBuckets[signature]||(row.availableSignatureBuckets[signature]={intents:0,collisions:0});
+    s.intents++;if(record.actualCollision)s.collisions++;
   };
   for(const record of records){add(byPlayer,record.playerId,record);add(byCharacter,record.characterId,record);}
   const decorate=bucket=>Object.fromEntries(Object.entries(bucket).map(([key,row])=>[key,{
