@@ -37,7 +37,7 @@ export function pveMapGeometry(run){
 }
 export function pveMapOverlayMarkup(run,userId,{visitedNodes=[]}={}){
   const map=run?.map;if(!map)return '';
-  const geo=pveMapGeometry(run),reachable=new Set(pveConnectedNodes(run).map(n=>n.id)),visited=new Set(visitedNodes);
+  const geo=pveMapGeometry(run),reachable=new Set(pveConnectedNodes(run).map(n=>n.id)),visited=new Set([...(map.visitedNodeIds||[]),...visitedNodes]);
   const canVote=run.phase==='MAP_VOTE',votes=map.votes||{},me=(run.players||[]).find(p=>p.userId===userId);
   const lines=geo.edges.map(edge=>'<line x1="'+edge.a.x+'" y1="'+edge.a.y+'" x2="'+edge.b.x+'" y2="'+edge.b.y+'" class="'+(map.currentNodeId===edge.from&&reachable.has(edge.to)?'reachable':'')+'"/>').join('');
   const nodes=geo.nodes.map(node=>{
