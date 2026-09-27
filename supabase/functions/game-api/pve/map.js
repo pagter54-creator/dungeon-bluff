@@ -17,10 +17,9 @@ export function generateFloorMap(run,depthCount=8){
   for(let depth=1;depth<depthCount;depth++){
     const from=nodes.filter(n=>n.depth===depth), to=nodes.filter(n=>n.depth===depth+1);
     for(let i=0;i<from.length;i++){
-      const first=to[Math.min(i,to.length-1)].id;
-      const list=[first];
-      if(to.length>1&&to[1-Math.min(i,1)]?.id!==first)list.push(to[1-Math.min(i,1)].id);
-      edges[from[i].id]=[...new Set(list)];
+      // A route stays in its lane for two rooms, then opens into a new choice.
+      // Both lanes meet at the boss.
+      edges[from[i].id]=to.length===1?[to[0].id]:depth%3===0?to.map(node=>node.id):[to[i].id];
     }
   }
   return {
