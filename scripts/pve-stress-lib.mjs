@@ -103,7 +103,14 @@ export const CANONICAL_RULES=Object.freeze([
   {id:'RULE-05',topic:'Combat-only resource lifecycle',rule:'COMBAT_END에서 resetScope=COMBAT 자원을 clear하고 COMBAT_START에서도 방어적으로 initialize한다. run-persistent 자원은 유지한다.'}
 ]);
 
-export const SPEC_AMBIGUITIES=Object.freeze([]);
+export const SPEC_AMBIGUITIES=Object.freeze([
+  {
+    id:'AMB-T05-MULTI-IMP',
+    scenarioId:'T05',
+    topic:'multiple Imp PRE_COLLISION_STEAL ordering',
+    detail:'The current BETA rules define one Imp stealing from matching non-Imp players but do not define simultaneous ordering when multiple Imps are present. T05 contains exactly one Imp. The mutation resolver hard-fails MULTI_IMP_STEAL_UNDEFINED instead of inventing a rule.'
+  }
+]);
 
 function makeMembers(characterIds){
   return characterIds.map((character_id,i)=>({
