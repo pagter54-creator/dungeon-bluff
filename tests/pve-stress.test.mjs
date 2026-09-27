@@ -20,12 +20,12 @@ test('PVE stress scenario availability activates T00 only when its four builds a
   assert.equal(status.T04.available,true);
   assert.equal(status.T03.available,true);
   assert.equal(status.T02.available,true);
-  assert.equal(status.T06.available,false,'T06');
+  assert.equal(status.T06.available,true,'T06');
   assert.deepEqual(status.T00.missingCharacters,[]);
   assert.deepEqual(status.T00.missingBuildEffects,[]);
   assert.deepEqual(status.T09.missingCharacters,[]);
   assert.deepEqual(status.T09.missingCapabilities,[]);
-  assert.ok(skippedScenarioReport().some(x=>x.scenarioId==='T06'));
+  assert.equal(skippedScenarioReport().length,0);
 });
 
 test('PVE stress T00 reference runner executes three deterministic F1 encounters with executable effects',()=>{
