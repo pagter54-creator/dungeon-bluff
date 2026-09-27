@@ -86,9 +86,14 @@ async function playFloor({seed,characters,mixed=false}){
   const admin=memoryAdmin(makeBundle(characters,{mixed})),humanUsers=mixed?['u0']:characters.map((_,i)=>`u${i}`);
   let seq=1,guard=0,run=await call(admin,'u0',{action:'pve.createRun',room_id:ROOM_ID,seed,depth_count:8});
   const visited=[];
+  let lastVisitedNodeId=null;
   while(guard++<1200&&!['FLOOR_CLEAR','RUN_FAILED'].includes(run.phase)){
+    if(run.currentRoomNodeId&&run.currentRoomNodeId!==lastVisitedNodeId){
+      visited.push(run.map.nodes.find(n=>n.id===run.currentRoomNodeId)?.type);
+      lastVisitedNodeId=run.currentRoomNodeId;
+    }
     if(run.phase==='MAP_VOTE'){
-      const nodeId=routeNode(run),node=run.map.nodes.find(n=>n.id===nodeId);visited.push(node.type);
+      const nodeId=routeNode(run);
       for(const userId of humanUsers){
         run=await call(admin,userId,{action:'pve.voteNextRoom',run_id:run.id,action_id:aid(seq++),expected_version:admin.version,node_id:nodeId});
         if(run.phase!=='MAP_VOTE')break;
