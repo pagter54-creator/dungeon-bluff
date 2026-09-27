@@ -146,7 +146,10 @@ test('PVE-UI-17 augment offer renders three card-style choices when server provi
 });
 test('PVE-UI-18 Result overlay leads back to map and augment can layer above a passive result',async()=>{
  const run=projectRun(baseRun(),'p0');run.phase='ROOM_RESULT';
- const html=pveRoomResultOverlayMarkup(bundle(run),run);assert.match(html,/ROOM COMPLETE/);assert.match(html,/data-action="pve-map-open"/);
+ run.roomResult={readyPlayerIds:['p0']};
+ const html=pveRoomResultOverlayMarkup(bundle(run),run,{playerId:'p0'});
+ assert.match(html,/ROOM COMPLETE/);assert.match(html,/room-result-sheet pve-room-result-sheet/);assert.match(html,/room-result-party/);assert.match(html,/summary-changes/);
+ assert.match(html,/data-action="pve-map-open"/);assert.match(html,/확인 완료 ✓/);assert.match(html,/data-unavailable="true"/);
  const passive=pveRoomResultOverlayMarkup(bundle(run),run,{interactive:false});assert.doesNotMatch(passive,/data-action="pve-room-ready"/);assert.match(passive,/증강 선택 후/);
  const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');assert.match(app,/resumePhase==='ROOM_RESULT'.*interactive:false/s);
 });
@@ -197,4 +200,12 @@ test('PVE-UI-20 competitive Gameplay keeps its existing shared player/card/revea
  assert.match(block,/partyPanels\(bundle,players/);
  assert.match(block,/mobileSelection\(player/);
  assert.match(block,/renderGame\(result\); await reveal\(result\)/);
+});
+
+test('PVE choice popup stacks above the shared competitive result overlay',async()=>{
+ const pveCss=await readFile(new URL('../src/pve-beta.css',import.meta.url),'utf8');
+ const battleCss=await readFile(new URL('../src/battle-layout.css',import.meta.url),'utf8');
+ const modal=Number(pveCss.match(/\.pve-modal-layer\{[^}]*z-index:(\d+)/)?.[1]);
+ const result=Number(battleCss.match(/\.room-result-overlay\{[^}]*z-index:(\d+)/)?.[1]);
+ assert.ok(modal>result,`PVE modal z-index ${modal} must exceed result overlay ${result}`);
 });
