@@ -259,7 +259,7 @@ export async function main(argv=process.argv.slice(2)){
   const summary={
     schemaVersion:STRESS_SCHEMA_VERSION,
     build:{commit:commitHash()},
-    mode:opts.scenario?'replay':opts.mode,
+    mode:opts.seed?'replay':opts.mode,
     requestedSeedCount:seedCount(opts),
     hardFailCount:hardFailures,
     balanceWarningCount:allRows.filter(x=>x.status==='BALANCE_WARNING').length,
