@@ -40,7 +40,6 @@ export function buildInitialPveRun(bundle,{seed=null,depthCount=8,now=Date.now()
   installRelicCatalog(run,F1_RELIC_DEFINITIONS);
   run.map=generateFloorMap(run,Number.isInteger(depthCount)&&depthCount>=2&&depthCount<=12?depthCount:8);
   run.map.voteDeadline=new Date(now+15000).toISOString();
-  beginEntryLoading(run);
   return run;
 }
 export function projectPveRunForUser(run,userId){
@@ -131,6 +130,7 @@ export async function handlePveAction({admin,user,body,json}){
     if(bundle.session)return fail(json,'기존 PVP 원정이 진행 중입니다.');
     let run;try{run=buildInitialPveRun(bundle,{seed:body.seed,depthCount:body.depth_count});}
     catch(error){return fail(json,error.message||'PVE 캐릭터 구성을 확인해 주세요.',409);}
+    if(canonicalRoomMode)beginEntryLoading(run);
     const createArgs=canonicalRoomMode
       ? {name:'pve_start_room',args:{p_run_id:run.id,p_room:body.room_id,p_expected:bundle.room.version,p_seed:run.seed,p_state:run}}
       : {name:'pve_create_run',args:{p_run_id:run.id,p_room:body.room_id,p_seed:run.seed,p_state:run}};
