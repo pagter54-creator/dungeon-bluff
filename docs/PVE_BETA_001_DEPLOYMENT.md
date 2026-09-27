@@ -25,21 +25,24 @@ PVE BETA-001을 **human playtest용 테스트 환경**에 올리기 위한 절�
 - `pve_runs.rewards_committed`와 `pve_results(run_id,user_id)` PK로 중복 정산을 막는다.
 - 클라이언트의 `gold`, `rpDelta` payload는 정산 근거로 사용하지 않는다.
 
-## 변경 migration
+## 변경 migrations
 
-`supabase/migrations/202609280001_game_modes_pve_beta.sql`
+- `supabase/migrations/202609280001_game_modes_pve_beta.sql` — room mode / PVE start / 초기 settlement 기반
+- `supabase/migrations/202609280002_pve_beta_reward_canonical.sql` — 실패·탈주 0G, clear-only Gold, RP 0 canonicalization
+
+`0001`을 이미 적용한 테스트 DB에서도 파일을 다시 쓰지 않고 `0002`만 추가 적용할 수 있도록 migration history를 분리한다.
 
 검증 대상:
 
 - 기존 room row: `game_mode='COMPETITIVE'` backfill/default
 - 허용 값: `COMPETITIVE | COOP_PVE`
 - `pve_results.rating_delta = 0` DB constraint
-- terminal outcome: `RUN_CLEAR | RUN_FAILED | ABANDONED`
-- `pve_start_room`: COOP 전용 atomic start
-- `pve_settle_rewards`: 서버 runGold 기반 정산
-- `pve_abandon_closed_room`: unfinished run을 ABANDONED/0G settlement 상태로 종료
+- `0001`: `pve_start_room` COOP 전용 atomic start
+- `0002`: terminal outcome `RUN_CLEAR | RUN_FAILED | ABANDONED`
+- `0002`: `pve_settle_rewards` 서버 runGold 기반 canonical 정산
+- `0002`: `pve_abandon_closed_room` unfinished run을 ABANDONED/0G committed 상태로 종료
 
-이 migration은 기존 경쟁 `game_results`/RP 공식을 수정하지 않는다.
+두 migration 모두 기존 경쟁 `game_results`/RP 공식을 수정하지 않는다.
 
 ## 1. 로컬 자동검증
 
@@ -95,6 +98,8 @@ npx supabase db push --dry-run
 - 링크된 ref가 의도한 테스트 ref가 아님
 - migration history가 로컬과 불일치
 - 예상하지 않은 pending migration 존재
+- `0001`이 이미 remote applied인데 local 내용이 다르게 관리되는 흔적이 있음
+- `0002` 외 예상하지 않은 PVE reward migration이 함께 pending
 - `db push --dry-run` 결과에 destructive/무관한 변경이 보임
 
 기존 production 프로젝트는 과거 SQL Editor 적용 이력이 있으므로 이 BETA 절차에서 링크하거나 `db push`하지 않는다.
