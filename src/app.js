@@ -119,6 +119,8 @@ async function accept(next, restoring = false) {
   if (newRoom) roomEpoch++;
   if(newSession){entryError='';entryProgress='';entryCompleted=null;}
   bundle = next;
+  void getAudio().setScene(next.session||next.run ? 'dungeon' : 'lobby');
+  if (newRoom) await api.subscribe(next.room.id, sync, status);
   if(next.run){
     pveRunIdentity=next.run.id;
     if(['RUN_CLEAR','RUN_FAILED','ABANDONED'].includes(next.run.phase)&&rewardRefreshSession!==next.run.id){rewardRefreshSession=next.run.id;void refreshAccount().catch(()=>{});}
@@ -128,13 +130,11 @@ async function accept(next, restoring = false) {
   }
   pveRunIdentity=null;
   if (next.session?.status !== 'active' && next.session && rewardRefreshSession !== next.session.id) { rewardRefreshSession=next.session.id; void refreshAccount().catch(()=>{}); }
-  void getAudio().setScene(next.session||next.run ? 'dungeon' : 'lobby');
   if (next.session?.id !== sessionIdentity) {
     sessionIdentity = next.session?.id || null;
     lastResult = restoring ? (next.session?.state.lastResult?.turnIndex || 0) : 0;
     queue = []; selected = null; useSkill = false;
   }
-  if (newRoom) await api.subscribe(next.room.id, sync, status);
   view = next.session ? 'game' : 'lobby';
   if (next.session) {
     void showGameBackground(next.session.id);
