@@ -30,6 +30,12 @@ jobs:
       - name: Run project checks
         run: npm run check
 
+      - name: Run PVE beta deployment preflight
+        env:
+          PVE_BETA_PROJECT_REF: aaaaaaaaaaaaaaaaaaaa
+          PVE_BETA_SUPABASE_URL: https://aaaaaaaaaaaaaaaaaaaa.supabase.co
+        run: npm run pve:beta:preflight
+
       - name: Run PVE stress smoke
         run: npm run pve:stress:smoke
 
