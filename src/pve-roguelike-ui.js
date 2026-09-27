@@ -88,7 +88,7 @@ export function pveAugmentPopupMarkup(run){
 export function pveRoomResultOverlayMarkup(bundle,run,{interactive=true}={}){
   const rows=(run.players||[]).map(p=>{const m=bundle.members?.find(x=>x.id===p.playerId);return '<div><b>'+esc(m?.display_name||p.displayName)+'</b><span>HP '+p.hp+'/'+p.maxHp+'</span><span>EXP '+(p.growthExp||0)+'</span><span>RUN GOLD '+(p.runGold||0)+'G</span></div>';}).join('');
   const actions=interactive?'<div class="room-result-actions"><button class="button primary" data-action="pve-room-ready">결과 확인 ✓</button><button class="button secondary" data-action="pve-map-open">지도로 ◇</button></div>':'<div class="room-result-actions"><span class="muted">증강 선택 후 결과 확인을 계속합니다.</span></div>';
-  return '<section class="room-result-overlay pve-room-result"><div class="room-result-card"><div class="eyebrow">ROOM COMPLETE</div><h2>방 공략 완료</h2><div class="pve-result-players">'+rows+'</div><p>모든 인간 플레이어가 준비하면 다음 경로 투표로 이동합니다.</p>'+actions+'</div></section>';
+  return '<section class="room-result-overlay pve-room-result"><div class="room-result-sheet pve-room-result-sheet"><div class="eyebrow">ROOM COMPLETE</div><h2>방 공략 완료</h2><div class="pve-result-players">'+rows+'</div><p>모든 인간 플레이어가 준비하면 다음 경로 투표로 이동합니다.</p>'+actions+'</div></section>';
 }
 export function pveTerminalMarkup(bundle,run,me){
   const clear=run.phase==='RUN_CLEAR',mineGold=Number(me?.runGold)||0,settlement=bundle.pveSettlement;
