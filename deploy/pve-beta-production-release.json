@@ -10,5 +10,8 @@
     "storage": "public.pve_runtime_flags",
     "key": "COOP_PVE_ENABLED",
     "initialValue": false
-  }
+  },
+  "postReleaseMigrations": [
+    "202609280003_pve_abandon_rpc_privileges.sql"
+  ]
 }
