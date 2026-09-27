@@ -1,0 +1,14 @@
+{
+  "release": "PVE_BETA_001",
+  "requiredMigrations": [
+    "202609270001_pve_core.sql",
+    "202609270002_pve_hardening_telemetry.sql",
+    "202609280001_game_modes_pve_beta.sql",
+    "202609280002_pve_beta_reward_canonical.sql"
+  ],
+  "killSwitch": {
+    "storage": "public.pve_runtime_flags",
+    "key": "COOP_PVE_ENABLED",
+    "initialValue": false
+  }
+}
