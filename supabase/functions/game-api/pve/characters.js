@@ -548,7 +548,13 @@ export function baseDamageForCharacter(player,resolved){
 export function onCombatEndCharacter(player,run=null){
   const priv=run?.combat?.privateByPlayer?.[player.playerId];
   if(player.characterId==='demon_swordsman'&&player.augments.includes('aug-351')){
-    if(priv?.demonNormalCardPool)player.cardPool=structuredClone(priv.demonNormalCardPool);
+    if(priv?.demonNormalCardPool){
+      player.cardPool=structuredClone(priv.demonNormalCardPool);
+      priv.remainingCardIds=[...(priv.demonNormalRemaining||[])];
+      priv.spentCardIds=[...(priv.demonNormalSpent||[])];
+      priv.cycleIndex=priv.demonNormalCycleIndex||priv.cycleIndex||1;
+      delete priv.selectedCardId;
+    }
     player.publicResources.devour=0;
   }
   clearCombatResources(player);
