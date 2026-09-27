@@ -124,10 +124,24 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
       }
     ]
   },
+  'aug-101':{
+    executable:true,
+    source:'BETA_v0.1',
+    specialHandlers:['WHITE_MAGE'],
+    config:{healAmount:1,maxTargetsPerTurn:1,excludeSelf:true},
+    effects:[]
+  },
   'aug-111':{
     executable:true,
     source:'BETA_v0.1',
     specialHandlers:['REVERSE_MATH'],
+    effects:[]
+  },
+  'aug-041':{
+    executable:true,
+    source:'BETA_v0.1',
+    specialHandlers:['GUARDIAN_WALL'],
+    config:{guardedAlliesPerTurn:1,redirectCount:1,redirectDamageMode:'FULL'},
     effects:[]
   },
   'aug-051':{
@@ -159,6 +173,13 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
         tags:['T05','NUMBER_MUTATION']
       }
     ]
+  },
+  'aug-321':{
+    executable:true,
+    source:'BETA_v0.1',
+    specialHandlers:['TRANSFUSION'],
+    config:{bloodPerValidAttack:1,bloodCost:4,bloodMax:6,healAmount:1,maxTransfusionsPerTurn:1,includeSelf:true},
+    effects:[]
   },
   'aug-301':{
     executable:true,
