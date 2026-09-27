@@ -2,6 +2,7 @@ name: Project Checks
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
 permissions:
@@ -137,3 +138,55 @@ jobs:
           name: pve-stress-t03-balance-${{ github.sha }}
           path: artifacts/pve-stress-t03-balance/
           if-no-files-found: error
+
+
+  production_release_backend:
+    name: PVE production backend release
+    if: github.event_name == 'pull_request' && github.event.action == 'ready_for_review' && github.head_ref == 'feat/pve-core-001-004'
+    needs: test
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pve-production-release
+      cancel-in-progress: false
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Verify deployment secrets
+        shell: bash
+        run: |
+          test -n "$SUPABASE_ACCESS_TOKEN" || { echo "Missing SUPABASE_ACCESS_TOKEN"; exit 1; }
+          test -n "$SUPABASE_PROJECT_ID" || { echo "Missing SUPABASE_PROJECT_ID"; exit 1; }
+          test -n "$SUPABASE_DB_URL" || { echo "Missing SUPABASE_DB_URL"; exit 1; }
+
+      - name: Exact production release preflight
+        run: npm run pve:production:preflight
+
+      - name: Apply canonical production migrations
+        run: supabase db push --db-url "$SUPABASE_DB_URL"
+
+      - name: Verify production migrations after push
+        run: npm run pve:production:preflight
+
+      - name: Deploy production game-api
+        run: supabase functions deploy game-api --project-ref "$SUPABASE_PROJECT_ID"
