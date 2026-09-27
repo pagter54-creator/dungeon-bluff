@@ -18,6 +18,8 @@ export const PVE_RESOURCE_DEFS=Object.freeze({
   greed:{resetScope:'TURN'},
   revelation:{resetScope:'COMBAT',baseMax:1},
   revenge:{resetScope:'COMBAT',baseMax:1},
+  blood:{resetScope:'COMBAT',baseMax:6},
+  guardianTargetPlayerId:{resetScope:'COMBAT'},
   combo:{resetScope:'COMBAT'},
   poison:{resetScope:'COMBAT'},
   break:{resetScope:'COMBAT'},
