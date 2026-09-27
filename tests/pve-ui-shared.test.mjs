@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {pveMapGeometry,pveMapOverlayMarkup,pveShopMarkup,pveRestActionsMarkup,pveRelicStripMarkup,pveAugmentPopupMarkup,pveRoomResultOverlayMarkup} from '../src/pve-roguelike-ui.js';
 import {pveGameplayPlayers,adaptPveTurnResult} from '../src/pve-gameplay-adapter.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
+import {beginEntryLoading,finishEntryLoading} from '../supabase/functions/game-api/entry-loading.js';
 
 const user='00000000-0000-4000-8000-000000000001';
 const baseRun=()=>({
@@ -58,6 +59,18 @@ test('PVE-UI-07 human asset preload reuses battle loading module',async()=>{
  const source=await readFile(new URL('../src/battle-loading.js',import.meta.url),'utf8');
  assert.match(source,/loadPveEntryAssets/);assert.match(source,/member=>member\.member_type==='human'/);
  const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');assert.match(app,/loadPveEntryAssets\(run,bundle\.members/);
+});
+test('PVE-UI-07 server reuses the existing human entry-loading barrier',async()=>{
+ const run={phase:'MAP_VOTE'};beginEntryLoading(run);
+ assert.deepEqual(run.entryLoading,{ready:[]});assert.equal(run.phase,'MAP_VOTE');
+ const members=[{id:'p0',member_type:'human'},{id:'p1',member_type:'human'},{id:'p2',member_type:'ai'}];
+ run.entryLoading.ready.push('p0');assert.equal(finishEntryLoading(run,members),false);
+ run.entryLoading.ready.push('p1');assert.equal(finishEntryLoading(run,members),true);
+ assert.equal(run.entryLoading,undefined);assert.equal(run.phase,'MAP_VOTE');
+ const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
+ const api=await readFile(new URL('../supabase/functions/game-api/index.ts',import.meta.url),'utf8');
+ assert.match(app,/api\.request\('assets_loaded'/);assert.match(app,/run\.entryLoading/);
+ assert.match(api,/markPveEntryAssetsLoaded/);assert.match(api,/action==='assets_loaded'/);
 });
 test('PVE-UI-08/09 map draws actual DAG and combat map cannot vote',()=>{
  const run=projectRun(baseRun(),'p0'),geo=pveMapGeometry(run);
