@@ -86,12 +86,12 @@ test('PVE map popup stays above the result sheet and remains dismissible',async(
  assert.match(html,/data-action="pve-map-close"/);
  const css=await readFile(new URL('../src/pve-beta.css',import.meta.url),'utf8');
  const resultCss=await readFile(new URL('../src/battle-layout.css',import.meta.url),'utf8');
- const mapZ=Number(css.match(/\\.pve-map-layer\\{[^}]*z-index:(\\d+)/)?.[1]);
- const resultZ=Number(resultCss.match(/\\.room-result-overlay\\{[^}]*z-index:(\\d+)/)?.[1]);
+ const mapZ=Number(css.match(/\.pve-map-layer\{[^}]*z-index:(\d+)/)?.[1]);
+ const resultZ=Number(resultCss.match(/\.room-result-overlay\{[^}]*z-index:(\d+)/)?.[1]);
  assert.ok(mapZ>resultZ);
  const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
- assert.match(app,/button\\.closest\\('\\.pve-map-layer'\\)\\?\\.remove\\(\\)/);
- assert.match(app,/if\\(pveAnimating\\)\\{updateBusy\\(\\);return;\\}/);
+ assert.ok(app.includes("button.closest('.pve-map-layer')?.remove()"));
+ assert.ok(app.includes("if(pveAnimating){updateBusy();return;}"));
 });
 test('PVE-UI-07 human asset preload reuses battle loading module',async()=>{
  const source=await readFile(new URL('../src/battle-loading.js',import.meta.url),'utf8');
