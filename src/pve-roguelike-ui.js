@@ -85,6 +85,8 @@ export function pveRewardPromptMarkup(run,me){
     const cards=(room.relicIds||[]).map(id=>{const relic=relicUi(id);return '<button data-action="pve-reward-relic" data-relic-id="'+esc(id)+'"><i>✦</i><b>'+esc(relic.name)+'</b><p>'+esc(relic.text)+'</p></button>';}).join('');
     return '<div class="pve-modal-layer"><section class="pve-choice-popup"><div class="eyebrow">RELIC REWARD</div><h2>유물을 선택하세요.</h2><div class="pve-choice-cards">'+cards+'</div></section></div>';
   }
+  if(room.pickOrder?.length)return '<section class="pve-context-panel"><div class="eyebrow">RELIC REWARD</div><h3>유물 선택 대기 중</h3><p>다른 플레이어가 유물을 선택하고 있습니다.</p></section>';
+  if(room.readyPlayerIds?.includes(me?.playerId))return '<section class="pve-context-panel"><div class="eyebrow">REWARD CONTEST</div><h3>카드 제출 완료</h3><p>동료의 선택을 기다리고 있습니다.</p></section>';
   return '<section class="pve-context-panel"><div class="eyebrow">REWARD CONTEST</div><h3>카드를 제출해 보상 우선권을 정합니다.</h3><p>기존 카드 선택 영역에서 한 장을 고른 뒤 제출하세요.</p></section>';
 }
 export function pveAugmentPopupMarkup(run){
