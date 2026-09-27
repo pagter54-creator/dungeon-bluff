@@ -103,6 +103,7 @@ async function performPve(action,params={}){
     if(response.run){
       bundle={...bundle,run:response.run,pveSettlement:response.settlement??bundle.pveSettlement,pveRewardsCommitted:response.settlement?.settled===true?true:bundle.pveRewardsCommitted};
       if(response.run.map?.currentNodeId)pveVisitedNodes.add(response.run.map.currentNodeId);
+      if(before.phase!=='MAP_VOTE'&&response.run.phase==='MAP_VOTE')pveMapOpen=true;
       if(['RUN_CLEAR','RUN_FAILED','ABANDONED'].includes(response.run.phase))void refreshAccount().catch(()=>{});
       const presentation=adaptPveTurnResult(bundle,before,response.run);
       if(presentation&&presentation.turnIndex>pveLastPresentedTurn&&!document.hidden)await presentPveTurn(before,response.run,presentation);
@@ -166,7 +167,7 @@ function renderPveRoom(run){
   if(run.phase==='AUGMENT_CHOICE')app.insertAdjacentHTML('beforeend',pveAugmentPopupMarkup(run));
   if(run.phase==='ROOM_RESULT')app.insertAdjacentHTML('beforeend',pveRoomResultOverlayMarkup(bundle,run));
   if(run.phase==='FLOOR_CLEAR'||run.phase==='FLOOR_TRANSITION')app.insertAdjacentHTML('beforeend','<section class="room-result-overlay pve-room-result"><div class="room-result-card"><div class="eyebrow">FLOOR CLEAR</div><h2>Floor '+escape(run.floor)+' 공략 완료</h2><button class="button secondary" data-action="pve-map-open">지도 확인 ◇</button></div></section>');
-  if(pveMapOpen||run.phase==='MAP_VOTE')app.insertAdjacentHTML('beforeend',pveMapOverlayMarkup(run,api.user?.id,{visitedNodes:[...pveVisitedNodes]}));
+  if(pveMapOpen)app.insertAdjacentHTML('beforeend',pveMapOverlayMarkup(run,api.user?.id,{visitedNodes:[...pveVisitedNodes]}));
   bindEventArtFallback(app);updateBusy();
 }
 async function presentPveTurn(beforeRun,afterRun,presentation){
@@ -196,13 +197,14 @@ async function accept(next, restoring = false) {
   if (bundle?.room.id === next.room.id && next.room.version < bundle.room.version) return;
   if (newRoom) roomEpoch++;
   if(newSession){entryError='';entryProgress='';entryCompleted=null;}
-  if(newPveRun){pveSelected=null;pveUseSkill=false;pveMapOpen=false;pveShopReservation=null;pveEngraveMode=false;pveEntryError='';pveEntryProgress='';pveEntryCompleted=null;pveVisitedNodes.clear();pveLastPresentedTurn=restoring?(next.run?.combat?.publicTurnResult?.turn||0):0;}
+  if(newPveRun){pveSelected=null;pveUseSkill=false;pveMapOpen=next.run?.phase==='MAP_VOTE';pveShopReservation=null;pveEngraveMode=false;pveEntryError='';pveEntryProgress='';pveEntryCompleted=null;pveVisitedNodes.clear();pveLastPresentedTurn=restoring?(next.run?.combat?.publicTurnResult?.turn||0):0;}
   bundle = next;
   void getAudio().setScene(next.session||next.run ? 'dungeon' : 'lobby');
   if (newRoom) await api.subscribe(next.room.id, sync, status);
   if(next.run){
     pveRunIdentity=next.run.id;
     if(next.run.map?.currentNodeId)pveVisitedNodes.add(next.run.map.currentNodeId);
+    if(previousPve?.phase!=='MAP_VOTE'&&next.run.phase==='MAP_VOTE')pveMapOpen=true;
     if(['RUN_CLEAR','RUN_FAILED','ABANDONED'].includes(next.run.phase)&&rewardRefreshSession!==next.run.id){rewardRefreshSession=next.run.id;void refreshAccount().catch(()=>{});}
     const presentation=previousPve?adaptPveTurnResult(bundle,previousPve,next.run):null;
     if(presentation&&presentation.turnIndex>pveLastPresentedTurn&&!pveAnimating&&!document.hidden)await presentPveTurn(previousPve,next.run,presentation);
@@ -433,8 +435,8 @@ document.addEventListener('click', async event => {
   if (action === 'add-ai') void perform('add_ai', { ai_type: button.dataset.type });
   if (action === 'remove-ai') void perform('remove_ai', { member_id: button.dataset.id });
   if (action === 'start') void perform('start_game');
-  if(action==='pve-map-open'){pveMapOpen=true;renderPve();}
-  if(action==='pve-map-close'){pveMapOpen=false;renderPve();}
+  if(action==='pve-map-open'){pveMapOpen=true;if(pveAnimating)app.insertAdjacentHTML('beforeend',pveMapOverlayMarkup(bundle.run,api.user?.id,{visitedNodes:[...pveVisitedNodes]}));else renderPve();}
+  if(action==='pve-map-close'){pveMapOpen=false;if(pveAnimating)button.closest('.pve-map-overlay')?.remove();else renderPve();}
   if(action==='pve-vote')void performPve('pve.voteNextRoom',{node_id:button.dataset.nodeId});
   if(action==='pve-relic-info'){const relic=relicUi(button.dataset.relicId);showModal('<div class="eyebrow">RELIC</div><h2>'+escape(relic.name)+'</h2><p>'+escape(relic.text)+'</p>');}
   if(action==='pve-submit-card')void performPve('pve.submitCard',{card_instance_id:button.dataset.cardId,skill_intent:button.dataset.useSkill==='true'});
