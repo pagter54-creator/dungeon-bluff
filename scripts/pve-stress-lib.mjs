@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import {PVE_CHARACTER_DEFS,isCardSelectableForCharacter,activateImmediateCharacterSkill,PveSkillError} from '../supabase/functions/game-api/pve/characters.js';
+import {PVE_CHARACTER_DEFS,isCardSelectableForCharacter,activateImmediateCharacterSkill,PveSkillError,resolvePostCollisionEffects} from '../supabase/functions/game-api/pve/characters.js';
 import {AUGMENT_DEFINITIONS,AUGMENT_BY_ID} from '../supabase/functions/game-api/pve/augment-catalog.js';
 import {PVE_RESOURCE_DEFS,resourceMax} from '../supabase/functions/game-api/pve/resources.js';
 import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/pve/model.js';
@@ -848,6 +848,262 @@ export function t05GoldenComparable(result){
   };
 }
 
+const T04_CHARACTER_IDS=Object.freeze(['warrior','imp','berserker','vampire']);
+const T04_AUGMENTS=Object.freeze([['aug-051'],['aug-181'],['aug-131'],['aug-301']]);
+const T04_BASE_BERSERKER_AUGMENTS=Object.freeze([['aug-051'],['aug-181'],[],['aug-301']]);
+const T04_FIXTURE_MONSTER=Object.freeze({
+  id:'t04_fixture_dummy',name:'T04 Collision Dummy',tier:'NORMAL',baseHp:999,
+  pattern:[{type:'CHARGE',telegraphText:'fixture',payload:{}}]
+});
+function t04Run(seed,id,{augments=T04_AUGMENTS}={}){
+  const run=makeCombatRun(`${seed}:${id}`,{
+    caseId:`T04-${id}`,characterIds:T04_CHARACTER_IDS,augmentIdsByPlayer:augments,flame:4,monsterDef:T04_FIXTURE_MONSTER
+  });
+  run.combat.monster.intent={type:'CHARGE',telegraphText:'fixture',payload:{}};
+  return run;
+}
+function t04CardId(run,pid,number){
+  const view=projectRun(run,pid);assertNoHiddenInfo(view,pid);
+  const cards=legalCardsFromView(view,pid).filter(card=>card.baseNumber===number).sort((a,b)=>a.id.localeCompare(b.id));
+  return cards[0]?.id||null;
+}
+function resolveT04Fixture(run,id,{numbers,skills={},thrallId=null,hpByPlayer={},revenge=null,monsterIntent=null}){
+  if(thrallId)run.players[3].publicResources.thrallPlayerId=thrallId;
+  if(revenge!=null)run.players[2].publicResources.revenge=revenge;
+  for(const [pid,hp] of Object.entries(hpByPlayer))run.players.find(p=>p.playerId===pid).hp=hp;
+  if(monsterIntent)run.combat.monster.intent=structuredClone(monsterIntent);
+  for(let i=0;i<numbers.length;i++){
+    const pid=`p${i}`,cardId=t04CardId(run,pid,numbers[i]);
+    if(!cardId)fail('T04_FIXTURE_CARD_MISSING',`${id} missing requested card`,{pid,number:numbers[i]});
+    const skill=skills[pid]||{};
+    submitCard(run,pid,cardId,Boolean(skill.enabled),skill.data??null);
+  }
+  const result=resolveBasicTurn(run);
+  if(!result)fail('SOFTLOCK',`${id} did not resolve`);
+  assertRunInvariants(run);
+  const turn=assertT04CollisionTurn(run,result,{
+    policy:'FIXTURE',targetNumber:null,intentionalParticipantIds:[],intentionalCollisionAttempt:false
+  });
+  return {
+    id,
+    numberHistories:structuredClone(result.numberHistories||[]),
+    mutationEvents:structuredClone(result.mutationEvents||[]),
+    collisionGroups:structuredClone(result.collisionGroups||[]),
+    combatEvents:structuredClone(result.events||[]),
+    damagePackets:structuredClone(result.damagePackets||[]),
+    phaseTrace:[...(result.phaseTrace||[])],
+    hpAfter:Object.fromEntries(run.players.map(p=>[p.playerId,p.hp])),
+    revengeAfter:Number(run.players[2].publicResources.revenge)||0,
+    totalDamage:result.totalDamage,
+    collisionResolutionPasses:result.collisionResolutionPasses,
+    postCollisionEffectPasses:result.postCollisionEffectPasses,
+    checkedTurn:turn
+  };
+}
+function t04Card(fixture,pid){const card=fixture.numberHistories.find(x=>x.playerId===pid);if(!card)fail('T04_FIXTURE_CARD_MISSING','fixture result card missing',{id:fixture.id,pid});return card;}
+function t04Packet(fixture,pid){return fixture.damagePackets.find(x=>x.sourcePlayerId===pid&&!x.followUp)||null;}
+function t04Group(fixture){return fixture.collisionGroups[0]||null;}
+
+export function runT04Fixtures(seed){
+  const fixtures=[];
+  {
+    const run=t04Run(seed,'F1_BERSERKER_BASE_VALID',{augments:T04_BASE_BERSERKER_AUGMENTS});
+    const f=resolveT04Fixture(run,'F1_BERSERKER_BASE_VALID',{numbers:[2,3,4,5],hpByPlayer:{p2:3}});
+    const packet=t04Packet(f,'p2');
+    if(packet?.amount!==5||f.hpAfter.p2!==2)fail('T04_F1','Berserker base valid attack diverged',{f});
+    fixtures.push(f);
+  }
+  {
+    const run=t04Run(seed,'F2_BERSERKER_HP_FLOOR',{augments:T04_BASE_BERSERKER_AUGMENTS});
+    const f=resolveT04Fixture(run,'F2_BERSERKER_HP_FLOOR',{numbers:[2,3,4,5],hpByPlayer:{p2:1}});
+    if(f.hpAfter.p2!==1||t04Packet(f,'p2')?.amount!==5)fail('T04_F2','Berserker self HP floor diverged',{f});
+    fixtures.push(f);
+  }
+  {
+    const run=t04Run(seed,'F3_BERSERKER_BASE_COLLISION_HEAL',{augments:T04_BASE_BERSERKER_AUGMENTS});
+    const f=resolveT04Fixture(run,'F3_BERSERKER_BASE_COLLISION_HEAL',{numbers:[4,1,4,3],hpByPlayer:{p2:1}});
+    if(f.hpAfter.p2!==2||t04Group(f)?.berserkerHeal!==1||t04Card(f,'p2').valid!==false)fail('T04_F3','base collision heal diverged',{f});
+    fixtures.push(f);
+  }
+  {
+    const run=t04Run(seed,'F4_IMMORTAL_MAX_HP_HEAL');
+    const f=resolveT04Fixture(run,'F4_IMMORTAL_MAX_HP_HEAL',{numbers:[4,1,4,3],hpByPlayer:{p2:2}});
+    if(f.hpAfter.p2!==3||t04Group(f)?.berserkerHeal!==1)fail('T04_F4','Immortal collision heal cap diverged',{f});
+    fixtures.push(f);
+  }
+  {
+    const run=t04Run(seed,'F5_REVENGE_GAIN');
+    const f=resolveT04Fixture(run,'F5_REVENGE_GAIN',{
+      numbers:[4,1,4,3],hpByPlayer:{p2:2},
+      monsterIntent:{type:'DIRECT_DAMAGE',telegraphText:'fixture',payload:{targetPlayerId:'p2',amount:1}}
+    });
+    if(f.revengeAfter!==1||f.hpAfter.p2!==2||!f.combatEvents.some(e=>e.type==='BERSERKER_REVENGE_GAINED'))fail('T04_F5','Revenge gain diverged',{f});
+    fixtures.push(f);
+  }
+  {
+    const run=t04Run(seed,'F6_REVENGE_CONSUME');
+    const f=resolveT04Fixture(run,'F6_REVENGE_CONSUME',{numbers:[2,3,4,5],revenge:1});
+    if(t04Packet(f,'p2')?.amount!==7||f.revengeAfter!==0||!f.combatEvents.some(e=>e.type==='BERSERKER_REVENGE_CONSUMED'))fail('T04_F6','Revenge consume diverged',{f});
+    fixtures.push(f);
+  }
+  {
+    const run=t04Run(seed,'F7_SELF_COST_NO_REVENGE');
+    const f=resolveT04Fixture(run,'F7_SELF_COST_NO_REVENGE',{numbers:[2,3,4,5],revenge:0,hpByPlayer:{p2:3}});
+    if(f.hpAfter.p2!==2||f.revengeAfter!==0||f.combatEvents.some(e=>e.type==='BERSERKER_REVENGE_GAINED'))fail('T04_F7','self HP cost generated Revenge',{f});
+    fixtures.push(f);
+  }
+  {
+    const run=t04Run(seed,'F8_KNIGHT_CRUSH_SINGLE');
+    const f=resolveT04Fixture(run,'F8_KNIGHT_CRUSH_SINGLE',{numbers:[5,1,5,2],skills:{p0:{enabled:true}}});
+    const knight=t04Card(f,'p0'),group=t04Group(f);
+    if(knight.valid!==true||knight.crushedCardCount!==1||knight.crushBonusDamage!==1||group?.crushedCardCount!==1)fail('T04_F8','single crush diverged',{f});
+    fixtures.push(f);
+  }
+  {
+    const run=t04Run(seed,'F9_KNIGHT_CRUSH_MULTI');
+    const f=resolveT04Fixture(run,'F9_KNIGHT_CRUSH_MULTI',{numbers:[5,1,5,5],skills:{p0:{enabled:true}}});
+    const knight=t04Card(f,'p0'),group=t04Group(f);
+    if(knight.crushedCardCount!==2||knight.crushBonusDamage!==2||group?.crushedCardCount!==2||new Set(group.crushedCardIds).size!==2)fail('T04_F9','multi crush diverged',{f});
+    fixtures.push(f);
+  }
+  {
+    const run=t04Run(seed,'F10_TOUGHNESS_NO_COLLISION');
+    const f=resolveT04Fixture(run,'F10_TOUGHNESS_NO_COLLISION',{numbers:[5,1,4,2],skills:{p0:{enabled:true}}});
+    const knight=t04Card(f,'p0');
+    if((knight.crushedCardCount||0)!==0||(knight.crushBonusDamage||0)!==0||f.collisionGroups.length!==0)fail('T04_F10','Toughness without collision produced crush',{f});
+    fixtures.push(f);
+  }
+  {
+    const run=t04Run(seed,'F11_STEAL_REMOVES_COLLISION');
+    const f=resolveT04Fixture(run,'F11_STEAL_REMOVES_COLLISION',{numbers:[3,3,1,5],skills:{p0:{enabled:true}}});
+    const knight=t04Card(f,'p0'),berserker=t04Card(f,'p2');
+    if(knight.finalNumber!==2||t04Card(f,'p1').finalNumber!==4||f.collisionGroups.length!==0||(knight.crushedCardCount||0)!==0||(berserker.berserkerCollisionHeal||0)!==0)fail('T04_F11','pre-collision steal did not remove farm collision cleanly',{f});
+    fixtures.push(f);
+  }
+  {
+    const run=t04Run(seed,'F12_SWAP_CREATES_COLLISION');
+    const f=resolveT04Fixture(run,'F12_SWAP_CREATES_COLLISION',{
+      numbers:[5,1,2,5],thrallId:'p2',skills:{p0:{enabled:true},p3:{enabled:true}},hpByPlayer:{p2:1}
+    });
+    const group=t04Group(f),knight=t04Card(f,'p0');
+    if(!group||group.finalNumber!==5||!group.members.includes('p0')||!group.members.includes('p2')||knight.crushedCardCount!==1||group.berserkerHeal!==1)fail('T04_F12','Vampire swap did not create final collision reward',{f});
+    fixtures.push(f);
+  }
+  {
+    const run=t04Run(seed,'F13_FULL_MIXED');
+    const f=resolveT04Fixture(run,'F13_FULL_MIXED',{
+      numbers:[4,4,5,4],thrallId:'p2',skills:{p0:{enabled:true},p3:{enabled:true}},hpByPlayer:{p2:1}
+    });
+    const knight=t04Card(f,'p0'),berserker=t04Card(f,'p2'),group=t04Group(f);
+    const phases=f.phaseTrace;
+    const order=['PRE_COLLISION_SWAP','PRE_COLLISION_STEAL','FINAL_NUMBER_REVEAL','COLLISION_RESOLVE','POST_COLLISION_EFFECTS','VALIDITY_DERIVE','DAMAGE_BUILD'];
+    let cursor=-1;for(const phase of order){const index=phases.indexOf(phase);if(index<=cursor)fail('T04_EVENT_ORDER','full mixed phase order diverged',{phases,phase});cursor=index;}
+    if(knight.finalNumber!==3||berserker.finalNumber!==3||knight.crushedCardCount!==1||group?.berserkerHeal!==1||group?.impStolenBeforeCollision!==2||group?.vampireSwapCount!==1)fail('T04_F13','full mixed result diverged',{f});
+    fixtures.push(f);
+  }
+  {
+    const run=t04Run(seed,'F14_NO_RECURSIVE_REWARDS');
+    const warrior=run.players[0],berserker=run.players[2];
+    const wc=warrior.cardPool.find(card=>card.baseNumber===5),bc=berserker.cardPool.find(card=>card.baseNumber===5);
+    const cards=[
+      {playerId:'p0',cardInstanceId:wc.id,baseNumber:5,workingNumber:5,finalNumber:5,collisionImmune:true,valid:true},
+      {playerId:'p2',cardInstanceId:bc.id,baseNumber:5,workingNumber:5,finalNumber:5,collisionImmune:false,valid:false,invalidReason:'COLLISION'}
+    ];
+    const groups=new Map([[5,cards]]);
+    const eventId=`collision:${run.combat.id}:${run.combat.turn}:5:p0,p2`;
+    const processed=new Set([eventId]),beforeHp=berserker.hp;
+    let caught=null;try{resolvePostCollisionEffects(run,cards,groups,[],[],processed);}catch(error){caught=error;}
+    if(caught?.code!=='COLLISION_REWARD_REENTRY'||berserker.hp!==beforeHp)fail('T04_F14','collision recursion guard failed',{code:caught?.code,beforeHp,afterHp:berserker.hp});
+    fixtures.push({
+      id:'F14_NO_RECURSIVE_REWARDS',collisionEventId:eventId,reentryRejected:true,
+      rejectCode:caught.code,hpUnchanged:true,processedCollisionEventIds:[...processed]
+    });
+  }
+  return {scenarioId:'T04_FIXTURES',seed,status:'PASS',fixtures};
+}
+
+function t04CollisionMetrics(turns){
+  const groups=(turns||[]).flatMap(turn=>turn.collisionGroups||[]);
+  const events=(turns||[]).flatMap(turn=>turn.combatEvents||[]);
+  const attempts=(turns||[]).filter(turn=>turn.intentionalCollisionAttempt);
+  let successfulIntentionalCollisions=0;
+  for(const turn of attempts){
+    const intended=new Set(turn.intentionalParticipantIds||[]);
+    if((turn.collisionGroups||[]).some(group=>(group.members||[]).filter(id=>intended.has(id)).length>=2))successfulIntentionalCollisions++;
+  }
+  const sum=key=>groups.reduce((total,group)=>total+(Number(group[key])||0),0);
+  const resourceCount=groups.reduce((total,group)=>total+(group.resourcesGenerated||[]).reduce((n,r)=>n+(Number(r.amount)||1),0),0);
+  const triggered=groups.reduce((total,group)=>total+(Number(group.triggeredEffectCount)||0),0);
+  return {
+    collisionGroups:groups.length,
+    intentionalCollisionAttempts:attempts.length,
+    successfulIntentionalCollisions,
+    collisionInvalidatedCards:groups.reduce((total,group)=>total+(group.invalidatedPlayers||[]).length,0),
+    crushedCardCount:sum('crushedCardCount'),
+    knightCrushBonusDamage:sum('knightCrushBonusDamage'),
+    berserkerCollisionHeal:sum('berserkerHeal'),
+    berserkerRevengeGain:events.filter(e=>e.type==='BERSERKER_REVENGE_GAINED').reduce((s,e)=>s+(Number(e.amount)||0),0),
+    berserkerRevengeConsume:events.filter(e=>e.type==='BERSERKER_REVENGE_CONSUMED').reduce((s,e)=>s+(Number(e.amount)||0),0),
+    impStolenAmount:groups.length?sum('impStolenBeforeCollision'):(turns||[]).flatMap(turn=>turn.mutationEvents||[]).filter(e=>e.effectId==='imp-steal-summary').reduce((s,e)=>s+(Number(e.totalActuallyStolen)||0),0),
+    vampireSwapCount:(turns||[]).flatMap(turn=>turn.mutationEvents||[]).filter(e=>e.phase==='PRE_COLLISION_SWAP').length,
+    generatedResourceValue:resourceCount,
+    triggeredEffectCount:triggered,
+    avgExtraDamagePerCollision:groups.length?sum('totalImmediateDamageValue')/groups.length:0,
+    avgHealingPerCollision:groups.length?sum('totalHealingValue')/groups.length:0,
+    avgGeneratedResourcePerCollision:groups.length?resourceCount/groups.length:0,
+    avgTriggeredEffectsPerCollision:groups.length?triggered/groups.length:0,
+    recursiveCollisionTriggerCount:sum('recursiveCollisionTriggerCount')
+  };
+}
+function t04Comparison(farm,safe){
+  const farmCombat=farm.combats[0]||{},safeCombat=safe.combats[0]||{};
+  const farmPartyHp=farm.players.reduce((s,p)=>s+(Number(p.hp)||0),0);
+  const safePartyHp=safe.players.reduce((s,p)=>s+(Number(p.hp)||0),0);
+  const farmDpt=Number(farmCombat.partyDpt)||0,safeDpt=Number(safeCombat.partyDpt)||0;
+  const dptRatio=safeDpt>0?farmDpt/safeDpt:(farmDpt>0?Infinity:1);
+  const survivalNotWorse=farmPartyHp>=safePartyHp&&farm.finalFlame>=safe.finalFlame;
+  return {
+    farmDpt,safeDpt,dptRatio,
+    farmTurns:Number(farmCombat.turns)||0,safeTurns:Number(safeCombat.turns)||0,
+    farmPartyHp,safePartyHp,farmFinalFlame:farm.finalFlame,safeFinalFlame:safe.finalFlame,
+    survivalNotWorse,
+    farmDominates:dptRatio>=1.35&&survivalNotWorse
+  };
+}
+export function runT04(seed){
+  const fixtures=runT04Fixtures(seed);
+  const sharedSeed=`${seed}:compare`,common={
+    seed:sharedSeed,caseId:'T04-compare',characterIds:T04_CHARACTER_IDS,augmentIdsByPlayer:T04_AUGMENTS,
+    monsterDef:F1_MONSTER_DEFINITIONS.f1_armored_boar,flame:4
+  };
+  const farm=simulateCombat({...common,policy:'collision_farm'});
+  const safe=simulateCombat({...common,policy:'safe_play'});
+  const collisionMetrics=t04CollisionMetrics(farm.collisionTurns);
+  const safeCollisionMetrics=t04CollisionMetrics(safe.collisionTurns);
+  if(collisionMetrics.recursiveCollisionTriggerCount!==0)fail('RECURSIVE_COLLISION_TRIGGER','T04 collision rewards recursively re-entered collision processing',{seed,collisionMetrics});
+  return {
+    scenarioId:'T04',seed,status:'PASS',outcome:farm.outcome,actionCount:farm.actions+safe.actions,
+    fixtures:fixtures.fixtures,
+    collisionTurns:farm.collisionTurns,safePlayTurns:safe.collisionTurns,
+    collisionMetrics,safeCollisionMetrics,comparison:t04Comparison(farm,safe),
+    combats:farm.combats,effectTriggerCounts:farm.effectTriggerCounts,finalFlame:farm.finalFlame,
+    safeCombats:safe.combats,safeFinalFlame:safe.finalFlame
+  };
+}
+export function t04GoldenComparable(result){
+  return {
+    scenarioId:result.scenarioId,status:result.status,
+    fixtures:(result.fixtures||[]).map(f=>semantic(f)),
+    collisionTimeline:(result.collisionTurns||[]).map(turn=>semantic({
+      turn:turn.turn,policy:turn.policy,targetNumber:turn.targetNumber,
+      intentionalParticipantIds:turn.intentionalParticipantIds,
+      numberHistories:turn.numberHistories,mutationEvents:turn.mutationEvents,
+      collisionGroups:turn.collisionGroups,combatEvents:turn.combatEvents,
+      damagePackets:turn.damagePackets,phaseTrace:turn.phaseTrace,hpAfter:turn.hpAfter,revengeAfter:turn.revengeAfter
+    }))
+  };
+}
+
 const T09_CHARACTER_IDS=Object.freeze(['warrior','mage','prophet','gunner']);
 const T09_FIXTURE_MONSTER=Object.freeze({
   id:'t09_fixture_dummy',name:'T09 Resource Dummy',tier:'NORMAL',baseHp:999,
@@ -1073,6 +1329,7 @@ export function runScenario(scenarioId,seed){
   if(!availability.available)return {scenarioId,seed,status:'SKIP',skipReasons:availability.reasons};
   if(scenarioId==='T00')return runT00(seed);
   if(scenarioId==='T05')return runT05(seed);
+  if(scenarioId==='T04')return runT04(seed);
   if(scenarioId==='T09')return runT09(seed);
   if(scenarioId==='T14')return runT14(seed);
   fail('SCENARIO_RUNNER_NOT_IMPLEMENTED',`${scenarioId} became available but its runner is not implemented yet`,{scenarioId});
@@ -1097,6 +1354,9 @@ export function balanceWarnings(result){
     if(avg<target*.65||avg>target*1.35)warnings.push({code:'TURN_LENGTH_OUTSIDE_35_PERCENT',roomType:room,target,average:avg});
     if(room==='BOSS'&&rows.some(x=>x.turns>=30))warnings.push({code:'BOSS_30_TURNS_OR_MORE',roomType:room,maxTurns:Math.max(...rows.map(x=>x.turns))});
     if(room==='BOSS'&&rows.some(x=>x.turns<=4))warnings.push({code:'BOSS_4_TURNS_OR_LESS',roomType:room,minTurns:Math.min(...rows.map(x=>x.turns))});
+  }
+  if(result.scenarioId==='T04'&&result.comparison?.farmDominates){
+    warnings.push({code:'FARM_DOMINATES',dptRatio:result.comparison.dptRatio,farmDpt:result.comparison.farmDpt,safeDpt:result.comparison.safeDpt,survivalNotWorse:true});
   }
   return warnings;
 }
