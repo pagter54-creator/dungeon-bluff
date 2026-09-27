@@ -8,6 +8,11 @@ import {publishMonsterIntent,executeMonsterIntent} from './monster.js';
 import {beginAugmentChoices} from './augments.js';
 import {applyOwnedEffects} from './effects.js';
 import {initCombatTelemetry,recordCombatTurnTelemetry,finalizeCombatTelemetry} from './telemetry.js';
+import {
+  initializeNumberHistories,recordSelfModification,applyPreCollisionSwap,applyPreCollisionSteal,
+  finalizeNumbers,attachCollisionGroups,attachValidity,attachDamage,assignVampireThralls,
+  validateNumberMutationState
+} from './number-mutation.js';
 
 function cardFor(run,pid,cardId){return run.players.find(p=>p.playerId===pid)?.cardPool.find(c=>c.id===cardId);}
 function playerFor(run,pid){return run.players.find(p=>p.playerId===pid);}
@@ -132,15 +137,15 @@ export function beginTurn(run){
   const active=run.players.filter(p=>p.status!=='DOWNED').map(p=>p.playerId);
   if(active.length&&active.every(pid=>c.turnSubmissions[pid]?.autoSubmitted))return resolveBasicTurn(run);
 }
-export function submitCard(run,playerId,cardInstanceId,skillIntent=false){
+export function submitCard(run,playerId,cardInstanceId,skillIntent=false,skillData=null){
   const c=run.combat;if(!c||c.phase!=='SELECTION_OPEN')throw new Error('Card selection is closed.');
   const p=playerFor(run,playerId);if(!p||p.status==='DOWNED')throw new Error('Player cannot act.');
   if(c.turnSubmissions[playerId]?.autoSubmitted)throw new Error('Stunned player already auto-submitted.');
   const priv=c.privateByPlayer[playerId],card=cardFor(run,playerId,cardInstanceId);
   if(!priv||!priv.remainingCardIds.includes(cardInstanceId)||!card)throw new Error('Card is not available.');
   if(!isCardSelectableForCharacter(p,card))throw new Error('현재 쌍둥이 홀짝 상태에 맞는 카드만 선택할 수 있습니다.');
-  validateCharacterSkillIntent(p,priv,Boolean(skillIntent));
-  c.turnSubmissions[playerId]={playerId,cardInstanceId,skillIntent:Boolean(skillIntent),submittedAt:new Date().toISOString()};
+  validateCharacterSkillIntent(p,priv,Boolean(skillIntent),card,skillData);
+  c.turnSubmissions[playerId]={playerId,cardInstanceId,skillIntent:Boolean(skillIntent),skillData:skillData==null?null:structuredClone(skillData),submittedAt:new Date().toISOString()};
   priv.selectedCardId=cardInstanceId;priv.skillIntent=Boolean(skillIntent);
 }
 export function resolveBasicTurn(run){
@@ -153,29 +158,34 @@ export function resolveBasicTurn(run){
     const sub=c.turnSubmissions[pid],card=cardFor(run,pid,sub.cardInstanceId);if(!card)throw new Error('Submitted card missing.');
     return {playerId:pid,cardInstanceId:card.id,baseNumber:card.baseNumber,workingNumber:card.baseNumber,finalNumber:card.baseNumber,collisionImmune:false,valid:true};
   });
+  const mutationEvents=[],events=[];
+  initializeNumberHistories(cards);
   c.phase='PRE_COLLISION_SELF_MODIFY';phaseTrace.push(c.phase);
-  for(const rc of cards){const p=playerFor(run,rc.playerId);selfModifyCard(p,rc,c.turnSubmissions[rc.playerId]);applyOwnedEffects(run,'PRE_COLLISION_SELF_MODIFY',{player:p,resolved:rc,events:[]});}
-  c.phase='PRE_COLLISION_SWAP';phaseTrace.push(c.phase);
-  c.phase='PRE_COLLISION_STEAL';phaseTrace.push(c.phase);
-  c.phase='FINAL_NUMBER_REVEAL';phaseTrace.push(c.phase);
+  for(const rc of cards){const p=playerFor(run,rc.playerId);selfModifyCard(p,rc,c.turnSubmissions[rc.playerId]);applyOwnedEffects(run,'PRE_COLLISION_SELF_MODIFY',{player:p,resolved:rc,events});}
+  recordSelfModification(cards,mutationEvents);
+  c.phase='PRE_COLLISION_SWAP';phaseTrace.push(c.phase);applyPreCollisionSwap(run,cards,mutationEvents);
+  c.phase='PRE_COLLISION_STEAL';phaseTrace.push(c.phase);applyPreCollisionSteal(run,cards,mutationEvents);
+  c.phase='FINAL_NUMBER_REVEAL';phaseTrace.push(c.phase);finalizeNumbers(cards);
   c.phase='COLLISION_RESOLVE';phaseTrace.push(c.phase);
   for(const rc of cards)rc.collisionImmune=collisionImmunity(playerFor(run,rc.playerId),c.turnSubmissions[rc.playerId]);
   const groups=new Map();for(const rc of cards){const a=groups.get(rc.finalNumber)||[];a.push(rc);groups.set(rc.finalNumber,a);}
+  attachCollisionGroups(run,cards,groups);
   for(const group of groups.values()){
-    for(const rc of group)rc.collisionGroupSize=group.length;
     if(group.length>1)for(const rc of group)if(!rc.collisionImmune){rc.valid=false;rc.invalidReason='COLLISION';}
   }
+  assignVampireThralls(run,cards,groups,events);
   c.phase='VALIDITY_DERIVE';phaseTrace.push(c.phase);
   const validCards=cards.filter(x=>x.valid),lowestNumber=validCards.length?Math.min(...validCards.map(x=>x.finalNumber)):null;
   const lowestCards=validCards.filter(x=>x.finalNumber===lowestNumber);
   for(const rc of cards)rc.soloLowest=Boolean(rc.valid&&lowestCards.length===1&&lowestCards[0]===rc);
-  for(const rc of cards){const p=playerFor(run,rc.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player:p,resolved:rc,events:[]});resolvePostCollisionCharacter(run,rc,c.turnSubmissions[rc.playerId]);}
+  for(const rc of cards){const p=playerFor(run,rc.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player:p,resolved:rc,events});resolvePostCollisionCharacter(run,rc,c.turnSubmissions[rc.playerId]);}
+  attachValidity(cards);
   c.phase='DAMAGE_BUILD';phaseTrace.push(c.phase);
   const defense=Math.max(0,Number(c.monster.defense)||0);
-  const packets=[],events=[];
+  const packets=[];
   for(const rc of cards.filter(x=>x.valid)){
     const player=playerFor(run,rc.playerId);
-    const primary={sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,amount:Math.max(0,baseDamageForCharacter(player,rc)+(Number(player.engravings?.[String(rc.finalNumber)])||0)-defense),tags:['BASE_CARD'],followUp:false};
+    const primary={sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,amount:Math.max(0,baseDamageForCharacter(player,rc)+(Number(player.engravings?.[String(rc.finalNumber)])||0)-defense),tags:['BASE_CARD'],followUp:false};
     const primaryDamage={amount:primary.amount},queued=[];
     applyOwnedEffects(run,'BEFORE_DAMAGE',{player,resolved:rc,damage:primaryDamage,followUps:queued,followUp:false,events:[]});
     primary.amount=Math.max(0,primaryDamage.amount);packets.push(primary,...queued.map(x=>({...x,sourceCardId:x.sourceCardId||rc.cardInstanceId})));
@@ -190,6 +200,13 @@ export function resolveBasicTurn(run){
   c.monster.defense=0;
   c.phase='DAMAGE_BATCH_APPLY';phaseTrace.push(c.phase);
   const totalDamage=packets.reduce((s,p)=>s+p.amount,0);c.monster.hp=Math.max(0,c.monster.hp-totalDamage);
+  attachDamage(cards,packets);
+  validateNumberMutationState(run,cards,mutationEvents,{packets});
+  const buildTurnResult=(trace=phaseTrace)=>({
+    turn:c.turn,cards,damagePackets:packets,totalDamage,phaseTrace:trace,events,
+    numberHistories:cards.map(card=>structuredClone(card.numberHistory)),
+    mutationEvents:structuredClone(mutationEvents)
+  });
   for(const packet of packets){const p=playerFor(run,packet.sourcePlayerId);applyOwnedEffects(run,'AFTER_DAMAGE',{player:p,damage:{amount:packet.amount},followUp:packet.followUp,packet,events:[]});}
   for(const rc of cards)if(rc.valid)onValidAttack(playerFor(run,rc.playerId));
   c.phase='POST_PLAYER_ATTACK';phaseTrace.push(c.phase);
@@ -206,7 +223,7 @@ export function resolveBasicTurn(run){
       // RULE-01: Flame 0 + boss kill + full-party DOWNED resolves as RUN_FAILED before any boss-clear revival.
       c.phase='COMBAT_END';phaseTrace.push(c.phase);
       for(const p of run.players)onCombatEndCharacter(p);
-      c.publicTurnResult={turn:c.turn,cards,damagePackets:packets,totalDamage,phaseTrace,events};
+      c.publicTurnResult=buildTurnResult();
       recordCombatTurnTelemetry(run,c.publicTurnResult);finalizeCombatTelemetry(run,'RUN_FAILED');
       return c.publicTurnResult;
     }
@@ -234,7 +251,7 @@ export function resolveBasicTurn(run){
       run.roomResult={roomNodeId:run.currentRoomNodeId,readyPlayerIds:run.players.filter(p=>p.memberType==='ai').map(p=>p.playerId)};
       beginAugmentChoices(run,'ROOM_RESULT');
     }
-    c.publicTurnResult={turn:c.turn,cards,damagePackets:packets,totalDamage,phaseTrace:[...phaseTrace,'COMBAT_END'],events};
+    c.publicTurnResult=buildTurnResult([...phaseTrace,'COMBAT_END']);
     recordCombatTurnTelemetry(run,c.publicTurnResult);finalizeCombatTelemetry(run,'VICTORY');
     return c.publicTurnResult;
   }
@@ -244,13 +261,13 @@ export function resolveBasicTurn(run){
   if(run.phase==='RUN_FAILED'){
     c.phase='COMBAT_END';phaseTrace.push(c.phase);
     for(const p of run.players)onCombatEndCharacter(p);
-    c.publicTurnResult={turn:c.turn,cards,damagePackets:packets,totalDamage,phaseTrace,events};
+    c.publicTurnResult=buildTurnResult();
     recordCombatTurnTelemetry(run,c.publicTurnResult);finalizeCombatTelemetry(run,'RUN_FAILED');
     return c.publicTurnResult;
   }
   for(const p of run.players){onTurnEndCharacter(p);applyOwnedEffects(run,'TURN_END',{player:p,events});}
   c.phase='TURN_END';phaseTrace.push(c.phase);
-  c.publicTurnResult={turn:c.turn,cards,damagePackets:packets,totalDamage,phaseTrace,events};
+  c.publicTurnResult=buildTurnResult();
   recordCombatTurnTelemetry(run,c.publicTurnResult);
   c.turn+=1;beginTurn(run);
   return c.publicTurnResult;
