@@ -232,7 +232,7 @@ function comparison(burstRuns,steadyRuns,burstMetrics){
   const flame=rs=>rs.reduce((n,r)=>n+Math.max(0,4-(Number(r.finalFlame)||0)),0);
   const burstFinalHp=hp(burstRuns),steadyFinalHp=hp(steadyRuns),burstFlameSpent=flame(burstRuns),steadyFlameSpent=flame(steadyRuns);
   const dptRatio=burstDpt/Math.max(.0001,steadyDpt),survivalNotWorse=burstFinalHp>=steadyFinalHp&&burstFlameSpent<=steadyFlameSpent;
-  const costSignals=(burstMetrics.fullBurstFollowUpCount||0)+(burstMetrics.comboConsumed||0)+(burstMetrics.berserkerHpCost||0);
+  const costSignals=(burstMetrics.fullBurstConsumedPhysicalCards||0)+(burstMetrics.devourTransformCost||0)+(burstMetrics.comboConsumed||0)+(burstMetrics.berserkerHpCost||0);
   const costLow=costSignals===0;
   return {burstDpt,steadyDpt,dptRatio,burstTurns:turns(bc),steadyTurns:turns(sc),burstFinalHp,steadyFinalHp,burstFlameSpent,steadyFlameSpent,survivalNotWorse,costSignals,costLow,burstDominates:dptRatio>=1.35&&survivalNotWorse&&costLow};
 }
