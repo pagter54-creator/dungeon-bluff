@@ -23,18 +23,24 @@ function selectableIds(run,player){
     return card&&isCardSelectableForCharacter(player,card);
   });
 }
-function resetCycleIfNeeded(run,player){
+function resetCycleIfNeeded(run,player,events=[],meta={}){
   const priv=run.combat.privateByPlayer[player.playerId];
   if(priv.remainingCardIds.length)return false;
   if(handleCycleExhaustedCharacter(player,priv,run))return true;
-  applyOwnedEffects(run,'CYCLE_END',{player,privateState:priv,events:[]});
-  priv.cycleIndex=(priv.cycleIndex||1)+1;
+  const previousCycleId=priv.cycleIndex||1,remainingBefore=[...(priv.remainingCardIds||[])],spentBefore=[...(priv.spentCardIds||[])],parityBefore=player.publicResources.parity??null;
+  applyOwnedEffects(run,'CYCLE_END',{player,privateState:priv,events});
+  priv.cycleIndex=previousCycleId+1;
   priv.spentCardIds=[];
   priv.remainingCardIds=player.cardPool.map(c=>c.id);
   onCycleStartCharacter(player,priv);
+  if(events){
+    run.combat.derivedEventSequence=(Number(run.combat.derivedEventSequence)||0)+1;
+    const rootActionId=meta.rootActionId||null,recoveryChainId=meta.recoveryChainId||rootActionId&&`recovery:${rootActionId}`||null;
+    events.push({type:'CYCLE_RESET',eventId:`cycle-reset:${run.combat.id}:${run.combat.turn}:${run.combat.derivedEventSequence}`,turn:run.combat.turn,playerId:player.playerId,classId:player.characterId,previousCycleId,nextCycleId:priv.cycleIndex,resetReason:meta.reason||'NATURAL_EXHAUSTION',remainingBefore,spentBefore,remainingAfter:[...priv.remainingCardIds],spentAfter:[],parityBefore,parityAfter:player.publicResources.parity??null,rootActionId,recoveryChainId,parentEventId:meta.parentEventId||null,chainDepth:Number(meta.chainDepth)||1,sourceEffectId:meta.sourceEffectId||'CYCLE_EXHAUSTION'});
+  }
   return true;
 }
-function spendResolvedCards(run,cards){
+function spendResolvedCards(run,cards,events=[]){
   for(const rc of cards){
     const priv=run.combat.privateByPlayer[rc.playerId];
     const consume=[rc.cardInstanceId,...(rc.followUpCardIds||[])];
@@ -45,7 +51,8 @@ function spendResolvedCards(run,cards){
     delete priv.selectedCardId;delete priv.skillIntent;
     const player=playerFor(run,rc.playerId);
     if(run.combat.turnSubmissions[rc.playerId]?.autoSubmitted&&player.status==='STUNNED_NEXT_TURN')player.status='ACTIVE';
-    resetCycleIfNeeded(run,player);
+    const rootActionId=`action:${run.combat.id}:${run.combat.turn}:${rc.playerId}:${rc.cardInstanceId}`;
+    resetCycleIfNeeded(run,player,events,{reason:(rc.followUpCardIds||[]).length?'FULL_BURST':'NATURAL_EXHAUSTION',rootActionId,recoveryChainId:`recovery:${rootActionId}`,parentEventId:null,chainDepth:1,sourceEffectId:(rc.followUpCardIds||[]).length?'FULL_BURST':'CYCLE_EXHAUSTION'});
   }
 }
 function resolveDowns(run){
@@ -273,7 +280,7 @@ export function resolveBasicTurn(run){
   if(c.monster.hp<=0){
     onMonsterKilledCharacter(run,cards,packets,events);
     events.push(...resolveDowns(run));
-    spendResolvedCards(run,cards);c.turnSubmissions={};
+    spendResolvedCards(run,cards,events);c.turnSubmissions={};
     if(run.phase==='RUN_FAILED'){
       // RULE-01: Flame 0 + boss kill + full-party DOWNED resolves as RUN_FAILED before any boss-clear revival.
       c.phase='COMBAT_END';phaseTrace.push(c.phase);
@@ -312,7 +319,7 @@ export function resolveBasicTurn(run){
   }
   c.phase='MONSTER_ACTION';phaseTrace.push(c.phase);events.push(...executeMonsterIntent(run));
   c.phase='DOWN_RESOLVE';phaseTrace.push(c.phase);events.push(...resolveDowns(run));
-  spendResolvedCards(run,cards);c.turnSubmissions={};
+  spendResolvedCards(run,cards,events);c.turnSubmissions={};
   if(run.phase==='RUN_FAILED'){
     c.phase='COMBAT_END';phaseTrace.push(c.phase);
     for(const p of run.players)onCombatEndCharacter(p,run);
