@@ -193,11 +193,11 @@ function renderPveRoom(run){
   if(run.phase==='REWARD_ROOM')app.insertAdjacentHTML('beforeend',pveRewardPromptMarkup(run,pvePlayerForUser(run,api.user?.id)));
   if(run.phase==='AUGMENT_CHOICE'){
     if(run.augmentChoice?.resumePhase==='ROOM_RESULT')app.insertAdjacentHTML('beforeend',pveRoomResultOverlayMarkup(bundle,run,{interactive:false}));
-    else if(run.augmentChoice?.resumePhase==='FLOOR_CLEAR')app.insertAdjacentHTML('beforeend','<section class="room-result-overlay pve-room-result"><div class="room-result-card"><div class="eyebrow">FLOOR CLEAR</div><h2>Floor '+escape(run.floor)+' 공략 완료</h2><p>증강 선택 후 다음 층 진행을 계속합니다.</p></div></section>');
+    else if(run.augmentChoice?.resumePhase==='FLOOR_CLEAR')app.insertAdjacentHTML('beforeend','<section class="room-result-overlay pve-room-result"><div class="room-result-sheet pve-room-result-sheet"><div class="eyebrow">FLOOR CLEAR</div><h2>Floor '+escape(run.floor)+' 공략 완료</h2><p>증강 선택 후 다음 층 진행을 계속합니다.</p></div></section>');
     app.insertAdjacentHTML('beforeend',pveAugmentPopupMarkup(run));
   }
   if(run.phase==='ROOM_RESULT')app.insertAdjacentHTML('beforeend',pveRoomResultOverlayMarkup(bundle,run));
-  if(run.phase==='FLOOR_CLEAR'||run.phase==='FLOOR_TRANSITION')app.insertAdjacentHTML('beforeend','<section class="room-result-overlay pve-room-result"><div class="room-result-card"><div class="eyebrow">FLOOR CLEAR</div><h2>Floor '+escape(run.floor)+' 공략 완료</h2><button class="button secondary" data-action="pve-map-open">지도 확인 ◇</button></div></section>');
+  if(run.phase==='FLOOR_CLEAR'||run.phase==='FLOOR_TRANSITION')app.insertAdjacentHTML('beforeend','<section class="room-result-overlay pve-room-result"><div class="room-result-sheet pve-room-result-sheet"><div class="eyebrow">FLOOR CLEAR</div><h2>Floor '+escape(run.floor)+' 공략 완료</h2><button class="button secondary" data-action="pve-map-open">지도 확인 ◇</button></div></section>');
   if(pveMapOpen)app.insertAdjacentHTML('beforeend',pveMapOverlayMarkup(run,api.user?.id,{visitedNodes:[...pveVisitedNodes]}));
   bindEventArtFallback(app);updateBusy();
 }
