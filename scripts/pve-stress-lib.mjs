@@ -496,6 +496,7 @@ function t05Fixture(seed,id,{numbers,skills={},mageMana=null,thrallId=null}){
     id,
     histories:structuredClone(result.numberHistories||[]),
     events:structuredClone(result.mutationEvents||[]),
+    combatEvents:structuredClone(result.events||[]),
     phaseTrace:[...(result.phaseTrace||[])],
     totalDamage:result.totalDamage,
     ownershipStable:true
