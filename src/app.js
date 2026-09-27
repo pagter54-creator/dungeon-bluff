@@ -17,6 +17,8 @@ import { animateCycle, showSkillEffect } from './character-fx.js';
 import { setKnockoutPose,animateTwinHandoff } from './player-pose-fx.js';
 import { showGameBackground } from './game-background.js';
 import { initMotionControl } from './motion.js';
+import {GAME_MODE,roomGameMode,gameModeMeta,gameModeBadge,PVE_SUPPORTED_LOBBY_CHARACTER_IDS} from './game-mode.js';
+import {pveBetaMarkup} from './pve-beta-ui.js';
 
 const app = document.querySelector('#app');
 const modal = document.querySelector('#modal');
@@ -37,6 +39,7 @@ let selected = null;
 let useSkill = false;
 let toastTimer;
 let sessionIdentity = null;
+let pveRunIdentity = null;
 let rewardRefreshSession = null;
 let shownSummary=null;
 let roomEpoch = 0;
@@ -73,25 +76,59 @@ async function perform(action, params = {}) {
       if (bundle) await sync();
     } else if (response.left) {
       stopLobbyLoading();entryError='';entryCompleted=null;
-      roomEpoch++; await api.unsubscribe(); bundle = null; queue = []; sessionIdentity = null; lastResult = 0; view = 'home'; renderHome();
+      roomEpoch++; await api.unsubscribe(); bundle = null; queue = []; sessionIdentity = null; pveRunIdentity=null; lastResult = 0; view = 'home'; renderHome();
     } else if (response.room) { modal.close(); await accept(response); }
     return response;
   } catch (error) { toast(error.message); if (bundle) void sync(); }
   finally { busy = false; updateBusy(); }
+}
+async function performPve(action,params={}){
+  if(busy||!bundle?.run)return null;
+  busy=true;updateBusy();
+  try{
+    const mutation=action!=='pve.getState';
+    const response=await api.request(action,{
+      run_id:bundle.run.id,
+      ...(mutation?{expected_version:bundle.run.version,action_id:crypto.randomUUID()}:{}),
+      ...params
+    });
+    if(response.run){
+      bundle={...bundle,run:response.run,pveSettlement:response.settlement??bundle.pveSettlement};
+      if(['RUN_CLEAR','RUN_FAILED','ABANDONED'].includes(response.run.phase))void refreshAccount().catch(()=>{});
+      renderPve();
+    }
+    return response;
+  }catch(error){toast(error.message);void sync();return null;}
+  finally{busy=false;updateBusy();}
+}
+function renderPve(){
+  if(!bundle?.run)return;
+  view='pve';
+  app.innerHTML=pveBetaMarkup(bundle,api.user?.id);
+  updateBusy();
 }
 async function accept(next, restoring = false) {
   if (!next.room) return;
   if (bundle?.room.id === next.room.id && next.room.version < bundle.room.version) return;
   const newRoom = bundle?.room.id !== next.room.id;
   const newSession = next.session?.id && next.session.id !== sessionIdentity;
-  if(newRoom&&!next.session)await ensureRoomAssets(next.members,api.user?.id,getAccount()?.loadout);
+  const newPveRun = next.run?.id && next.run.id !== pveRunIdentity;
+  if(newRoom&&!next.session&&!next.run)await ensureRoomAssets(next.members,api.user?.id,getAccount()?.loadout);
   if (newSession && !next.session.state.entryLoading) await preloadSession(next.session);
   if (bundle?.room.id === next.room.id && next.room.version < bundle.room.version) return;
   if (newRoom) roomEpoch++;
   if(newSession){entryError='';entryProgress='';entryCompleted=null;}
   bundle = next;
+  if(next.run){
+    pveRunIdentity=next.run.id;
+    if(['RUN_CLEAR','RUN_FAILED','ABANDONED'].includes(next.run.phase)&&rewardRefreshSession!==next.run.id){rewardRefreshSession=next.run.id;void refreshAccount().catch(()=>{});}
+    renderPve();
+    updateBusy();
+    return;
+  }
+  pveRunIdentity=null;
   if (next.session?.status !== 'active' && next.session && rewardRefreshSession !== next.session.id) { rewardRefreshSession=next.session.id; void refreshAccount().catch(()=>{}); }
-  void getAudio().setScene(next.session ? 'dungeon' : 'lobby');
+  void getAudio().setScene(next.session||next.run ? 'dungeon' : 'lobby');
   if (next.session?.id !== sessionIdentity) {
     sessionIdentity = next.session?.id || null;
     lastResult = restoring ? (next.session?.state.lastResult?.turnIndex || 0) : 0;
@@ -150,7 +187,7 @@ async function sync() {
     if (epoch !== roomEpoch) return;
     if (next.room) await accept(next, !bundle);
     else if (bundle) {
-      roomEpoch++; await api.unsubscribe(); bundle = null; queue = []; sessionIdentity = null; lastResult = 0;
+      roomEpoch++; await api.unsubscribe(); bundle = null; queue = []; sessionIdentity = null; pveRunIdentity=null; lastResult = 0;
       selected = null; useSkill = false; renderHome();
       toast('접속이 오래 끊겨 방이 종료되었습니다. 새 방을 만들어 주세요.');
     }
@@ -173,7 +210,7 @@ function setupHelp() {
 }
 function createModal() {
   if (connectionNeeded()) return;
-  showModal(`<div class="eyebrow">NEW EXPEDITION</div><h2>동료를 모으세요.</h2><p>누가 같은 카드를 낼지, 아무도 모릅니다.</p><form id="create-form"><label>방 제목<input name="room_title" required maxlength="40" placeholder="눈치 좋은 모험가 구합니다" autocomplete="off"></label><label>비밀번호 <span class="muted">선택 사항</span><input name="password" type="password" maxlength="72" placeholder="비워두면 누구나 참가할 수 있어요" autocomplete="new-password"></label><button class="button primary full" data-network>방 생성하기 <span>→</span></button></form>`);
+  showModal(`<div class="eyebrow">NEW EXPEDITION</div><h2>동료를 모으세요.</h2><p>누가 같은 카드를 낼지, 아무도 모릅니다.</p><form id="create-form"><label>방 제목<input name="room_title" required maxlength="40" placeholder="눈치 좋은 모험가 구합니다" autocomplete="off"></label><label>비밀번호 <span class="muted">선택 사항</span><input name="password" type="password" maxlength="72" placeholder="비워두면 누구나 참가할 수 있어요" autocomplete="new-password"></label><fieldset class="game-mode-selector"><legend>게임 모드</legend><label class="game-mode-option"><input type="radio" name="gameMode" value="COMPETITIVE" checked><span><b>✓ 경쟁 탐험</b><small>기존 점수 경쟁 탐험</small></span></label><label class="game-mode-option coop"><input type="radio" name="gameMode" value="COOP_PVE"><span><b>협력 탐험 <em>BETA</em></b><small>4명이 협력하여 던전을 공략합니다.<br>Gold 획득 가능 · RP 변동 없음</small></span></label></fieldset><button class="button primary full" data-network>방 생성하기 <span>→</span></button></form>`);
 }
 async function renderFind() {
   if (connectionNeeded()) return;
@@ -187,7 +224,7 @@ async function loadRooms() {
   try {
     const { rooms } = await api.request('list_rooms');
     const el = document.querySelector('#room-list'); if (!el) return;
-    el.innerHTML = rooms.length ? rooms.map(r => `<article class="room-list-card"><div class="room-mini-icon">${r.has_password ? '▣' : '◇'}</div><div class="room-card-info"><h3>${escape(r.room_title)}</h3><p>${r.has_password ? '비밀번호 있음' : '자유 참가'} <span>·</span> AI ${r.ai_count}명 <span>·</span> ${r.status === 'waiting' ? '대기 중' : '플레이 중'}</p></div><strong class="member-count">${r.member_count}<small> / 4</small></strong><button class="button small secondary" data-action="join" data-id="${r.id}" data-password="${r.has_password}" ${r.status !== 'waiting' || r.member_count >= 4 ? 'disabled' : ''}>참가 →</button></article>`).join('') : '<div class="empty-state"><span>◇</span><h3>아직 열린 원정이 없어요.</h3><p>첫 번째 원정대를 만들어보세요.</p><button class="button primary" data-action="create">방 생성 →</button></div>';
+    el.innerHTML = rooms.length ? rooms.map(r => `<article class="room-list-card"><div class="room-mini-icon">${r.has_password ? '▣' : '◇'}</div><div class="room-card-info"><div class="room-mode-row">${gameModeBadge(r.gameMode)}</div><h3>${escape(r.room_title)}</h3><p>${r.has_password ? '비밀번호 있음' : '자유 참가'} <span>·</span> AI ${r.ai_count}명 <span>·</span> ${r.status === 'waiting' ? '대기 중' : '플레이 중'}</p></div><strong class="member-count">${r.member_count}<small> / 4</small></strong><button class="button small secondary" data-action="join" data-id="${r.id}" data-password="${r.has_password}" ${r.status !== 'waiting' || r.member_count >= 4 ? 'disabled' : ''}>참가 →</button></article>`).join('') : '<div class="empty-state"><span>◇</span><h3>아직 열린 원정이 없어요.</h3><p>첫 번째 원정대를 만들어보세요.</p><button class="button primary" data-action="create">방 생성 →</button></div>';
   } catch (error) { toast(error.message); const el = document.querySelector('#room-list'); if (el) el.innerHTML = '<div class="empty-state">목록을 불러오지 못했습니다. 새로고침해 주세요.</div>'; }
   finally { listLoading = false; }
 }
@@ -201,13 +238,14 @@ function aiModal() {
 }
 function renderLobby() {
   const {room,members}=bundle,host=isHost(),ready=m=>m.member_type==='ai'||m.lobby_ready===true;
-  const count=members.filter(ready).length,canStart=members.length===4&&count===4;
-  app.innerHTML=`<section class="page-heading"><div><div class="eyebrow">BASE CAMP · 원정 준비</div><h1>${escape(room.room_title)}</h1></div><button class="button secondary" data-action="leave-confirm">나가기 ↗</button></section><section class="invite-bar"><div><span>ROOM CODE</span><strong>${room.room_code}</strong><button class="text-button" data-action="copy">코드 복사 ⧉</button></div><span>${count} / 4 준비 완료</span></section><div class="lobby-slots">${[0,1,2,3].map(seat=>{
+  const mode=roomGameMode(room),modeMeta=gameModeMeta(mode),unsupported=mode===GAME_MODE.COOP_PVE?members.filter(m=>!PVE_SUPPORTED_LOBBY_CHARACTER_IDS.has(m.character_id)):[];
+  const count=members.filter(ready).length,canStart=members.length===4&&count===4&&!unsupported.length;
+  app.innerHTML=`<section class="page-heading"><div><div class="eyebrow">BASE CAMP · 원정 준비</div><h1>${escape(room.room_title)}</h1><div class="lobby-mode">${gameModeBadge(mode)}${modeMeta.beta?`<span>${escape(modeMeta.reward)}</span>`:''}</div></div><button class="button secondary" data-action="leave-confirm">나가기 ↗</button></section><section class="invite-bar"><div><span>ROOM CODE</span><strong>${room.room_code}</strong><button class="text-button" data-action="copy">코드 복사 ⧉</button></div><span>${count} / 4 준비 완료</span></section><div class="lobby-slots">${[0,1,2,3].map(seat=>{
     const m=members.find(m=>m.seat_index===seat);
     if(!m)return `<article class="lobby-slot empty"><span class="seat-number">0${seat+1}</span><div class="empty-avatar">＋</div><h3>동료를 기다리는 중</h3>${host?'<button class="button secondary small" data-action="ai">AI 동료 추가 +</button>':''}</article>`;
     const character=characterFor(bundle,m.character_id),own=m.user_id===api.user.id;
     return `<article class="lobby-slot illustrated-lobby seat-${seat}"><div class="lobby-illustration" aria-hidden="true"><img src="${skinFor(character.id,own?getAccount()?.loadout:m.loadout).preview}" alt="" draggable="false"></div><span class="seat-number">0${seat+1}</span><span class="member-badge">${m.member_type==='ai'?'AI COMPANION':'HUMAN'}${m.user_id===room.host_user_id?' · HOST':''}</span><div class="lobby-member-info"><h3>${escape(m.display_name)}</h3><p>${escape(character.display_name)}</p><p class="lobby-deck">${escape(deckLabel(character))}</p><p>${escape(character.definition?.skill?.name||'')}</p>${own||(host&&m.member_type==='ai')?`<button class="button secondary small" data-action="character-select" data-member="${m.id}">캐릭터 선택</button>`:''}<span class="ready-marker">${ready(m)?'✓ 준비 완료':'캐릭터 선택 · 준비 대기'}</span>${own?`<button class="button ${ready(m)?'secondary':'primary'} small" data-action="lobby-ready" data-ready="${!ready(m)}" data-network>${ready(m)?'준비 취소':'준비'}</button>`:''}${host&&m.member_type==='ai'?`<button class="text-button remove-ai" data-action="remove-ai" data-id="${m.id}" data-network>AI 제거</button>`:''}</div></article>`;
-  }).join('')}</div><section class="departure"><div><span class="eyebrow">YOUR PARTY</span><h2>${count}<small> / 4명 준비 완료</small></h2><p>캐릭터를 변경하면 준비가 취소됩니다.</p></div>${host?`<button class="button primary start-button" data-action="start" data-network data-unavailable="${!canStart}" ${canStart?'':'disabled'}>${canStart?'던전 입장 →':'동료의 준비를 기다리는 중'}</button>`:'<p class="muted">호스트의 출발을 기다리는 중</p>'}</section>`;
+  }).join('')}</div><section class="departure"><div><span class="eyebrow">YOUR PARTY</span><h2>${count}<small> / 4명 준비 완료</small></h2><p>${unsupported.length?`협력 탐험 미지원 캐릭터: ${unsupported.map(m=>escape(characterFor(bundle,m.character_id).display_name)).join(', ')}`:mode===GAME_MODE.COOP_PVE?'협력 탐험 Beta · 경쟁 RP는 변동하지 않습니다.':'캐릭터를 변경하면 준비가 취소됩니다.'}</p></div>${host?`<button class="button primary start-button" data-action="start" data-network data-unavailable="${!canStart}" ${canStart?'':'disabled'}>${canStart?(mode===GAME_MODE.COOP_PVE?'협력 탐험 시작 →':'던전 입장 →'):unsupported.length?'PVE 미지원 캐릭터 변경 필요':'동료의 준비를 기다리는 중'}</button>`:'<p class="muted">호스트의 출발을 기다리는 중</p>'}</section>`;
 }
 function renderEntryLoading(){
  const s=bundle.session.state,ready=s.entryLoading?.ready||[];
@@ -300,10 +338,20 @@ document.addEventListener('click', async event => {
   if (action === 'add-ai') void perform('add_ai', { ai_type: button.dataset.type });
   if (action === 'remove-ai') void perform('remove_ai', { member_id: button.dataset.id });
   if (action === 'start') void perform('start_game');
+  if(action==='pve-vote')void performPve('pve.voteNextRoom',{node_id:button.dataset.nodeId});
+  if(action==='pve-submit-card')void performPve('pve.submitCard',{card_instance_id:button.dataset.cardId,skill_intent:button.dataset.useSkill==='true'});
+  if(action==='pve-augment')void performPve('pve.chooseAugment',{augment_id:button.dataset.augmentId});
+  if(action==='pve-event')void performPve('pve.chooseEventOption',{option_id:button.dataset.optionId});
+  if(action==='pve-rest')void performPve('pve.restChoice',{choice:button.dataset.choice});
+  if(action==='pve-buy-relic')void performPve('pve.shopBuyRelic',{product_id:button.dataset.productId});
+  if(action==='pve-shop-ready')void performPve('pve.shopReady');
+  if(action==='pve-reward-card')void performPve('pve.rewardSubmitCard',{card_instance_id:button.dataset.cardId,skill_intent:false});
+  if(action==='pve-reward-relic')void performPve('pve.rewardChooseRelic',{relic_id:button.dataset.relicId});
+  if(action==='pve-room-ready')void performPve('pve.roomReady');
   if (action === 'copy') { try { await navigator.clipboard.writeText(bundle.room.room_code); toast('방 코드를 복사했습니다.'); } catch { toast(`방 코드: ${bundle.room.room_code}`); } }
   if (action === 'leave-confirm') {
     if (animating) { toast('결과 연출이 끝난 뒤 나갈 수 있습니다.'); return; }
-    showModal(`<div class="eyebrow">LEAVE PARTY</div><h2>원정대를 떠날까요?</h2><p>${bundle.session?.status === 'active' ? '진행 중인 자리는 균형형 AI가 이어받습니다. 나간 원정에는 다시 참가할 수 없습니다.' : '호스트라면 다음 인간 플레이어에게 호스트가 이전됩니다.'}</p><button class="button primary full" data-action="leave" data-network>방 나가기 →</button>`);
+    showModal(`<div class="eyebrow">LEAVE PARTY</div><h2>원정대를 떠날까요?</h2><p>${bundle.run ? '진행 중인 협력 탐험에서 나가면 이번 Beta의 중도 탈주 Gold 정산 대상이 아닙니다.' : bundle.session?.status === 'active' ? '진행 중인 자리는 균형형 AI가 이어받습니다. 나간 원정에는 다시 참가할 수 없습니다.' : '호스트라면 다음 인간 플레이어에게 호스트가 이전됩니다.'}</p><button class="button primary full" data-action="leave" data-network>방 나가기 →</button>`);
   }
   if (action === 'leave') { modal.close(); void perform('leave_room'); }
   if(action==='reward-details'){const offer=bundle.session.state.roomChoices?.[mine()?.id];showModal('<h2>'+escape(offer?.name||'제단의 선택')+'</h2><p>'+escape(offer?.description||'즉시 4G 또는 다음 전투 종료 시 HP가 남아 있고 기절하지 않았다면 7G. 도전 효과는 해당 전투 종료 후 사라집니다.')+'</p>');}
