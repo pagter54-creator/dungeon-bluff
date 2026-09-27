@@ -190,3 +190,6 @@ jobs:
 
       - name: Deploy production game-api
         run: supabase functions deploy game-api --project-ref "$SUPABASE_PROJECT_ID"
+
+      - name: Competitive production remote smoke
+        run: npm run pve:production:smoke -- --mode competitive
