@@ -10,10 +10,12 @@ export function gameModeMeta(mode){
     ? {label:'협력 탐험',beta:true,description:'4명이 협력하여 던전을 공략합니다.',reward:'Gold 획득 가능 · RP 변동 없음'}
     : {label:'경쟁 탐험',beta:false,description:'기존 점수 경쟁 탐험',reward:''};
 }
-export function gameModeSelectorMarkup(){
+export function gameModeSelectorMarkup(coopPveEnabled=true){
+  const disabled=coopPveEnabled?'':' disabled';
+  const maintenance=coopPveEnabled?'':'<strong>점검 중</strong><br>';
   return '<fieldset class="game-mode-selector"><legend>게임 모드</legend>'
     +'<label class="game-mode-option"><input type="radio" name="gameMode" value="COMPETITIVE" checked><span><b>경쟁 탐험</b><small>기존 점수 경쟁 탐험</small></span></label>'
-    +'<label class="game-mode-option coop"><input type="radio" name="gameMode" value="COOP_PVE"><span><b>협력 탐험 <em>BETA</em></b><small>4명이 협력하여 던전을 공략합니다.<br>Gold 획득 가능 · RP 변동 없음</small></span></label>'
+    +'<label class="game-mode-option coop"><input type="radio" name="gameMode" value="COOP_PVE"'+disabled+'><span><b>협력 탐험 <em>BETA</em></b><small>'+maintenance+'4명이 협력하여 던전을 공략합니다.<br>Gold 획득 가능 · RP 변동 없음</small></span></label>'
     +'</fieldset>';
 }
 export function gameModeBadge(mode){

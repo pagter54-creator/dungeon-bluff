@@ -16,3 +16,13 @@ export function roomGameMode(room){
   return GAME_MODES.includes(room?.game_mode)?room.game_mode:GAME_MODE.COMPETITIVE;
 }
 export function isCoopPveRoom(room){return roomGameMode(room)===GAME_MODE.COOP_PVE;}
+export function coopPveEnabled(value){
+  const normalized=String(value??'true').trim().toLowerCase();
+  return !['0','false','off','no','disabled'].includes(normalized);
+}
+export function assertCoopPveEnabled(value){
+  if(coopPveEnabled(value))return true;
+  const error=new Error('협력 탐험은 현재 점검 중입니다.');
+  error.code='COOP_PVE_TEMPORARILY_DISABLED';
+  throw error;
+}

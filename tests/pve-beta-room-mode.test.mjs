@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {GAME_MODE as SERVER_MODE,parseRequestedGameMode,roomGameMode as serverRoomMode} from '../supabase/functions/game-api/game-mode.js';
+import {GAME_MODE as SERVER_MODE,parseRequestedGameMode,roomGameMode as serverRoomMode,coopPveEnabled,assertCoopPveEnabled} from '../supabase/functions/game-api/game-mode.js';
 import {GAME_MODE,gameModeSelectorMarkup,gameModeBadge,gameModeMeta,roomGameMode} from '../src/game-mode.js';
 import {buildInitialPveRun,unsupportedPveRoomCharacters,pveCharacterIdForRoom} from '../supabase/functions/game-api/pve/api.js';
 import {pveBetaMarkup,pveConnectedNodes} from '../src/pve-beta-ui.js';
@@ -18,6 +18,10 @@ test('UI-01..03 game mode selector defaults competitive and carries canonical re
  assert.match(html,/name="gameMode" value="COOP_PVE"/);
  assert.match(html,/협력 탐험/);assert.match(html,/BETA/);assert.match(html,/Gold 획득 가능 · RP 변동 없음/);
  assert.equal((html.match(/checked/g)||[]).length,1);
+ const disabled=gameModeSelectorMarkup(false);
+ assert.match(disabled,/value="COOP_PVE" disabled/);
+ assert.match(disabled,/점검 중/);
+ assert.doesNotMatch(disabled,/value="COMPETITIVE"[^>]*disabled/);
 });
 test('UI-04..06 mode badges distinguish competitive and cooperative Beta without inferring from titles',async()=>{
  assert.match(gameModeBadge(GAME_MODE.COMPETITIVE),/경쟁 탐험/);assert.doesNotMatch(gameModeBadge(GAME_MODE.COMPETITIVE),/BETA/);
@@ -33,6 +37,17 @@ test('MODE-01/04 server defaults missing mode to competitive and rejects invalid
  assert.equal(serverRoomMode({game_mode:null}),SERVER_MODE.COMPETITIVE);
  assert.throws(()=>parseRequestedGameMode('PVE_RANKED'),error=>error.code==='INVALID_GAME_MODE');
 });
+test('COOP_PVE kill switch defaults on and returns the canonical structured code when disabled',async()=>{
+ assert.equal(coopPveEnabled(undefined),true);
+ assert.equal(coopPveEnabled('true'),true);
+ for(const value of ['false','0','off','no','disabled'])assert.equal(coopPveEnabled(value),false);
+ assert.throws(()=>assertCoopPveEnabled('false'),error=>error.code==='COOP_PVE_TEMPORARILY_DISABLED');
+ const source=await readFile(new URL('../supabase/functions/game-api/index.ts',import.meta.url),'utf8');
+ assert.match(source,/gameMode===GAME_MODE\.COOP_PVE\)assertCoopPveEnabledNow\(\)/);
+ assert.match(source,/if\(roomGameMode\(b\.room\)===GAME_MODE\.COOP_PVE\)\{\s*assertCoopPveEnabledNow\(\)/);
+ assert.match(source,/get_public_config/);
+});
+
 test('room character adapter maps competitive IDs explicitly and rejects unsupported gambler',()=>{
  assert.equal(pveCharacterIdForRoom('seer'),'prophet');
  assert.equal(pveCharacterIdForRoom('fighter'),'martial_artist');

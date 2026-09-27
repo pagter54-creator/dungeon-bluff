@@ -44,6 +44,7 @@ let rewardRefreshSession = null;
 let shownSummary=null;
 let roomEpoch = 0;
 let listLoading = false;
+let coopPveEnabled=true;
 let entryWork=null,entryProgress='',entryError='',entryCompleted=null;
 const status = (text, online = false) => {
   const el = document.querySelector('#connection'); el.classList.toggle('online', online); el.lastChild.textContent = ` ${text}`;
@@ -208,9 +209,15 @@ function connectionNeeded() {
 function setupHelp() {
   showModal('<div class="eyebrow">SERVER CONNECTION</div><h2>던전의 문을 열 준비</h2><p>프로젝트의 <code>config.js</code>에 <b>SUPABASE_URL</b>과 <b>SUPABASE_PUBLISHABLE_KEY</b>를 입력하세요.</p><ol class="guide-list"><li>Supabase Anonymous Auth 활성화</li><li>동봉한 SQL 마이그레이션 적용</li><li><code>game-api</code> Edge Function 배포</li><li>Realtime에서 private 채널 사용 설정</li><li><code>npm start</code> 실행 후 새로고침</li></ol><p class="muted">정확한 명령과 검증 항목은 README.md에 있습니다.</p>');
 }
-function createModal() {
+async function createModal() {
   if (connectionNeeded()) return;
-  showModal(`<div class="eyebrow">NEW EXPEDITION</div><h2>동료를 모으세요.</h2><p>누가 같은 카드를 낼지, 아무도 모릅니다.</p><form id="create-form"><label>방 제목<input name="room_title" required maxlength="40" placeholder="눈치 좋은 모험가 구합니다" autocomplete="off"></label><label>비밀번호 <span class="muted">선택 사항</span><input name="password" type="password" maxlength="72" placeholder="비워두면 누구나 참가할 수 있어요" autocomplete="new-password"></label>${gameModeSelectorMarkup()}<button class="button primary full" data-network>방 생성하기 <span>→</span></button></form>`);
+  try{
+    const publicConfig=await api.request('get_public_config');
+    coopPveEnabled=publicConfig?.coopPveEnabled!==false;
+  }catch(error){
+    toast(error.message);
+  }
+  showModal(`<div class="eyebrow">NEW EXPEDITION</div><h2>동료를 모으세요.</h2><p>누가 같은 카드를 낼지, 아무도 모릅니다.</p><form id="create-form"><label>방 제목<input name="room_title" required maxlength="40" placeholder="눈치 좋은 모험가 구합니다" autocomplete="off"></label><label>비밀번호 <span class="muted">선택 사항</span><input name="password" type="password" maxlength="72" placeholder="비워두면 누구나 참가할 수 있어요" autocomplete="new-password"></label>${gameModeSelectorMarkup(coopPveEnabled)}<button class="button primary full" data-network>방 생성하기 <span>→</span></button></form>`);
 }
 async function renderFind() {
   if (connectionNeeded()) return;
@@ -306,7 +313,7 @@ document.addEventListener('click', async event => {
   if (action === 'setup') setupHelp();
   if (action === 'character-guide') showModal(characterGuide());
   if(action==='gambler-deck'&&!animating)showModal(gamblerPileDetails(bundle?.session?.state.players[mine()?.id],button.dataset.pile));
-  if (action === 'create') createModal();
+  if (action === 'create') void createModal();
   if (action === 'find') void renderFind();
   if (action === 'refresh') void loadRooms();
   if (action === 'join') joinModal({ room_id: button.dataset.id }, button.dataset.password === 'true');

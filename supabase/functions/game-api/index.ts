@@ -10,7 +10,7 @@ import { sameLockedMembers,waitForConflictRetry } from './room-concurrency.js';
 import { lobbyReady,beginEntryLoading,finishEntryLoading } from './entry-loading.js';
 import { createSession, openTurn, validateSubmission, advanceAutomaticTurns, fillAutomaticSubmissions, activateSkill, roomReady } from './engine.js';
 import { handlePveAction,buildInitialPveRun,projectPveRunForUser,unsupportedPveRoomCharacters } from './pve/api.js';
-import { GAME_MODE,parseRequestedGameMode,roomGameMode } from './game-mode.js';
+import { GAME_MODE,parseRequestedGameMode,roomGameMode,coopPveEnabled,assertCoopPveEnabled } from './game-mode.js';
 
 const url = Deno.env.get('SUPABASE_URL')!;
 const secret = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -20,6 +20,8 @@ const uuid = (value: unknown): value is string => typeof value === 'string' && /
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
 const check = (condition: unknown, message: string) => { if (!condition) throw new Error(message); };
 const code = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), n => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[n % 32]).join('');
+const coopPveEnabledNow=()=>coopPveEnabled(Deno.env.get('COOP_PVE_ENABLED'));
+const assertCoopPveEnabledNow=()=>assertCoopPveEnabled(Deno.env.get('COOP_PVE_ENABLED'));
 
 async function passwordHash(password: string, saved?: string) {
   const salt = saved ? Uint8Array.from(atob(saved.split('.')[0]), c => c.charCodeAt(0)) : crypto.getRandomValues(new Uint8Array(16));
@@ -120,6 +122,7 @@ Deno.serve(async req => {
     check(raw.length <= 8192, '요청이 너무 큽니다.');
     const body = JSON.parse(raw);
     const { action } = body;
+    if(action==='get_public_config')return json({coopPveEnabled:coopPveEnabledNow()});
     const pveResponse = await handlePveAction({ admin, user, body, json });
     if (pveResponse) return pveResponse;
     if (action === 'get_profile') return json({ profile: await profileFor(user.id) });
@@ -141,6 +144,7 @@ Deno.serve(async req => {
     if (action === 'create_room') {
       check(typeof body.room_title === 'string' && body.room_title.trim().length > 0 && body.room_title.trim().length <= 40, '방 제목은 1~40자로 입력해 주세요.');
       const gameMode=parseRequestedGameMode(body.gameMode);
+      if(gameMode===GAME_MODE.COOP_PVE)assertCoopPveEnabledNow();
       const hash = body.password ? await passwordHash(body.password) : null;
       const profile = await profileFor(user.id);
       for (let i = 0; i < 5; i++) {
@@ -254,6 +258,7 @@ Deno.serve(async req => {
             check(b.members.length === 4 && b.members.some((m: any) => m.member_type === 'human'), '인간을 포함한 4명이 필요합니다.');
             check(b.members.every(lobbyReady),'모든 플레이어가 준비를 완료해야 합니다.');
             if(roomGameMode(b.room)===GAME_MODE.COOP_PVE){
+              assertCoopPveEnabledNow();
               const unsupported=unsupportedPveRoomCharacters(b.members);
               check(!unsupported.length,`협력 탐험에서 아직 지원하지 않는 캐릭터가 있습니다: ${unsupported.join(', ')}`);
               const run=buildInitialPveRun(b);
