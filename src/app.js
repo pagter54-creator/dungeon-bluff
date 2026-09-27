@@ -488,7 +488,7 @@ document.addEventListener('click', async event => {
   if (action === 'remove-ai') void perform('remove_ai', { member_id: button.dataset.id });
   if (action === 'start') void perform('start_game');
   if(action==='pve-map-open'){pveMapOpen=true;if(pveAnimating)app.insertAdjacentHTML('beforeend',pveMapOverlayMarkup(bundle.run,api.user?.id,{visitedNodes:[...pveVisitedNodes]}));else renderPve();}
-  if(action==='pve-map-close'){pveMapOpen=false;if(pveAnimating)button.closest('.pve-map-overlay')?.remove();else renderPve();}
+  if(action==='pve-map-close'){pveMapOpen=false;if(pveAnimating)button.closest('.pve-map-layer')?.remove();else renderPve();}
   if(action==='pve-vote')void performPve('pve.voteNextRoom',{node_id:button.dataset.nodeId});
   if(action==='pve-relic-info'){const relic=relicUi(button.dataset.relicId);showModal('<div class="eyebrow">RELIC</div><h2>'+escape(relic.name)+'</h2><p>'+escape(relic.text)+'</p>');}
   if(action==='pve-submit-card')void performPve('pve.submitCard',{card_instance_id:button.dataset.cardId,skill_intent:button.dataset.useSkill==='true'});
