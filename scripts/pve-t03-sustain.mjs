@@ -140,8 +140,8 @@ function summarizeRuns(runs){
 
 export function runT03Scenario(seed,{simulateCombat,fail}){
   const fixtures=runT03Fixtures(seed,fail),encounters=[['normal',F1_MONSTER_DEFINITIONS.f1_armored_boar],['elite',F1_MONSTER_DEFINITIONS.f1_echo_bat],['boss',F1_MONSTER_DEFINITIONS.f1_fallen_lord]];
-  const optimized=encounters.map(([caseId,monsterDef])=>simulateCombat({seed:seed+':'+caseId,caseId:'T03-sustain-'+caseId,characterIds:T03_CHARACTER_IDS,augmentIdsByPlayer:T03_AUGMENTS,monsterDef,policy:'sustain',flame:4}));
-  const normal=encounters.map(([caseId,monsterDef])=>simulateCombat({seed:seed+':'+caseId,caseId:'T03-normal-'+caseId,characterIds:T03_CHARACTER_IDS,augmentIdsByPlayer:T03_AUGMENTS,monsterDef,policy:'normal_sustain',flame:4}));
+  const optimized=encounters.map(([caseId,monsterDef])=>simulateCombat({seed:seed+':'+caseId,caseId:'T03-compare-'+caseId,characterIds:T03_CHARACTER_IDS,augmentIdsByPlayer:T03_AUGMENTS,monsterDef,policy:'sustain',flame:4}));
+  const normal=encounters.map(([caseId,monsterDef])=>simulateCombat({seed:seed+':'+caseId,caseId:'T03-compare-'+caseId,characterIds:T03_CHARACTER_IDS,augmentIdsByPlayer:T03_AUGMENTS,monsterDef,policy:'normal_sustain',flame:4}));
   const sustainMetrics=summarizeRuns(optimized),normalSustainMetrics=summarizeRuns(normal);
   if(sustainMetrics.recursiveHealCount||sustainMetrics.recursiveRedirectCount)hard(fail,'SUSTAIN_RECURSION','recursive sustain trigger detected',{sustainMetrics});
   const dptRatio=sustainMetrics.partyDpt/Math.max(0.0001,normalSustainMetrics.partyDpt),survivalBetter=sustainMetrics.ko<normalSustainMetrics.ko||sustainMetrics.finalPartyHp>normalSustainMetrics.finalPartyHp,flameLower=sustainMetrics.flameSpent<normalSustainMetrics.flameSpent;
