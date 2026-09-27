@@ -32,6 +32,16 @@ test('PVE stress T00 reference runner executes three deterministic F1 encounters
     assert.ok((result.effectTriggerCounts[id]||0)>=1,id);
   }
   assert.ok((result.expGainByCharacter.adventurer||0)>=1);
+  assert.ok(result.referenceTurns.length>0);
+  assert.ok(result.referenceCommunication.intentCount>0);
+  assert.ok(result.referenceCommunication.collisionRateAfterNegotiation<=result.referenceCommunication.collisionRateBeforeNegotiation);
+  for(const turn of result.referenceTurns)for(const record of turn.records){
+    assert.equal(Object.hasOwn(record,'cardInstanceId'),false);
+    assert.ok(Array.isArray(record.availableNumbers));
+    assert.ok(Array.isArray(record.preferredNumbers));
+    assert.equal(typeof record.negotiationChanged,'boolean');
+    assert.equal(typeof record.actualCollision,'boolean');
+  }
 });
 
 test('PVE stress T00 same-seed replay is deterministic',()=>{
@@ -98,4 +108,16 @@ test('PVE stress CLI writes required JSON and seed CSV outputs',async()=>{
   assert.equal(summary.scenarios[0].scenarioId,'T14');
   const failed=JSON.parse(fs.readFileSync(path.join(dir,'pve_failed_seeds.json'),'utf8'));
   assert.deepEqual(failed,[]);
+});
+
+test('PVE stress T00 CLI emits turn-level reference communication telemetry',async()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'pve-stress-reference-'));
+  const code=await stressMain(['--scenario','T00','--seed','cli-reference-seed','--output',dir]);
+  assert.equal(code,0);
+  const file=path.join(dir,'pve_reference_turns.jsonl');
+  assert.equal(fs.existsSync(file),true);
+  const rows=fs.readFileSync(file,'utf8').trim().split('\n').map(JSON.parse);
+  assert.ok(rows.length>0);
+  assert.equal(rows[0].scenarioId,'T00');
+  assert.ok(rows[0].records.every(x=>Array.isArray(x.availableNumbers)&&Array.isArray(x.preferredNumbers)));
 });
