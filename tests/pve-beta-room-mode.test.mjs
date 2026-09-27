@@ -38,9 +38,9 @@ test('MODE-01/04 server defaults missing mode to competitive and rejects invalid
  assert.throws(()=>parseRequestedGameMode('PVE_RANKED'),error=>error.code==='INVALID_GAME_MODE');
 });
 test('COOP_PVE kill switch defaults on and returns the canonical structured code when disabled',async()=>{
- assert.equal(coopPveEnabled(undefined),true);
- assert.equal(coopPveEnabled('true'),true);
- for(const value of ['false','0','off','no','disabled'])assert.equal(coopPveEnabled(value),false);
+ assert.equal(coopPveEnabled(undefined),false);
+ for(const value of ['true','1','on','yes','enabled'])assert.equal(coopPveEnabled(value),true);
+ for(const value of ['false','0','off','no','disabled',''])assert.equal(coopPveEnabled(value),false);
  assert.throws(()=>assertCoopPveEnabled('false'),error=>error.code==='COOP_PVE_TEMPORARILY_DISABLED');
  const source=await readFile(new URL('../supabase/functions/game-api/index.ts',import.meta.url),'utf8');
  assert.match(source,/gameMode===GAME_MODE\.COOP_PVE\)assertCoopPveEnabledNow\(\)/);
