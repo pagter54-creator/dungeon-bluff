@@ -33,14 +33,14 @@ function submitUnique(run,values=[2,3,4,5]){
   return resolveBasicTurn(run);
 }
 
-test('PVE-013 F1 content ships exactly the four named monsters with locked F1 HP tiers',()=>{
+test('PVE-014 tuning keeps the four F1 monsters while applying the 75/120/180 HP scale',()=>{
   const defs=Object.values(F1_MONSTER_DEFINITIONS);
   assert.equal(defs.length,4);
   assert.deepEqual(defs.map(x=>x.name).sort(),['메아리 박쥐','몰락한 성주','비겁한 사냥꾼','철갑 멧돼지'].sort());
-  assert.equal(F1_MONSTER_DEFINITIONS.f1_armored_boar.baseHp,90);
-  assert.equal(F1_MONSTER_DEFINITIONS.f1_coward_hunter.baseHp,90);
-  assert.equal(F1_MONSTER_DEFINITIONS.f1_echo_bat.baseHp,160);
-  assert.equal(F1_MONSTER_DEFINITIONS.f1_fallen_lord.baseHp,240);
+  assert.equal(F1_MONSTER_DEFINITIONS.f1_armored_boar.baseHp,75);
+  assert.equal(F1_MONSTER_DEFINITIONS.f1_coward_hunter.baseHp,75);
+  assert.equal(F1_MONSTER_DEFINITIONS.f1_echo_bat.baseHp,120);
+  assert.equal(F1_MONSTER_DEFINITIONS.f1_fallen_lord.baseHp,180);
   assert.equal(F1_MONSTER_DEFINITIONS.f1_echo_bat.tier,'ELITE');
   assert.equal(F1_MONSTER_DEFINITIONS.f1_fallen_lord.tier,'BOSS');
 });
