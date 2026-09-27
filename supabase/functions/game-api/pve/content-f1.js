@@ -2,7 +2,7 @@ import {choose} from './rng.js';
 
 export const F1_MONSTER_DEFINITIONS=Object.freeze({
   f1_armored_boar:{
-    id:'f1_armored_boar',name:'철갑 멧돼지',floor:1,tier:'NORMAL',baseHp:90,tags:['F1','ARMORED'],
+    id:'f1_armored_boar',name:'철갑 멧돼지',floor:1,tier:'NORMAL',baseHp:75,tags:['F1','ARMORED'],
     pattern:[
       {type:'DEFEND',telegraphText:'철갑을 세워 다음 공격을 버틴다',payload:{amount:1}},
       {type:'CHARGE',telegraphText:'땅을 긁으며 돌진을 준비한다',payload:{}},
@@ -10,7 +10,7 @@ export const F1_MONSTER_DEFINITIONS=Object.freeze({
     ]
   },
   f1_coward_hunter:{
-    id:'f1_coward_hunter',name:'비겁한 사냥꾼',floor:1,tier:'NORMAL',baseHp:90,tags:['F1','HUNTER'],
+    id:'f1_coward_hunter',name:'비겁한 사냥꾼',floor:1,tier:'NORMAL',baseHp:75,tags:['F1','HUNTER'],
     pattern:[
       {type:'CHARGE',telegraphText:'안전한 거리를 재며 빈틈을 노린다',payload:{}},
       {type:'DIRECT_DAMAGE',telegraphText:'한 명을 골라 기습한다',payload:{target:'RANDOM_LIVING',amount:1}},
@@ -18,7 +18,7 @@ export const F1_MONSTER_DEFINITIONS=Object.freeze({
     ]
   },
   f1_echo_bat:{
-    id:'f1_echo_bat',name:'메아리 박쥐',floor:1,tier:'ELITE',baseHp:160,tags:['F1','ELITE','ECHO'],
+    id:'f1_echo_bat',name:'메아리 박쥐',floor:1,tier:'ELITE',baseHp:120,tags:['F1','ELITE','ECHO'],
     pattern:[
       {type:'CHARGE',telegraphText:'동굴을 울리는 초음파를 모은다',payload:{}},
       {type:'DIRECT_DAMAGE',telegraphText:'메아리를 따라 한 명에게 급강하한다',payload:{target:'RANDOM_LIVING',amount:1}},
@@ -29,7 +29,7 @@ export const F1_MONSTER_DEFINITIONS=Object.freeze({
     ]
   },
   f1_fallen_lord:{
-    id:'f1_fallen_lord',name:'몰락한 성주',floor:1,tier:'BOSS',baseHp:240,tags:['F1','BOSS'],
+    id:'f1_fallen_lord',name:'몰락한 성주',floor:1,tier:'BOSS',baseHp:180,tags:['F1','BOSS'],
     pattern:[
       {type:'CHARGE',telegraphText:'무너진 왕좌의 힘을 끌어모은다',payload:{}},
       {type:'DIRECT_DAMAGE',telegraphText:'성주의 검이 한 명을 겨눈다',payload:{target:'RANDOM_LIVING',amount:1}},
