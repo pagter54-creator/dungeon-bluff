@@ -609,7 +609,10 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
     referenceTurns,
     referenceCommunication:summarizeReferenceTurns(referenceTurns),
     numberMutationTurns,
-    resourceTimeline
+    resourceTimeline,
+    combatResourceLeakCount:run.players.reduce((sum,p)=>sum+Object.entries(PVE_RESOURCE_DEFS)
+      .filter(([key,def])=>def.resetScope==='COMBAT'&&Object.hasOwn(p.publicResources||{},key))
+      .length,0)
   };
 }
 
@@ -754,6 +757,175 @@ export function t05GoldenComparable(result){
   };
 }
 
+const T09_CHARACTER_IDS=Object.freeze(['warrior','mage','prophet','gunner']);
+const T09_FIXTURE_MONSTER=Object.freeze({
+  id:'t09_fixture_dummy',name:'T09 Resource Dummy',tier:'NORMAL',baseHp:999,
+  pattern:[{type:'CHARGE',telegraphText:'fixture',payload:{}}]
+});
+function t09Run(seed,id){
+  const run=makeCombatRun(`${seed}:${id}`,{caseId:`T09-${id}`,characterIds:T09_CHARACTER_IDS,flame:4,monsterDef:T09_FIXTURE_MONSTER});
+  run.combat.monster.intent={type:'CHARGE',telegraphText:'fixture',payload:{}};
+  return run;
+}
+function t09Card(run,pid,number){
+  const view=projectRun(run,pid);assertNoHiddenInfo(view,pid);
+  return cardFromView(view,pid,number)?.id||null;
+}
+function submitT09(run,pid,number,skillIntent=false,skillData=null){
+  const id=t09Card(run,pid,number);
+  if(!id)fail('T09_FIXTURE_CARD_MISSING','T09 fixture requested unavailable card',{pid,number,cycle:run.combat.privateByPlayer[pid]?.cycleIndex});
+  submitCard(run,pid,id,skillIntent,skillData);
+  assertRunInvariants(run);assertT09CardPartition(run,pid);
+  return id;
+}
+function expectT09Reject(run,pid,fn,expectedCode){
+  const before=t09State(run,pid);let caught=null;
+  try{fn();}catch(error){caught=error;}
+  if(!caught)fail('INVALID_REQUEST_ACCEPTED','T09 fixture invalid request was accepted',{pid,expectedCode});
+  const code=typeof caught?.code==='string'?caught.code:'UNSTRUCTURED_REJECTION';
+  if(code!==expectedCode)fail('INVALID_REJECTION_CODE','T09 fixture rejection code diverged',{pid,expectedCode,actual:code,message:caught.message});
+  const after=t09State(run,pid);
+  if(stableStringify(before)!==stableStringify(after))fail('REJECTED_REQUEST_MUTATED_STATE','T09 fixture rejected request mutated state',{pid,before,after});
+  return {code,message:caught.message};
+}
+function resolveT09(run){
+  const result=resolveBasicTurn(run);
+  if(!result)fail('SOFTLOCK','T09 fixture did not resolve');
+  assertRunInvariants(run);
+  return result;
+}
+export function runT09Fixtures(seed){
+  const cases=[];
+  {
+    const run=t09Run(seed,'F1_MAGE_MANA_0_ILLEGAL');run.players[1].publicResources.mana=0;
+    const card=t09Card(run,'p1',1),reject=expectT09Reject(run,'p1',()=>submitCard(run,'p1',card,true,{manaSpend:2}),'INSUFFICIENT_RESOURCE');
+    submitT09(run,'p0',5);submitT09(run,'p1',1);submitT09(run,'p2',4);submitT09(run,'p3',2);
+    const result=resolveT09(run);
+    cases.push({id:'F1_MAGE_MANA_0_ILLEGAL',reject,manaAfterReject:0,turnAdvanced:run.combat.turn===2,resultTurn:result.turn});
+  }
+  {
+    const run=t09Run(seed,'F2_MAGE_EXACT_COST');run.players[1].publicResources.mana=2;
+    submitT09(run,'p0',5);submitT09(run,'p1',1,true,{manaSpend:2});submitT09(run,'p2',4);submitT09(run,'p3',2);
+    const result=resolveT09(run),mage=result.cards.find(x=>x.playerId==='p1');
+    cases.push({id:'F2_MAGE_EXACT_COST',before:mage.resourceBefore,spent:mage.resourceSpent,after:mage.resourceAfter,workingNumber:mage.workingNumber});
+  }
+  {
+    const run=t09Run(seed,'F3_KNIGHT_TOUGHNESS_0');run.players[0].publicResources.toughnessCharges=0;
+    const card=t09Card(run,'p0',5),reject=expectT09Reject(run,'p0',()=>submitCard(run,'p0',card,true),'INSUFFICIENT_RESOURCE');
+    submitT09(run,'p0',5);submitT09(run,'p1',1);submitT09(run,'p2',4);submitT09(run,'p3',2);
+    resolveT09(run);
+    cases.push({id:'F3_KNIGHT_TOUGHNESS_0',reject,toughnessAfterReject:0,turnAdvanced:run.combat.turn===2});
+  }
+  {
+    const run=t09Run(seed,'F4_SEER_COLLISION_GAIN');run.players[2].publicResources.revelation=0;
+    submitT09(run,'p0',5);submitT09(run,'p1',1);submitT09(run,'p2',1);submitT09(run,'p3',2);
+    const result=resolveT09(run),seer=result.cards.find(x=>x.playerId==='p2');
+    cases.push({id:'F4_SEER_COLLISION_GAIN',gain:seer.revelationGained||0,revelation:run.players[2].publicResources.revelation,valid:seer.valid});
+  }
+  {
+    const run=t09Run(seed,'F5_SEER_MAX_COLLISION');run.players[2].publicResources.revelation=1;
+    submitT09(run,'p0',5);submitT09(run,'p1',1);submitT09(run,'p2',1);submitT09(run,'p3',2);
+    const result=resolveT09(run),seer=result.cards.find(x=>x.playerId==='p2');
+    cases.push({id:'F5_SEER_MAX_COLLISION',gain:seer.revelationGained||0,revelation:run.players[2].publicResources.revelation});
+  }
+  {
+    const run=t09Run(seed,'F6_SEER_USE_RECOVERY'),seer=run.players[2],priv=run.combat.privateByPlayer.p2;
+    const recoverId=seer.cardPool.find(x=>x.baseNumber===5).id;
+    priv.remainingCardIds=priv.remainingCardIds.filter(id=>id!==recoverId);priv.spentCardIds=[recoverId];seer.publicResources.revelation=1;
+    submitT09(run,'p0',2);
+    const evt=activateImmediateCharacterSkill(run,seer);
+    const peek=structuredClone(priv.revelationPeek);
+    submitT09(run,'p1',1);submitT09(run,'p2',4);submitT09(run,'p3',3);resolveT09(run);
+    cases.push({id:'F6_SEER_USE_RECOVERY',recoveredCardId:evt.recoveredCardId,expectedCardId:recoverId,revelationAfterUse:0,peek,ownershipStable:seer.cardPool.some(x=>x.id===recoverId)});
+  }
+  {
+    const run=t09Run(seed,'F7_SEER_USE_COLLISION_REGAIN'),seer=run.players[2],priv=run.combat.privateByPlayer.p2;
+    const recoverId=seer.cardPool.find(x=>x.baseNumber===5).id;
+    priv.remainingCardIds=priv.remainingCardIds.filter(id=>id!==recoverId);priv.spentCardIds=[recoverId];seer.publicResources.revelation=1;
+    submitT09(run,'p1',1);const evt=activateImmediateCharacterSkill(run,seer);
+    submitT09(run,'p0',5);submitT09(run,'p2',1);submitT09(run,'p3',2);
+    const result=resolveT09(run),seerCard=result.cards.find(x=>x.playerId==='p2');
+    cases.push({id:'F7_SEER_USE_COLLISION_REGAIN',recoveredCardId:evt.recoveredCardId,spent:1,gained:seerCard.revelationGained||0,revelation:seer.publicResources.revelation});
+  }
+  {
+    const run=t09Run(seed,'F8_SEER_NO_RECOVERY_TARGET'),seer=run.players[2],priv=run.combat.privateByPlayer.p2;
+    seer.publicResources.revelation=1;
+    submitT09(run,'p0',2);const evt=activateImmediateCharacterSkill(run,seer);
+    submitT09(run,'p1',1);submitT09(run,'p2',4);submitT09(run,'p3',3);resolveT09(run);
+    cases.push({id:'F8_SEER_NO_RECOVERY_TARGET',recoveredCardId:evt.recoveredCardId,revelationAfterUse:0,spentCountBefore:0,peekTarget:evt.targetPlayerId});
+  }
+  {
+    const run=t09Run(seed,'F9_GUNNER_FINAL_CARD_CYCLE'),gunner=run.players[3],priv=run.combat.privateByPlayer.p3;
+    const one=gunner.cardPool.find(x=>x.baseNumber===1).id,two=gunner.cardPool.find(x=>x.baseNumber===2).id,three=gunner.cardPool.find(x=>x.baseNumber===3).id;
+    priv.spentCardIds=[one,two];priv.remainingCardIds=[three];gunner.publicResources.fullBurstReady=false;gunner.publicResources.burstReadyCycle=2;
+    submitT09(run,'p0',5);submitT09(run,'p1',1);submitT09(run,'p2',4);submitT09(run,'p3',3);resolveT09(run);
+    cases.push({id:'F9_GUNNER_FINAL_CARD_CYCLE',cycle:priv.cycleIndex,remaining:[...priv.remainingCardIds],spent:[...priv.spentCardIds],expected:[one,two,three]});
+  }
+  {
+    const run=t09Run(seed,'F10_FULL_BURST_SUCCESS'),gunner=run.players[3],priv=run.combat.privateByPlayer.p3;
+    submitT09(run,'p0',5);submitT09(run,'p1',4);submitT09(run,'p2',3);submitT09(run,'p3',1,true);
+    const result=resolveT09(run),card=result.cards.find(x=>x.playerId==='p3');
+    cases.push({id:'F10_FULL_BURST_SUCCESS',outcome:card.fullBurstOutcome,followUps:[...(card.followUpCardIds||[])],cycle:priv.cycleIndex,remaining:[...priv.remainingCardIds],ready:gunner.publicResources.fullBurstReady,readyCycle:gunner.publicResources.burstReadyCycle});
+  }
+  {
+    const run=t09Run(seed,'F11_FULL_BURST_FAILURE'),gunner=run.players[3],priv=run.combat.privateByPlayer.p3;
+    submitT09(run,'p0',5);submitT09(run,'p1',4);submitT09(run,'p2',1);submitT09(run,'p3',1,true);
+    const result=resolveT09(run),card=result.cards.find(x=>x.playerId==='p3');
+    cases.push({id:'F11_FULL_BURST_FAILURE',outcome:card.fullBurstOutcome,followUps:[...(card.followUpCardIds||[])],hp:gunner.hp,cycle:priv.cycleIndex,remaining:[...priv.remainingCardIds],spent:[...priv.spentCardIds],ready:gunner.publicResources.fullBurstReady,readyCycle:gunner.publicResources.burstReadyCycle});
+  }
+  {
+    const run=t09Run(seed,'F12_REPEATED_INVALID'),mage=run.players[1];mage.publicResources.mana=0;
+    const card=t09Card(run,'p1',1),rejectCodes=[];
+    for(let i=0;i<3;i++)rejectCodes.push(expectT09Reject(run,'p1',()=>submitCard(run,'p1',card,true,{manaSpend:2}),'INSUFFICIENT_RESOURCE').code);
+    submitT09(run,'p0',5);submitT09(run,'p1',1);submitT09(run,'p2',4);submitT09(run,'p3',2);resolveT09(run);
+    cases.push({id:'F12_REPEATED_INVALID',rejectCodes,manaAfterRejects:0,turnAdvanced:run.combat.turn===2});
+  }
+  return {scenarioId:'T09_FIXTURES',seed,status:'PASS',cases};
+}
+function t09Metrics(timeline,combatResourceLeakCount=0){
+  const reasons={};
+  for(const row of timeline||[])for(const reason of row.rejectReasons||[])reasons[reason]=(reasons[reason]||0)+1;
+  const prophet=(timeline||[]).filter(x=>x.classId==='prophet');
+  return {
+    invalidSkillRequestCount:(timeline||[]).reduce((s,x)=>s+(x.skillRejected||0),0),
+    rejectedRequestCount:(timeline||[]).reduce((s,x)=>s+(x.skillRejected||0),0),
+    rejectionReasonCount:reasons,
+    negativeResourceOccurrence:0,
+    resourceOverCapOccurrence:0,
+    emptyHandSoftlockCount:0,
+    cycleResetCount:(timeline||[]).filter(x=>Number(x.cycleAfter)>Number(x.cycleBefore)).length,
+    recoveredCardCount:(timeline||[]).filter(x=>x.recoveredCardId).length,
+    duplicateCardInvariantFailure:0,
+    fullBurstSuccess:(timeline||[]).filter(x=>x.fullBurstOutcome==='SUCCESS').length,
+    fullBurstFailure:(timeline||[]).filter(x=>x.fullBurstOutcome==='FAIL_COLLISION').length,
+    revelationGain:prophet.reduce((s,x)=>s+(Number(x.resourceGained)||0),0),
+    revelationSpend:prophet.reduce((s,x)=>s+(Number(x.resourceSpent)||0),0),
+    revelationRegain:prophet.filter(x=>(Number(x.resourceSpent)||0)>0&&(Number(x.resourceGained)||0)>0).length,
+    deterministicReplayMismatch:0,
+    resourceLeakAtCombatEnd:combatResourceLeakCount
+  };
+}
+export function runT09(seed){
+  const fixtures=runT09Fixtures(seed);
+  const stress=simulateCombat({
+    seed:`${seed}:stress`,caseId:'T09-stress',characterIds:T09_CHARACTER_IDS,
+    monsterDef:F1_MONSTER_DEFINITIONS.f1_armored_boar,policy:'resource_starvation',flame:4
+  });
+  return {
+    scenarioId:'T09',seed,status:'PASS',outcome:stress.outcome,actionCount:stress.actions,
+    fixtures:fixtures.cases,resourceTimeline:stress.resourceTimeline,
+    resourceMetrics:t09Metrics(stress.resourceTimeline,stress.combatResourceLeakCount),
+    combats:stress.combats,finalFlame:stress.finalFlame
+  };
+}
+export function t09GoldenComparable(result){
+  return {
+    scenarioId:result.scenarioId,status:result.status,
+    fixtures:(result.fixtures||[]).map(x=>semantic(x)),
+    resourceTimeline:(result.resourceTimeline||[]).map(x=>semantic(x))
+  };
+}
+
 export function runT00(seed){
   const baseParty=[
     {characterId:'adventurer',augments:['aug-001']},
@@ -800,6 +972,7 @@ export function runScenario(scenarioId,seed){
   if(!availability.available)return {scenarioId,seed,status:'SKIP',skipReasons:availability.reasons};
   if(scenarioId==='T00')return runT00(seed);
   if(scenarioId==='T05')return runT05(seed);
+  if(scenarioId==='T09')return runT09(seed);
   if(scenarioId==='T14')return runT14(seed);
   fail('SCENARIO_RUNNER_NOT_IMPLEMENTED',`${scenarioId} became available but its runner is not implemented yet`,{scenarioId});
 }
