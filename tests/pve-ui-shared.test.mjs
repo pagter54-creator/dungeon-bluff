@@ -209,3 +209,19 @@ test('PVE choice popup stacks above the shared competitive result overlay',async
  const result=Number(battleCss.match(/\.room-result-overlay\{[^}]*z-index:(\d+)/)?.[1]);
  assert.ok(modal>result,`PVE modal z-index ${modal} must exceed result overlay ${result}`);
 });
+
+test('Reward Room adapter exposes only server-supported active skill controls',()=>{
+ const raw=baseRun();
+ raw.players=[
+  {...raw.players[0],characterId:'mage',publicResources:{mana:4}},
+  {...raw.players[1],characterId:'prophet',publicResources:{revelation:1}},
+  {...raw.players[2],characterId:'vampire',publicResources:{thrallPlayerId:'p0'}},
+  {...raw.players[3],characterId:'twins',publicResources:{acrobaticsReady:true,parity:0}}
+ ];
+ raw.phase='REWARD_ROOM';raw.roomState={type:'REWARD_ROOM',publicCardCycles:{},privateByPlayer:{},turnSubmissions:{}};
+ const view=projectRun(raw,'p0'),players=pveGameplayPlayers(bundle(view),view,{scope:'room'});
+ assert.equal(players.p0.skillId,'amplify');assert.equal(players.p0.activeSkillState.available,true);
+ assert.equal(players.p1.skillId,'');assert.equal(players.p1.activeSkillState.available,false);
+ assert.equal(players.p2.skillId,'');assert.equal(players.p2.activeSkillState.available,false);
+ assert.equal(players.p3.skillId,'acrobatics');assert.equal(players.p3.activeSkillState.available,true);
+});
