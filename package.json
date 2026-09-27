@@ -13,7 +13,8 @@
     "pve:stress:full": "node scripts/pve-stress.mjs --mode stress",
     "pve:beta:preflight": "node scripts/pve-beta-preflight.mjs",
     "pve:beta:prepare-frontend": "node scripts/prepare-pve-beta-frontend.mjs",
-    "pve:production:preflight": "node scripts/pve-production-preflight.mjs"
+    "pve:production:preflight": "node scripts/pve-production-preflight.mjs",
+    "pve:production:smoke": "node scripts/pve-production-smoke.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.8",
