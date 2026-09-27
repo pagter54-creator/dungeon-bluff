@@ -195,8 +195,7 @@ test('T09 Revelation private peek is visible only to the Prophet projection',()=
   assert.ok(!Object.hasOwn(seer.players.find(p=>p.playerId==='p0').cardPool[0],'id'));
 });
 
-test('T09 activation keeps completed scenarios active while only T06 remains unavailable',()=>{
+test('T09 remains active after the final T06 scenario is enabled',()=>{
   const status=Object.fromEntries(STRESS_SCENARIOS.map(s=>[s.id,scenarioAvailability(s).available]));
-  for(const id of ['T00','T02','T03','T04','T05','T09','T14'])assert.equal(status[id],true,id);
-  assert.equal(status.T06,false,'T06');
+  for(const id of ['T00','T02','T03','T04','T05','T06','T09','T14'])assert.equal(status[id],true,id);
 });
