@@ -518,15 +518,15 @@ export function resolvePostCollisionCharacter(run,resolved,submission,events=[])
     if(after>before)events.push({type:'REVELATION_GAINED',playerId:player.playerId,before,after,reason:'COLLISION'});
   }
   if(player.characterId!=='gunner'||!submission.skillIntent)return;
-  const priv=run.combat.privateByPlayer[player.playerId];
+  const gunnerPriv=run.combat.privateByPlayer[player.playerId];
   player.publicResources.fullBurstReady=false;
   if(resolved.valid){
-    resolved.followUpCardIds=priv.remainingCardIds.filter(id=>id!==resolved.cardInstanceId);
-    player.publicResources.burstReadyCycle=(priv.cycleIndex||1)+2;
+    resolved.followUpCardIds=gunnerPriv.remainingCardIds.filter(id=>id!==resolved.cardInstanceId);
+    player.publicResources.burstReadyCycle=(gunnerPriv.cycleIndex||1)+2;
     resolved.skillUsed='full_burst';
     resolved.fullBurstOutcome='SUCCESS';
   }else if(resolved.invalidReason==='COLLISION'){
-    player.publicResources.burstReadyCycle=(priv.cycleIndex||1)+1;
+    player.publicResources.burstReadyCycle=(gunnerPriv.cycleIndex||1)+1;
     resolved.skillUsed='full_burst';
     resolved.fullBurstOutcome='FAIL_COLLISION';
     resolved.burstMisfire=true;
