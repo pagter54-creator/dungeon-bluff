@@ -17,8 +17,8 @@ export function roomGameMode(room){
 }
 export function isCoopPveRoom(room){return roomGameMode(room)===GAME_MODE.COOP_PVE;}
 export function coopPveEnabled(value){
-  const normalized=String(value??'true').trim().toLowerCase();
-  return !['0','false','off','no','disabled'].includes(normalized);
+  const normalized=String(value??'').trim().toLowerCase();
+  return ['1','true','on','yes','enabled'].includes(normalized);
 }
 export function assertCoopPveEnabled(value){
   if(coopPveEnabled(value))return true;
