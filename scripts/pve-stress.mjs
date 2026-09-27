@@ -256,7 +256,45 @@ function aggregateScenario(def,results,failures){
     avgEffectiveSustainValue:avg(sustainRows.map(x=>x.effectiveSustainValue)),
     avgFinalPartyHp:avg(sustainRows.map(x=>x.finalPartyHp))
   }:null;
+  const burstRows=passed.map(x=>x.burstMetrics).filter(Boolean);
+  const burstMetrics=def.id==='T02'&&burstRows.length?{
+    maxSingleCardDamage:Math.max(...burstRows.map(x=>Number(x.maxSingleCardDamage)||0)),
+    maxSinglePlayerTurnDamage:Math.max(...burstRows.map(x=>Number(x.maxSinglePlayerTurnDamage)||0)),
+    maxPartyTurnDamage:Math.max(...burstRows.map(x=>Number(x.maxPartyTurnDamage)||0)),
+    avgBurstTurnDamage:avg(burstRows.map(x=>x.averageBurstTurnDamage)),
+    avgNonBurstTurnDamage:avg(burstRows.map(x=>x.averageNonBurstTurnDamage)),
+    avgBurstNonBurstRatio:avg(burstRows.map(x=>x.burstNonBurstRatio).filter(Number.isFinite)),
+    maxConsecutiveBurstTurns:Math.max(...burstRows.map(x=>Number(x.maxConsecutiveBurstTurns)||0)),
+    fullBurstFollowUpCount:burstRows.reduce((n,x)=>n+(Number(x.fullBurstFollowUpCount)||0),0),
+    transformedDemonTurns:burstRows.reduce((n,x)=>n+(Number(x.transformedDemonTurns)||0),0),
+    oneHitKillUses:burstRows.reduce((n,x)=>n+(Number(x.oneHitKillUses)||0),0),
+    bloodFrenzyBonusOccurrences:burstRows.reduce((n,x)=>n+(Number(x.bloodFrenzyBonusOccurrences)||0),0),
+    bloodFrenzyBonusDamage:burstRows.reduce((n,x)=>n+(Number(x.bloodFrenzyBonusDamage)||0),0),
+    berserkerHpCost:burstRows.reduce((n,x)=>n+(Number(x.berserkerHpCost)||0),0),
+    comboConsumed:burstRows.reduce((n,x)=>n+(Number(x.comboConsumed)||0),0),
+    devourGained:burstRows.reduce((n,x)=>n+(Number(x.devourGained)||0),0),
+    multiThresholdBurstCount:burstRows.reduce((n,x)=>n+(Number(x.multiThresholdBurstCount)||0),0),
+    behaviorSkipMeasurable:burstRows.some(x=>x.behaviorSkipMeasurable===true),
+    bossBehaviorSkipCount:null,
+    recursiveFollowUpAttempts:burstRows.reduce((n,x)=>n+(Number(x.recursiveFollowUpAttempts)||0),0),
+    duplicateDamagePacketCount:burstRows.reduce((n,x)=>n+(Number(x.duplicateDamagePacketCount)||0),0),
+    duplicateModifierCount:burstRows.reduce((n,x)=>n+(Number(x.duplicateModifierCount)||0),0),
+    bossMaxHp:Math.max(...burstRows.map(x=>Number(x.bossMaxHp)||0))
+  }:null;
   const comparisonRows=passed.map(x=>x.comparison).filter(Boolean);
+  const burstComparison=def.id==='T02'&&comparisonRows.length?{
+    avgBurstDpt:avg(comparisonRows.map(x=>x.burstDpt)),
+    avgSteadyDpt:avg(comparisonRows.map(x=>x.steadyDpt)),
+    avgDptRatio:avg(comparisonRows.map(x=>x.dptRatio)),
+    avgBurstTurns:avg(comparisonRows.map(x=>x.burstTurns)),
+    avgSteadyTurns:avg(comparisonRows.map(x=>x.steadyTurns)),
+    avgBurstFinalHp:avg(comparisonRows.map(x=>x.burstFinalHp)),
+    avgSteadyFinalHp:avg(comparisonRows.map(x=>x.steadyFinalHp)),
+    avgBurstFlameSpent:avg(comparisonRows.map(x=>x.burstFlameSpent)),
+    avgSteadyFlameSpent:avg(comparisonRows.map(x=>x.steadyFlameSpent)),
+    burstDominatesCount:comparisonRows.filter(x=>x.burstDominates).length,
+    burstDominatesRate:comparisonRows.filter(x=>x.burstDominates).length/comparisonRows.length
+  }:null;
   const collisionComparison=def.id==='T04'&&comparisonRows.length?{
     avgFarmDpt:avg(comparisonRows.map(x=>x.farmDpt)),
     avgSafeDpt:avg(comparisonRows.map(x=>x.safeDpt)),
@@ -304,6 +342,8 @@ function aggregateScenario(def,results,failures){
     resourceMetrics,
     collisionMetrics,
     collisionComparison,
+    burstMetrics,
+    burstComparison,
     sustainMetrics,
     sustainComparison,
     fairnessWarnings,
@@ -324,8 +364,8 @@ export async function main(argv=process.argv.slice(2)){
     : STRESS_SCENARIOS;
   if(opts.scenario&&!selected.length)throw new Error(`Unknown scenario: ${opts.scenario}`);
 
-  const allRows=[],failedSeeds=[],scenarioSummaries=[],referenceTurnRows=[],numberMutationTurnRows=[],resourceStarvationRows=[],collisionFarmRows=[],collisionSafeRows=[],sustainRows=[],normalSustainRows=[];
-  let t03FixtureArtifact=null,t04FixtureArtifact=null,t05FixtureArtifact=null,t09FixtureArtifact=null;
+  const allRows=[],failedSeeds=[],scenarioSummaries=[],referenceTurnRows=[],numberMutationTurnRows=[],resourceStarvationRows=[],collisionFarmRows=[],collisionSafeRows=[],sustainRows=[],normalSustainRows=[],burstTurnRows=[],steadyBurstRows=[];
+  let t02FixtureArtifact=null,t03FixtureArtifact=null,t04FixtureArtifact=null,t05FixtureArtifact=null,t09FixtureArtifact=null;
   let hardFailures=0;
   for(const def of selected){
     const availability=scenarioAvailability(def);
@@ -347,6 +387,9 @@ export async function main(argv=process.argv.slice(2)){
         for(const turn of result.safePlayTurns||[])collisionSafeRows.push({scenarioId:def.id,seed,...turn});
         for(const turn of result.sustainTurns||[])sustainRows.push({scenarioId:def.id,seed,...turn});
         for(const turn of result.normalSustainTurns||[])normalSustainRows.push({scenarioId:def.id,seed,...turn});
+        for(const turn of result.burstTurns||[])burstTurnRows.push({scenarioId:def.id,seed,...turn});
+        for(const turn of result.steadyBurstTurns||[])steadyBurstRows.push({scenarioId:def.id,seed,...turn});
+        if(def.id==='T02'&&!t02FixtureArtifact&&result.fixtures)t02FixtureArtifact={scenarioId:'T02',seed,fixtures:result.fixtures};
         if(def.id==='T03'&&!t03FixtureArtifact&&result.fixtures)t03FixtureArtifact={scenarioId:'T03',seed,fixtures:result.fixtures};
         if(def.id==='T04'&&!t04FixtureArtifact&&result.fixtures)t04FixtureArtifact={scenarioId:'T04',seed,fixtures:result.fixtures};
         if(def.id==='T05'&&!t05FixtureArtifact&&result.fixtures)t05FixtureArtifact={scenarioId:'T05',seed,fixtures:result.fixtures};
@@ -409,6 +452,9 @@ export async function main(argv=process.argv.slice(2)){
   if(collisionSafeRows.length)fs.writeFileSync(path.join(outDir,'pve_collision_safe_turns.jsonl'),collisionSafeRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
   if(sustainRows.length)fs.writeFileSync(path.join(outDir,'pve_sustain_turns.jsonl'),sustainRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
   if(normalSustainRows.length)fs.writeFileSync(path.join(outDir,'pve_normal_sustain_turns.jsonl'),normalSustainRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
+  if(burstTurnRows.length)fs.writeFileSync(path.join(outDir,'pve_burst_turns.jsonl'),burstTurnRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
+  if(steadyBurstRows.length)fs.writeFileSync(path.join(outDir,'pve_steady_burst_turns.jsonl'),steadyBurstRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
+  if(t02FixtureArtifact)fs.writeFileSync(path.join(outDir,'pve_t02_fixtures.json'),JSON.stringify(t02FixtureArtifact,null,2)+'\n');
   if(t03FixtureArtifact)fs.writeFileSync(path.join(outDir,'pve_t03_fixtures.json'),JSON.stringify(t03FixtureArtifact,null,2)+'\n');
   if(t04FixtureArtifact)fs.writeFileSync(path.join(outDir,'pve_t04_fixtures.json'),JSON.stringify(t04FixtureArtifact,null,2)+'\n');
   if(t05FixtureArtifact)fs.writeFileSync(path.join(outDir,'pve_t05_fixtures.json'),JSON.stringify(t05FixtureArtifact,null,2)+'\n');
