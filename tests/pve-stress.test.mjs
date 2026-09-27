@@ -19,7 +19,8 @@ test('PVE stress scenario availability activates T00 only when its four builds a
   assert.equal(status.T09.available,true);
   assert.equal(status.T04.available,true);
   assert.equal(status.T03.available,true);
-  for(const id of ['T02','T06'])assert.equal(status[id].available,false,id);
+  assert.equal(status.T02.available,true);
+  assert.equal(status.T06.available,false,'T06');
   assert.deepEqual(status.T00.missingCharacters,[]);
   assert.deepEqual(status.T00.missingBuildEffects,[]);
   assert.deepEqual(status.T09.missingCharacters,[]);
@@ -55,7 +56,7 @@ test('PVE stress T00 same-seed replay is deterministic',()=>{
 });
 
 test('PVE canonical rule registry contains base rules plus canonical T04 sustain edges',()=>{
-  assert.deepEqual(CANONICAL_RULES.map(x=>x.id),['RULE-01','RULE-02','RULE-03','RULE-04','RULE-05','RULE-T04-A','RULE-T04-B']);
+  assert.deepEqual(CANONICAL_RULES.map(x=>x.id),['RULE-01','RULE-02','RULE-03','RULE-04','RULE-05','RULE-T04-A','RULE-T04-B','RULE-T03-A','RULE-T03-B']);
 });
 
 test('PVE stress T14 executes all six Flame/wipe ordering fixtures without hard failure',()=>{
