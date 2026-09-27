@@ -16,6 +16,8 @@ import {buildSustainIntent,planSustainTurn} from './pve-sustain-fortress-policy.
 import {runT03Scenario,t03GoldenComparable as t03Golden} from './pve-t03-sustain.mjs';
 import {buildBurstIntent,planBurstTurn} from './pve-burst-ceiling-policy.mjs';
 import {runT02Scenario,t02GoldenComparable as t02Golden} from './pve-t02-burst.mjs';
+import {buildRecoveryIntent,planRecoveryTurn} from './pve-recovery-loop-policy.mjs';
+import {runT06Scenario,t06GoldenComparable as t06Golden,assertRecoveryTurn} from './pve-t06-recovery.mjs';
 
 export const STRESS_SCHEMA_VERSION=1;
 export const HARD_MAX_TURNS=100;
@@ -73,7 +75,8 @@ const EXECUTABLE_RUNTIME_CAPABILITIES=new Set([
   'collision_farm_policy',
   'collision_safe_policy',
   'guardian_wall','transfusion','white_mage','sustain_policy','t03_runner','direct_damage_identity',
-  'demon_swordsman_base','martial_artist_base','full_barrage','released_demon_sword','one_hit_kill','blood_frenzy','burst_policy','steady_burst_policy','burst_chain_identity','t02_runner'
+  'demon_swordsman_base','martial_artist_base','full_barrage','released_demon_sword','one_hit_kill','blood_frenzy','burst_policy','steady_burst_policy','burst_chain_identity','t02_runner',
+  'twins_base','fate_manipulator','aerial_acrobatics','devouring_ghost_slash','recovery_loop_policy','steady_recovery_policy','recovery_chain_identity','t06_runner'
 ]);
 export const STRESS_SCENARIOS=Object.freeze([
   {
@@ -113,7 +116,8 @@ export const STRESS_SCENARIOS=Object.freeze([
   {
     id:'T06',name:'Recovery Loop',runner:'combat',policy:'recovery',
     characters:['prophet','gunner','twins','demon_swordsman'],
-    builds:[['prophet','운명 조작자'],['gunner','전탄 난사'],['twins','공중 곡예'],['demon_swordsman','포식 귀참']]
+    builds:[['prophet','운명 조작자'],['gunner','전탄 난사'],['twins','공중 곡예'],['demon_swordsman','포식 귀참']],
+    requires:['prophet_base','prophet_revelation','fate_manipulator','gunner_basic_cycle','gunner_full_burst','full_barrage','twins_base','aerial_acrobatics','demon_swordsman_base','devouring_ghost_slash','recovery_loop_policy','steady_recovery_policy','recovery_chain_identity','t06_runner']
   }
 ]);
 
@@ -164,6 +168,12 @@ export const SPEC_AMBIGUITIES=Object.freeze([
     scenarioId:'T02',
     topic:'Martial Artist current-hit Combo damage timing',
     detail:'Canonical docs fix previous-card comparison to prior revealed final_number and define valid higher card => Combo +1, but do not explicitly say whether that same attack uses Combo before or after the increment. Runtime follows engine phase order CARD_VALIDATED before DAMAGE_BUILD, so the current valid higher attack uses the post-increment Combo. This is isolated as an ambiguity rather than a balance value.'
+  },
+  {
+    id:'AMB-T06-RECOVER-PREVIOUS-CYCLE-CARD',
+    scenarioId:'T06',
+    topic:'Fate Manipulator recovery after target cycle reset',
+    detail:'BETA v0.1 defines recovery from an ally used card but does not define an archive for cards belonging to a completed prior cycle. Runtime therefore treats only the target current-cycle spent zone as eligible. After Full Burst or Acrobatics creates a new cycle, prior-cycle cards are not recoverable unless a future canonical rule introduces an explicit cross-cycle archive.'
   }
 ]);
 
@@ -646,7 +656,7 @@ function assertT03SustainTurn(run,result,policyPlan){
 export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterDef=F1_MONSTER_DEFINITIONS.f1_armored_boar,policy='reference',flame=4,maxTurns=HARD_MAX_TURNS,caseId='generic-combat'}){
   const run=makeCombatRun(seed,{caseId,characterIds,augmentIdsByPlayer,flame,monsterDef});
   let actions=0,resolves=0;
-  const referenceTurns=[],numberMutationTurns=[],resourceTimeline=[],collisionTurns=[],sustainTurns=[],burstTurns=[];
+  const referenceTurns=[],numberMutationTurns=[],resourceTimeline=[],collisionTurns=[],sustainTurns=[],burstTurns=[],recoveryTurns=[];
   const t09PriorResource=new Map(run.players.map(p=>[p.playerId,t09ResourceValue(p)]));
   while(run.phase==='COMBAT'){
     if(run.combat.turn>maxTurns)fail('INFINITE_LOOP','simulation exceeded turn ceiling',{seed,turn:run.combat.turn});
@@ -728,6 +738,48 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
         assertRunInvariants(run);assertT09CardPartition(run,p.playerId);
       }
       run.combat._t09PendingRecords=[...records.values()];
+    }else if(policy==='recovery'||policy==='steady_recovery'){
+      const contextKey=`${run.currentRoomNodeId||run.combat?.monster?.id||'combat'}:turn:${turn}`;
+      const intents=[];
+      for(const p of run.players){
+        if(p.status==='DOWNED'||run.combat.turnSubmissions[p.playerId])continue;
+        const view=projectRun(run,p.playerId);assertNoHiddenInfo(view,p.playerId);
+        const intent=buildRecoveryIntent(view,p.playerId);
+        if(!intent)fail('BOT_NO_LEGAL_ACTION','T06 bot could not build owner recovery intent',{seed,playerId:p.playerId,turn,policy});
+        intents.push(intent);
+      }
+      const plan=planRecoveryTurn(intents,{seed,contextKey,turn,optimized:policy==='recovery'});
+      for(const action of plan.immediateActions||[]){
+        const p=run.players.find(x=>x.playerId===action.playerId);
+        if(!p||p.status==='DOWNED')continue;
+        try{
+          if(action.kind==='FATE_MANIPULATOR')activateImmediateCharacterSkill(run,p,{target_player_id:action.targetPlayerId});
+          else if(action.kind==='ACROBATICS')activateImmediateCharacterSkill(run,p);
+          actions++;assertRunInvariants(run);
+        }catch(error){
+          if(error instanceof PveSkillError&&['SKILL_NOT_READY','INSUFFICIENT_RESOURCE'].includes(error.code))continue;
+          throw error;
+        }
+      }
+      const usedNumbers=new Set();
+      for(const decision of plan.decisions){
+        const view=projectRun(run,decision.playerId);assertNoHiddenInfo(view,decision.playerId);
+        let choices=legalCardsFromView(view,decision.playerId).sort((a,b)=>a.id.localeCompare(b.id));
+        const preferred=choices.filter(card=>card.baseNumber===decision.baseNumber);
+        if(preferred.length)choices=preferred;
+        else{
+          const nonCollision=choices.filter(card=>!usedNumbers.has(card.baseNumber));
+          if(nonCollision.length)choices=nonCollision.sort((a,b)=>b.baseNumber-a.baseNumber||a.id.localeCompare(b.id));
+        }
+        if(!choices.length)fail('BOT_NO_LEGAL_ACTION','T06 recovery decision has no legal card after immediate effects',{seed,turn,policy,decision});
+        const card=choices[seededIndex(seed,`${contextKey}:${decision.playerId}:physical:${choices.map(x=>x.id).join(',')}`,choices.length)];
+        let skillIntent=decision.skillIntent;
+        const owner=view.players.find(x=>x.playerId===decision.playerId);
+        if(owner?.characterId==='gunner'&&!owner.publicResources?.fullBurstReady)skillIntent=false;
+        if(owner?.characterId==='demon_swordsman'&&!owner.publicResources?.ghostSlashReady)skillIntent=false;
+        submitCard(run,decision.playerId,card.id,skillIntent,decision.skillData);actions++;usedNumbers.add(card.baseNumber);assertRunInvariants(run);
+      }
+      run.combat._t06PendingPolicy=structuredClone(plan);
     }else if(policy==='burst'||policy==='steady_burst'){
       const contextKey=`${run.currentRoomNodeId||run.combat?.monster?.id||'combat'}:turn:${turn}`;
       const intents=[],views=new Map();
@@ -848,6 +900,11 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
       collisionTurns.push(assertT04CollisionTurn(run,result,plan));
       if(run.combat)delete run.combat._t04PendingPolicy;
     }
+    if(policy==='recovery'||policy==='steady_recovery'){
+      const plan=run.combat?._t06PendingPolicy||null;
+      recoveryTurns.push(assertRecoveryTurn(run,result,plan,fail));
+      if(run.combat)delete run.combat._t06PendingPolicy;
+    }
     if(policy==='burst'||policy==='steady_burst'){
       const plan=run.combat?._t02PendingPolicy||null;
       burstTurns.push(assertT02BurstTurn(run,result,plan));
@@ -903,6 +960,7 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
     collisionTurns,
     sustainTurns,
     burstTurns,
+    recoveryTurns,
     combatResourceLeakCount:run.players.reduce((sum,p)=>sum+Object.entries(PVE_RESOURCE_DEFS)
       .filter(([key,def])=>def.resetScope==='COMBAT'&&Object.hasOwn(p.publicResources||{},key))
       .length,0)
@@ -1568,6 +1626,7 @@ export function runScenario(scenarioId,seed){
   if(scenarioId==='T00')return runT00(seed);
   if(scenarioId==='T02')return runT02Scenario(seed,{simulateCombat,fail});
   if(scenarioId==='T05')return runT05(seed);
+  if(scenarioId==='T06')return runT06Scenario(seed,{simulateCombat,fail});
   if(scenarioId==='T04')return runT04(seed);
   if(scenarioId==='T03')return runT03Scenario(seed,{simulateCombat,fail});
   if(scenarioId==='T09')return runT09(seed);
@@ -1603,6 +1662,12 @@ export function balanceWarnings(result){
     if((Number(m.maxPartyTurnDamage)||0)>=(Number(m.bossMaxHp)||Infinity)*0.5&&(Number(c.costSignals)||0)===0)warnings.push({code:'BURST_WITHOUT_COST',maxPartyTurnDamage:m.maxPartyTurnDamage,bossMaxHp:m.bossMaxHp});
     if(c.burstDominates)warnings.push({code:'BURST_DOMINATES',dptRatio:c.dptRatio,burstDpt:c.burstDpt,steadyDpt:c.steadyDpt,costLow:c.costLow});
   }
+  if(result.scenarioId==='T06'){
+    const m=result.recoveryMetrics||{},c=result.comparison||{};
+    if((Number(m.maxTimesOneCardRecovered)||0)>=5)warnings.push({code:'SAME_CARD_RECOVERY_HIGH',maxTimesOneCardRecovered:m.maxTimesOneCardRecovered});
+    if((Number(m.cardReuseRatio)||0)>=2.5)warnings.push({code:'CARD_REUSE_HIGH',cardReuseRatio:m.cardReuseRatio});
+    if(c.recoveryDominates)warnings.push({code:'RECOVERY_DOMINATES',dptRatio:c.dptRatio,recoveryCardReuseRatio:c.recoveryCardReuseRatio,steadyCardReuseRatio:c.steadyCardReuseRatio,recoveryCount:c.recoveryCount});
+  }
   if(result.scenarioId==='T04'&&result.comparison?.farmDominates){
     warnings.push({code:'FARM_DOMINATES',dptRatio:result.comparison.dptRatio,farmDpt:result.comparison.farmDpt,safeDpt:result.comparison.safeDpt,survivalNotWorse:true});
   }
@@ -1623,6 +1688,8 @@ export function skippedScenarioReport(){
 }
 
 export function t02GoldenComparable(result){return t02Golden(result);}
+
+export function t06GoldenComparable(result){return t06Golden(result);}
 
 export function t03GoldenComparable(result){return t03Golden(result);}
 
