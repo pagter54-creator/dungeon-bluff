@@ -92,14 +92,19 @@ export function pveAugmentPopupMarkup(run){
   return '<div class="pve-modal-layer"><section class="pve-choice-popup augment-popup"><div class="eyebrow">AUGMENT CHOICE</div><h2>증강을 선택하세요.</h2>'+(offer?'<div class="pve-choice-cards">'+cards+'</div>':'<p>다른 플레이어의 선택을 기다리는 중입니다.</p>')+'</section></div>';
 }
 export function pveRoomResultOverlayMarkup(bundle,run,{interactive=true,playerId=null}={}){
-  const readyIds=run.roomResult?.readyPlayerIds||[],ready=new Set(readyIds);
+  const readyIds=run.roomResult?.readyPlayerIds||[],ready=new Set(readyIds),baseline=run.roomPresentationBaseline||null;
+  const delta=value=>value>0?'+'+value:String(value);
   const rows=[...(run.players||[])].sort((a,b)=>(a.seat||0)-(b.seat||0)).map(p=>{
-    const m=bundle.members?.find(x=>x.id===p.playerId),name=m?.display_name||p.displayName||'플레이어';
-    return '<article><div class="summary-portrait">'+skinPortrait(pveLobbyCharacterId(p),m?.loadout)+'</div><b title="'+esc(name)+'">'+esc(name)+'</b><div class="summary-changes"><span>HP '+p.hp+'/'+p.maxHp+'</span><span>EXP '+(p.growthExp||0)+'</span><span>RUN GOLD '+(p.runGold||0)+'G</span></div><small class="summary-ready">'+(ready.has(p.playerId)?'✓ 확인 완료':'결과 확인 대기')+'</small></article>';
+    const m=bundle.members?.find(x=>x.id===p.playerId),name=m?.display_name||p.displayName||'플레이어',before=baseline?.players?.[p.playerId]||null;
+    const hpDelta=before?Number(p.hp)-Number(before.hp):null,expDelta=before?Number(p.growthExp||0)-Number(before.growthExp||0):null,goldDelta=before?Number(p.runGold||0)-Number(before.runGold||0):null;
+    const newRelics=before?(p.relics||[]).filter(id=>!(before.relics||[]).includes(id)):[];
+    const rewardText=newRelics.length?'<small class="summary-reward">획득 · '+newRelics.map(id=>esc(relicUi(id).name)).join(' · ')+'</small>':'';
+    return '<article><div class="summary-portrait">'+skinPortrait(pveLobbyCharacterId(p),m?.loadout)+'</div><b title="'+esc(name)+'">'+esc(name)+'</b><div class="summary-changes"><span>HP '+p.hp+'/'+p.maxHp+(hpDelta==null?'':' ('+delta(hpDelta)+')')+'</span><span>EXP '+(p.growthExp||0)+(expDelta==null?'':' ('+delta(expDelta)+')')+'</span><span>RUN GOLD '+(p.runGold||0)+'G'+(goldDelta==null?'':' ('+delta(goldDelta)+')')+'</span></div>'+rewardText+'<small class="summary-ready">'+(ready.has(p.playerId)?'✓ 확인 완료':'결과 확인 대기')+'</small></article>';
   }).join('');
   const mineReady=Boolean(playerId&&ready.has(playerId)),readyText=readyIds.length+' / '+(run.players?.length||0)+' 확인';
+  const flameDelta=baseline?Number(run.flame)-Number(baseline.flame):null,flameText='EXPEDITION FLAME <b>'+esc(run.flame)+' / '+esc(run.maxFlame)+'</b>'+(flameDelta==null?'':' <small>('+delta(flameDelta)+')</small>');
   const actions=interactive?'<footer><span>'+readyText+'</span><button class="button secondary" data-action="pve-map-open">지도 미리보기 ◇</button><button class="button primary" data-action="pve-room-ready" data-network '+(mineReady?'disabled data-unavailable="true"':'')+'>'+(mineReady?'확인 완료 ✓':'지도로 →')+'</button></footer>':'<footer><span>증강 선택 후 결과 확인을 계속합니다.</span></footer>';
-  return '<section class="room-result-overlay pve-room-result" role="dialog" aria-modal="true" aria-labelledby="pve-room-result-title"><div class="room-result-sheet pve-room-result-sheet"><small class="eyebrow">ROOM COMPLETE</small><h2 id="pve-room-result-title">방 공략 완료 <small>협력 탐험</small></h2><div class="room-result-party">'+rows+'</div><div class="summary-party">EXPEDITION FLAME <b>'+esc(run.flame)+' / '+esc(run.maxFlame)+'</b></div>'+actions+'</div></section>';
+  return '<section class="room-result-overlay pve-room-result" role="dialog" aria-modal="true" aria-labelledby="pve-room-result-title"><div class="room-result-sheet pve-room-result-sheet"><small class="eyebrow">ROOM COMPLETE</small><h2 id="pve-room-result-title">방 공략 완료 <small>협력 탐험</small></h2><div class="room-result-party">'+rows+'</div><div class="summary-party">'+flameText+'</div>'+actions+'</div></section>';
 }
 export function pveTerminalMarkup(bundle,run,me){
   const clear=run.phase==='RUN_CLEAR',mineGold=Number(me?.runGold)||0,settlement=bundle.pveSettlement;
