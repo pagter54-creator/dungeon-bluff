@@ -12,6 +12,12 @@ export function projectRun(run,viewerPlayerId){
   if(out.combat?.publicTurnResult){
     delete out.combat.publicTurnResult.numberHistories;
     delete out.combat.publicTurnResult.mutationEvents;
+    for(const card of out.combat.publicTurnResult.cards||[]){
+      delete card.numberHistory;
+      delete card.stealTargets;
+      delete card.dominanceBefore;
+      delete card.dominanceBonus;
+    }
   }
   if(out.combat?.privateByPlayer){
     const own=out.combat.privateByPlayer[viewerPlayerId]||null;
