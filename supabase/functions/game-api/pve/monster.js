@@ -1,6 +1,7 @@
 import {choose} from './rng.js';
 import {applyOwnedEffects} from './effects.js';
 import {f1MonsterById} from './content-f1.js';
+import {onMonsterPlayerDamagedCharacter} from './characters.js';
 
 function materializeIntent(run,template){
   const intent=structuredClone(template);
@@ -41,6 +42,7 @@ export function executeMonsterIntent(run){
     if(player.hp<=0&&!c.pendingDownPlayerIds.includes(player.playerId))c.pendingDownPlayerIds.push(player.playerId);
     events.push({type:'PLAYER_DAMAGED',playerId:player.playerId,amount:actual,blocked,hp:player.hp,damageType});
     applyOwnedEffects(run,'PLAYER_DAMAGED',{player,damage:{amount:actual},damageType,events});
+    onMonsterPlayerDamagedCharacter(player,{damageType,actualDamage:actual,events});
     if(player.hp>=1)c.pendingDownPlayerIds=c.pendingDownPlayerIds.filter(id=>id!==player.playerId);
   };
   if(intent.type==='DIRECT_DAMAGE'){
