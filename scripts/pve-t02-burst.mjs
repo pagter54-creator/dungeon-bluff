@@ -168,7 +168,7 @@ export function runT02Fixtures(seed,fail){
   }
   {
     const baseAug=[['aug-241'],[],['aug-291'],['aug-121']],base=makeRun(seed,'F22-base',{augments:baseAug,monsterDef:{...DUMMY,baseHp:1}});
-    const br=submitUniqueBase(base,fail,{p0:1,p1:4,p2:3,p3:1}),baseDevour=Number(base.players[1].publicResources.devour)||0;
+    base.players[3].hp=1;const br=submitUniqueBase(base,fail,{p0:1,p1:4,p2:3,p3:1}),baseDevour=Number(base.players[1].publicResources.devour)||0;
     const released=makeRun(seed,'F22-released',{monsterDef:{...DUMMY,baseHp:1}});released.players[1].publicResources.devour=5;released.players[2].publicResources.combo=2;forceDemonTransform(released);
     // restore a normal valid kill state while retaining transformation snapshot
     const rr=submitUniqueBase(released,fail,{p0:1,p1:6,p2:3,p3:4});
