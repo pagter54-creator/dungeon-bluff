@@ -13,6 +13,7 @@ import {buildNumberMutationIntent,planNumberMutationTurn} from './pve-number-mut
 import {buildResourceStarvationDecision,invalidResourceProbe} from './pve-resource-starvation-policy.mjs';
 import {buildCollisionFarmIntent,planCollisionFarmTurn,planCollisionSafeTurn} from './pve-collision-farm-policy.mjs';
 import {buildSustainIntent,planSustainTurn} from './pve-sustain-fortress-policy.mjs';
+import {runT03Scenario,t03GoldenComparable as t03Golden} from './pve-t03-sustain.mjs';
 
 export const STRESS_SCHEMA_VERSION=1;
 export const HARD_MAX_TURNS=100;
@@ -1475,6 +1476,7 @@ export function runScenario(scenarioId,seed){
   if(scenarioId==='T00')return runT00(seed);
   if(scenarioId==='T05')return runT05(seed);
   if(scenarioId==='T04')return runT04(seed);
+  if(scenarioId==='T03')return runT03Scenario(seed,{simulateCombat,fail});
   if(scenarioId==='T09')return runT09(seed);
   if(scenarioId==='T14')return runT14(seed);
   fail('SCENARIO_RUNNER_NOT_IMPLEMENTED',`${scenarioId} became available but its runner is not implemented yet`,{scenarioId});
@@ -1503,6 +1505,13 @@ export function balanceWarnings(result){
   if(result.scenarioId==='T04'&&result.comparison?.farmDominates){
     warnings.push({code:'FARM_DOMINATES',dptRatio:result.comparison.dptRatio,farmDpt:result.comparison.farmDpt,safeDpt:result.comparison.safeDpt,survivalNotWorse:true});
   }
+  if(result.scenarioId==='T03'){
+    const m=result.sustainMetrics||{},c=result.comparison||{};
+    if((Number(m.healingRatio)||0)>=0.8&&(Number(m.mitigationRatio)||0)>=0.4&&(Number(m.flameSpent)||0)<=0.1&&(Number(c.dptRatio)||0)>=0.9){
+      warnings.push({code:'SUSTAIN_TOO_HIGH',healingRatio:m.healingRatio,mitigationRatio:m.mitigationRatio,flameSpent:m.flameSpent,dptRatio:c.dptRatio});
+    }
+    if(c.fortressDominates)warnings.push({code:'FORTRESS_DOMINATES',dptRatio:c.dptRatio,sustainFinalPartyHp:c.sustainFinalPartyHp,normalFinalPartyHp:c.normalFinalPartyHp,sustainFlameSpent:c.sustainFlameSpent,normalFlameSpent:c.normalFlameSpent});
+  }
   return warnings;
 }
 
@@ -1511,6 +1520,8 @@ export function skippedScenarioReport(){
     .filter(x=>!x.availability.available)
     .map(({def,availability})=>({scenarioId:def.id,name:def.name,reasons:availability.reasons,missingCharacters:availability.missingCharacters,missingBuildEffects:availability.missingBuildEffects,missingCapabilities:availability.missingCapabilities||[]}));
 }
+
+export function t03GoldenComparable(result){return t03Golden(result);}
 
 export function t14GoldenComparable(result){
   return {
