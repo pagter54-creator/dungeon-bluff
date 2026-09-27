@@ -351,7 +351,7 @@ document.addEventListener('click', async event => {
   if (action === 'copy') { try { await navigator.clipboard.writeText(bundle.room.room_code); toast('방 코드를 복사했습니다.'); } catch { toast(`방 코드: ${bundle.room.room_code}`); } }
   if (action === 'leave-confirm') {
     if (animating) { toast('결과 연출이 끝난 뒤 나갈 수 있습니다.'); return; }
-    showModal(`<div class="eyebrow">LEAVE PARTY</div><h2>원정대를 떠날까요?</h2><p>${bundle.run ? '진행 중인 협력 탐험에서 나가면 이번 Beta의 중도 탈주 Gold 정산 대상이 아닙니다.' : bundle.session?.status === 'active' ? '진행 중인 자리는 균형형 AI가 이어받습니다. 나간 원정에는 다시 참가할 수 없습니다.' : '호스트라면 다음 인간 플레이어에게 호스트가 이전됩니다.'}</p><button class="button primary full" data-action="leave" data-network>방 나가기 →</button>`);
+    showModal(`<div class="eyebrow">LEAVE PARTY</div><h2>원정대를 떠날까요?</h2><p>${bundle.run ? '진행 중인 협력 탐험에서 나가면 자리는 AI가 이어받습니다. 중도 탈주자의 Gold 정산 규칙은 아직 확정되지 않아 영구 정산이 보류됩니다.' : bundle.session?.status === 'active' ? '진행 중인 자리는 균형형 AI가 이어받습니다. 나간 원정에는 다시 참가할 수 없습니다.' : '호스트라면 다음 인간 플레이어에게 호스트가 이전됩니다.'}</p><button class="button primary full" data-action="leave" data-network>방 나가기 →</button>`);
   }
   if (action === 'leave') { modal.close(); void perform('leave_room'); }
   if(action==='reward-details'){const offer=bundle.session.state.roomChoices?.[mine()?.id];showModal('<h2>'+escape(offer?.name||'제단의 선택')+'</h2><p>'+escape(offer?.description||'즉시 4G 또는 다음 전투 종료 시 HP가 남아 있고 기절하지 않았다면 7G. 도전 효과는 해당 전투 종료 후 사라집니다.')+'</p>');}
