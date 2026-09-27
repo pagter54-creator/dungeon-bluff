@@ -941,7 +941,7 @@ test('COOP_PVE start rejects unsupported lobby characters instead of silently fa
   await rawApi(host,'leave_room',{room_id:coop.room.id});
 });
 
-test('REWARD-02/04/05 COOP clear pays authoritative runGold while RP and competitive ranking points stay unchanged',async()=>{
+test('REWARD-PVE-01/04/05/06 clear pays authoritative runGold once and ignores forged Gold/RP',async()=>{
   const host=await newAccount('PveRewardClear');
   let coop=await rawApi(host,'create_room',{room_title:'PVE reward clear',gameMode:'COOP_PVE'});
   for(let i=0;i<3;i++)coop=await rawApi(host,'add_ai',{room_id:coop.room.id,ai_type:'balanced'});
@@ -957,31 +957,54 @@ test('REWARD-02/04/05 COOP clear pays authoritative runGold while RP and competi
   const after=(await accountApi(host,'get_account')).stats;
   assert.equal(after.account_gold,before.account_gold+12);assert.equal(after.rating_points,before.rating_points);
   const row=(await db.query('select * from public.pve_results where run_id=$1 and user_id=$2',[runId,users[host]])).rows[0];
-  assert.equal(row.run_gold,12);assert.equal(row.rating_delta,0);assert.equal(row.rating_before,row.rating_after);
+  assert.equal(row.run_gold,12);assert.equal(row.outcome,'RUN_CLEAR');assert.equal(row.rating_delta,0);assert.equal(row.rating_before,row.rating_after);
   const retry=await rawApi(host,'pve.getState',{run_id:runId,rpDelta:-9999});assert.equal(retry.settlement.idempotent,true);
   const afterRetry=(await accountApi(host,'get_account')).stats;assert.equal(afterRetry.account_gold,after.account_gold);assert.equal(afterRetry.rating_points,before.rating_points);
   await rawApi(host,'leave_room',{room_id:coop.room.id});
 });
 
-test('REWARD-03 PVE failure never changes RP and leaves failure Gold unresolved instead of inventing payout rules',async()=>{
+test('REWARD-PVE-02 failed run forfeits runGold, preserves RP, and settles idempotently',async()=>{
   const host=await newAccount('PveRewardFail');
   let coop=await rawApi(host,'create_room',{room_title:'PVE reward failure',gameMode:'COOP_PVE'});
   for(let i=0;i<3;i++)coop=await rawApi(host,'add_ai',{room_id:coop.room.id,ai_type:'balanced'});
   await rawApi(host,'set_ready',{room_id:coop.room.id,ready:true});
   const started=await rawApi(host,'start_game',{room_id:coop.room.id});const runId=started.run.id;
   const stored=(await db.query('select state from public.pve_runs where id=$1',[runId])).rows[0].state;
-  stored.players.find(p=>p.userId===users[host]).runGold=9;stored.phase='RUN_FAILED';
+  stored.players.find(p=>p.userId===users[host]).runGold=12;stored.phase='RUN_FAILED';
   await db.query('update public.pve_runs set state=$2 where id=$1',[runId,JSON.stringify(stored)]);
   const before=(await accountApi(host,'get_account')).stats;
-  const state=await rawApi(host,'pve.getState',{run_id:runId,rpDelta:100});
-  assert.equal(state.status,200,state.error);assert.equal(state.settlement.settled,false);assert.equal(state.settlement.reason,'AMBIGUOUS_FAILURE_GOLD');assert.equal(state.settlement.rp_delta,0);
+  const state=await rawApi(host,'pve.getState',{run_id:runId,rpDelta:9999,gold:999999});
+  assert.equal(state.status,200,state.error);assert.equal(state.settlement.settled,true);assert.equal(state.settlement.outcome,'RUN_FAILED');assert.equal(state.settlement.paid_gold,0);assert.equal(state.settlement.rp_delta,0);
   const after=(await accountApi(host,'get_account')).stats;assert.equal(after.rating_points,before.rating_points);assert.equal(after.account_gold,before.account_gold);
-  assert.equal(Number((await db.query('select count(*) as n from public.pve_results where run_id=$1',[runId])).rows[0].n),0);
+  const row=(await db.query('select * from public.pve_results where run_id=$1 and user_id=$2',[runId,users[host]])).rows[0];
+  assert.equal(row.run_gold,0);assert.equal(row.outcome,'RUN_FAILED');assert.equal(row.rating_delta,0);assert.equal(row.rating_before,row.rating_after);
+  assert.equal((await db.query('select rewards_committed from public.pve_runs where id=$1',[runId])).rows[0].rewards_committed,true);
+  const retry=await rawApi(host,'pve.getState',{run_id:runId,gold:999999,rpDelta:-9999});assert.equal(retry.settlement.idempotent,true);assert.equal(retry.settlement.paid_gold,0);
+  const afterRetry=(await accountApi(host,'get_account')).stats;assert.equal(afterRetry.account_gold,before.account_gold);assert.equal(afterRetry.rating_points,before.rating_points);
   await rawApi(host,'leave_room',{room_id:coop.room.id});
 });
 
 
-test('AMB-PVE-BETA-ABANDON-GOLD departed human becomes AI without softlock and their Gold remains unresolved',async()=>{
+test('REWARD-PVE-03 abandoned run forfeits authoritative runGold and never mutates RP',async()=>{
+  const host=await newAccount('PveRewardAbandoned');
+  let coop=await rawApi(host,'create_room',{room_title:'PVE reward abandoned',gameMode:'COOP_PVE'});
+  for(let i=0;i<3;i++)coop=await rawApi(host,'add_ai',{room_id:coop.room.id,ai_type:'balanced'});
+  await rawApi(host,'set_ready',{room_id:coop.room.id,ready:true});
+  const started=await rawApi(host,'start_game',{room_id:coop.room.id});const runId=started.run.id;
+  const stored=(await db.query('select state from public.pve_runs where id=$1',[runId])).rows[0].state;
+  stored.players.find(p=>p.userId===users[host]).runGold=12;stored.phase='ABANDONED';
+  await db.query('update public.pve_runs set state=$2 where id=$1',[runId,JSON.stringify(stored)]);
+  const before=(await accountApi(host,'get_account')).stats;
+  const state=await rawApi(host,'pve.getState',{run_id:runId,gold:999999,rpDelta:9999});
+  assert.equal(state.status,200,state.error);assert.equal(state.settlement.settled,true);assert.equal(state.settlement.outcome,'ABANDONED');assert.equal(state.settlement.paid_gold,0);assert.equal(state.settlement.rp_delta,0);
+  const after=(await accountApi(host,'get_account')).stats;assert.equal(after.account_gold,before.account_gold);assert.equal(after.rating_points,before.rating_points);
+  const row=(await db.query('select * from public.pve_results where run_id=$1 and user_id=$2',[runId,users[host]])).rows[0];
+  assert.equal(row.run_gold,0);assert.equal(row.outcome,'ABANDONED');assert.equal(row.rating_delta,0);
+  const retry=await rawApi(host,'pve.getState',{run_id:runId});assert.equal(retry.settlement.idempotent,true);assert.equal(retry.settlement.paid_gold,0);
+  await rawApi(host,'leave_room',{room_id:coop.room.id});
+});
+
+test('departed player forfeits Gold while remaining players can still receive RUN_CLEAR Gold',async()=>{
   const host=await newAccount('PveStayHost'),peer=await newAccount('PveDepartPeer');
   let coop=await rawApi(host,'create_room',{room_title:'PVE departure',gameMode:'COOP_PVE'});
   await rawApi(peer,'join_room',{room_id:coop.room.id});
@@ -997,10 +1020,14 @@ test('AMB-PVE-BETA-ABANDON-GOLD departed human becomes AI without softlock and t
   stored.players.find(p=>p.userId===users[host]).runGold=10;departed.runGold=8;stored.phase='RUN_CLEAR';
   await db.query('update public.pve_runs set state=$2 where id=$1',[runId,JSON.stringify(stored)]);
   const settled=await rawApi(host,'pve.getState',{run_id:runId});
-  assert.equal(settled.status,200,settled.error);assert.equal(settled.settlement.settled,false);assert.equal(settled.settlement.partial,true);assert.equal(settled.settlement.reason,'AMBIGUOUS_ABANDON_GOLD');assert.equal(settled.settlement.unresolved_departures,1);assert.equal(settled.settlement.rp_delta,0);
+  assert.equal(settled.status,200,settled.error);assert.equal(settled.settlement.settled,true);assert.equal(settled.settlement.outcome,'RUN_CLEAR');assert.equal(settled.settlement.paid_gold,10);assert.equal(settled.settlement.forfeited_players,1);assert.equal(settled.settlement.rp_delta,0);
   const hostAfter=(await accountApi(host,'get_account')).stats,peerAfter=(await accountApi(peer,'get_account')).stats;
   assert.equal(hostAfter.account_gold,hostBefore.account_gold+10);assert.equal(hostAfter.rating_points,hostBefore.rating_points);
   assert.equal(peerAfter.account_gold,peerBefore.account_gold);assert.equal(peerAfter.rating_points,peerBefore.rating_points);
+  const rows=(await db.query('select user_id,run_gold,rating_delta,outcome from public.pve_results where run_id=$1 order by user_id',[runId])).rows;
+  const hostRow=rows.find(r=>r.user_id===users[host]),peerRow=rows.find(r=>r.user_id===users[peer]);
+  assert.equal(hostRow.run_gold,10);assert.equal(peerRow.run_gold,0);assert.equal(hostRow.outcome,'RUN_CLEAR');assert.equal(peerRow.outcome,'RUN_CLEAR');assert.equal(peerRow.rating_delta,0);
+  assert.equal((await db.query('select rewards_committed from public.pve_runs where id=$1',[runId])).rows[0].rewards_committed,true);
   const closed=await rawApi(host,'leave_room',{room_id:coop.room.id});assert.equal(closed.status,200,closed.error);
 });
 
@@ -1012,6 +1039,6 @@ test('closing the last-human COOP room marks unfinished PVE state ABANDONED with
   const started=await rawApi(host,'start_game',{room_id:coop.room.id});const before=(await accountApi(host,'get_account')).stats;
   await rawApi(host,'leave_room',{room_id:coop.room.id});
   const row=(await db.query('select r.status,p.state,p.rewards_committed from public.rooms r join public.pve_runs p on p.room_id=r.id where r.id=$1',[coop.room.id])).rows[0];
-  assert.equal(row.status,'closed');assert.equal(row.state.phase,'ABANDONED');assert.equal(row.rewards_committed,false);
+  assert.equal(row.status,'closed');assert.equal(row.state.phase,'ABANDONED');assert.equal(row.rewards_committed,true);
   const after=(await accountApi(host,'get_account')).stats;assert.equal(after.account_gold,before.account_gold);assert.equal(after.rating_points,before.rating_points);
 });
