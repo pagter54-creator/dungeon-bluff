@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {
-  runT09Fixtures,runT09,replayScenario,scenarioAvailability,STRESS_SCENARIOS
+  runT09Fixtures,runT09,replayScenario,t09GoldenComparable,scenarioAvailability,STRESS_SCENARIOS
 } from '../scripts/pve-stress-lib.mjs';
 import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/pve/model.js';
 import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-api/pve/combat.js';
@@ -138,6 +139,12 @@ test('T09 F12 repeated invalid requests do not consume Mana or block later norma
 
 test('T09 fixtures are deterministic for the same seed',()=>{
   assert.deepEqual(runT09Fixtures('fixture-replay'),runT09Fixtures('fixture-replay'));
+});
+
+test('T09 semantic golden locks fixtures and the full compact resource timeline',()=>{
+  const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/pve-stress-t09-golden.json',import.meta.url),'utf8'));
+  const result=replayScenario('T09','smoke:T09:0000');
+  assert.deepEqual(t09GoldenComparable(result),golden);
 });
 
 test('T09 stress replay reproduces the complete resource timeline',()=>{
