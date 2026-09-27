@@ -26,7 +26,7 @@ test('PVE beta preflight accepts isolated test target and matching URL',async()=
   assert.equal(result.targetRef,targetRef);
   assert.notEqual(result.productionRef,targetRef);
   const repo=await inspectBetaRepo(REPO_ROOT);
-  assert.equal(repo.migration,'202609280001_game_modes_pve_beta.sql');
+  assert.deepEqual(repo.migrations,['202609280001_game_modes_pve_beta.sql','202609280002_pve_beta_reward_canonical.sql']);
 });
 
 test('PVE beta preflight rejects malformed/mismatched targets and secret keys',async()=>{
