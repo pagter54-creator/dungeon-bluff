@@ -213,7 +213,7 @@ export async function handlePveAction({admin,user,body,json}){
     activateRewardSkill(run,me.playerId);
   } else if(action==='pve.rewardSubmitCard'){
     if(typeof body.card_instance_id!=='string')return fail(json,'card_instance_id가 필요합니다.');
-    submitRewardCard(run,me.playerId,body.card_instance_id,body.skill_intent===true);
+    submitRewardCard(run,me.playerId,body.card_instance_id,body.skill_intent===true,body.skill_data??null);
     resolveRewardAttempt(run);
   } else if(action==='pve.rewardChooseRelic'){
     if(typeof body.relic_id!=='string')return fail(json,'relic_id가 필요합니다.');
