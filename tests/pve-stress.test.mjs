@@ -56,7 +56,7 @@ test('PVE stress T00 same-seed replay is deterministic',()=>{
 });
 
 test('PVE canonical rule registry contains base rules plus canonical T04 sustain edges',()=>{
-  assert.deepEqual(CANONICAL_RULES.map(x=>x.id),['RULE-01','RULE-02','RULE-03','RULE-04','RULE-05','RULE-T04-A','RULE-T04-B','RULE-T03-A','RULE-T03-B']);
+  assert.deepEqual(CANONICAL_RULES.map(x=>x.id),['RULE-01','RULE-02','RULE-03','RULE-04','RULE-05','RULE-T04-A','RULE-T04-B','RULE-T03-A','RULE-T03-B','RULE-T02-A','RULE-T02-B','RULE-T02-C','RULE-T02-D','RULE-T02-E']);
 });
 
 test('PVE stress T14 executes all six Flame/wipe ordering fixtures without hard failure',()=>{
