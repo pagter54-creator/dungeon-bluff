@@ -10,6 +10,7 @@ import {
   REQUIRED_BETA_FILES,
   REPO_ROOT
 } from '../scripts/pve-beta-preflight.mjs';
+import {parseDryRunMigrations,parseRemoteMigrationVersions,assertReleaseState,destructiveFindings,inspectProductionRelease} from '../scripts/pve-production-preflight.mjs';
 
 test('PVE beta preflight derives production ref and rejects production target',async()=>{
   const source=await readFile(new URL('../config.js',import.meta.url),'utf8');
@@ -27,8 +28,13 @@ test('PVE beta preflight accepts isolated test target and matching URL',async()=
   assert.equal(result.targetRef,targetRef);
   assert.notEqual(result.productionRef,targetRef);
   const repo=await inspectBetaRepo(REPO_ROOT);
-  assert.deepEqual(repo.migrations,['202609280001_game_modes_pve_beta.sql','202609280002_pve_beta_reward_canonical.sql']);
-  assert.equal(repo.requiredFiles,11);
+  assert.deepEqual(repo.migrations,[
+    '202609270001_pve_core.sql',
+    '202609270002_pve_hardening_telemetry.sql',
+    '202609280001_game_modes_pve_beta.sql',
+    '202609280002_pve_beta_reward_canonical.sql'
+  ]);
+  assert.equal(repo.requiredFiles,16);
   assert.ok(REQUIRED_BETA_FILES.includes('scripts/prepare-pve-beta-frontend.mjs'));
 });
 
@@ -47,4 +53,18 @@ test('PVE beta preflight rejects malformed/mismatched targets and secret keys',a
   assert.equal(assertPublishableKey('eyJabc.def.ghi'),true);
   assert.throws(()=>assertPublishableKey('sb_secret_do_not_use'),/secret\/service-role/);
   assert.throws(()=>assertPublishableKey('service_role_key'),/secret\/service-role/);
+});
+
+test('production release preflight locks the exact four-migration chain',async()=>{
+  const manifest=await inspectProductionRelease(REPO_ROOT);
+  const expected=manifest.requiredMigrations;
+  const dry='Would push these migrations:\n'+expected.map(x=>' • '+x).join('\n')+'\nFinished';
+  assert.deepEqual(parseDryRunMigrations(dry),expected);
+  const list=expected.map(x=>` ${x.split('_')[0]} | ${x.split('_')[0]} | ${x.split('_')[0]}`).join('\n');
+  const remote=parseRemoteMigrationVersions(list);
+  assert.equal(assertReleaseState(expected,expected,new Set()),'READY_TO_APPLY');
+  assert.equal(assertReleaseState(expected,[],remote),'ALREADY_APPLIED');
+  assert.throws(()=>assertReleaseState(expected,[...expected,'202609290001_unexpected.sql'],remote),/mismatch/);
+  assert.deepEqual(destructiveFindings('drop trigger if exists x on y; create trigger x after update on y execute function z();'),[]);
+  assert.deepEqual(destructiveFindings('drop table public.bad;'),['DROP TABLE']);
 });
