@@ -10,6 +10,11 @@ export const PVE_ROOM_LABELS=Object.freeze({
 const ROOM_ICONS=Object.freeze({NORMAL_COMBAT:'⚔',ELITE_COMBAT:'♜',BOSS:'♛',EVENT:'?',REST:'♨',SHOP:'¤',REWARD_ROOM:'✦'});
 
 export function pvePlayerForUser(run,userId){return run?.players?.find(p=>p.userId===userId)||null;}
+export function pveOwnShopReservation(run,playerId){
+  if(run?.phase!=='SHOP'||!playerId)return null;
+  const item=(run.roomState?.cardStock||[]).find(product=>!product.sold&&product.reservedByPlayerId===playerId);
+  return item?.id||null;
+}
 export function pveLobbyCharacterId(player){return player?.lobbyCharacterId||PVE_CHARACTER_TO_LOBBY[player?.characterId]||player?.characterId;}
 export function pveConnectedNodes(run){
   const map=run?.map;if(!map)return[];
