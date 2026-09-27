@@ -518,6 +518,66 @@ function assertT04CollisionTurn(run,result,policyPlan){
   };
 }
 
+function assertT02BurstTurn(run,result,policyPlan){
+  const packets=result.damagePackets||[],ids=new Set(),roots=new Map(),sourceByChain=new Map();
+  let recursiveFollowUpAttempts=0,duplicateDamagePacketCount=0,duplicateModifierCount=0;
+  for(const packet of packets){
+    if(!packet.damageEventId||ids.has(packet.damageEventId)){duplicateDamagePacketCount++;fail('DUPLICATE_DAMAGE_PACKET','T02 duplicate/missing damage packet identity',{packet});}
+    ids.add(packet.damageEventId);
+    if(!Number.isFinite(Number(packet.amount)))fail('INVALID_DAMAGE','T02 damage is NaN/Infinity',{packet});
+    if((Number(packet.followUpDepth)||0)>1){recursiveFollowUpAttempts++;fail('FOLLOW_UP_DEPTH_EXCEEDED','T02 follow-up depth exceeded Tier-I bound',{packet});}
+    const mods=packet.modifierIds||[];
+    if(new Set(mods).size!==mods.length){duplicateModifierCount++;fail('DUPLICATE_DAMAGE_MODIFIER','same modifier applied twice to one packet',{packet});}
+    if(!packet.followUp)roots.set(packet.damageEventId,packet);
+    if(packet.followUp){
+      const parent=packets.find(x=>x.damageEventId===packet.parentDamageEventId);
+      if(!parent||parent.followUp||parent.burstChainId!==packet.burstChainId){recursiveFollowUpAttempts++;fail('RECURSIVE_FOLLOW_UP','follow-up parent/chain is recursive or invalid',{packet,parent});}
+    }
+    const used=sourceByChain.get(packet.burstChainId)||new Set();
+    if(used.has(packet.sourceCardId))fail('FOLLOW_UP_CARD_DUPLICATE','same physical card used twice in one burst chain',{packet});
+    used.add(packet.sourceCardId);sourceByChain.set(packet.burstChainId,used);
+  }
+  const damageByPlayer={};for(const p of packets)damageByPlayer[p.sourcePlayerId]=(damageByPlayer[p.sourcePlayerId]||0)+(Number(p.amount)||0);
+  const resolvedByPlayer=Object.fromEntries((result.cards||[]).map(c=>[c.playerId,c]));
+  const activeBurstEffects=[];
+  for(const [pid,card] of Object.entries(resolvedByPlayer)){
+    if(card.fullBurstOutcome==='SUCCESS')activeBurstEffects.push({playerId:pid,effect:'FULL_BURST'});
+    if(card.finisherOutcome==='SUCCESS')activeBurstEffects.push({playerId:pid,effect:'ONE_HIT_KILL'});
+    if(packets.some(p=>p.sourcePlayerId===pid&&String(p.sourceCardId).includes(':demon:')))activeBurstEffects.push({playerId:pid,effect:'DEMON_TRANSFORM'});
+    if(packets.some(p=>p.sourcePlayerId===pid&&(p.modifierIds||[]).includes('AUG_121_BLOOD_FRENZY')))activeBurstEffects.push({playerId:pid,effect:'BLOOD_FRENZY'});
+  }
+  const events=result.events||[],thresholds=[...new Set(packets.flatMap(p=>p.bossThresholdsCrossed||[]))].sort((a,b)=>b-a);
+  const playerDamages=Object.values(damageByPlayer);
+  return {
+    turn:result.turn,policy:policyPlan?.policy||null,decisions:structuredClone(policyPlan?.decisions||[]),
+    isPersonalBurstTurn:activeBurstEffects.length>0,
+    isPartyBurstTurn:new Set(activeBurstEffects.map(x=>x.playerId)).size>=2,
+    activeBurstEffects,
+    totalDamage:Number(result.totalDamage)||0,
+    damageByPlayer,
+    maxSingleCardDamage:packets.length?Math.max(...packets.map(p=>Number(p.amount)||0)):0,
+    maxSinglePlayerTurnDamage:playerDamages.length?Math.max(...playerDamages):0,
+    fullBurstFollowUpCount:packets.filter(p=>p.followUp).length,
+    thresholdsCrossed:thresholds,bossThresholdsCrossed:thresholds.length,bossPhasesSkipped:'NOT_MEASURABLE',
+    bossMaxHp:run.combat?.monster?.maxHp??null,bossHpAfter:run.combat?.monster?.hp??null,
+    transformationCount:events.filter(e=>e.type==='DEMON_TRANSFORMED').length,
+    oneHitKillUses:events.filter(e=>e.type==='ONE_HIT_KILL_CONSUMED').length,
+    comboConsumed:events.filter(e=>e.type==='ONE_HIT_KILL_CONSUMED').reduce((n,e)=>n+(Number(e.comboConsumed)||0),0),
+    bloodFrenzyBonus:packets.filter(p=>(p.modifierIds||[]).includes('AUG_121_BLOOD_FRENZY')).reduce((n,p)=>n+(Number(p.augmentBonus)||0),0),
+    berserkerHpCost:events.filter(e=>e.type==='BERSERKER_ATTACK_HP_COST').reduce((n,e)=>n+(Number(e.amount)||0),0),
+    devourGained:events.filter(e=>e.type==='DEVOUR_GAINED').reduce((n,e)=>n+(Number(e.amount)||0),0),
+    recursiveFollowUpAttempts,duplicateDamagePacketCount,duplicateModifierCount,
+    packets:structuredClone(packets.map(p=>({
+      damageEventId:p.damageEventId,rootActionId:p.rootActionId,burstChainId:p.burstChainId,parentDamageEventId:p.parentDamageEventId,
+      sourcePlayerId:p.sourcePlayerId,sourceClass:p.sourceClass,sourceCardId:p.sourceCardId,baseNumber:p.baseNumber,
+      baseDamage:p.baseDamage,classBonus:p.classBonus,augmentBonus:p.augmentBonus,totalDamage:p.amount,followUp:p.followUp,
+      followUpDepth:p.followUpDepth,modifierIds:p.modifierIds,bossHpBefore:p.bossHpBefore,bossHpAfter:p.bossHpAfter,
+      bossThresholdsCrossed:p.bossThresholdsCrossed,bossPhasesSkipped:p.bossPhasesSkipped
+    }))),
+    resources:Object.fromEntries(run.players.map(p=>[p.playerId,{combo:Number(p.publicResources.combo)||0,devour:Number(p.publicResources.devour)||0,hp:p.hp,transformationActive:Boolean(p.publicResources.transformationActive)}]))
+  };
+}
+
 function assertT03SustainTurn(run,result,policyPlan){
   const events=result.events||[];
   const damageEvents=events.filter(e=>e.type==='PLAYER_DAMAGED');
