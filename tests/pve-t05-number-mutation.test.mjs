@@ -215,6 +215,6 @@ test('T05 full number mutation debug history never leaks through ordinary Player
 
 test('T05 activation does not activate unrelated stress scenarios',()=>{
   const status=Object.fromEntries(STRESS_SCENARIOS.map(s=>[s.id,scenarioAvailability(s).available]));
-  assert.equal(status.T00,true);assert.equal(status.T05,true);assert.equal(status.T14,true);
-  for(const id of ['T09','T02','T03','T04','T06'])assert.equal(status[id],false,id);
+  assert.equal(status.T00,true);assert.equal(status.T05,true);assert.equal(status.T09,true);assert.equal(status.T14,true);
+  for(const id of ['T02','T03','T04','T06'])assert.equal(status[id],false,id);
 });
