@@ -887,6 +887,7 @@ function resolveT04Fixture(run,id,{numbers,skills={},thrallId=null,hpByPlayer={}
   });
   return {
     id,
+    resolvedCards:structuredClone(result.cards||[]),
     numberHistories:structuredClone(result.numberHistories||[]),
     mutationEvents:structuredClone(result.mutationEvents||[]),
     collisionGroups:structuredClone(result.collisionGroups||[]),
