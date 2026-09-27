@@ -203,8 +203,9 @@ export function resolveBasicTurn(run){
     const ordinal=packets.length+1,damageEventId=`player-damage:${burstChainId}:${ordinal}`;
     if(packetIds.has(damageEventId)){const error=new Error('동일 player damage packet ID가 중복 생성되었습니다.');error.code='DUPLICATE_DAMAGE_PACKET';throw error;}
     packetIds.add(damageEventId);
-    return {...packet,damageEventId,rootActionId,burstChainId,parentDamageEventId,followUpDepth:followUp?1:0,
-      sourceClass:player.characterId,baseNumber:baseNumber??packet.numberUsed??null,baseDamage:baseDamage??0,classBonus,augmentBonus,modifierIds:[...modifierIds]};
+    return {...packet,turn:c.turn,playerId:packet.sourcePlayerId,damageEventId,rootActionId,burstChainId,parentDamageEventId,followUpDepth:followUp?1:0,
+      sourceClass:player.characterId,baseNumber:baseNumber??packet.numberUsed??null,baseDamage:baseDamage??0,classBonus,augmentBonus,
+      followUpDamage:followUp?(Number(packet.amount)||0):0,modifierIds:[...modifierIds]};
   };
   for(const rc of cards.filter(x=>x.valid)){
     const player=playerFor(run,rc.playerId),engraving=Number(player.engravings?.[String(rc.finalNumber)])||0;
@@ -237,7 +238,7 @@ export function resolveBasicTurn(run){
       const damage={amount:packet.amount},extraQueued=[];
       applyOwnedEffects(run,'BEFORE_DAMAGE',{player,resolved:rc,damage,followUps:extraQueued,followUp:true,events:[]});
       if(extraQueued.length){const error=new Error('Tier-I Full Burst follow-up이 추가 follow-up을 재귀 생성했습니다.');error.code='RECURSIVE_FOLLOW_UP';throw error;}
-      packet.amount=Math.max(0,damage.amount);packets.push(packet);
+      packet.amount=Math.max(0,damage.amount);packet.followUpDamage=packet.amount;packets.push(packet);
     }
   }
   c.monster.defense=0;
