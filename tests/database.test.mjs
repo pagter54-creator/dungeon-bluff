@@ -115,6 +115,7 @@ before(async () => {
   await db.exec(await readFile(new URL('../supabase/migrations/202609270001_pve_core.sql', import.meta.url), 'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/202609270002_pve_hardening_telemetry.sql', import.meta.url), 'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/202609280001_game_modes_pve_beta.sql', import.meta.url), 'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/202609280002_pve_beta_reward_canonical.sql', import.meta.url), 'utf8'));
   globalThis.__testCreateClient = () => admin;
   globalThis.Deno = { env: { get: () => 'test-value' }, serve: fn => { handler = fn; } };
   let router = stripTypeScriptTypes(await readFile(new URL('../supabase/functions/game-api/index.ts', import.meta.url), 'utf8'));
