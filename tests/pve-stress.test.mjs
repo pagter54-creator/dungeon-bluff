@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {main as stressMain} from '../scripts/pve-stress.mjs';
 import {
   STRESS_SCENARIOS,StressHardFailure,assertRunInvariants,replayScenario,runT14,
   scenarioAvailability,semanticFingerprint,skippedScenarioReport,t14GoldenComparable
@@ -47,4 +50,21 @@ test('PVE stress invariant checker hard-fails duplicate physical card zones',()=
     roomState:null
   };
   assert.throws(()=>assertRunInvariants(fake),e=>e instanceof StressHardFailure&&e.code==='CARD_DUPLICATION');
+});
+
+
+test('PVE stress CLI writes required JSON and seed CSV outputs',async()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'pve-stress-'));
+  const code=await stressMain(['--scenario','T14','--seed','cli-golden-seed','--output',dir]);
+  assert.equal(code,0);
+  for(const name of [
+    'pve_stress_summary.json','pve_failed_seeds.json','pve_stress_seeds.csv',
+    'pve_skipped_scenarios.json','pve_spec_ambiguities.json'
+  ])assert.equal(fs.existsSync(path.join(dir,name)),true,name);
+  assert.equal(fs.existsSync(path.join(dir,'scenarios','T14.csv')),true);
+  const summary=JSON.parse(fs.readFileSync(path.join(dir,'pve_stress_summary.json'),'utf8'));
+  assert.equal(summary.hardFailCount,0);
+  assert.equal(summary.scenarios[0].scenarioId,'T14');
+  const failed=JSON.parse(fs.readFileSync(path.join(dir,'pve_failed_seeds.json'),'utf8'));
+  assert.deepEqual(failed,[]);
 });
