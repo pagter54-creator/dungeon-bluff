@@ -1,4 +1,6 @@
 import {newPlayerRunState,newCombatState} from './model.js';
+import {PVE_CHARACTER_DEFS} from './characters.js';
+import {GAME_MODE,roomGameMode} from '../game-mode.js';
 import {generateFloorMap,connectedNodeIds,resolveVote} from './map.js';
 import {projectRun} from './projection.js';
 import {submitCard,resolveBasicTurn,beginTurn} from './combat.js';
@@ -10,6 +12,43 @@ import {F1_RELIC_DEFINITIONS,selectF1Monster,markF1MonsterUsed} from './content-
 import {installRelicCatalog} from './relics.js';
 
 const uuid=v=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+export const PVE_ROOM_CHARACTER_MAP=Object.freeze({
+  adventurer:'adventurer',warrior:'warrior',rogue:'rogue',mage:'mage',berserker:'berserker',
+  vampire:'vampire',imp:'imp',seer:'prophet',gunner:'gunner',fighter:'martial_artist',
+  demonsword:'demon_swordsman',twins:'twins'
+});
+export function pveCharacterIdForRoom(characterId){return PVE_ROOM_CHARACTER_MAP[characterId]||null;}
+export function unsupportedPveRoomCharacters(members){
+  return [...new Set((members||[]).map(m=>m.character_id).filter(id=>{
+    const mapped=pveCharacterIdForRoom(id);return !mapped||!Object.hasOwn(PVE_CHARACTER_DEFS,mapped);
+  }))];
+}
+export function buildInitialPveRun(bundle,{seed=null,depthCount=8,now=Date.now()}={}){
+  const unsupported=unsupportedPveRoomCharacters(bundle?.members||[]);
+  if(unsupported.length){
+    const error=new Error(`현재 협력 탐험에서 지원하지 않는 캐릭터가 있습니다: ${unsupported.join(', ')}`);
+    error.code='PVE_UNSUPPORTED_CHARACTER';error.characterIds=unsupported;throw error;
+  }
+  const players=bundle.members.map(member=>{
+    const player=newPlayerRunState({...member,character_id:pveCharacterIdForRoom(member.character_id)});
+    player.lobbyCharacterId=member.character_id;
+    return player;
+  });
+  const run={id:crypto.randomUUID(),roomId:bundle.room.id,seed:typeof seed==='string'&&seed.length<=128?seed:crypto.randomUUID(),rngCounter:0,version:0,phase:'MAP_VOTE',floor:1,depth:0,flame:4,maxFlame:5,map:null,currentRoomNodeId:null,players,usedMonsterIds:[],chosenBossIds:{1:'f1_fallen_lord'},contentVersion:'F1_VERTICAL_SLICE_V1',createdAt:new Date(now).toISOString(),updatedAt:new Date(now).toISOString()};
+  installRelicCatalog(run,F1_RELIC_DEFINITIONS);
+  run.map=generateFloorMap(run,Number.isInteger(depthCount)&&depthCount>=2&&depthCount<=12?depthCount:8);
+  run.map.voteDeadline=new Date(now+15000).toISOString();
+  return run;
+}
+export function projectPveRunForUser(run,userId){
+  const me=viewer(run,userId);return me?projectRun(run,me.playerId):null;
+}
+async function settleIfTerminal(admin,run){
+  if(!['RUN_CLEAR','RUN_FAILED','ABANDONED'].includes(run?.phase))return null;
+  const {data,error}=await admin.rpc('pve_settle_rewards',{p_run:run.id});
+  if(error)throw new Error(error.message||'PVE 보상을 정산하지 못했습니다.');
+  return data;
+}
 const fail=(json,message,status=400)=>json({error:message},status);
 function viewer(run,userId){return run.players.find(p=>p.userId===userId);}
 function nodeType(run,id){return run.map.nodes.find(n=>n.id===id)?.type;}
@@ -56,16 +95,17 @@ export async function handlePveAction({admin,user,body,json}){
     const {data:bundle,error}=await admin.rpc('game_read',{p_room:body.room_id});
     if(error||!bundle)return fail(json,'방을 찾을 수 없습니다.',404);
     if(bundle.room.host_user_id!==user.id)return fail(json,'호스트만 PVE 원정을 시작할 수 있습니다.',403);
+    if(roomGameMode(bundle.room)!==GAME_MODE.COOP_PVE)return fail(json,'협력 탐험 방에서만 PVE 원정을 시작할 수 있습니다.',409);
+    if(bundle.room.status!=='waiting')return fail(json,'대기 중인 방에서만 PVE 원정을 시작할 수 있습니다.',409);
     if(bundle.members?.length!==4)return fail(json,'PVE 원정은 4인이 필요합니다.');
     if(bundle.session)return fail(json,'기존 PVP 원정이 진행 중입니다.');
-    const players=bundle.members.map(newPlayerRunState);
-    const run={id:crypto.randomUUID(),roomId:body.room_id,seed:typeof body.seed==='string'&&body.seed.length<=128?body.seed:crypto.randomUUID(),rngCounter:0,version:0,phase:'MAP_VOTE',floor:1,depth:0,flame:4,maxFlame:5,map:null,currentRoomNodeId:null,players,usedMonsterIds:[],chosenBossIds:{1:'f1_fallen_lord'},contentVersion:'F1_VERTICAL_SLICE_V1',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
-    installRelicCatalog(run,F1_RELIC_DEFINITIONS);
-    run.map=generateFloorMap(run,Number.isInteger(body.depth_count)&&body.depth_count>=2&&body.depth_count<=12?body.depth_count:8);
-    run.map.voteDeadline=new Date(Date.now()+15000).toISOString();
-    const {data,error:createError}=await admin.rpc('pve_create_run',{p_run_id:run.id,p_room:body.room_id,p_seed:run.seed,p_state:run});
+    let run;try{run=buildInitialPveRun(bundle,{seed:body.seed,depthCount:body.depth_count});}
+    catch(error){return fail(json,error.message||'PVE 캐릭터 구성을 확인해 주세요.',409);}
+    const {data,error:createError}=await admin.rpc('pve_start_room',{p_run_id:run.id,p_room:body.room_id,p_expected:bundle.room.version,p_seed:run.seed,p_state:run});
     if(createError)return fail(json,createError.message||'PVE 원정을 생성하지 못했습니다.',409);
-    run.version=data.version;return json({run:projectRun(run,viewer(run,user.id)?.playerId)});
+    if(data?.conflict)return json({error:'ROOM_VERSION_CONFLICT'},409);
+    run.version=data.run_version??0;
+    return json({run:projectPveRunForUser(run,user.id),roomVersion:data.room_version});
   }
   if(!uuid(body.run_id))return fail(json,'올바른 run_id가 필요합니다.');
   const actionId=body.action_id;
@@ -74,10 +114,13 @@ export async function handlePveAction({admin,user,body,json}){
   if(!snapshot?.state)return fail(json,'PVE 원정을 찾을 수 없습니다.',404);
   let run=snapshot.state;run.version=snapshot.version;
   let me=viewer(run,user.id);if(!me)return fail(json,'이 PVE 원정의 참가자가 아닙니다.',403);
+  const {data:membership,error:membershipError}=await admin.from('room_members').select('id').eq('room_id',run.roomId).eq('user_id',user.id).maybeSingle();
+  if(membershipError||!membership)return fail(json,'현재 이 PVE 방의 참가자가 아닙니다.',403);
   if(action==='pve.getState'){
     run=await maintainForRead(admin,run);
     me=viewer(run,user.id)||me;
-    return json({run:projectRun(run,me.playerId)});
+    const settlement=await settleIfTerminal(admin,run);
+    return json({run:projectRun(run,me.playerId),settlement});
   }
   if(snapshot.action_result){
     const prior=snapshot.action_result.state||run;
@@ -147,5 +190,6 @@ export async function handlePveAction({admin,user,body,json}){
   const saved=await commitRun(admin,run,body.expected_version,actionId);
   if(saved.conflict)return json({error:'STATE_CONFLICT',run:projectRun(saved.state,me.playerId)},409);
   const latest=saved.state;latest.version=saved.version;
-  return json({run:projectRun(latest,me.playerId),idempotent:Boolean(saved.duplicate)});
+  const settlement=await settleIfTerminal(admin,latest);
+  return json({run:projectRun(latest,me.playerId),settlement,idempotent:Boolean(saved.duplicate)});
 }
