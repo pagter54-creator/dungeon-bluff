@@ -2,12 +2,12 @@ const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;
 
 export function sharedGameTopMarkup({
   counterLabel='STAGE',counterValue=1,counterTotal=null,progressMarkup='',
-  meterLabel='',meterValue='',meterTotal=null,mapButton=false,leave=true,extraClass=''
+  meterLabel='',meterValue='',meterTotal=null,meterDanger=false,mapButton=false,leave=true,extraClass=''
 }={}){
   return `<section class="game-top shared-gameplay-top ${esc(extraClass)}">
     <div class="stage-counter"><span>${esc(counterLabel)}</span><b>${esc(String(counterValue).padStart(2,'0'))}</b>${counterTotal==null?'':`<small>/ ${esc(counterTotal)}</small>`}</div>
     <div class="stage-track">${progressMarkup}</div>
-    <div class="knockout-meter"><small>${esc(meterLabel)}</small><b>${esc(meterValue)}${meterTotal==null?'':`<span> / ${esc(meterTotal)}</span>`}</b></div>
+    <div class="knockout-meter"><small>${esc(meterLabel)}</small><b class="${meterDanger?'danger-text':''}">${esc(meterValue)}${meterTotal==null?'':`<span> / ${esc(meterTotal)}</span>`}</b></div>
     ${mapButton?'<button class="button secondary small pve-map-button" data-action="pve-map-open" type="button">지도 ◇</button>':''}
     ${leave?'<button class="icon-button" data-action="leave-confirm" aria-label="원정 나가기">↗</button>':''}
   </section>`;
