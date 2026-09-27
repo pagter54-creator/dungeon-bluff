@@ -138,7 +138,12 @@ export const CANONICAL_RULES=Object.freeze([
   {id:'RULE-T04-A',topic:'Zero-damage DIRECT and Revenge',rule:'DIRECT damage가 protection/reduction으로 actualDamage 0이 되면 Revenge를 획득하지 않는다. actualDamage>0일 때만 획득한다.'},
   {id:'RULE-T04-B',topic:'pendingDown + collision heal',rule:'현재 phase ordering에서 POST_COLLISION_EFFECTS가 MONSTER_ACTION과 DOWN_RESOLVE보다 먼저이므로 monster damage pendingDown 이후 같은 resolve collision heal은 구조적으로 발생하지 않는다.'},
   {id:'RULE-T03-A',topic:'Guardian Wall overwrite',rule:'기본 Tier-I 수호벽은 호위를 stack하지 않는다. 새 호위가 생성되면 기존 미소비 호위를 교체한다.'},
-  {id:'RULE-T03-B',topic:'White Magic multi-target',rule:'Tier-I 백마도사는 여러 eligible 아군과 동시에 충돌하면 lobby seat가 가장 빠른 1명만 HP 1 회복한다.'}
+  {id:'RULE-T03-B',topic:'White Magic multi-target',rule:'Tier-I 백마도사는 여러 eligible 아군과 동시에 충돌하면 lobby seat가 가장 빠른 1명만 HP 1 회복한다.'},
+  {id:'RULE-T02-A',topic:'Martial previous card',rule:'무투가의 직전 카드는 성공 여부와 무관하게 직전 턴 실제 공개된 final_number를 사용한다.'},
+  {id:'RULE-T02-B',topic:'One-Hit Kill failure cost',rule:'일격필살은 유효 공격 성공 시에만 현재 Combo를 전부 소비하며 collision/invalid 실패 시 Combo를 소비하지 않는다.'},
+  {id:'RULE-T02-C',topic:'Demon kill Devour precedence',rule:'귀검사 포식은 일반 유효 공격 총 +1, 막타 총 +3, 막타이면서 처치 턴 최고 피해면 총 +5이며 한 공격에는 가장 높은 조건 하나만 적용한다.'},
+  {id:'RULE-T02-D',topic:'Released Demon Sword card lifecycle',rule:'해방된 귀검은 전투 포식 6에서 귀화하고 카드풀을 2/4/5/6 임시 풀로 교체한다. 4장을 모두 사용하거나 전투가 끝나면 원래 physical card pool과 zone을 복원하며 귀화 종료 포식은 0이다.'},
+  {id:'RULE-T02-E',topic:'Full Burst follow-up trigger scope',rule:'전탄발사 follow-up은 남은 physical card별 피해 packet이며, 턴당 1회/첫 유효 공격/기본 ON_VALID_ATTACK 계열은 명시적 multi-hit 허용 없이는 follow-up마다 반복 발동하지 않는다.'}
 ]);
 
 export const SPEC_AMBIGUITIES=Object.freeze([
@@ -569,8 +574,8 @@ function assertT02BurstTurn(run,result,policyPlan){
     recursiveFollowUpAttempts,duplicateDamagePacketCount,duplicateModifierCount,
     packets:structuredClone(packets.map(p=>({
       damageEventId:p.damageEventId,rootActionId:p.rootActionId,burstChainId:p.burstChainId,parentDamageEventId:p.parentDamageEventId,
-      sourcePlayerId:p.sourcePlayerId,sourceClass:p.sourceClass,sourceCardId:p.sourceCardId,baseNumber:p.baseNumber,
-      baseDamage:p.baseDamage,classBonus:p.classBonus,augmentBonus:p.augmentBonus,totalDamage:p.amount,followUp:p.followUp,
+      turn:p.turn,playerId:p.playerId,sourcePlayerId:p.sourcePlayerId,sourceClass:p.sourceClass,sourceCardId:p.sourceCardId,baseNumber:p.baseNumber,
+      baseDamage:p.baseDamage,classBonus:p.classBonus,augmentBonus:p.augmentBonus,followUpDamage:p.followUpDamage,totalDamage:p.amount,followUp:p.followUp,
       followUpDepth:p.followUpDepth,modifierIds:p.modifierIds,bossHpBefore:p.bossHpBefore,bossHpAfter:p.bossHpAfter,
       bossThresholdsCrossed:p.bossThresholdsCrossed,bossPhasesSkipped:p.bossPhasesSkipped
     }))),
