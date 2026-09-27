@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {pveMapGeometry,pveMapOverlayMarkup,pveOwnShopReservation,pveShopMarkup,pveRestActionsMarkup,pveRelicStripMarkup,pveAugmentPopupMarkup,pveRoomResultOverlayMarkup} from '../src/pve-roguelike-ui.js';
+import {pveMapGeometry,pveMapOverlayMarkup,pveOwnShopReservation,pveShopMarkup,pveRestActionsMarkup,pveRelicStripMarkup,pveRewardPromptMarkup,pveAugmentPopupMarkup,pveRoomResultOverlayMarkup} from '../src/pve-roguelike-ui.js';
 import {pveGameplayPlayers,adaptPveTurnResult,adaptPveRewardResult} from '../src/pve-gameplay-adapter.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 import {beginEntryLoading,finishEntryLoading} from '../supabase/functions/game-api/entry-loading.js';
@@ -33,6 +33,20 @@ const bundle=run=>({members:[
  {id:'mage',display_name:'마법사',deck:[1,2,3,4,4],definition:{color:'#88aaff',skill:{id:'amplify',type:'hybrid'},attackFx:'magic',attackSfx:'sfx_attack_mage'}},
  {id:'warrior',display_name:'기사',deck:[2,3,4,5,5],definition:{color:'#7799cc',skill:{id:'toughness',type:'active'},attackFx:'spear',attackSfx:'sfx_attack_warrior'}}
 ],run});
+
+test('Reward Room hides card submission while waiting for allies or relic choice',async()=>{
+ const run={phase:'REWARD_ROOM',roomState:{type:'REWARD_ROOM',readyPlayerIds:[],pickOrder:[]}};
+ const me={playerId:'p0'};
+ assert.match(pveRewardPromptMarkup(run,me),/카드를 제출해/);
+ run.roomState.readyPlayerIds=['p0'];
+ assert.match(pveRewardPromptMarkup(run,me),/카드 제출 완료/);
+ run.roomState.pickOrder=['p1'];
+ assert.match(pveRewardPromptMarkup(run,me),/유물 선택 대기 중/);
+ assert.doesNotMatch(pveRewardPromptMarkup(run,me),/카드를 제출해/);
+ const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
+ assert.match(app,/rewardSelecting=run\.phase==='REWARD_ROOM'&&!run\.roomState\?\.pickOrder\?\.length/);
+ assert.match(app,/locked:selectionLocked/);
+});
 
 test('PVE-UI-01/20 competitive and PVE both route through shared Gameplay primitives',async()=>{
  const source=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
