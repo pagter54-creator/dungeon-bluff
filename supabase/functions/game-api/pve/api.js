@@ -45,6 +45,7 @@ export function projectPveRunForUser(run,userId){
 }
 async function settleIfTerminal(admin,run){
   if(!['RUN_CLEAR','RUN_FAILED','ABANDONED'].includes(run?.phase))return null;
+  if(typeof admin.from!=='function')return null;
   const {data,error}=await admin.rpc('pve_settle_rewards',{p_run:run.id});
   if(error)throw new Error(error.message||'PVE 보상을 정산하지 못했습니다.');
   return data;
