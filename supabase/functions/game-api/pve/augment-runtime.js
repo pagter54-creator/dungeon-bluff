@@ -151,6 +151,13 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
     config:{crushDamagePerCard:1,crushDamageCap:2},
     effects:[]
   },
+  'aug-121':{
+    executable:true,
+    source:'BETA_v0.1',
+    specialHandlers:['BLOOD_FRENZY'],
+    config:{bonusDamageOnActualHpCost:2},
+    effects:[]
+  },
   'aug-131':{
     executable:true,
     source:'BETA_v0.1',
@@ -173,6 +180,27 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
         tags:['T05','NUMBER_MUTATION']
       }
     ]
+  },
+  'aug-241':{
+    executable:true,
+    source:'BETA_v0.1',
+    specialHandlers:['FULL_BARRAGE'],
+    config:{expandedDeck:[1,2,2,3]},
+    effects:[]
+  },
+  'aug-291':{
+    executable:true,
+    source:'BETA_v0.1',
+    specialHandlers:['ONE_HIT_KILL'],
+    config:{bonusDamagePerCombo:2,comboMax:3,maxUsesPerCycle:1,consumeOn:'VALID_SUCCESS',preserveComboOnCollision:true},
+    effects:[]
+  },
+  'aug-351':{
+    executable:true,
+    source:'BETA_v0.1',
+    specialHandlers:['RELEASED_DEMON_SWORD'],
+    config:{transformThreshold:6,transformedDeck:[2,4,5,6],resetDevourOnCombat:true,returnAfterCardsUsed:4},
+    effects:[]
   },
   'aug-321':{
     executable:true,
