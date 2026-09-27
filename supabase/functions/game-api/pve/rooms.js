@@ -216,6 +216,18 @@ export function resolveRewardAttempt(run){
   spendRoomCards(run,cards);room.turnSubmissions={};
   for(const p of run.players)onTurnEndCharacter(p);
   const valid=cards.filter(c=>c.valid);
+  room.publicTurnResult={
+    attempt:room.attempt,
+    cards:cards.map(card=>({
+      playerId:card.playerId,
+      finalNumber:card.finalNumber,
+      valid:Boolean(card.valid),
+      collisionImmune:Boolean(card.collisionImmune),
+      collisionGroupSize:counts[card.finalNumber]||1,
+      damage:Number(card.damage)||0
+    })),
+    success:valid.length>0
+  };
   if(!valid.length){
     if(room.attempt>=3){autoAssignRemaining(run,run.players.map(p=>p.playerId));return {cards,autoOpened:true};}
     room.attempt+=1;for(const p of run.players)onTurnStartCharacter(p,run);fillRewardAiSubmissions(run);if(run.players.filter(p=>p.status!=='DOWNED').every(p=>room.turnSubmissions[p.playerId]))return resolveRewardAttempt(run);return {cards,retry:true};
