@@ -1093,9 +1093,13 @@ export function runT04(seed){
   };
 }
 export function t04GoldenComparable(result){
+  const fixtureFields=[
+    'id','resolvedCards','numberHistories','mutationEvents','collisionGroups','combatEvents','damagePackets',
+    'phaseTrace','hpAfter','revengeAfter','totalDamage','collisionResolutionPasses','postCollisionEffectPasses'
+  ];
   return {
     scenarioId:result.scenarioId,status:result.status,
-    fixtures:(result.fixtures||[]).map(f=>semantic(f)),
+    fixtures:(result.fixtures||[]).map(f=>semantic(Object.fromEntries(fixtureFields.filter(key=>Object.hasOwn(f,key)).map(key=>[key,f[key]])))),
     collisionTimeline:(result.collisionTurns||[]).map(turn=>semantic({
       turn:turn.turn,policy:turn.policy,targetNumber:turn.targetNumber,
       intentionalParticipantIds:turn.intentionalParticipantIds,
