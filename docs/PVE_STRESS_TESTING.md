@@ -221,9 +221,9 @@ The four definitions use the shared effect structure: trigger, condition, operat
 | T14 Flame Boundary | ACTIVE | six canonical boundary fixtures |
 | T05 Number Mutation | ACTIVE | Mage Reverse Math + Vampire/Full Thrall + Imp/Bold Steal + Knight executable |
 | T09 Resource Starvation | ACTIVE | Knight/Mage/Prophet/Gunner basic resource capabilities + starvation policy executable |
-| T02 Burst Ceiling | SKIP | Demon Swordsman / Martial Artist / Berserker PVE engines and required build effects unavailable |
-| T03 Sustain Fortress | SKIP | Vampire / Berserker PVE engines and required build effects unavailable |
-| T04 Collision Farm | SKIP | Imp / Berserker / Vampire PVE engines and required build effects unavailable |
+| T02 Burst Ceiling | SKIP | Demon Swordsman / Martial Artist engines and required burst build effects unavailable |
+| T03 Sustain Fortress | SKIP | Warrior `수호벽`, Vampire `수혈`, Mage `백마도사` runtime effects unavailable |
+| T04 Collision Farm | ACTIVE | Knight/Imp/Berserker/Vampire base engines, four Tier-I builds, farm/safe policies executable |
 | T06 Recovery Loop | SKIP | Prophet / Demon Swordsman PVE engines and required build effects unavailable |
 
 Availability is computed from runtime definitions. The generated SKIP report is authoritative.
@@ -327,6 +327,121 @@ The semantic golden contains F1-F8 required chain fixtures plus:
 ### Known ambiguity
 
 `AMB-T05-MULTI-IMP`: the current BETA rules do not define ordering for multiple simultaneous Imps. T05 contains exactly one Imp. The resolver rejects that undefined case instead of inventing an ordering rule.
+
+## T04 Collision Farm
+
+T04 is ACTIVE with:
+
+- Knight / `압살 기사` (`aug-051`)
+- Imp / `대담한 슬쩍` (`aug-181`)
+- Berserker / `불사 투사` (`aug-131`)
+- Vampire / `완전한 권속` (`aug-301`)
+
+The existing T05 number mutation order is unchanged. T04 adds exactly one semantic stage after the final collision result:
+
+```text
+BASE_NUMBER
+→ SELF_MODIFY
+→ PRE_COLLISION_SWAP
+→ PRE_COLLISION_STEAL
+→ FINAL_NUMBER
+→ COLLISION_GROUP
+→ COLLISION_RESOLUTION
+→ POST_COLLISION_EFFECTS
+→ VALIDITY
+→ DAMAGE
+```
+
+`POST_COLLISION_EFFECTS` does not call collision grouping or resolution. Every collision group receives a stable `collisionEventId`, and a second attempt to process the same identifier fails with `COLLISION_REWARD_REENTRY` before any reward mutation.
+
+### BETA values used
+
+**Berserker base**
+- deck: 1 / 2 / 4 / 4 / 5
+- every valid monster attack: final number +1 damage
+- after a valid attack, pay 1 HP without going below HP 1
+- final collision invalidation heals 1, with base healing cap HP 2
+
+**Crush Knight**
+- only a Toughness-immune Knight in an actual final collision can Crush
+- `crushedCardCount` counts distinct other physical cards whose final invalid reason is that collision
+- +1 damage per crushed card
+- maximum Crush bonus +2 per turn
+
+**Immortal Fighter**
+- collision healing cap expands from base HP 2 to max HP
+- actual DIRECT monster damage gains Revenge +1, max 1
+- the next valid attack consumes Revenge exactly once for +2 damage
+- blocked-to-zero damage, self HP cost, collision and other self-damage paths do not generate Revenge
+
+Revenge is registered in `PVE_RESOURCE_DEFS` with `resetScope: COMBAT`.
+
+### Collision telemetry
+
+Each final collision group records:
+
+- `collisionEventId`
+- final number and member player IDs
+- invalidated and immune player IDs
+- crushed physical card IDs / `crushedCardCount`
+- Berserker collision healing
+- Imp amount stolen before that final collision
+- relevant Vampire swap count
+- Knight Crush bonus damage
+- collision-generated resources
+- immediate damage/healing value
+- post-collision effect trigger count
+- recursive collision trigger count
+
+The T04 scenario summary aggregates collision groups, intentional attempts/successes, invalidated cards, Crush counts/damage, Berserker healing and Revenge gain/consume, Imp stolen amount, Vampire swaps, generated resource value and per-collision averages.
+
+### Farm and Safe policies
+
+`COLLISION_FARM` and `SAFE_PLAY` use only each player's owner PlayerView plus voluntarily shared available numbers / intended collision numbers / skill intent.
+
+- Farm chooses a deterministic shared number and prioritizes Knight + Berserker collision opportunities.
+- It does not force all four players onto one number every turn; when all four can collide, deterministic turns can peel one non-core participant away.
+- Safe Play greedily avoids duplicate base numbers when possible and does not intentionally activate Toughness or Blood Command for collision creation.
+- Neither policy reads authoritative private hand/card-instance state belonging to another player.
+
+For the same seed, party and encounter, T04 executes both policies. `FARM_DOMINATES` is only a BALANCE_WARNING when Farm DPT is at least 1.35× Safe DPT while final party HP and Flame are both no worse. The threshold does not change game balance.
+
+### T04 hard invariants
+
+- collision grouping/resolution and POST_COLLISION_EFFECTS each execute exactly once per turn
+- duplicate `collisionEventId` reward processing is a hard failure
+- Berserker heals at most once per collision group
+- a physical card can be counted as crushed at most once
+- only finally `COLLISION`-invalid cards are crushed
+- Knight's own card is never crushed
+- final-number members must exactly match collision-group inputs
+- Imp steal conservation remains enforced by T05 invariants
+- Revenge gain/consume cannot recurse
+- HP/resource/card-zone/hidden-information invariants remain active
+- deterministic replay must reproduce the complete collision timeline
+
+### T04 synthetic fixtures
+
+1. Berserker base valid attack.
+2. Berserker self-HP floor.
+3. Berserker base collision heal.
+4. Immortal Fighter max-HP collision heal.
+5. Revenge gain from actual DIRECT damage.
+6. Revenge consume on the next valid attack.
+7. self attack HP cost does not create Revenge.
+8. one-card Knight Crush.
+9. multi-card Knight Crush.
+10. Toughness with no final collision.
+11. Imp steal removes an intended base collision.
+12. Vampire swap creates a final collision.
+13. full mixed swap + steal + Toughness + Berserker heal + Crush ordering.
+14. duplicate collision-event re-entry rejection.
+
+Artifacts:
+- `pve_collision_farm_turns.jsonl`
+- `pve_collision_safe_turns.jsonl`
+- `pve_t04_fixtures.json`
+- `tests/fixtures/pve-stress-t04-golden.json` after the semantic golden is locked.
 
 ## T09 Resource Starvation
 
@@ -499,13 +614,16 @@ Default: `artifacts/pve-stress/`
 - `pve_t05_fixtures.json` when T05 runs
 - `pve_resource_starvation_turns.jsonl` when T09 runs
 - `pve_t09_fixtures.json` when T09 runs
+- `pve_collision_farm_turns.jsonl` when T04 runs
+- `pve_collision_safe_turns.jsonl` when T04 runs
+- `pve_t04_fixtures.json` when T04 runs
 - `scenarios/<scenarioId>.csv`
 
 GitHub Actions uploads the whole directory as `pve-stress-smoke-<sha>`.
 
 Resolved RULE-01~05 are written to `pve_canonical_rules.json`; `pve_spec_ambiguities.json` is reserved for genuinely unresolved issues discovered later.
 
-No production HP / EXP / Gold / Flame / monster / card-pool balance numbers are changed by the T00/T05 stress work.
+No production HP / EXP / Gold / Flame / monster balance numbers are changed by the T00/T04/T05/T09 stress work. T04 only adds the canonical Berserker deck/ability and existing BETA Tier-I augment values needed to make the scenario executable.
 
 
 ## T00 reference telemetry and fairness review
@@ -557,6 +675,7 @@ npm run pve:stress:smoke
 npm run pve:stress:balance -- --scenario T00 --output artifacts/pve-stress-balance
 npm run pve:stress:balance -- --scenario T05 --output artifacts/pve-stress-t05-balance
 npm run pve:stress:balance -- --scenario T09 --output artifacts/pve-stress-t09-balance
+npm run pve:stress:balance -- --scenario T04 --output artifacts/pve-stress-t04-balance
 ```
 
-T00, T05 and T09 100-seed sweeps are uploaded separately. Neither balance sweep changes production combat values or warning thresholds.
+T00, T04, T05 and T09 100-seed sweeps are uploaded separately. Neither balance sweep changes production combat values or warning thresholds.
