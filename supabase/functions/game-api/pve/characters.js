@@ -99,20 +99,6 @@ export function initializeCombatCharacter(player){
     player.publicResources.fullBurstReady=true;
     player.publicResources.burstReadyCycle=1;
   }
-  if(player.characterId==='twins'&&player.augments.includes('aug-381')&&resolved.valid){
-    const cfg=runtimeConfig('aug-381');
-    if(player.publicResources.acrobaticsBoostReady){
-      const bonus=Math.max(0,Number(cfg.postAcrobaticsFirstValidBonusDamage)||2);
-      resolved.acrobaticsBonusDamage=bonus;player.publicResources.acrobaticsBoostReady=false;
-      events.push({type:'AERIAL_ACROBATICS_BONUS_CONSUMED',playerId:player.playerId,bonusDamage:bonus,cardInstanceId:resolved.cardInstanceId});
-    }
-    if(!player.publicResources.acrobaticsReady){
-      const before=Math.max(0,Number(player.publicResources.acrobaticsRechargeProgress)||0),need=Math.max(1,Number(cfg.rechargeValidAttacks)||3),after=Math.min(need,before+1);
-      player.publicResources.acrobaticsRechargeProgress=after;
-      events.push({type:'ACROBATICS_RECHARGE_PROGRESS',playerId:player.playerId,before,after,required:need,cardInstanceId:resolved.cardInstanceId});
-      if(after>=need){player.publicResources.acrobaticsReady=true;events.push({type:'ACROBATICS_RECHARGED',playerId:player.playerId,progress:after,required:need,reason:'VALID_ATTACKS'});}
-    }
-  }
   if(player.characterId==='martial_artist'){
     player.publicResources.combo=0;delete player.publicResources.lastSubmittedNumber;
   }
@@ -542,6 +528,20 @@ export function resolvePostCollisionCharacter(run,resolved,submission,events=[])
   const player=run.players.find(p=>p.playerId===resolved.playerId);
   if(!player)return;
   const priv=run.combat?.privateByPlayer?.[player.playerId];
+  if(player.characterId==='twins'&&player.augments.includes('aug-381')&&resolved.valid){
+    const cfg=runtimeConfig('aug-381');
+    if(player.publicResources.acrobaticsBoostReady){
+      const bonus=Math.max(0,Number(cfg.postAcrobaticsFirstValidBonusDamage)||2);
+      resolved.acrobaticsBonusDamage=bonus;player.publicResources.acrobaticsBoostReady=false;
+      events.push({type:'AERIAL_ACROBATICS_BONUS_CONSUMED',playerId:player.playerId,bonusDamage:bonus,cardInstanceId:resolved.cardInstanceId});
+    }
+    if(!player.publicResources.acrobaticsReady){
+      const before=Math.max(0,Number(player.publicResources.acrobaticsRechargeProgress)||0),need=Math.max(1,Number(cfg.rechargeValidAttacks)||3),after=Math.min(need,before+1);
+      player.publicResources.acrobaticsRechargeProgress=after;
+      events.push({type:'ACROBATICS_RECHARGE_PROGRESS',playerId:player.playerId,before,after,required:need,cardInstanceId:resolved.cardInstanceId});
+      if(after>=need){player.publicResources.acrobaticsReady=true;events.push({type:'ACROBATICS_RECHARGED',playerId:player.playerId,progress:after,required:need,reason:'VALID_ATTACKS'});}
+    }
+  }
   if(player.characterId==='martial_artist'){
     const before=Math.max(0,Number(player.publicResources.combo)||0),previous=Number.isFinite(Number(player.publicResources.lastSubmittedNumber))?Number(player.publicResources.lastSubmittedNumber):null;
     if(player.augments.includes('aug-291')&&submission.skillIntent){
