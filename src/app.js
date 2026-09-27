@@ -90,7 +90,7 @@ async function perform(action, params = {}) {
   finally { busy = false; updateBusy(); }
 }
 async function performPve(action,params={}){
-  if(busy||!bundle?.run)return null;
+  if(busy||pveAnimating||!bundle?.run)return null;
   const before=structuredClone(bundle.run);
   busy=true;updateBusy();
   try{
@@ -254,6 +254,8 @@ async function accept(next, restoring = false) {
     if(next.run.map?.currentNodeId)pveVisitedNodes.add(next.run.map.currentNodeId);
     if(previousPve?.phase!=='MAP_VOTE'&&next.run.phase==='MAP_VOTE')pveMapOpen=true;
     if(['RUN_CLEAR','RUN_FAILED','ABANDONED'].includes(next.run.phase)&&rewardRefreshSession!==next.run.id){rewardRefreshSession=next.run.id;void refreshAccount().catch(()=>{});}
+    // Keep the current reveal DOM until every attack and hit animation has finished.
+    if(pveAnimating){updateBusy();return;}
     const presentation=previousPve?adaptPveTurnResult(bundle,previousPve,next.run):null;
     const rewardPresentation=previousPve?adaptPveRewardResult(previousPve,next.run):null;
     if(presentation&&presentation.turnIndex>pveLastPresentedTurn&&!pveAnimating&&!document.hidden)await presentPveTurn(previousPve,next.run,presentation);
