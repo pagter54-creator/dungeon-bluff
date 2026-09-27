@@ -223,6 +223,19 @@ function summarize(label,runs){
     };
   }
   const wins=runs.filter(r=>r.outcome==='FLOOR_CLEAR');
+  const byMonster={};
+  for(const monsterId of ['f1_armored_boar','f1_coward_hunter','f1_echo_bat','f1_fallen_lord']){
+    const rows=combatRows.filter(x=>x.monster_id===monsterId),turns=rows.map(x=>x.turn_count);
+    byMonster[monsterId]={
+      encounters:rows.length,wins:rows.filter(x=>x.outcome==='VICTORY').length,
+      avgTurns:Number(mean(turns).toFixed(2)),medianTurns:percentile(turns,.5),p90Turns:percentile(turns,.9),
+      minTurns:turns.length?Math.min(...turns):0,maxTurns:turns.length?Math.max(...turns):0,
+      avgDamage:Number(mean(rows.map(x=>x.party_damage_total)).toFixed(2)),
+      avgFlameSpent:Number(mean(rows.map(x=>x.flame_spent)).toFixed(2)),
+      avgCollisions:Number(mean(rows.map(x=>Object.values(x.collision_count||{}).reduce((a,b)=>a+b,0))).toFixed(2)),
+      avgValidAttacks:Number(mean(rows.map(x=>Object.values(x.valid_attack_count||{}).reduce((a,b)=>a+b,0))).toFixed(2))
+    };
+  }
   return {
     label,runs:runs.length,floorClear:wins.length,runFailed:runs.length-wins.length,
     clearRate:Number((wins.length/runs.length).toFixed(3)),
@@ -231,7 +244,8 @@ function summarize(label,runs){
     avgFinalPartyHp:Number(mean(wins.map(r=>r.finalHp.reduce((a,b)=>a+b,0))).toFixed(2)),
     avgFinalPartyGold:Number(mean(wins.map(r=>r.finalGold.reduce((a,b)=>a+b,0))).toFixed(2)),
     avgRelicsPerPlayer:Number(mean(wins.flatMap(r=>r.relicCounts)).toFixed(2)),
-    byRoom
+    failureSeeds:runs.filter(r=>r.outcome==='RUN_FAILED').map(r=>r.seed).slice(0,8),
+    byRoom,byMonster
   };
 }
 
@@ -245,11 +259,11 @@ test('PVE-014 balance sweep collects multi-seed F1 data across human composition
   const summaries=[];
   for(const cohort of cohorts){
     const runs=[];
-    for(let i=0;i<10;i++)runs.push(await playFloor({...cohort,seed:`pve014-sweep-${cohort.label}-${i}`}));
+    for(let i=0;i<25;i++)runs.push(await playFloor({...cohort,seed:`pve014-sweep-${cohort.label}-${i}`}));
     summaries.push(summarize(cohort.label,runs));
   }
   console.log('[PVE-014 BALANCE SWEEP]',JSON.stringify(summaries));
   assert.equal(summaries.length,4);
-  assert.ok(summaries.every(x=>x.runs===10));
-  assert.ok(summaries.slice(0,3).every(x=>x.byRoom.NORMAL_COMBAT.encounters>=10));
+  assert.ok(summaries.every(x=>x.runs===25));
+  assert.ok(summaries.slice(0,3).every(x=>x.byRoom.NORMAL_COMBAT.encounters>=25));
 });
