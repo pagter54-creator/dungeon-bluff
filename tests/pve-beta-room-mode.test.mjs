@@ -57,6 +57,16 @@ test('PVE Beta result UI states Gold separately and clearly says RP does not cha
  const html=pveBetaMarkup(bundle,roomMembers[0].user_id);
  assert.match(html,/RP 변동 없음/);assert.match(html,/12G/);assert.match(html,/계정 Gold 정산 완료/);
 });
+test('failed/abandoned result UI states canonical Gold forfeiture and RP zero',()=>{
+ const roomMembers=members();
+ for(const phase of ['RUN_FAILED','ABANDONED']){
+  const run=buildInitialPveRun({room:{id:'11111111-1111-4111-8111-111111111111'},members:roomMembers},{seed:'result-failure-ui:'+phase,now:1_800_000_000_000});
+  run.phase=phase;run.players[0].runGold=12;
+  const bundle={room:{room_title:'PVE',gameMode:'COOP_PVE'},members:roomMembers,characters:[],run,pveRewardsCommitted:true,pveSettlement:{settled:true,paid_gold:0,rp_delta:0,outcome:phase}};
+  const html=pveBetaMarkup(bundle,roomMembers[0].user_id);
+  assert.match(html,/RP 변동 없음/);assert.match(html,/영구 지급되지 않습니다/);assert.doesNotMatch(html,/AMBIGUOUS|규칙 확정 전|보류/);
+ }
+});
 test('PVE mode metadata advertises Beta reward contract',()=>{
  const meta=gameModeMeta(GAME_MODE.COOP_PVE);assert.equal(meta.beta,true);assert.equal(meta.reward,'Gold 획득 가능 · RP 변동 없음');
 });
