@@ -160,7 +160,10 @@ export function onCycleStartCharacter(player,privateState){
   }
 }
 export function onTurnEndCharacter(player,run=null,events=[]){
-  if(player.characterId==='twins'&&Number.isInteger(player.publicResources.parity))player.publicResources.parity=1-player.publicResources.parity;
+  if(player.characterId==='twins'&&Number.isInteger(player.publicResources.parity)){
+    const before=player.publicResources.parity;player.publicResources.parity=1-before;
+    events.push({type:'TWINS_PARITY_FLIPPED',playerId:player.playerId,before,after:player.publicResources.parity,reason:'TURN_END',turn:run?.combat?.turn??null});
+  }
   if(player.characterId==='demon_swordsman'&&run?.combat)activateDemonTransformation(player,run.combat.privateByPlayer?.[player.playerId],run,events);
 }
 export function isCardSelectableForCharacter(player,card){
