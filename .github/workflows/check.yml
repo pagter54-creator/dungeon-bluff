@@ -37,6 +37,37 @@ jobs:
           PVE_BETA_PUBLISHABLE_KEY: sb_publishable_ci_preflight_only
         run: npm run pve:beta:preflight
 
+      - name: Set up Supabase CLI for production read-only preflight
+        if: github.event_name == 'pull_request' && github.head_ref == 'feat/pve-core-001-004'
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Verify production project identity
+        if: github.event_name == 'pull_request' && github.head_ref == 'feat/pve-core-001-004'
+        env:
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          test -n "$SUPABASE_PROJECT_ID" || { echo "Missing SUPABASE_PROJECT_ID"; exit 1; }
+          test -n "$SUPABASE_DB_URL" || { echo "Missing SUPABASE_DB_URL"; exit 1; }
+          EXPECTED_REF="$(node --input-type=module -e "import('./config.js').then(m=>process.stdout.write(new URL(m.SUPABASE_URL).hostname.split('.')[0]))")"
+          test "$EXPECTED_REF" = "$SUPABASE_PROJECT_ID" || { echo "Production project ref mismatch"; exit 1; }
+          echo "Production project ref verified: $EXPECTED_REF"
+
+      - name: List production migration history
+        if: github.event_name == 'pull_request' && github.head_ref == 'feat/pve-core-001-004'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: supabase migration list --db-url "$SUPABASE_DB_URL"
+
+      - name: Dry-run production database migrations
+        if: github.event_name == 'pull_request' && github.head_ref == 'feat/pve-core-001-004'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: supabase db push --dry-run --db-url "$SUPABASE_DB_URL"
+
       - name: Run PVE stress smoke
         run: npm run pve:stress:smoke
 
