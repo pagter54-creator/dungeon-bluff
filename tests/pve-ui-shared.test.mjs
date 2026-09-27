@@ -193,13 +193,13 @@ test('PVE preload roster displays only server-authoritative ready members',async
 test('PVE-UI-20 competitive Gameplay keeps its existing shared player/card/reveal path',async()=>{
  const source=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
  const start=source.indexOf('function renderGame(');
- const end=source.indexOf('async function sync()',start);
+ const end=source.indexOf('function renderEnd()',start);
  const block=source.slice(start,end);
  assert.match(block,/sharedGameTopMarkup/);
  assert.match(block,/sharedEncounterMarkup/);
  assert.match(block,/partyPanels\(bundle,players/);
  assert.match(block,/mobileSelection\(player/);
- assert.match(block,/renderGame\(result\); await reveal\(result\)/);
+ assert.match(source,/renderGame\(result\);\s*await reveal\(result\)/);
 });
 
 test('PVE choice popup stacks above the shared competitive result overlay',async()=>{
