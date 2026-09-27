@@ -63,7 +63,7 @@ function publicView(bundle: any, userId: string) {
     privateState };
 }
 async function publicBundleView(bundle:any,userId:string){
-  const out=publicView(bundle,userId);
+  const out:any=publicView(bundle,userId);
   out.room.gameMode=roomGameMode(bundle.room);
   if(out.room.gameMode===GAME_MODE.COOP_PVE){
     const {data,error}=await admin.from('pve_runs').select('id, version, state, rewards_committed').eq('room_id',bundle.room.id).maybeSingle();
