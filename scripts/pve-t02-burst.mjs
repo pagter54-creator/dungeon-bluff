@@ -172,7 +172,7 @@ export function runT02Fixtures(seed,fail){
     const released=makeRun(seed,'F22-released',{monsterDef:{...DUMMY,baseHp:1}});released.players[1].publicResources.devour=5;released.players[2].publicResources.combo=2;forceDemonTransform(released);
     // restore a normal valid kill state while retaining transformation snapshot
     const rr=submitUniqueBase(released,fail,{p0:1,p1:6,p2:3,p3:4});
-    if(baseDevour!==5||Number(released.players[1].publicResources.devour)!==0||Number(released.players[2].publicResources.combo)!==0||released.players[1].publicResources.transformationActive)hard(fail,'BURST_RESOURCE_SCOPE','RUN Devour or combat resources reset incorrectly',{baseDevour,released:snap('x',released,rr)});
+    if(baseDevour!==5||Number(released.players[1].publicResources.devour??0)!==0||Number(released.players[2].publicResources.combo??0)!==0||Boolean(released.players[1].publicResources.transformationActive))hard(fail,'BURST_RESOURCE_SCOPE','RUN Devour or combat resources reset incorrectly',{baseDevour,released:snap('x',released,rr)});
     rows.push(snap('F22_RUN_VS_COMBAT_RESOURCE',released,rr,{baseDevourPersisted:baseDevour}));
   }
   return rows;
