@@ -186,7 +186,7 @@ export function resolveBasicTurn(run){
   const validCards=cards.filter(x=>x.valid),lowestNumber=validCards.length?Math.min(...validCards.map(x=>x.finalNumber)):null;
   const lowestCards=validCards.filter(x=>x.finalNumber===lowestNumber);
   for(const rc of cards)rc.soloLowest=Boolean(rc.valid&&lowestCards.length===1&&lowestCards[0]===rc);
-  for(const rc of cards){const p=playerFor(run,rc.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player:p,resolved:rc,events});resolvePostCollisionCharacter(run,rc,c.turnSubmissions[rc.playerId]);}
+  for(const rc of cards){const p=playerFor(run,rc.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player:p,resolved:rc,events});resolvePostCollisionCharacter(run,rc,c.turnSubmissions[rc.playerId],events);}
   attachValidity(cards);
   c.phase='DAMAGE_BUILD';phaseTrace.push(c.phase);
   const defense=Math.max(0,Number(c.monster.defense)||0);
@@ -230,7 +230,7 @@ export function resolveBasicTurn(run){
     if(run.phase==='RUN_FAILED'){
       // RULE-01: Flame 0 + boss kill + full-party DOWNED resolves as RUN_FAILED before any boss-clear revival.
       c.phase='COMBAT_END';phaseTrace.push(c.phase);
-      for(const p of run.players)onCombatEndCharacter(p);
+      for(const p of run.players)onCombatEndCharacter(p,run);
       c.publicTurnResult=buildTurnResult();
       recordCombatTurnTelemetry(run,c.publicTurnResult);finalizeCombatTelemetry(run,'RUN_FAILED');
       return c.publicTurnResult;
@@ -249,7 +249,7 @@ export function resolveBasicTurn(run){
     for(const p of run.players)applyOwnedEffects(run,'MONSTER_KILLED',{player:p,events});
     if(c.roomType==='BOSS')for(const p of run.players)applyOwnedEffects(run,'BOSS_CLEAR',{player:p,events});
     for(const p of run.players)applyOwnedEffects(run,'COMBAT_END',{player:p,events});
-    for(const p of run.players)onCombatEndCharacter(p);
+    for(const p of run.players)onCombatEndCharacter(p,run);
     if(c.roomType==='BOSS'){
       run.phase='FLOOR_CLEAR';
       run.floorClear={floor:run.floor,bossId:c.monster.id,bossName:c.monster.name};
@@ -268,7 +268,7 @@ export function resolveBasicTurn(run){
   spendResolvedCards(run,cards);c.turnSubmissions={};
   if(run.phase==='RUN_FAILED'){
     c.phase='COMBAT_END';phaseTrace.push(c.phase);
-    for(const p of run.players)onCombatEndCharacter(p);
+    for(const p of run.players)onCombatEndCharacter(p,run);
     c.publicTurnResult=buildTurnResult();
     recordCombatTurnTelemetry(run,c.publicTurnResult);finalizeCombatTelemetry(run,'RUN_FAILED');
     return c.publicTurnResult;
