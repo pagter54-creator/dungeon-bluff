@@ -70,7 +70,9 @@ export function activeButton(player, useSkill, blocked, members=[], players={}, 
   }
   if(player.skillId==='amplify'){
     const mana=player.characterRuntimeState?.mana||0,level=Number(useSkill)||0;
-    return `<button type="button" class="active-skill ${level?'armed':''}" data-action="toggle-skill" aria-pressed="${Boolean(level)}" ${blocked||mana<2?'disabled':''}>✺ 증폭 <b>마나 ${mana-level*2}/4 · ${level?'숫자 +'+level:'2마나 필요'}${level?' · 다시 눌러 변경/취소':''}</b></button>`;
+    const reverse=Boolean(player.characterRuntimeState?.reverseMath),manaMax=player.characterRuntimeState?.manaMax||4;
+    const cost=Math.abs(level)*2,delta=level>0?('+'+level):String(level);
+    return `<button type="button" class="active-skill ${level?'armed':''}" data-action="toggle-skill" aria-pressed="${Boolean(level)}" ${blocked||mana<2?'disabled':''}>✺ ${reverse?'역산술':'증폭'} <b>마나 ${Math.max(0,mana-cost)}/${manaMax} · ${level?'숫자 '+delta:'2마나 필요'}${level?' · 다시 눌러 변경/취소':''}</b></button>`;
   }
   if (player.skillId === 'revelation') {
     const active = Boolean(player.characterRuntimeState?.revealExpiresTurn);
