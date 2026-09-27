@@ -17,7 +17,8 @@ test('PVE stress scenario availability activates T00 only when its four builds a
   assert.equal(status.T14.available,true);
   assert.equal(status.T05.available,true);
   assert.equal(status.T09.available,true);
-  for(const id of ['T02','T03','T04','T06'])assert.equal(status[id].available,false,id);
+  assert.equal(status.T04.available,true);
+  for(const id of ['T02','T03','T06'])assert.equal(status[id].available,false,id);
   assert.deepEqual(status.T00.missingCharacters,[]);
   assert.deepEqual(status.T00.missingBuildEffects,[]);
   assert.deepEqual(status.T09.missingCharacters,[]);
