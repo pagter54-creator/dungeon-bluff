@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import {PVE_CHARACTER_DEFS,isCardSelectableForCharacter} from '../supabase/functions/game-api/pve/characters.js';
+import {PVE_CHARACTER_DEFS,isCardSelectableForCharacter,activateImmediateCharacterSkill,PveSkillError} from '../supabase/functions/game-api/pve/characters.js';
 import {AUGMENT_DEFINITIONS,AUGMENT_BY_ID} from '../supabase/functions/game-api/pve/augment-catalog.js';
 import {PVE_RESOURCE_DEFS,resourceMax} from '../supabase/functions/game-api/pve/resources.js';
 import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/pve/model.js';
@@ -9,6 +9,7 @@ import {F1_MONSTER_DEFINITIONS,F1_RELIC_DEFINITIONS} from '../supabase/functions
 import {installRelicCatalog} from '../supabase/functions/game-api/pve/relics.js';
 import {buildReferenceIntent,negotiateReferenceIntents,summarizeReferenceTurns} from './pve-reference-policy.mjs';
 import {buildNumberMutationIntent,planNumberMutationTurn} from './pve-number-mutation-policy.mjs';
+import {buildResourceStarvationDecision,invalidResourceProbe} from './pve-resource-starvation-policy.mjs';
 
 export const STRESS_SCHEMA_VERSION=1;
 export const HARD_MAX_TURNS=100;
@@ -47,6 +48,16 @@ export function semanticFingerprint(value){return hash(semantic(value));}
 const EXECUTABLE_BUILD_NAMES=new Set(
   AUGMENT_DEFINITIONS.filter(x=>x.executable===true).map(x=>`${x.characterId}:${x.build}`)
 );
+const EXECUTABLE_RUNTIME_CAPABILITIES=new Set([
+  'warrior_basic_resource',
+  'mage_basic_resource',
+  'prophet_base',
+  'prophet_revelation',
+  'prophet_recovery',
+  'gunner_basic_cycle',
+  'gunner_full_burst',
+  'resource_starvation_policy'
+]);
 export const STRESS_SCENARIOS=Object.freeze([
   {
     id:'T00',name:'Reference',runner:'floor',policy:'reference',
@@ -60,7 +71,8 @@ export const STRESS_SCENARIOS=Object.freeze([
   },
   {
     id:'T09',name:'Resource Starvation',runner:'combat',policy:'resource_starvation',
-    characters:['warrior','mage','prophet','gunner'],builds:[]
+    characters:['warrior','mage','prophet','gunner'],builds:[],
+    requires:['warrior_basic_resource','mage_basic_resource','prophet_base','prophet_revelation','prophet_recovery','gunner_basic_cycle','gunner_full_burst','resource_starvation_policy']
   },
   {id:'T14',name:'Flame Boundary',runner:'synthetic',policy:'fixture',characters:[],builds:[]},
   {
@@ -89,10 +101,12 @@ export function scenarioAvailability(def){
   const missingCharacters=(def.characters||[]).filter(id=>!Object.hasOwn(PVE_CHARACTER_DEFS,id));
   const missingBuildEffects=(def.builds||[]).filter(([characterId,build])=>!EXECUTABLE_BUILD_NAMES.has(`${characterId}:${build}`))
     .map(([characterId,build])=>({characterId,build}));
+  const missingCapabilities=(def.requires||[]).filter(id=>!EXECUTABLE_RUNTIME_CAPABILITIES.has(id));
   const reasons=[];
   if(missingCharacters.length)reasons.push(`PVE character engine not implemented: ${missingCharacters.join(', ')}`);
   if(missingBuildEffects.length)reasons.push(`build effects are not executable (metadata-only or absent): ${missingBuildEffects.map(x=>`${x.characterId}/${x.build}`).join(', ')}`);
-  return {available:reasons.length===0,reasons,missingCharacters,missingBuildEffects};
+  if(missingCapabilities.length)reasons.push(`runtime capabilities are not executable: ${missingCapabilities.join(', ')}`);
+  return {available:reasons.length===0,reasons,missingCharacters,missingBuildEffects,missingCapabilities};
 }
 
 export const CANONICAL_RULES=Object.freeze([
@@ -291,6 +305,7 @@ export function assertRunInvariants(run){
     for(const [name,value] of Object.entries(p.publicResources||{}))if(typeof value==='number'&&(!finite(value)||value<0))fail('NEGATIVE_RESOURCE','negative/invalid combat resource',{playerId:p.playerId,name,value});
     if(Number(p.publicResources?.mana)>resourceMax(p,'mana',4))fail('INVALID_RESOURCE','mage mana exceeded current cap',{playerId:p.playerId,value:p.publicResources.mana,max:resourceMax(p,'mana',4)});
     if(Number(p.publicResources?.toughnessCharges)>resourceMax(p,'toughnessCharges',2))fail('INVALID_RESOURCE','warrior toughness exceeded current cap',{playerId:p.playerId,value:p.publicResources.toughnessCharges,max:resourceMax(p,'toughnessCharges',2)});
+    if(Number(p.publicResources?.revelation)>resourceMax(p,'revelation',1))fail('INVALID_RESOURCE','prophet revelation exceeded current cap',{playerId:p.playerId,value:p.publicResources.revelation,max:resourceMax(p,'revelation',1)});
     if(p.publicResources?.parity!=null&&![0,1].includes(p.publicResources.parity))fail('INVALID_RESOURCE','twins parity must be 0 or 1',{playerId:p.playerId,value:p.publicResources.parity});
     for(const [number,value] of Object.entries(p.engravings||{}))if(!finite(value)||value<0)fail('NEGATIVE_RESOURCE','negative/invalid engraving',{playerId:p.playerId,number,value});
     validateZone(p,run.combat?.privateByPlayer?.[p.playerId],'combat');
@@ -687,7 +702,7 @@ export function balanceWarnings(result){
 export function skippedScenarioReport(){
   return STRESS_SCENARIOS.map(def=>({def,availability:scenarioAvailability(def)}))
     .filter(x=>!x.availability.available)
-    .map(({def,availability})=>({scenarioId:def.id,name:def.name,reasons:availability.reasons,missingCharacters:availability.missingCharacters,missingBuildEffects:availability.missingBuildEffects}));
+    .map(({def,availability})=>({scenarioId:def.id,name:def.name,reasons:availability.reasons,missingCharacters:availability.missingCharacters,missingBuildEffects:availability.missingBuildEffects,missingCapabilities:availability.missingCapabilities||[]}));
 }
 
 export function t14GoldenComparable(result){
