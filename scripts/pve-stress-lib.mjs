@@ -8,6 +8,7 @@ import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 import {F1_MONSTER_DEFINITIONS,F1_RELIC_DEFINITIONS} from '../supabase/functions/game-api/pve/content-f1.js';
 import {installRelicCatalog} from '../supabase/functions/game-api/pve/relics.js';
 import {buildReferenceIntent,negotiateReferenceIntents,summarizeReferenceTurns} from './pve-reference-policy.mjs';
+import {buildNumberMutationIntent,planNumberMutationTurn} from './pve-number-mutation-policy.mjs';
 
 export const STRESS_SCHEMA_VERSION=1;
 export const HARD_MAX_TURNS=100;
@@ -367,7 +368,7 @@ function referenceTurnPlan(run,seed){
 export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterDef=F1_MONSTER_DEFINITIONS.f1_armored_boar,policy='reference',flame=4,maxTurns=HARD_MAX_TURNS,caseId='generic-combat'}){
   const run=makeCombatRun(seed,{caseId,characterIds,augmentIdsByPlayer,flame,monsterDef});
   let actions=0,resolves=0;
-  const referenceTurns=[];
+  const referenceTurns=[],numberMutationTurns=[];
   while(run.phase==='COMBAT'){
     if(run.combat.turn>maxTurns)fail('INFINITE_LOOP','simulation exceeded turn ceiling',{seed,turn:run.combat.turn});
     const turn=run.combat.turn;
@@ -376,6 +377,27 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
       const plan=referenceTurnPlan(run,seed);referenceTelemetry=plan.telemetry;
       for(const submission of plan.submissions){
         submitCard(run,submission.playerId,submission.cardInstanceId,submission.skillIntent);actions++;
+        assertRunInvariants(run);
+      }
+    }else if(policy==='number_mutation'){
+      const contextKey=`${run.currentRoomNodeId||run.combat?.monster?.id||'combat'}:turn:${turn}`;
+      const intents=[],views=new Map();
+      for(const p of run.players){
+        if(p.status==='DOWNED'||run.combat.turnSubmissions[p.playerId])continue;
+        const view=projectRun(run,p.playerId);assertNoHiddenInfo(view,p.playerId);
+        const intent=buildNumberMutationIntent(view,p.playerId);
+        if(!intent)fail('BOT_NO_LEGAL_ACTION','T05 bot could not build an owner intent',{seed,playerId:p.playerId,turn});
+        intents.push(intent);views.set(p.playerId,view);
+      }
+      const plan=planNumberMutationTurn(intents,{seed,contextKey});
+      for(const decision of plan.decisions){
+        const view=views.get(decision.playerId);
+        const choices=legalCardsFromView(view,decision.playerId)
+          .filter(card=>card.baseNumber===decision.baseNumber)
+          .sort((a,b)=>a.id.localeCompare(b.id));
+        if(!choices.length)fail('BOT_NO_LEGAL_ACTION','T05 negotiated card unavailable in owner projection',{seed,turn,decision});
+        const card=choices[seededIndex(seed,`${contextKey}:${decision.playerId}:physical:${decision.baseNumber}`,choices.length)];
+        submitCard(run,decision.playerId,card.id,decision.skillIntent,decision.skillData);actions++;
         assertRunInvariants(run);
       }
     }else{
@@ -390,6 +412,13 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
     }
     const result=resolveBasicTurn(run);actions++;resolves++;
     if(!result)fail('SOFTLOCK','resolve returned null with all bot actions submitted',{seed,turn});
+    if(policy==='number_mutation'){
+      numberMutationTurns.push({
+        turn,
+        numberHistories:structuredClone(result.numberHistories||[]),
+        mutationEvents:structuredClone(result.mutationEvents||[])
+      });
+    }
     if(referenceTelemetry){
       const damageByPlayer={};
       for(const packet of result.damagePackets||[])damageByPlayer[packet.sourcePlayerId]=(damageByPlayer[packet.sourcePlayerId]||0)+(Number(packet.amount)||0);
@@ -429,7 +458,141 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
     players:run.players.map(p=>({playerId:p.playerId,characterId:p.characterId,hp:p.hp,status:p.status,runGold:p.runGold,growthExp:p.growthExp})),
     combat:semantic(run.combat),combats:combatMetric?[combatMetric]:[],
     referenceTurns,
-    referenceCommunication:summarizeReferenceTurns(referenceTurns)
+    referenceCommunication:summarizeReferenceTurns(referenceTurns),
+    numberMutationTurns
+  };
+}
+
+const T05_CHARACTER_IDS=Object.freeze(['mage','vampire','imp','warrior']);
+const T05_AUGMENTS=Object.freeze([['aug-111'],['aug-301'],['aug-181'],['aug-031']]);
+const T05_FIXTURE_MONSTER=Object.freeze({
+  id:'t05_fixture_dummy',name:'T05 Mutation Dummy',tier:'NORMAL',baseHp:999,
+  pattern:[{type:'CHARGE',telegraphText:'fixture',payload:{}}]
+});
+function t05CardId(run,playerId,number){
+  const view=projectRun(run,playerId);assertNoHiddenInfo(view,playerId);
+  const choices=legalCardsFromView(view,playerId).filter(card=>card.baseNumber===number).sort((a,b)=>a.id.localeCompare(b.id));
+  return choices[0]?.id||null;
+}
+function t05Fixture(seed,id,{numbers,skills={},mageMana=null,thrallId=null}){
+  const run=makeCombatRun(`${seed}:${id}`,{
+    caseId:`T05-${id}`,characterIds:T05_CHARACTER_IDS,augmentIdsByPlayer:T05_AUGMENTS,flame:4,monsterDef:T05_FIXTURE_MONSTER
+  });
+  if(mageMana!=null)run.players[0].publicResources.mana=mageMana;
+  if(thrallId)run.players[1].publicResources.thrallPlayerId=thrallId;
+  const ownershipBefore=Object.fromEntries(run.players.map(p=>[p.playerId,p.cardPool.map(card=>card.id)]));
+  for(let i=0;i<numbers.length;i++){
+    const pid=`p${i}`,cardId=t05CardId(run,pid,numbers[i]);
+    if(!cardId)fail('T05_FIXTURE_CARD_MISSING',`${id} missing requested card`,{pid,number:numbers[i]});
+    const skill=skills[pid]||{};
+    submitCard(run,pid,cardId,Boolean(skill.enabled),skill.data??null);
+  }
+  const result=resolveBasicTurn(run);
+  if(!result)fail('SOFTLOCK',`${id} did not resolve`);
+  assertRunInvariants(run);
+  const ownershipAfter=Object.fromEntries(run.players.map(p=>[p.playerId,p.cardPool.map(card=>card.id)]));
+  if(stableStringify(ownershipBefore)!==stableStringify(ownershipAfter))fail('NUMBER_04_OWNERSHIP_CHANGED',`${id} changed physical ownership`);
+  return {
+    id,
+    histories:structuredClone(result.numberHistories||[]),
+    events:structuredClone(result.mutationEvents||[]),
+    phaseTrace:[...(result.phaseTrace||[])],
+    totalDamage:result.totalDamage,
+    ownershipStable:true
+  };
+}
+export function runT05Fixtures(seed){
+  const fixtures=[
+    t05Fixture(seed,'F1_SELF_MODIFY_ONLY',{
+      numbers:[3,1,2,5],mageMana:2,skills:{p0:{enabled:true,data:{direction:1,manaSpend:2}}}
+    }),
+    t05Fixture(seed,'F2_VAMPIRE_SWAP_ONLY',{
+      numbers:[2,5,1,3],thrallId:'p0',skills:{p1:{enabled:true}}
+    }),
+    t05Fixture(seed,'F3_IMP_MULTI_STEAL',{
+      numbers:[3,3,3,5]
+    }),
+    t05Fixture(seed,'F4_FULL_CHAIN',{
+      numbers:[3,5,4,2],mageMana:2,thrallId:'p0',
+      skills:{p0:{enabled:true,data:{direction:1,manaSpend:2}},p1:{enabled:true}}
+    }),
+    t05Fixture(seed,'F5_KNIGHT_POST_MUTATION_IMMUNITY',{
+      numbers:[1,3,3,4],skills:{p3:{enabled:true}}
+    }),
+    t05Fixture(seed,'F6_STEAL_CREATES_COLLISION',{
+      numbers:[3,4,3,2]
+    }),
+    t05Fixture(seed,'F7_STEAL_REMOVES_COLLISION',{
+      numbers:[3,1,3,5]
+    }),
+    t05Fixture(seed,'F8_SWAP_CREATES_IMP_TARGET',{
+      numbers:[4,5,4,2],thrallId:'p0',skills:{p1:{enabled:true}}
+    }),
+    t05Fixture(seed,'F9_REVERSE_MATH_MINUS',{
+      numbers:[3,5,1,4],mageMana:2,skills:{p0:{enabled:true,data:{direction:-1,manaSpend:2}}}
+    }),
+    t05Fixture(seed,'F10_STEAL_MIN_BOUNDARY',{
+      numbers:[1,5,1,4]
+    })
+  ];
+  return {scenarioId:'T05_FIXTURES',seed,status:'PASS',fixtures};
+}
+function collisionPairs(histories,field){
+  const pairs=new Set();
+  for(let i=0;i<histories.length;i++)for(let j=i+1;j<histories.length;j++){
+    if(histories[i][field]===histories[j][field]){
+      const ids=[histories[i].playerId,histories[j].playerId].sort();
+      pairs.add(ids.join('|'));
+    }
+  }
+  return pairs;
+}
+function mutationMetrics(turns){
+  const metrics={
+    combatCount:1,selfModifications:0,swaps:0,stealEvents:0,stolenAmount:0,
+    mutationCreatedCollisionCount:0,mutationResolvedCollisionCount:0,
+    knightImmunityUses:0,invalidMutationAttempts:0,numberHistoryMismatchCount:0,deterministicReplayMismatchCount:0
+  };
+  for(const turn of turns||[]){
+    metrics.selfModifications+=(turn.mutationEvents||[]).filter(e=>e.phase==='SELF_MODIFY').length;
+    metrics.swaps+=(turn.mutationEvents||[]).filter(e=>e.phase==='PRE_COLLISION_SWAP').length;
+    const summaries=(turn.mutationEvents||[]).filter(e=>e.effectId==='imp-steal-summary');
+    metrics.stealEvents+=summaries.length;
+    metrics.stolenAmount+=summaries.reduce((sum,e)=>sum+(Number(e.totalActuallyStolen)||0),0);
+    const base=collisionPairs(turn.numberHistories||[],'baseNumber');
+    const final=collisionPairs(turn.numberHistories||[],'finalNumber');
+    for(const pair of final)if(!base.has(pair))metrics.mutationCreatedCollisionCount++;
+    for(const pair of base)if(!final.has(pair))metrics.mutationResolvedCollisionCount++;
+    metrics.knightImmunityUses+=(turn.numberHistories||[]).filter(h=>h.collisionImmune&&(h.collisionGroup||[]).length>1).length;
+  }
+  return metrics;
+}
+export function runT05(seed){
+  const fixtures=runT05Fixtures(seed);
+  const stress=simulateCombat({
+    seed:`${seed}:stress`,caseId:'T05-stress',characterIds:T05_CHARACTER_IDS,augmentIdsByPlayer:T05_AUGMENTS,
+    monsterDef:F1_MONSTER_DEFINITIONS.f1_armored_boar,policy:'number_mutation',flame:4
+  });
+  const metrics=mutationMetrics(stress.numberMutationTurns);
+  return {
+    scenarioId:'T05',seed,status:'PASS',outcome:stress.outcome,actionCount:stress.actions,
+    fixtures:fixtures.fixtures,numberMutationTurns:stress.numberMutationTurns,
+    mutationMetrics:metrics,combats:stress.combats,effectTriggerCounts:stress.effectTriggerCounts,finalFlame:stress.finalFlame
+  };
+}
+export function t05GoldenComparable(result){
+  return {
+    scenarioId:result.scenarioId,status:result.status,
+    fixtures:(result.fixtures||[]).map(f=>({
+      id:f.id,
+      histories:f.histories.map(h=>({
+        playerId:h.playerId,cardInstanceId:h.cardInstanceId,baseNumber:h.baseNumber,
+        selfModifiedNumber:h.selfModifiedNumber,postSwapNumber:h.postSwapNumber,
+        postStealNumber:h.postStealNumber,finalNumber:h.finalNumber,
+        collisionGroup:h.collisionGroup,collisionImmune:h.collisionImmune,valid:h.valid,damage:h.damage
+      })),
+      events:f.events,ownershipStable:f.ownershipStable
+    }))
   };
 }
 
@@ -478,6 +641,7 @@ export function runScenario(scenarioId,seed){
   const availability=scenarioAvailability(def);
   if(!availability.available)return {scenarioId,seed,status:'SKIP',skipReasons:availability.reasons};
   if(scenarioId==='T00')return runT00(seed);
+  if(scenarioId==='T05')return runT05(seed);
   if(scenarioId==='T14')return runT14(seed);
   fail('SCENARIO_RUNNER_NOT_IMPLEMENTED',`${scenarioId} became available but its runner is not implemented yet`,{scenarioId});
 }
