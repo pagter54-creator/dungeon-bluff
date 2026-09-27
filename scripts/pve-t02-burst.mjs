@@ -74,7 +74,7 @@ export function runT02Fixtures(seed,fail){
   }
   {
     const aug=[['aug-241'],[],['aug-291'],['aug-121']],run=makeRun(seed,'F6',{augments:aug,monsterDef:{...DUMMY,baseHp:1}});
-    const r=submitUniqueBase(run,fail),afterKill=Number(run.players[1].publicResources.devour)||0;
+    const r=submitUniqueBase(run,fail,{p0:1,p1:4,p2:3,p3:2}),afterKill=Number(run.players[1].publicResources.devour)||0;
     run.phase='COMBAT';run.combat=newCombatState(run.players,999,'NORMAL_COMBAT',DUMMY);run.combat.id='stress-combat:'+seed+':F6-next';beginTurn(run);
     if(afterKill!==5||Number(run.players[1].publicResources.devour)!==5)hard(fail,'DEVOUR_PERSISTENCE_MISMATCH','base Demon Devour did not persist or highest-only kill total is wrong',{afterKill,afterNext:run.players[1].publicResources.devour,events:r.events});
     rows.push(snap('F6_DEVOUR_PERSISTENCE',run,null,{afterKill}));
@@ -168,7 +168,7 @@ export function runT02Fixtures(seed,fail){
   }
   {
     const baseAug=[['aug-241'],[],['aug-291'],['aug-121']],base=makeRun(seed,'F22-base',{augments:baseAug,monsterDef:{...DUMMY,baseHp:1}});
-    const br=submitUniqueBase(base,fail),baseDevour=Number(base.players[1].publicResources.devour)||0;
+    const br=submitUniqueBase(base,fail,{p0:1,p1:4,p2:3,p3:2}),baseDevour=Number(base.players[1].publicResources.devour)||0;
     const released=makeRun(seed,'F22-released',{monsterDef:{...DUMMY,baseHp:1}});released.players[1].publicResources.devour=5;released.players[2].publicResources.combo=2;forceDemonTransform(released);
     // restore a normal valid kill state while retaining transformation snapshot
     const rr=submitUniqueBase(released,fail,{p0:1,p1:6,p2:3,p3:4});
