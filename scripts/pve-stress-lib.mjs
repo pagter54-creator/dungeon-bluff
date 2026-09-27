@@ -396,7 +396,7 @@ export function runT00(seed){
     outcome:runs.some(x=>x.outcome==='RUN_FAILED')?'RUN_FAILED':'COMPLETED',
     actionCount:runs.reduce((s,x)=>s+x.actions,0),
     combats,effectTriggerCounts,characterDamageShare,
-    expGainByCharacter:Object.fromEntries(characterIds.map((id,i)=>[id,combats.reduce((s,x)=>s+(Number(x.expGained?.[`p${i}])||0),0)])),
+    expGainByCharacter:Object.fromEntries(characterIds.map((id,i)=>[id,combats.reduce((s,x)=>s+(Number(x.expGained?.['p'+i])||0),0)])),
     finalFlame:runs.at(-1)?.finalFlame??null
   };
 }
