@@ -1,0 +1,116 @@
+{
+  "scenarioId": "T14",
+  "status": "PASS",
+  "cases": [
+    {
+      "id": "T14-1",
+      "phase": "COMBAT",
+      "flame": 0,
+      "hp": [
+        1,
+        3,
+        3,
+        3
+      ],
+      "statuses": [
+        "STUNNED_NEXT_TURN",
+        "ACTIVE",
+        "ACTIVE",
+        "ACTIVE"
+      ],
+      "monsterHp": 65
+    },
+    {
+      "id": "T14-2",
+      "phase": "COMBAT",
+      "flame": 0,
+      "hp": [
+        1,
+        0,
+        2,
+        2
+      ],
+      "statuses": [
+        "STUNNED_NEXT_TURN",
+        "DOWNED",
+        "ACTIVE",
+        "ACTIVE"
+      ],
+      "monsterHp": 65
+    },
+    {
+      "id": "T14-3",
+      "phase": "COMBAT",
+      "flame": 0,
+      "hp": [
+        3,
+        0,
+        0,
+        0
+      ],
+      "statuses": [
+        "ACTIVE",
+        "DOWNED",
+        "DOWNED",
+        "DOWNED"
+      ],
+      "monsterHp": 74
+    },
+    {
+      "id": "T14-4",
+      "phase": "RUN_FAILED",
+      "flame": 0,
+      "hp": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "statuses": [
+        "DOWNED",
+        "DOWNED",
+        "DOWNED",
+        "DOWNED"
+      ],
+      "monsterHp": 65
+    },
+    {
+      "id": "T14-5",
+      "phase": "RUN_FAILED",
+      "flame": 0,
+      "hp": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "statuses": [
+        "DOWNED",
+        "DOWNED",
+        "DOWNED",
+        "DOWNED"
+      ],
+      "monsterHp": 0,
+      "precedence": "RUN_FAILED_BEFORE_BOSS_CLEAR"
+    },
+    {
+      "id": "T14-6",
+      "phase": "COMBAT",
+      "flame": 1,
+      "hp": [
+        1,
+        3,
+        3,
+        3
+      ],
+      "statuses": [
+        "ACTIVE",
+        "ACTIVE",
+        "ACTIVE",
+        "ACTIVE"
+      ],
+      "monsterHp": 65,
+      "precedence": "PLAYER_DAMAGED_HEAL_BEFORE_DOWN_RESOLVE"
+    }
+  ]
+}

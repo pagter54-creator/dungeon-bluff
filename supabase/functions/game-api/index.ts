@@ -9,6 +9,8 @@ import { updateMonsterIntent } from './boss-patterns.js';
 import { sameLockedMembers,waitForConflictRetry } from './room-concurrency.js';
 import { lobbyReady,beginEntryLoading,finishEntryLoading } from './entry-loading.js';
 import { createSession, openTurn, validateSubmission, advanceAutomaticTurns, fillAutomaticSubmissions, activateSkill, roomReady } from './engine.js';
+import { handlePveAction,buildInitialPveRun,projectPveRunForUser,unsupportedPveRoomCharacters } from './pve/api.js';
+import { GAME_MODE,parseRequestedGameMode,roomGameMode,coopPveEnabled,assertCoopPveEnabled } from './game-mode.js';
 
 const url = Deno.env.get('SUPABASE_URL')!;
 const secret = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -18,6 +20,12 @@ const uuid = (value: unknown): value is string => typeof value === 'string' && /
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
 const check = (condition: unknown, message: string) => { if (!condition) throw new Error(message); };
 const code = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), n => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[n % 32]).join('');
+async function coopPveEnabledNow(){
+  const {data,error}=await admin.from('pve_runtime_flags').select('enabled').eq('flag_key','COOP_PVE_ENABLED').maybeSingle();
+  if(error||!data)return false;
+  return coopPveEnabled(data.enabled);
+}
+async function assertCoopPveEnabledNow(){return assertCoopPveEnabled(await coopPveEnabledNow());}
 
 async function passwordHash(password: string, saved?: string) {
   const salt = saved ? Uint8Array.from(atob(saved.split('.')[0]), c => c.charCodeAt(0)) : crypto.getRandomValues(new Uint8Array(16));
@@ -60,6 +68,27 @@ function publicView(bundle: any, userId: string) {
     characters: Object.values(CHARACTER_CATALOG),
     privateState };
 }
+async function publicBundleView(bundle:any,userId:string){
+  const out:any=publicView(bundle,userId);
+  out.room.gameMode=roomGameMode(bundle.room);
+  if(out.room.gameMode===GAME_MODE.COOP_PVE){
+    const {data,error}=await admin.from('pve_runs').select('id, version, state, rewards_committed').eq('room_id',bundle.room.id).maybeSingle();
+    if(error)throw new Error('협력 탐험 상태를 읽지 못했습니다.');
+    if(data?.state){
+      const run=structuredClone(data.state);run.version=data.version;
+      let settlement=null;
+      if(['RUN_CLEAR','RUN_FAILED','ABANDONED'].includes(run.phase)){
+        const settled=await admin.rpc('pve_settle_rewards',{p_run:run.id});
+        if(settled.error)throw new Error('PVE 보상을 확인하지 못했습니다.');
+        settlement=settled.data;
+      }
+      out.run=projectPveRunForUser(run,userId);
+      out.pveSettlement=settlement;
+      out.pveRewardsCommitted=Boolean(data.rewards_committed||settlement?.settled);
+    }else out.run=null;
+  }
+  return out;
+}
 async function commit(b: any, expected: number, events: any[], hash: string | null = null) {
   // Clients fetch the committed snapshot for every notification; one is sufficient.
   const { data, error } = await admin.rpc('game_try_commit', { p_room: b.room, p_members: b.members, p_session: b.session, p_submissions: b.submissions, p_expected: expected, p_password_hash: hash, p_events: events.length ? [{ event: 'room_updated' }] : [] });
@@ -97,6 +126,9 @@ Deno.serve(async req => {
     check(raw.length <= 8192, '요청이 너무 큽니다.');
     const body = JSON.parse(raw);
     const { action } = body;
+    if(action==='get_public_config')return json({coopPveEnabled:await coopPveEnabledNow()});
+    const pveResponse = await handlePveAction({ admin, user, body, json });
+    if (pveResponse) return pveResponse;
     if (action === 'get_profile') return json({ profile: await profileFor(user.id) });
     if (action === 'set_profile') {
       check(typeof body.display_name === 'string', '닉네임을 입력해 주세요.');
@@ -109,20 +141,22 @@ Deno.serve(async req => {
     const { error: presenceError } = await admin.rpc('game_room_presence', { p_user_id: user.id });
     if (presenceError) throw new Error('방 접속 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');
     if (action === 'list_rooms') {
-      const { data, error } = await admin.from('rooms').select('id, room_code, room_title, status, has_password, max_members, created_at, room_members(member_type)').neq('status', 'closed').order('created_at', { ascending: false }).limit(60);
+      const { data, error } = await admin.from('rooms').select('id, room_code, room_title, status, has_password, max_members, game_mode, created_at, room_members(member_type)').neq('status', 'closed').order('created_at', { ascending: false }).limit(60);
       if (error) throw new Error('공개 방 목록을 읽지 못했습니다.');
-      return json({ rooms: data.map(({ room_members, ...r }) => ({ ...r, member_count: room_members.length, ai_count: room_members.filter(m => m.member_type === 'ai').length })) });
+      return json({ rooms: data.map(({ room_members, ...r }) => ({ ...r, gameMode:roomGameMode(r), member_count: room_members.length, ai_count: room_members.filter(m => m.member_type === 'ai').length })) });
     }
     if (action === 'create_room') {
       check(typeof body.room_title === 'string' && body.room_title.trim().length > 0 && body.room_title.trim().length <= 40, '방 제목은 1~40자로 입력해 주세요.');
+      const gameMode=parseRequestedGameMode(body.gameMode);
+      if(gameMode===GAME_MODE.COOP_PVE)await assertCoopPveEnabledNow();
       const hash = body.password ? await passwordHash(body.password) : null;
       const profile = await profileFor(user.id);
       for (let i = 0; i < 5; i++) {
-        const room = { id: crypto.randomUUID(), room_code: code(), room_title: body.room_title.trim(), host_user_id: user.id, status: 'waiting', has_password: !!hash, max_members: 4, version: 0 };
+        const room = { id: crypto.randomUUID(), room_code: code(), room_title: body.room_title.trim(), host_user_id: user.id, status: 'waiting', has_password: !!hash, max_members: 4, game_mode:gameMode, version: 0 };
         const b = { room, members: [newMember(room.id, user.id, 0)], session: null, submissions: [] };
         b.members[0].display_name = profile.display_name;
         const { error } = await commit(b, -1, [{ event: 'room_updated' }], hash);
-        if (!error) { await admin.rpc('account_touch', { p_user_id: user.id }); return json(publicView(b, user.id)); }
+        if (!error) { await admin.rpc('account_touch', { p_user_id: user.id }); return json(await publicBundleView(b, user.id)); }
         if (error.code === '23505' && error.message.includes('room_code')) continue;
         if (error.code === '23505') throw new Error('이미 참가한 방이 있습니다. 기존 방으로 재접속해 주세요.');
         throw new Error('방을 생성하지 못했습니다. 서버 마이그레이션을 확인해 주세요.');
@@ -164,10 +198,10 @@ Deno.serve(async req => {
             if (error) throw new Error('턴 상태를 복구하지 못했습니다. 다시 시도해 주세요.');
           }
         }
-        return json(publicView(b, user.id));
+        return json(await publicBundleView(b, user.id));
       }
       if (action === 'join_room') {
-        if (me) return json(publicView(b, user.id));
+        if (me) return json(await publicBundleView(b, user.id));
         check(b.room.status === 'waiting', '이미 시작했거나 닫힌 방입니다.');
         check(b.members.length < 4, '방이 가득 찼습니다.');
         if (b.room.has_password) check(equalHash(await passwordHash(body.password || '', b.password_hash), b.password_hash), '비밀번호가 일치하지 않습니다.');
@@ -206,12 +240,12 @@ Deno.serve(async req => {
         } else if(action==='set_ready'){
           check(b.room.status==='waiting'&&!b.session,'대기실에서만 준비할 수 있습니다.');
           check(typeof body.ready==='boolean','준비 상태를 확인해 주세요.');
-          if(me.lobby_ready===body.ready)return json(publicView(b,user.id));
+          if(me.lobby_ready===body.ready)return json(await publicBundleView(b,user.id));
           me.lobby_ready=body.ready;
         } else if(action==='assets_loaded'){
           check(b.session?.id===body.session_id,'원정이 변경되었습니다.');
           const loading=b.session.state.entryLoading;
-          if(!loading||loading.ready.includes(me.id))return json(publicView(b,user.id));
+          if(!loading||loading.ready.includes(me.id))return json(await publicBundleView(b,user.id));
           loading.ready.push(me.id);
           if(finishEntryLoading(b.session,b.members))events.push(...advanceAutomaticTurns(b.session,b.members,b.submissions));
         } else if (['add_ai', 'remove_ai', 'start_game'].includes(action)) {
@@ -227,26 +261,38 @@ Deno.serve(async req => {
           } else {
             check(b.members.length === 4 && b.members.some((m: any) => m.member_type === 'human'), '인간을 포함한 4명이 필요합니다.');
             check(b.members.every(lobbyReady),'모든 플레이어가 준비를 완료해야 합니다.');
+            if(roomGameMode(b.room)===GAME_MODE.COOP_PVE){
+              await assertCoopPveEnabledNow();
+              const unsupported=unsupportedPveRoomCharacters(b.members);
+              check(!unsupported.length,`협력 탐험에서 아직 지원하지 않는 캐릭터가 있습니다: ${unsupported.join(', ')}`);
+              const run=buildInitialPveRun(b);
+              const {data:start,error:startError}=await admin.rpc('pve_start_room',{p_run_id:run.id,p_room:roomId,p_expected:expected,p_seed:run.seed,p_state:run});
+              if(startError)throw new Error(startError.message||'협력 탐험을 시작하지 못했습니다.');
+              if(start?.conflict){await waitForConflictRetry(attempt);continue;}
+              b.room.status='playing';b.room.version=start.room_version;run.version=start.run_version??0;
+              await admin.rpc('account_touch',{p_user_id:user.id});
+              return json(await publicBundleView(await read(roomId),user.id));
+            }
             b.session = createSession(roomId, b.members, await characters(), Math.random, 2); b.room.status = 'playing';
             beginEntryLoading(b.session);b.submissions=[];events.push({event:'game_loading'});
           }
         } else if (['room_ready','room_choice'].includes(action)) {
           check(b.session&&body.session_id===b.session.id,'원정이 변경되었습니다.');
           check(Number.isInteger(body.stage_index)&&body.stage_index>=1,'방 번호를 확인해 주세요.');
-          if(body.stage_index<b.session.stage_index||!b.session.state.roomSummary&&b.session.status!=='active')return json(publicView(b,user.id));
+          if(body.stage_index<b.session.stage_index||!b.session.state.roomSummary&&b.session.status!=='active')return json(await publicBundleView(b,user.id));
           check(b.session.state.roomSummary?.stageIndex===body.stage_index,'결산이 변경되었습니다.');
           const changed=action==='room_ready'?roomReady(b.session,me.id,body.stage_index):chooseRoomReward(b.session,me.id,body.choice);
-          if(!changed)return json(publicView(b,user.id));
+          if(!changed)return json(await publicBundleView(b,user.id));
           events.push(...advanceAutomaticTurns(b.session,b.members,b.submissions));
           fillAutomaticSubmissions(b.session,b.members,b.submissions);
         } else if (['confirm_card','reselect_card'].includes(action)) {
           check(b.session&&body.session_id===b.session.id,'원정이 변경되었습니다.');
-          if(body.turn_index<b.session.turn_index)return json(publicView(b,user.id));
+          if(body.turn_index<b.session.turn_index)return json(await publicBundleView(b,user.id));
           check(body.turn_index===b.session.turn_index&&!b.session.state.roomSummary,'턴이 변경되었습니다.');
           const saved=b.submissions.find((x:any)=>x.turn_index===body.turn_index&&x.member_id===me.id);
           check(saved,'먼저 카드를 제출해 주세요.');
           const echoId=b.session.state.selectionHolds?.[me.id];
-          if(!echoId)return json(publicView(b,user.id));
+          if(!echoId)return json(await publicBundleView(b,user.id));
           if(action==='reselect_card'){
             const others=b.submissions.filter((x:any)=>x!==saved);
             const card=validateSubmission(b.session,me,user.id,body,others);
@@ -260,8 +306,8 @@ Deno.serve(async req => {
           check(b.session, '원정이 아직 시작되지 않았습니다.');
           const member = b.members.find((m: any) => m.id === body.member_id);
           check(member?.user_id === user.id && member?.member_type === 'human', '자신의 스킬만 사용할 수 있습니다.');
-          if (body.session_id === b.session.id && Number.isInteger(body.turn_index) && body.turn_index > 0 && body.turn_index < b.session.turn_index) return json(publicView(b, user.id));
-          if (!activateSkill(b.session, member, user.id, body, b.submissions)) return json(publicView(b, user.id));
+          if (body.session_id === b.session.id && Number.isInteger(body.turn_index) && body.turn_index > 0 && body.turn_index < b.session.turn_index) return json(await publicBundleView(b, user.id));
+          if (!activateSkill(b.session, member, user.id, body, b.submissions)) return json(await publicBundleView(b, user.id));
           fillAutomaticSubmissions(b.session, b.members, b.submissions);
           events.push({ event: 'skill_activated' });
         } else if (action === 'submit_card') {
@@ -273,7 +319,7 @@ Deno.serve(async req => {
             const saved = b.submissions.find((s: any) => s.member_id === member.id && s.turn_index === body.turn_index);
             if ((body.turn_index > 0 && body.turn_index < b.session.turn_index) ||
                 (saved && (saved.card_id === body.card_id || Array.isArray(body.card_ids)&&body.card_ids.includes(saved.card_id)) && Boolean(saved.use_skill) === Boolean(body.use_skill) && (saved.amplify_level||0) === amplifyLevel(b.session.state.players[member.id],body))) {
-              return json(publicView(b, user.id));
+              return json(await publicBundleView(b, user.id));
             }
           }
           const card = validateSubmission(b.session, member, user.id, body, b.submissions);
@@ -286,7 +332,7 @@ Deno.serve(async req => {
       const { error } = await commit(b, expected, events);
       if (!error) {
         await admin.rpc('account_touch', { p_user_id: user.id });
-        return json(action === 'leave_room' ? { left: true } : publicView(action === 'start_game' ? await read(roomId) : b, user.id));
+        return json(action === 'leave_room' ? { left: true } : await publicBundleView(action === 'start_game' ? await read(roomId) : b, user.id));
       }
       if (['ROOM_VERSION_CONFLICT','40001'].includes(error.code)) {await waitForConflictRetry(attempt);continue;}
       if (error.code === '23505') throw new Error('이미 다른 방에 참가 중입니다. 기존 방에서 나와 주세요.');
@@ -294,6 +340,8 @@ Deno.serve(async req => {
     }
     return json({ error: '요청이 겹쳤습니다. 잠시 후 다시 시도해 주세요.' }, 409);
   } catch (error) {
-    return json({ error: error instanceof SyntaxError ? '올바른 JSON이 필요합니다.' : error instanceof Error ? error.message : '요청을 처리하지 못했습니다.' }, 400);
+    const message=error instanceof SyntaxError?'올바른 JSON이 필요합니다.':error instanceof Error?error.message:'요청을 처리하지 못했습니다.';
+    const errorCode=error&&typeof error==='object'&&typeof (error as any).code==='string'?(error as any).code:null;
+    return json({error:message,...(errorCode?{code:errorCode}:{})},400);
   }
 });

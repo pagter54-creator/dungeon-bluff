@@ -2,6 +2,7 @@ name: Project Checks
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
 permissions:
@@ -29,3 +30,166 @@ jobs:
 
       - name: Run project checks
         run: npm run check
+
+      - name: Run PVE beta deployment preflight
+        env:
+          PVE_BETA_PROJECT_REF: aaaaaaaaaaaaaaaaaaaa
+          PVE_BETA_SUPABASE_URL: https://aaaaaaaaaaaaaaaaaaaa.supabase.co
+          PVE_BETA_PUBLISHABLE_KEY: sb_publishable_ci_preflight_only
+        run: npm run pve:beta:preflight
+
+      - name: Set up Supabase CLI for production read-only preflight
+        if: github.event_name == 'pull_request' && github.head_ref == 'feat/pve-core-001-004'
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Verify exact production PVE migration release
+        if: github.event_name == 'pull_request' && github.head_ref == 'feat/pve-core-001-004'
+        env:
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: npm run pve:production:preflight
+
+      - name: Run PVE stress smoke
+        run: npm run pve:stress:smoke
+
+      - name: Run PVE T06 100-seed balance
+        run: npm run pve:stress:balance -- --scenario T06 --output artifacts/pve-stress-t06-balance
+
+      - name: Run PVE T02 100-seed balance
+        run: npm run pve:stress:balance -- --scenario T02 --output artifacts/pve-stress-t02-balance
+
+      - name: Run PVE T00 100-seed balance
+        run: npm run pve:stress:balance -- --scenario T00 --output artifacts/pve-stress-balance
+
+      - name: Run PVE T05 100-seed balance
+        run: npm run pve:stress:balance -- --scenario T05 --output artifacts/pve-stress-t05-balance
+
+      - name: Run PVE T09 100-seed balance
+        run: npm run pve:stress:balance -- --scenario T09 --output artifacts/pve-stress-t09-balance
+
+      - name: Run PVE T04 100-seed balance
+        run: npm run pve:stress:balance -- --scenario T04 --output artifacts/pve-stress-t04-balance
+
+      - name: Run PVE T03 100-seed balance
+        run: npm run pve:stress:balance -- --scenario T03 --output artifacts/pve-stress-t03-balance
+
+      - name: Upload PVE stress smoke reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pve-stress-smoke-${{ github.sha }}
+          path: artifacts/pve-stress/
+          if-no-files-found: error
+
+      - name: Upload PVE T06 balance reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pve-stress-t06-balance-${{ github.sha }}
+          path: artifacts/pve-stress-t06-balance/
+          if-no-files-found: error
+
+      - name: Upload PVE T02 balance reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pve-stress-t02-balance-${{ github.sha }}
+          path: artifacts/pve-stress-t02-balance/
+          if-no-files-found: error
+
+      - name: Upload PVE T00 balance reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pve-stress-t00-balance-${{ github.sha }}
+          path: artifacts/pve-stress-balance/
+          if-no-files-found: error
+
+      - name: Upload PVE T05 balance reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pve-stress-t05-balance-${{ github.sha }}
+          path: artifacts/pve-stress-t05-balance/
+          if-no-files-found: error
+
+      - name: Upload PVE T09 balance reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pve-stress-t09-balance-${{ github.sha }}
+          path: artifacts/pve-stress-t09-balance/
+          if-no-files-found: error
+
+      - name: Upload PVE T04 balance reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pve-stress-t04-balance-${{ github.sha }}
+          path: artifacts/pve-stress-t04-balance/
+          if-no-files-found: error
+
+      - name: Upload PVE T03 balance reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pve-stress-t03-balance-${{ github.sha }}
+          path: artifacts/pve-stress-t03-balance/
+          if-no-files-found: error
+
+
+  production_release_backend:
+    name: PVE production backend release
+    if: github.event_name == 'pull_request' && github.event.action == 'ready_for_review' && github.head_ref == 'feat/pve-core-001-004'
+    needs: test
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pve-production-release
+      cancel-in-progress: false
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Verify deployment secrets
+        shell: bash
+        run: |
+          test -n "$SUPABASE_ACCESS_TOKEN" || { echo "Missing SUPABASE_ACCESS_TOKEN"; exit 1; }
+          test -n "$SUPABASE_PROJECT_ID" || { echo "Missing SUPABASE_PROJECT_ID"; exit 1; }
+          test -n "$SUPABASE_DB_URL" || { echo "Missing SUPABASE_DB_URL"; exit 1; }
+
+      - name: Exact production release preflight
+        run: npm run pve:production:preflight
+
+      - name: Apply canonical production migrations
+        run: supabase db push --db-url "$SUPABASE_DB_URL"
+
+      - name: Verify production migrations after push
+        run: npm run pve:production:preflight
+
+      - name: Deploy production game-api
+        run: supabase functions deploy game-api --project-ref "$SUPABASE_PROJECT_ID"
+
+      - name: Competitive production remote smoke
+        run: npm run pve:production:smoke -- --mode competitive
