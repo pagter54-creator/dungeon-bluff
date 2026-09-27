@@ -102,7 +102,7 @@ export async function handlePveAction({admin,user,body,json}){
     if(majority||timedOut){const chosen=resolveVote(run,humans);enterNode(run,chosen);}
   } else if(action==='pve.activateSkill'){
     if(run.phase!=='COMBAT')return fail(json,'현재 전투 중이 아닙니다.');
-    activateImmediateCharacterSkill(run,me);
+    activateImmediateCharacterSkill(run,me,body.skill_data??null);
   } else if(action==='pve.submitCard'){
     if(run.phase!=='COMBAT')return fail(json,'현재 전투 중이 아닙니다.');
     if(typeof body.card_instance_id!=='string')return fail(json,'card_instance_id가 필요합니다.');
