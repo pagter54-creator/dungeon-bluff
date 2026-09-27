@@ -7,6 +7,7 @@ import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 import {F1_MONSTER_DEFINITIONS,F1_RELIC_DEFINITIONS} from '../supabase/functions/game-api/pve/content-f1.js';
 import {installRelicCatalog} from '../supabase/functions/game-api/pve/relics.js';
+import {buildReferenceIntent,negotiateReferenceIntents,summarizeReferenceTurns} from './pve-reference-policy.mjs';
 
 export const STRESS_SCHEMA_VERSION=1;
 export const HARD_MAX_TURNS=100;
@@ -330,22 +331,77 @@ export function deterministicBotDecision(run,playerId,options={}){
   return deterministicBotDecisionFromView(view,playerId,{...options,seed:options.seed??view.seed});
 }
 
+function referenceTurnPlan(run,seed){
+  const contextKey=`${run.currentRoomNodeId||run.combat?.monster?.id||'combat'}:turn:${run.combat?.turn||0}`;
+  const intents=[],views=new Map();
+  for(const p of run.players){
+    if(p.status==='DOWNED'||run.combat.turnSubmissions[p.playerId])continue;
+    const view=projectRun(run,p.playerId);assertNoHiddenInfo(view,p.playerId);
+    const intent=buildReferenceIntent(view,p.playerId,{seed,contextKey});
+    if(!intent)fail('BOT_NO_LEGAL_ACTION','reference bot could not broadcast a legal intent',{seed,playerId:p.playerId,turn:run.combat.turn});
+    intents.push(intent);views.set(p.playerId,view);
+  }
+  const negotiated=negotiateReferenceIntents(intents,{seed,contextKey});
+  const submissions=[];
+  for(const decision of negotiated.decisions){
+    const view=views.get(decision.playerId);
+    const choices=legalCardsFromView(view,decision.playerId)
+      .filter(card=>card.baseNumber===decision.baseNumber)
+      .sort((a,b)=>a.id.localeCompare(b.id));
+    if(!choices.length)fail('BOT_NO_LEGAL_ACTION','negotiated reference card is unavailable in the owner projection',{
+      seed,playerId:decision.playerId,turn:run.combat.turn,baseNumber:decision.baseNumber
+    });
+    const card=choices[seededIndex(seed,`${contextKey}:${decision.playerId}:physical:${decision.baseNumber}`,choices.length)];
+    submissions.push({playerId:decision.playerId,cardInstanceId:card.id,skillIntent:decision.skillIntent});
+  }
+  return {
+    submissions,
+    telemetry:{
+      turn:run.combat.turn,
+      order:negotiated.order,
+      records:negotiated.decisions.map(x=>({...x,actualCollision:false,actualCollisionInvalidated:false,validAttack:false,damage:0}))
+    }
+  };
+}
+
 export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterDef=F1_MONSTER_DEFINITIONS.f1_armored_boar,policy='reference',flame=4,maxTurns=HARD_MAX_TURNS,caseId='generic-combat'}){
   const run=makeCombatRun(seed,{caseId,characterIds,augmentIdsByPlayer,flame,monsterDef});
   let actions=0,resolves=0;
+  const referenceTurns=[];
   while(run.phase==='COMBAT'){
     if(run.combat.turn>maxTurns)fail('INFINITE_LOOP','simulation exceeded turn ceiling',{seed,turn:run.combat.turn});
     const turn=run.combat.turn;
-    for(const p of run.players){
-      if(p.status==='DOWNED'||run.combat.turnSubmissions[p.playerId])continue;
-      const view=projectRun(run,p.playerId);
-      const decision=deterministicBotDecisionFromView(view,p.playerId,{policy,seed});
-      if(!decision)fail('SOFTLOCK','active player has no legal bot action',{seed,playerId:p.playerId,turn});
-      submitCard(run,p.playerId,decision.cardInstanceId,decision.skillIntent);actions++;
-      assertRunInvariants(run);
+    let referenceTelemetry=null;
+    if(policy==='reference'){
+      const plan=referenceTurnPlan(run,seed);referenceTelemetry=plan.telemetry;
+      for(const submission of plan.submissions){
+        submitCard(run,submission.playerId,submission.cardInstanceId,submission.skillIntent);actions++;
+        assertRunInvariants(run);
+      }
+    }else{
+      for(const p of run.players){
+        if(p.status==='DOWNED'||run.combat.turnSubmissions[p.playerId])continue;
+        const view=projectRun(run,p.playerId);
+        const decision=deterministicBotDecisionFromView(view,p.playerId,{policy,seed});
+        if(!decision)fail('SOFTLOCK','active player has no legal bot action',{seed,playerId:p.playerId,turn});
+        submitCard(run,p.playerId,decision.cardInstanceId,decision.skillIntent);actions++;
+        assertRunInvariants(run);
+      }
     }
     const result=resolveBasicTurn(run);actions++;resolves++;
     if(!result)fail('SOFTLOCK','resolve returned null with all bot actions submitted',{seed,turn});
+    if(referenceTelemetry){
+      const damageByPlayer={};
+      for(const packet of result.damagePackets||[])damageByPlayer[packet.sourcePlayerId]=(damageByPlayer[packet.sourcePlayerId]||0)+(Number(packet.amount)||0);
+      for(const record of referenceTelemetry.records){
+        const card=(result.cards||[]).find(x=>x.playerId===record.playerId);
+        record.actualCollision=Boolean(card&&(Number(card.collisionGroupSize)||1)>1);
+        record.actualCollisionInvalidated=card?.invalidReason==='COLLISION';
+        record.validAttack=Boolean(card?.valid);
+        record.damage=damageByPlayer[record.playerId]||0;
+      }
+      referenceTurns.push(referenceTelemetry);
+    }
     if(resolves>maxTurns)fail('INFINITE_LOOP','resolve count exceeded maximum',{seed,resolves});
     assertRunInvariants(run);
     if(run.phase==='COMBAT'&&run.combat.turn===turn)fail('SOFTLOCK','combat turn did not advance after resolve',{seed,turn});
@@ -371,7 +427,9 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
   return {
     seed,outcome:run.phase,actions,resolves,finalFlame:run.flame,effectTriggerCounts,
     players:run.players.map(p=>({playerId:p.playerId,characterId:p.characterId,hp:p.hp,status:p.status,runGold:p.runGold,growthExp:p.growthExp})),
-    combat:semantic(run.combat),combats:combatMetric?[combatMetric]:[]
+    combat:semantic(run.combat),combats:combatMetric?[combatMetric]:[],
+    referenceTurns,
+    referenceCommunication:summarizeReferenceTurns(referenceTurns)
   };
 }
 
@@ -394,11 +452,13 @@ export function runT00(seed){
   const playerDamage=Object.fromEntries(characterIds.map((id,i)=>[id,combats.reduce((s,x)=>s+(Number(x.playerDamage?.['p'+i])||0),0)]));
   const partyDamage=Object.values(playerDamage).reduce((a,b)=>a+b,0);
   const characterDamageShare=Object.fromEntries(Object.entries(playerDamage).map(([id,v])=>[id,partyDamage?v/partyDamage:0]));
+  const referenceTurns=runs.flatMap(x=>x.referenceTurns||[]);
+  const referenceCommunication=summarizeReferenceTurns(referenceTurns);
   return {
     scenarioId:'T00',seed,status:'PASS',
     outcome:runs.some(x=>x.outcome==='RUN_FAILED')?'RUN_FAILED':'COMPLETED',
     actionCount:runs.reduce((s,x)=>s+x.actions,0),
-    combats,effectTriggerCounts,characterDamageShare,
+    combats,effectTriggerCounts,characterDamageShare,referenceTurns,referenceCommunication,
     expGainByCharacter:Object.fromEntries(characterIds.map((id,i)=>[id,combats.reduce((s,x)=>s+(Number(x.expGained?.['p'+i])||0),0)])),
     finalFlame:runs.at(-1)?.finalFlame??null
   };
