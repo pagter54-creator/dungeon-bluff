@@ -29,7 +29,7 @@ function frequencyTarget(impIntent,intents,seed,contextKey){
     count:intents.filter(x=>x.playerId!==impIntent.playerId&&x.availableNumbers.includes(number)).length,
     tie:rank(seed,`${contextKey}:target:${number}`)
   }));
-  scored.sort((a,b)=>b.count-a.count||b.number-a.number||a.tie-b.tie);
+  scored.sort((a,b)=>b.count-a.count||a.tie-b.tie||b.number-a.number);
   return scored[0].number;
 }
 function reverseMathPlan(intent,target){
