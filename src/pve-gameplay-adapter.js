@@ -211,7 +211,8 @@ export function adaptPveRewardResult(beforeRun,afterRun){
     monsterAfter:null,
     totalDamage:0,
     stageCleared:false,
-    success:Boolean(result.success)
+    success:Boolean(result.success),
+    resolutionLabel:result.success?'보상 우선권 판정':'전원 중복 · 재도전'
   };
 }
 
