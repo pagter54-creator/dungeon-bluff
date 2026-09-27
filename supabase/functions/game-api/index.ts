@@ -9,7 +9,7 @@ import { updateMonsterIntent } from './boss-patterns.js';
 import { sameLockedMembers,waitForConflictRetry } from './room-concurrency.js';
 import { lobbyReady,beginEntryLoading,finishEntryLoading } from './entry-loading.js';
 import { createSession, openTurn, validateSubmission, advanceAutomaticTurns, fillAutomaticSubmissions, activateSkill, roomReady } from './engine.js';
-import { handlePveAction,buildInitialPveRun,projectPveRunForUser,unsupportedPveRoomCharacters } from './pve/api.js';
+import { handlePveAction,buildInitialPveRun,projectPveRunForUser,unsupportedPveRoomCharacters,markPveEntryAssetsLoaded } from './pve/api.js';
 import { GAME_MODE,parseRequestedGameMode,roomGameMode,coopPveEnabled,assertCoopPveEnabled } from './game-mode.js';
 
 const url = Deno.env.get('SUPABASE_URL')!;
@@ -243,6 +243,12 @@ Deno.serve(async req => {
           if(me.lobby_ready===body.ready)return json(await publicBundleView(b,user.id));
           me.lobby_ready=body.ready;
         } else if(action==='assets_loaded'){
+          if(roomGameMode(b.room)===GAME_MODE.COOP_PVE){
+            check(uuid(body.run_id),'올바른 run_id가 필요합니다.');
+            await markPveEntryAssetsLoaded({admin,user,runId:body.run_id,expectedVersion:body.expected_version,actionId:body.action_id});
+            await admin.rpc('account_touch',{p_user_id:user.id});
+            return json(await publicBundleView(await read(roomId),user.id));
+          }
           check(b.session?.id===body.session_id,'원정이 변경되었습니다.');
           const loading=b.session.state.entryLoading;
           if(!loading||loading.ready.includes(me.id))return json(await publicBundleView(b,user.id));
