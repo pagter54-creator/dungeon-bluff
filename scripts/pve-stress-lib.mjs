@@ -4,6 +4,7 @@ import {AUGMENT_DEFINITIONS,AUGMENT_BY_ID} from '../supabase/functions/game-api/
 import {PVE_RESOURCE_DEFS,resourceMax} from '../supabase/functions/game-api/pve/resources.js';
 import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/pve/model.js';
 import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-api/pve/combat.js';
+import {applyMonsterDamage} from '../supabase/functions/game-api/pve/monster.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 import {F1_MONSTER_DEFINITIONS,F1_RELIC_DEFINITIONS} from '../supabase/functions/game-api/pve/content-f1.js';
 import {installRelicCatalog} from '../supabase/functions/game-api/pve/relics.js';
@@ -11,6 +12,7 @@ import {buildReferenceIntent,negotiateReferenceIntents,summarizeReferenceTurns} 
 import {buildNumberMutationIntent,planNumberMutationTurn} from './pve-number-mutation-policy.mjs';
 import {buildResourceStarvationDecision,invalidResourceProbe} from './pve-resource-starvation-policy.mjs';
 import {buildCollisionFarmIntent,planCollisionFarmTurn,planCollisionSafeTurn} from './pve-collision-farm-policy.mjs';
+import {buildSustainIntent,planSustainTurn} from './pve-sustain-fortress-policy.mjs';
 
 export const STRESS_SCHEMA_VERSION=1;
 export const HARD_MAX_TURNS=100;
@@ -66,7 +68,8 @@ const EXECUTABLE_RUNTIME_CAPABILITIES=new Set([
   'vampire_base',
   'full_thrall',
   'collision_farm_policy',
-  'collision_safe_policy'
+  'collision_safe_policy',
+  'guardian_wall','transfusion','white_mage','sustain_policy','t03_runner','direct_damage_identity'
 ]);
 export const STRESS_SCENARIOS=Object.freeze([
   {
@@ -93,7 +96,8 @@ export const STRESS_SCENARIOS=Object.freeze([
   {
     id:'T03',name:'Sustain Fortress',runner:'floor',policy:'sustain',
     characters:['warrior','vampire','berserker','mage'],
-    builds:[['warrior','수호벽'],['vampire','수혈'],['berserker','불사 투사'],['mage','백마도사']]
+    builds:[['warrior','수호벽'],['vampire','수혈'],['berserker','불사 투사'],['mage','백마도사']],
+    requires:['warrior_basic_resource','guardian_wall','vampire_base','transfusion','berserker_base','immortal_fighter','mage_basic_resource','white_mage','sustain_policy','t03_runner','direct_damage_identity']
   },
   {
     id:'T04',name:'Collision Farm',runner:'combat',policy:'collision_farm',
@@ -125,7 +129,9 @@ export const CANONICAL_RULES=Object.freeze([
   {id:'RULE-02',topic:'Heal + lethal same resolve',rule:'lethal은 pending 상태로 두고 즉시 회복/보호/구조를 먼저 처리한 뒤 DOWN_RESOLVE에서 HP<=0인 플레이어만 DOWNED로 확정한다.'},
   {id:'RULE-03',topic:'Executable augments',rule:'390장 metadata는 유지하되 실제 effects가 있는 증강만 executable로 취급한다. 이번 범위에서 T00의 4개 1차 증강만 executable이다.'},
   {id:'RULE-04',topic:'DOWNED vs STUNNED_NEXT_TURN',rule:'DOWNED=쓰러짐/행동 불가, STUNNED_NEXT_TURN=기절/생존/다음 턴 자동 제출 대상으로 서로 다른 상태다.'},
-  {id:'RULE-05',topic:'Combat-only resource lifecycle',rule:'COMBAT_END에서 resetScope=COMBAT 자원을 clear하고 COMBAT_START에서도 방어적으로 initialize한다. run-persistent 자원은 유지한다.'}
+  {id:'RULE-05',topic:'Combat-only resource lifecycle',rule:'COMBAT_END에서 resetScope=COMBAT 자원을 clear하고 COMBAT_START에서도 방어적으로 initialize한다. run-persistent 자원은 유지한다.'},
+  {id:'RULE-T04-A',topic:'Zero-damage DIRECT and Revenge',rule:'DIRECT damage가 protection/reduction으로 actualDamage 0이 되면 Revenge를 획득하지 않는다. actualDamage>0일 때만 획득한다.'},
+  {id:'RULE-T04-B',topic:'pendingDown + collision heal',rule:'현재 phase ordering에서 POST_COLLISION_EFFECTS가 MONSTER_ACTION과 DOWN_RESOLVE보다 먼저이므로 monster damage pendingDown 이후 같은 resolve collision heal은 구조적으로 발생하지 않는다.'}
 ]);
 
 export const SPEC_AMBIGUITIES=Object.freeze([
@@ -142,16 +148,16 @@ export const SPEC_AMBIGUITIES=Object.freeze([
     detail:'PVE combat UX forbids direct player targeting, while the current Prophet base rule does not define a class-specific priority among multiple READY teammates. The executable T09 path uses the existing stable automatic-target convention: first eligible READY teammate by lobby seat. The reveal scope is fixed, but a future class-content rule may replace this target priority without changing resource semantics.'
   },
   {
-    id:'AMB-T04-REVENGE-ZERO-DIRECT',
-    scenarioId:'T04',
-    topic:'Immortal Fighter Revenge when DIRECT damage is fully prevented',
-    detail:'The BETA runtime config defines Revenge max=1 and bonus damage=2 but does not independently specify whether a DIRECT packet reduced to actualDamage=0 grants Revenge. T04 follows the current engine meaning of actual damage received: only DIRECT with actualDamage>0 grants Revenge. If the canonical content rule later says blocked DIRECT still counts as being hit, this edge must be revised without changing T04 collision ordering.'
+    id:'AMB-T03-GUARD-OVERWRITE',
+    scenarioId:'T03',
+    topic:'Guardian Wall active escort replacement',
+    detail:'BETA v0.1 defines one escorted ally and one next DIRECT redirect but does not state whether a new successful Guardian Wall before consumption stacks or replaces the old escort. Runtime keeps exactly one active guardianTargetPlayerId per Knight and a later successful guard replaces the prior unconsumed target; no stacking occurs.'
   },
   {
-    id:'AMB-T04-PENDING-DOWN-COLLISION-HEAL',
-    scenarioId:'T04',
-    topic:'Berserker collision heal while already pendingDown',
-    detail:'In the current canonical turn pipeline POST_COLLISION_EFFECTS occurs before monster action damage and DOWN_RESOLVE, so a Berserker cannot normally become pendingDown from monster damage and then receive same-turn collision heal afterward. RULE-02 is therefore unchanged; this edge is recorded rather than inventing a new reordering.'
+    id:'AMB-T03-WHITE-MULTI-TARGET',
+    scenarioId:'T03',
+    topic:'White Mage Tier-I target when one modified Mage card collides with multiple allies',
+    detail:'Tier-I BETA allows only one heal and excludes the Mage, but does not give a multi-ally priority. Runtime uses stable lobby-seat priority; Chain Heal is not implemented.'
   }
 ]);
 
@@ -336,6 +342,7 @@ export function assertRunInvariants(run){
     if(Number(p.publicResources?.toughnessCharges)>resourceMax(p,'toughnessCharges',2))fail('INVALID_RESOURCE','warrior toughness exceeded current cap',{playerId:p.playerId,value:p.publicResources.toughnessCharges,max:resourceMax(p,'toughnessCharges',2)});
     if(Number(p.publicResources?.revelation)>resourceMax(p,'revelation',1))fail('INVALID_RESOURCE','prophet revelation exceeded current cap',{playerId:p.playerId,value:p.publicResources.revelation,max:resourceMax(p,'revelation',1)});
     if(Number(p.publicResources?.revenge)>resourceMax(p,'revenge',1))fail('INVALID_RESOURCE','berserker revenge exceeded current cap',{playerId:p.playerId,value:p.publicResources.revenge,max:resourceMax(p,'revenge',1)});
+    if(Number(p.publicResources?.blood)>resourceMax(p,'blood',6))fail('INVALID_RESOURCE','vampire blood exceeded current cap',{playerId:p.playerId,value:p.publicResources.blood,max:resourceMax(p,'blood',6)});
     if(p.publicResources?.parity!=null&&![0,1].includes(p.publicResources.parity))fail('INVALID_RESOURCE','twins parity must be 0 or 1',{playerId:p.playerId,value:p.publicResources.parity});
     for(const [number,value] of Object.entries(p.engravings||{}))if(!finite(value)||value<0)fail('NEGATIVE_RESOURCE','negative/invalid engraving',{playerId:p.playerId,number,value});
     validateZone(p,run.combat?.privateByPlayer?.[p.playerId],'combat');
@@ -511,7 +518,7 @@ function assertT04CollisionTurn(run,result,policyPlan){
 export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterDef=F1_MONSTER_DEFINITIONS.f1_armored_boar,policy='reference',flame=4,maxTurns=HARD_MAX_TURNS,caseId='generic-combat'}){
   const run=makeCombatRun(seed,{caseId,characterIds,augmentIdsByPlayer,flame,monsterDef});
   let actions=0,resolves=0;
-  const referenceTurns=[],numberMutationTurns=[],resourceTimeline=[],collisionTurns=[];
+  const referenceTurns=[],numberMutationTurns=[],resourceTimeline=[],collisionTurns=[],sustainTurns=[];
   const t09PriorResource=new Map(run.players.map(p=>[p.playerId,t09ResourceValue(p)]));
   while(run.phase==='COMBAT'){
     if(run.combat.turn>maxTurns)fail('INFINITE_LOOP','simulation exceeded turn ceiling',{seed,turn:run.combat.turn});
@@ -593,6 +600,29 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
         assertRunInvariants(run);assertT09CardPartition(run,p.playerId);
       }
       run.combat._t09PendingRecords=[...records.values()];
+    }else if(policy==='sustain'||policy==='normal_sustain'){
+      const contextKey=`${run.currentRoomNodeId||run.combat?.monster?.id||'combat'}:turn:${turn}`;
+      const intents=[],views=new Map();
+      for(const p of run.players){
+        if(p.status==='DOWNED'||run.combat.turnSubmissions[p.playerId])continue;
+        const view=projectRun(run,p.playerId);assertNoHiddenInfo(view,p.playerId);
+        const intent=buildSustainIntent(view,p.playerId);
+        if(!intent)fail('BOT_NO_LEGAL_ACTION','T03 bot could not build owner sustain intent',{seed,playerId:p.playerId,turn,policy});
+        intents.push(intent);views.set(p.playerId,view);
+      }
+      const plan=planSustainTurn(intents,{seed,contextKey,optimized:policy==='sustain'});
+      for(const decision of plan.decisions.filter(x=>x.requestTransfusion)){
+        const p=run.players.find(x=>x.playerId===decision.playerId);
+        activateImmediateCharacterSkill(run,p);actions++;assertRunInvariants(run);
+      }
+      for(const decision of plan.decisions){
+        const view=projectRun(run,decision.playerId);
+        const choices=legalCardsFromView(view,decision.playerId).filter(card=>card.baseNumber===decision.baseNumber).sort((a,b)=>a.id.localeCompare(b.id));
+        if(!choices.length)fail('BOT_NO_LEGAL_ACTION','T03 negotiated sustain card unavailable in owner projection',{seed,turn,policy,decision});
+        const card=choices[seededIndex(seed,`${contextKey}:${decision.playerId}:physical:${decision.baseNumber}`,choices.length)];
+        submitCard(run,decision.playerId,card.id,decision.skillIntent,decision.skillData);actions++;assertRunInvariants(run);
+      }
+      run.combat._t03PendingPolicy=structuredClone(plan);
     }else if(policy==='collision_farm'||policy==='safe_play'){
       const contextKey=`${run.currentRoomNodeId||run.combat?.monster?.id||'combat'}:turn:${turn}`;
       const intents=[],views=new Map();
@@ -671,6 +701,11 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
       collisionTurns.push(assertT04CollisionTurn(run,result,plan));
       if(run.combat)delete run.combat._t04PendingPolicy;
     }
+    if(policy==='sustain'||policy==='normal_sustain'){
+      const plan=run.combat?._t03PendingPolicy||null;
+      sustainTurns.push(assertT03SustainTurn(run,result,plan));
+      if(run.combat)delete run.combat._t03PendingPolicy;
+    }
     if(referenceTelemetry){
       const damageByPlayer={};
       for(const packet of result.damagePackets||[])damageByPlayer[packet.sourcePlayerId]=(damageByPlayer[packet.sourcePlayerId]||0)+(Number(packet.amount)||0);
@@ -714,6 +749,7 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
     numberMutationTurns,
     resourceTimeline,
     collisionTurns,
+    sustainTurns,
     combatResourceLeakCount:run.players.reduce((sum,p)=>sum+Object.entries(PVE_RESOURCE_DEFS)
       .filter(([key,def])=>def.resetScope==='COMBAT'&&Object.hasOwn(p.publicResources||{},key))
       .length,0)
