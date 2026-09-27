@@ -183,6 +183,15 @@ function summarize(turns,runs){
   const avg=xs=>xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:0;
   let maxConsecutive=0,current=0;for(const t of all){if(t.isPersonalBurstTurn){current++;maxConsecutive=Math.max(maxConsecutive,current);}else current=0;}
   const bossMaxHp=Math.max(0,...runs.flatMap(r=>(r.burstTurns||[]).map(t=>Number(t.bossMaxHp)||0)));
+  const effects=kind=>all.flatMap(t=>(t.activeBurstEffects||[]).filter(e=>e.effect===kind).map(e=>({turn:t,playerId:e.playerId})));
+  const effectDamage=kind=>effects(kind).reduce((n,x)=>n+(Number(x.turn.damageByPlayer?.[x.playerId])||0),0);
+  const fullBursts=effects('FULL_BURST'),demonBursts=effects('DEMON_TRANSFORM'),finishers=effects('ONE_HIT_KILL'),bloodBursts=effects('BLOOD_FRENZY');
+  const fullBurstConsumedPhysicalCards=fullBursts.reduce((n,x)=>n+(x.turn.packets||[]).filter(p=>p.sourcePlayerId===x.playerId).length,0);
+  const transformationCount=all.reduce((n,t)=>n+(Number(t.transformationCount)||0),0);
+  const comboConsumed=all.reduce((n,t)=>n+(Number(t.comboConsumed)||0),0);
+  const berserkerHpCost=all.reduce((n,t)=>n+(Number(t.berserkerHpCost)||0),0);
+  const fullBurstDamage=effectDamage('FULL_BURST'),demonTransformedDamage=effectDamage('DEMON_TRANSFORM'),oneHitKillDamage=effectDamage('ONE_HIT_KILL'),bloodFrenzyAttackDamage=effectDamage('BLOOD_FRENZY');
+  const devourTransformCost=transformationCount*6;
   return {
     maxSingleCardDamage:Math.max(0,...all.map(t=>t.maxSingleCardDamage||0)),
     maxSinglePlayerTurnDamage:Math.max(0,...all.map(t=>t.maxSinglePlayerTurnDamage||0)),
@@ -191,14 +200,23 @@ function summarize(turns,runs){
     averageNonBurstTurnDamage:avg(non.map(t=>t.totalDamage||0)),
     burstNonBurstRatio:avg(non.map(t=>t.totalDamage||0))?avg(burst.map(t=>t.totalDamage||0))/avg(non.map(t=>t.totalDamage||0)):null,
     maxConsecutiveBurstTurns:maxConsecutive,
+    fullBurstActivationCount:fullBursts.length,
     fullBurstFollowUpCount:all.reduce((n,t)=>n+(t.fullBurstFollowUpCount||0),0),
-    transformedDemonTurns:all.reduce((n,t)=>n+t.activeBurstEffects.filter(e=>e.effect==='DEMON_TRANSFORM').length,0),
-    oneHitKillUses:all.reduce((n,t)=>n+(t.oneHitKillUses||0),0),
+    fullBurstConsumedPhysicalCards,fullBurstDamage,
+    transformationCount,
+    transformedDemonTurns:demonBursts.length,demonTransformedDamage,devourTransformCost,
+    oneHitKillUses:all.reduce((n,t)=>n+(t.oneHitKillUses||0),0),oneHitKillDamage,
     bloodFrenzyBonusOccurrences:all.reduce((n,t)=>n+t.packets.filter(p=>(p.modifierIds||[]).includes('AUG_121_BLOOD_FRENZY')).length,0),
-    bloodFrenzyBonusDamage:all.reduce((n,t)=>n+(t.bloodFrenzyBonus||0),0),
-    berserkerHpCost:all.reduce((n,t)=>n+(t.berserkerHpCost||0),0),
-    comboConsumed:all.reduce((n,t)=>n+(t.comboConsumed||0),0),
+    bloodFrenzyBonusDamage:all.reduce((n,t)=>n+(t.bloodFrenzyBonus||0),0),bloodFrenzyAttackDamage,
+    berserkerHpCost,comboConsumed,
     devourGained:all.reduce((n,t)=>n+(t.devourGained||0),0),
+    resourcesConsumed:{gunslingerPhysicalCards:fullBurstConsumedPhysicalCards,demonDevourAtTransform:devourTransformCost,martialCombo:comboConsumed,berserkerHp:berserkerHpCost},
+    burstDamagePerResource:{
+      gunslinger:fullBurstConsumedPhysicalCards?fullBurstDamage/fullBurstConsumedPhysicalCards:null,
+      demonSwordsman:devourTransformCost?demonTransformedDamage/devourTransformCost:null,
+      martialArtist:comboConsumed?oneHitKillDamage/comboConsumed:null,
+      berserker:berserkerHpCost?bloodFrenzyAttackDamage/berserkerHpCost:null
+    },
     multiThresholdBurstCount:all.filter(t=>t.bossThresholdsCrossed>=2).length,
     behaviorSkipMeasurable:false,bossBehaviorSkipCount:null,bossMaxHp,
     recursiveFollowUpAttempts:all.reduce((n,t)=>n+(t.recursiveFollowUpAttempts||0),0),
