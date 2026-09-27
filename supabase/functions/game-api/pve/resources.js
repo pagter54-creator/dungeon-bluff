@@ -13,6 +13,9 @@ export const PVE_RESOURCE_DEFS=Object.freeze({
   veteranStreak:{resetScope:'COMBAT'},
   unyielding:{resetScope:'COMBAT'},
   sneakyStack:{resetScope:'COMBAT',baseMax:2},
+  dominance:{resetScope:'COMBAT',baseMax:2},
+  thrallPlayerId:{resetScope:'COMBAT'},
+  greed:{resetScope:'TURN'},
   revelation:{resetScope:'COMBAT'},
   combo:{resetScope:'COMBAT'},
   poison:{resetScope:'COMBAT'},
@@ -22,7 +25,8 @@ export const PVE_RESOURCE_DEFS=Object.freeze({
 });
 
 export const PVE_PERSISTENT_STATE_DEFS=Object.freeze({
-  acrobaticsLockCycle:{resetScope:'COMBAT'}
+  acrobaticsLockCycle:{resetScope:'COMBAT'},
+  bloodCommandUsedCycle:{resetScope:'COMBAT'}
 });
 
 export function resourceDefinition(resource){return PVE_RESOURCE_DEFS[resource]||null;}
