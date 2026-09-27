@@ -24,7 +24,7 @@ export function generateFloorMap(run,depthCount=8){
     }
   }
   return {
-    depthCount,nodes,edges,currentNodeId:null,votes:{},voteRound:0,voteDeadline:null,
+    depthCount,nodes,edges,currentNodeId:null,visitedNodeIds:[],votes:{},voteRound:0,voteDeadline:null,
     bossId:F1_MONSTER_DEFINITIONS.f1_fallen_lord.id,
     bossName:F1_MONSTER_DEFINITIONS.f1_fallen_lord.name
   };
@@ -43,7 +43,10 @@ export function resolveVote(run,humanPlayerIds,nowMs=Date.now()){
   let tied=candidates.filter(id=>counts[id]===max);
   if(max===0)tied=candidates;
   const winner=tied.length===1?tied[0]:choose(run,tied,`vote:${run.floor}:${run.depth}:${run.map.voteRound}`);
-  run.map.currentNodeId=winner; run.map.votes={}; run.map.voteRound+=1; run.map.voteDeadline=null;
+  run.map.currentNodeId=winner;
+  run.map.visitedNodeIds=Array.isArray(run.map.visitedNodeIds)?run.map.visitedNodeIds:[];
+  if(!run.map.visitedNodeIds.includes(winner))run.map.visitedNodeIds.push(winner);
+  run.map.votes={}; run.map.voteRound+=1; run.map.voteDeadline=null;
   run.depth=run.map.nodes.find(n=>n.id===winner)?.depth||run.depth;
   return winner;
 }
