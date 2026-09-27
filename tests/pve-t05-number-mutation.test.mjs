@@ -1,8 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {
   runT05Fixtures,runT05,replayScenario,t05GoldenComparable,scenarioAvailability,STRESS_SCENARIOS
 } from '../scripts/pve-stress-lib.mjs';
+
+const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/pve-stress-t05-golden.json',import.meta.url),'utf8'));
 import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/pve/model.js';
 import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-api/pve/combat.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
@@ -145,6 +148,11 @@ test('T05 Full Thrall consumes existing Dominance for damage on a valid next com
 test('T05 fixture mutation event order is deterministic',()=>{
   const a=runT05Fixtures('event-order-seed'),b=runT05Fixtures('event-order-seed');
   assert.deepEqual(a,b);
+});
+
+test('T05 full number-history golden locks every intermediate mutation stage',()=>{
+  const result=replayScenario('T05','smoke:T05:0000');
+  assert.deepEqual(t05GoldenComparable(result),golden);
 });
 
 test('T05 same-seed stress replay includes identical intermediate history',()=>{
