@@ -188,6 +188,28 @@ function aggregateScenario(def,results,failures){
     numberHistoryMismatchCount:mutationRows.reduce((s,x)=>s+(x.numberHistoryMismatchCount||0),0),
     deterministicReplayMismatchCount:mutationRows.reduce((s,x)=>s+(x.deterministicReplayMismatchCount||0),0)
   }:null;
+  const resourceRows=passed.map(x=>x.resourceMetrics).filter(Boolean);
+  const resourceMetrics=def.id==='T09'&&resourceRows.length?{
+    invalidSkillRequestCount:resourceRows.reduce((s,x)=>s+(x.invalidSkillRequestCount||0),0),
+    rejectedRequestCount:resourceRows.reduce((s,x)=>s+(x.rejectedRequestCount||0),0),
+    rejectionReasonCount:resourceRows.reduce((out,row)=>{
+      for(const [reason,count] of Object.entries(row.rejectionReasonCount||{}))out[reason]=(out[reason]||0)+(Number(count)||0);
+      return out;
+    },{}),
+    negativeResourceOccurrence:resourceRows.reduce((s,x)=>s+(x.negativeResourceOccurrence||0),0),
+    resourceOverCapOccurrence:resourceRows.reduce((s,x)=>s+(x.resourceOverCapOccurrence||0),0),
+    emptyHandSoftlockCount:resourceRows.reduce((s,x)=>s+(x.emptyHandSoftlockCount||0),0),
+    cycleResetCount:resourceRows.reduce((s,x)=>s+(x.cycleResetCount||0),0),
+    recoveredCardCount:resourceRows.reduce((s,x)=>s+(x.recoveredCardCount||0),0),
+    duplicateCardInvariantFailure:resourceRows.reduce((s,x)=>s+(x.duplicateCardInvariantFailure||0),0),
+    fullBurstSuccess:resourceRows.reduce((s,x)=>s+(x.fullBurstSuccess||0),0),
+    fullBurstFailure:resourceRows.reduce((s,x)=>s+(x.fullBurstFailure||0),0),
+    revelationGain:resourceRows.reduce((s,x)=>s+(x.revelationGain||0),0),
+    revelationSpend:resourceRows.reduce((s,x)=>s+(x.revelationSpend||0),0),
+    revelationRegain:resourceRows.reduce((s,x)=>s+(x.revelationRegain||0),0),
+    deterministicReplayMismatch:resourceRows.reduce((s,x)=>s+(x.deterministicReplayMismatch||0),0),
+    resourceLeakAtCombatEnd:resourceRows.reduce((s,x)=>s+(x.resourceLeakAtCombatEnd||0),0)
+  }:null;
   const fairnessWarnings=def.id==='T00'?referenceFairnessWarnings(referenceCommunication,avgCharacterDamageShare,passed.length):[];
   const allWarnings=[...warnings,...fairnessWarnings];
   return {
@@ -204,6 +226,7 @@ function aggregateScenario(def,results,failures){
     effectTriggerCounts,avgCharacterDamageShare,avgExpGainByCharacter,
     referenceCommunication,
     mutationMetrics,
+    resourceMetrics,
     fairnessWarnings,
     warnings:allWarnings,failedSeeds:failures.map(x=>x.seed)
   };
@@ -222,8 +245,8 @@ export async function main(argv=process.argv.slice(2)){
     : STRESS_SCENARIOS;
   if(opts.scenario&&!selected.length)throw new Error(`Unknown scenario: ${opts.scenario}`);
 
-  const allRows=[],failedSeeds=[],scenarioSummaries=[],referenceTurnRows=[],numberMutationTurnRows=[];
-  let t05FixtureArtifact=null;
+  const allRows=[],failedSeeds=[],scenarioSummaries=[],referenceTurnRows=[],numberMutationTurnRows=[],resourceStarvationRows=[];
+  let t05FixtureArtifact=null,t09FixtureArtifact=null;
   let hardFailures=0;
   for(const def of selected){
     const availability=scenarioAvailability(def);
@@ -240,7 +263,9 @@ export async function main(argv=process.argv.slice(2)){
         result.balanceWarnings=warnings;results.push(result);
         for(const turn of result.referenceTurns||[])referenceTurnRows.push({scenarioId:def.id,seed,...turn});
         for(const turn of result.numberMutationTurns||[])numberMutationTurnRows.push({scenarioId:def.id,seed,...turn});
+        for(const turn of result.resourceTimeline||[])resourceStarvationRows.push({scenarioId:def.id,seed,...turn});
         if(def.id==='T05'&&!t05FixtureArtifact&&result.fixtures)t05FixtureArtifact={scenarioId:'T05',seed,fixtures:result.fixtures};
+        if(def.id==='T09'&&!t09FixtureArtifact&&result.fixtures)t09FixtureArtifact={scenarioId:'T09',seed,fixtures:result.fixtures};
         const row={
           scenarioId:def.id,seed,status:warnings.length?'BALANCE_WARNING':'PASS',
           actionCount:result.actionCount??result.actions??0,
@@ -294,7 +319,9 @@ export async function main(argv=process.argv.slice(2)){
   fs.writeFileSync(path.join(outDir,'pve_canonical_rules.json'),JSON.stringify(CANONICAL_RULES,null,2)+'\n');
   if(referenceTurnRows.length)fs.writeFileSync(path.join(outDir,'pve_reference_turns.jsonl'),referenceTurnRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
   if(numberMutationTurnRows.length)fs.writeFileSync(path.join(outDir,'pve_number_mutation_turns.jsonl'),numberMutationTurnRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
+  if(resourceStarvationRows.length)fs.writeFileSync(path.join(outDir,'pve_resource_starvation_turns.jsonl'),resourceStarvationRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
   if(t05FixtureArtifact)fs.writeFileSync(path.join(outDir,'pve_t05_fixtures.json'),JSON.stringify(t05FixtureArtifact,null,2)+'\n');
+  if(t09FixtureArtifact)fs.writeFileSync(path.join(outDir,'pve_t09_fixtures.json'),JSON.stringify(t09FixtureArtifact,null,2)+'\n');
   writeCsv(path.join(outDir,'pve_stress_seeds.csv'),allRows);
 
   console.log('[PVE_STRESS_SUMMARY]',JSON.stringify(summary));
