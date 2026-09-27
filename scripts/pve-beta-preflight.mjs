@@ -5,8 +5,13 @@ import {execFileSync} from 'node:child_process';
 
 export const REPO_ROOT=fileURLToPath(new URL('../',import.meta.url));
 export const REQUIRED_BETA_FILES=Object.freeze([
+  'supabase/migrations/202609270001_pve_core.sql',
+  'supabase/migrations/202609270002_pve_hardening_telemetry.sql',
   'supabase/migrations/202609280001_game_modes_pve_beta.sql',
   'supabase/migrations/202609280002_pve_beta_reward_canonical.sql',
+  'deploy/pve-beta-production-release.json',
+  'scripts/pve-production-preflight.mjs',
+  'docs/PVE_BETA_001_PRODUCTION.md',
   'scripts/prepare-pve-beta-frontend.mjs',
   'supabase/functions/game-api/index.ts',
   'supabase/functions/game-api/game-mode.js',
@@ -52,28 +57,39 @@ export async function inspectBetaRepo(root=REPO_ROOT){
   const missing=[];
   for(const rel of REQUIRED_BETA_FILES)if(!await exists(path.join(root,rel)))missing.push(rel);
   if(missing.length)throw new Error('PVE BETA 필수 파일 누락: '+missing.join(', '));
+  const coreMigration=await readFile(path.join(root,'supabase/migrations/202609270001_pve_core.sql'),'utf8');
+  const telemetryMigration=await readFile(path.join(root,'supabase/migrations/202609270002_pve_hardening_telemetry.sql'),'utf8');
   const modeMigration=await readFile(path.join(root,'supabase/migrations/202609280001_game_modes_pve_beta.sql'),'utf8');
   const rewardMigration=await readFile(path.join(root,'supabase/migrations/202609280002_pve_beta_reward_canonical.sql'),'utf8');
+  const manifest=JSON.parse(await readFile(path.join(root,'deploy/pve-beta-production-release.json'),'utf8'));
+  const expected=[
+    '202609270001_pve_core.sql',
+    '202609270002_pve_hardening_telemetry.sql',
+    '202609280001_game_modes_pve_beta.sql',
+    '202609280002_pve_beta_reward_canonical.sql'
+  ];
+  if(manifest.release!=='PVE_BETA_001'||JSON.stringify(manifest.requiredMigrations)!==JSON.stringify(expected))
+    throw new Error('PVE BETA production release manifest가 canonical migration chain과 다릅니다.');
+  const coreTokens=['create table public.pve_runs','create table public.pve_actions','create function public.pve_create_run','create function public.pve_try_commit'];
+  const telemetryTokens=['alter table public.pve_actions add column if not exists result_state jsonb','create table if not exists public.pve_telemetry','create or replace function public.pve_try_commit','create or replace function public.pve_create_run'];
   const modeTokens=[
     "game_mode text not null default 'COMPETITIVE'",
     "check(game_mode in ('COMPETITIVE','COOP_PVE'))",
+    'create table public.pve_runtime_flags',
+    "values('COOP_PVE_ENABLED',false)",
     "check(rating_delta=0)",
     'create or replace function public.pve_start_room',
     'create or replace function public.pve_settle_rewards'
   ];
-  const rewardTokens=[
-    "'RUN_CLEAR','RUN_FAILED','ABANDONED'",
-    'RULE-PVE-REWARD-01',
-    'RULE-PVE-REWARD-04',
-    'rewards_committed=true',
-    "terminal_phase='RUN_CLEAR'"
-  ];
+  const rewardTokens=["'RUN_CLEAR','RUN_FAILED','ABANDONED'",'RULE-PVE-REWARD-01','RULE-PVE-REWARD-04','rewards_committed=true',"terminal_phase='RUN_CLEAR'"];
   const missingSql=[
-    ...modeTokens.filter(token=>!modeMigration.includes(token)).map(token=>'0001:'+token),
-    ...rewardTokens.filter(token=>!rewardMigration.includes(token)).map(token=>'0002:'+token)
+    ...coreTokens.filter(token=>!coreMigration.includes(token)).map(token=>'270001:'+token),
+    ...telemetryTokens.filter(token=>!telemetryMigration.includes(token)).map(token=>'270002:'+token),
+    ...modeTokens.filter(token=>!modeMigration.includes(token)).map(token=>'280001:'+token),
+    ...rewardTokens.filter(token=>!rewardMigration.includes(token)).map(token=>'280002:'+token)
   ];
   if(missingSql.length)throw new Error('PVE BETA migration contract 누락: '+missingSql.join(' | '));
-  return {migrations:['202609280001_game_modes_pve_beta.sql','202609280002_pve_beta_reward_canonical.sql'],requiredFiles:REQUIRED_BETA_FILES.length};
+  return {migrations:expected,requiredFiles:REQUIRED_BETA_FILES.length};
 }
 export function currentGitBranch(root=REPO_ROOT){
   try{return execFileSync('git',['rev-parse','--abbrev-ref','HEAD'],{cwd:root,encoding:'utf8'}).trim();}catch{return null;}
