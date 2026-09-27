@@ -29,12 +29,25 @@ export function publishMonsterIntent(run){
 export function executeMonsterIntent(run){
   const c=run.combat,intent=c?.monster?.intent;if(!c||!intent)return [];
   const events=[];
-  const damage=(player,amount)=>{if(!player||player.status==='DOWNED'||amount<=0)return;const armor=Math.max(0,Number(player.publicResources.armor)||0),blocked=Math.min(armor,amount);if(blocked)player.publicResources.armor=armor-blocked;const actual=Math.max(0,amount-blocked);if(actual)player.hp-=actual;events.push({type:'PLAYER_DAMAGED',playerId:player.playerId,amount:actual,blocked,hp:player.hp});applyOwnedEffects(run,'PLAYER_DAMAGED',{player,damage:{amount:actual},events});};
+  const damage=(player,amount,damageType)=>{
+    if(!player||player.status==='DOWNED'||amount<=0)return;
+    const incomingDamage={amount:Math.max(0,Number(amount)||0)};
+    applyOwnedEffects(run,'BEFORE_PLAYER_DAMAGE',{player,incomingDamage,damageType,events});
+    const armor=Math.max(0,Number(player.publicResources.armor)||0),blocked=Math.min(armor,incomingDamage.amount);
+    if(blocked)player.publicResources.armor=armor-blocked;
+    const actual=Math.max(0,incomingDamage.amount-blocked);
+    if(actual)player.hp-=actual;
+    c.pendingDownPlayerIds||=[];
+    if(player.hp<=0&&!c.pendingDownPlayerIds.includes(player.playerId))c.pendingDownPlayerIds.push(player.playerId);
+    events.push({type:'PLAYER_DAMAGED',playerId:player.playerId,amount:actual,blocked,hp:player.hp,damageType});
+    applyOwnedEffects(run,'PLAYER_DAMAGED',{player,damage:{amount:actual},damageType,events});
+    if(player.hp>=1)c.pendingDownPlayerIds=c.pendingDownPlayerIds.filter(id=>id!==player.playerId);
+  };
   if(intent.type==='DIRECT_DAMAGE'){
     const target=run.players.find(p=>p.playerId===intent.payload?.targetPlayerId&&p.status!=='DOWNED')||run.players.filter(p=>p.status!=='DOWNED').sort((a,b)=>a.seat-b.seat)[0];
-    damage(target,Number(intent.payload?.amount)||0);
+    damage(target,Number(intent.payload?.amount)||0,'DIRECT');
   }else if(intent.type==='AOE_DAMAGE'){
-    const amount=Number(intent.payload?.amount)||0;for(const p of run.players.filter(p=>p.status!=='DOWNED'))damage(p,amount);
+    const amount=Number(intent.payload?.amount)||0;for(const p of run.players.filter(p=>p.status!=='DOWNED'))damage(p,amount,'AOE');
   }else if(intent.type==='HEAL'){
     const amount=Math.max(0,Number(intent.payload?.amount)||0);c.monster.hp=Math.min(c.monster.maxHp,c.monster.hp+amount);
   }else if(intent.type==='DEFEND'){
