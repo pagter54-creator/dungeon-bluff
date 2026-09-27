@@ -88,9 +88,17 @@ function autoSubmitStunned(run){
 function aiPlan(run,p,priv,cardId){
   const card=cardFor(run,p.playerId,cardId);
   let skillIntent=false,finalNumber=card.baseNumber,score=card.baseNumber;
+  let skillData=null;
   if(p.characterId==='mage'&&(p.publicResources.mana||0)>=2){
-    const mana=p.publicResources.mana||0,bonus=mana>=4?2:1;
-    skillIntent=true;finalNumber+=bonus;score=finalNumber;
+    const mana=p.publicResources.mana||0;
+    if(p.augments.includes('aug-111')){
+      const spend=mana>=4?4:2,magnitude=spend===4?2:1;
+      const direction=card.baseNumber+magnitude<=6?1:-1;
+      skillIntent=true;skillData={direction,manaSpend:spend};finalNumber+=direction*magnitude;score=finalNumber;
+    }else{
+      const bonus=mana>=4?2:1;
+      skillIntent=true;finalNumber+=bonus;score=finalNumber;
+    }
   }else if(p.characterId==='gunner'&&p.publicResources.fullBurstReady){
     skillIntent=true;
     score=priv.remainingCardIds.reduce((sum,id)=>sum+(cardFor(run,p.playerId,id)?.baseNumber||0),0);
@@ -98,7 +106,7 @@ function aiPlan(run,p,priv,cardId){
     skillIntent=true;
   }
   if(p.characterId==='twins')score+=2;
-  return {cardId,skillIntent,finalNumber,score};
+  return {cardId,skillIntent,skillData,finalNumber,score};
 }
 function autoSubmitAi(run){
   const c=run.combat,usedAiNumbers=new Set();
@@ -120,8 +128,8 @@ function autoSubmitAi(run){
     const bestScore=Math.max(...pool.map(plan=>plan.score));
     pool=pool.filter(plan=>plan.score===bestScore);
     const plan=pool.length===1?pool[0]:choose(run,pool,`combat-ai-card:${run.floor}:${run.depth}:${run.currentRoomNodeId||c.monster.id}:${c.turn}:${p.playerId}`);
-    validateCharacterSkillIntent(p,priv,Boolean(plan.skillIntent));
-    c.turnSubmissions[p.playerId]={playerId:p.playerId,cardInstanceId:plan.cardId,skillIntent:Boolean(plan.skillIntent),submittedAt:new Date().toISOString(),autoSubmitted:true};
+    validateCharacterSkillIntent(p,priv,Boolean(plan.skillIntent),cardFor(run,p.playerId,plan.cardId),plan.skillData);
+    c.turnSubmissions[p.playerId]={playerId:p.playerId,cardInstanceId:plan.cardId,skillIntent:Boolean(plan.skillIntent),skillData:plan.skillData??null,submittedAt:new Date().toISOString(),autoSubmitted:true};
     priv.selectedCardId=plan.cardId;priv.skillIntent=Boolean(plan.skillIntent);
     usedAiNumbers.add(plan.finalNumber);
   }
