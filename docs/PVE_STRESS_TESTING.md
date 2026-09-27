@@ -140,7 +140,7 @@ No physical card id is broadcast.
 
 Negotiation receives only the broadcasts.
 
-- lobby order is used with a deterministic seed-based rotation so the same fixed seat is not always forced to yield
+- each T00 seed deterministically rotates the four reference classes across lobby seats, and negotiation uses a deterministic seed-rotated lobby order; slot fairness is therefore measured separately from class behavior
 - a bot that clashes may inspect at most two alternate preferences
 - there is one negotiation pass; no backtracking, permutation search, Cartesian search, or global optimal assignment
 - unresolved collisions are legal and remain in the result
@@ -331,7 +331,7 @@ The aggregate report includes:
 - collision rates before/after negotiation
 - negotiation resolution rate
 - per-player and per-character first-choice keep rate
-- yield rate
+- yield rate, where only an actual `YIELD_TO_AVOID_COLLISION` concession counts as a yield; Rogue solo-lowest attempts and Mage number adjustments remain negotiation changes but are not mislabeled as concessions
 - actual collision rate
 - valid attack rate
 - average available number count
@@ -339,7 +339,7 @@ The aggregate report includes:
 For a 100-seed T00 balance run, policy-fairness BALANCE_WARNINGs are added when:
 
 - one lobby slot's yield rate is at least 2x another slot's
-- for the same available-number-count bucket, one character's actual collision rate is at least 2x another character's
+- for the exact same `availableNumbers` set, one character's actual collision rate is at least 2x another character's
 - a character's average damage share is below 5%
 
 These are bot-policy review warnings, not automatic game-balance changes.
