@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {
   replayScenario,t03GoldenComparable,scenarioAvailability,STRESS_SCENARIOS,CANONICAL_RULES,SPEC_AMBIGUITIES
 } from '../scripts/pve-stress-lib.mjs';
@@ -43,6 +44,12 @@ test('T03 F1-F20 cover guard redirect blood White Magic Immortal Fighter and rec
   assert.equal(fixture(r,'F16_ZERO_DAMAGE_NO_REVENGE').revenge,0);
   assert.equal(fixture(r,'F20_NO_SUSTAIN_RECURSION').redirectCount,1);
   assert.equal(fixture(r,'F20_NO_SUSTAIN_RECURSION').healCount,1);
+});
+
+test('T03 semantic golden locks guard redirect transfusion White Magic Revenge HP and recursion identities',()=>{
+  const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/pve-stress-t03-golden.json',import.meta.url),'utf8'));
+  const r=replayScenario('T03','smoke:T03:0000');
+  assert.deepEqual(t03GoldenComparable(r),golden);
 });
 
 test('T03 deterministic replay is exact across fixtures sustain timelines metrics and comparison',()=>{
