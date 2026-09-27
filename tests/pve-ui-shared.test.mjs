@@ -91,6 +91,31 @@ test('PVE projection exposes public card counting without hidden physical IDs or
  assert.equal(view.combat.turnSubmissions,undefined);
  assert.equal(view.combat.publicCardCycles.p1.selectedCardId,undefined);
 });
+test('Reward Room public presentation never exposes physical card ids or hidden submissions',()=>{
+ const raw=baseRun();raw.phase='REWARD_ROOM';raw.roomState={
+  type:'REWARD_ROOM',attempt:1,
+  privateByPlayer:{
+   p0:{playerId:'p0',cycleIndex:1,remainingCardIds:['c2','c3'],spentCardIds:['c1'],selectedCardId:'c2'},
+   p1:{playerId:'p1',cycleIndex:1,remainingCardIds:['a1'],spentCardIds:['a2'],selectedCardId:'a1'}
+  },
+  turnSubmissions:{
+   p0:{playerId:'p0',cardInstanceId:'c2'},
+   p1:{playerId:'p1',cardInstanceId:'a1'}
+  },
+  publicTurnResult:{attempt:1,success:false,cards:[
+   {playerId:'p0',finalNumber:2,valid:false,collisionImmune:false,collisionGroupSize:2,damage:0},
+   {playerId:'p1',finalNumber:2,valid:false,collisionImmune:false,collisionGroupSize:2,damage:0}
+  ]}
+ };
+ const view=projectRun(raw,'p0'),serialized=JSON.stringify(view);
+ assert.equal(view.privateRoomState.playerId,'p0');
+ assert.equal(view.roomState.turnSubmissions,undefined);
+ assert.equal(view.roomState.privateByPlayer,undefined);
+ assert.equal(serialized.includes('"cardInstanceId"'),false);
+ assert.equal(serialized.includes('"a1"'),false);
+ assert.deepEqual(view.roomState.publicTurnResult.cards[1],{playerId:'p1',finalNumber:2,valid:false,collisionImmune:false,collisionGroupSize:2,damage:0});
+});
+
 test('PVE-UI-11/12 shop is data-driven and card purchase enters shared replacement selector flow',async()=>{
  const run=projectRun(baseRun(),'p0');run.phase='SHOP';run.roomState={type:'SHOP',cardStock:Array.from({length:4},(_,i)=>({id:'card-'+i,kind:'CARD',value:i+1,price:2,sold:false})),relicStock:Array.from({length:4},(_,i)=>({id:'relic-'+i,kind:'RELIC',relicId:'f1_worn_whetstone',price:4,sold:false}))};
  const html=pveShopMarkup(run);assert.equal((html.match(/data-action="pve-shop-item"/g)||[]).length,8);
