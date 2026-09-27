@@ -64,6 +64,7 @@ function writeCsv(file,rows){
   for(const row of rows)lines.push(headers.map(h=>csvEscape(row[h]??'')).join(','));
   fs.writeFileSync(file,lines.join('\n')+'\n');
 }
+const avg=values=>values.length?values.reduce((a,b)=>a+b,0)/values.length:null;
 function aggregateScenario(def,results,failures){
   const skip=results.find(x=>x.status==='SKIP');
   if(skip)return {
@@ -71,12 +72,24 @@ function aggregateScenario(def,results,failures){
     skipReasons:skip.skipReasons,warnings:[],failedSeeds:[]
   };
   const passed=results.filter(x=>x.status==='PASS');
-  const warnings=passed.flatMap(balanceWarnings);
+  const warnings=passed.flatMap(x=>x.balanceWarnings||balanceWarnings(x));
+  const combats=passed.flatMap(x=>x.combats||[]);
+  const byRoom={};
+  for(const roomType of [...new Set(combats.map(x=>x.roomType))]){
+    const rows=combats.filter(x=>x.roomType===roomType);
+    byRoom[roomType]=avg(rows.map(x=>x.turns));
+  }
+  const outcomes=passed.filter(x=>typeof x.outcome==='string');
+  const clears=outcomes.filter(x=>!['RUN_FAILED','ABANDONED'].includes(x.outcome)).length;
   return {
     scenarioId:def.id,name:def.name,
     status:failures.length?'FAIL':warnings.length?'BALANCE_WARNING':'PASS',
     seedCount:passed.length,
-    clearRate:null,avgTurnsByRoomType:{},avgPartyDpt:null,avgKo:null,avgFlameSpent:null,
+    clearRate:outcomes.length?clears/outcomes.length:null,
+    avgTurnsByRoomType:byRoom,
+    avgPartyDpt:avg(combats.map(x=>x.partyDpt)),
+    avgKo:avg(combats.map(x=>x.ko)),
+    avgFlameSpent:avg(combats.map(x=>x.flameSpent)),
     warnings,failedSeeds:failures.map(x=>x.seed)
   };
 }
@@ -103,11 +116,12 @@ export async function main(argv=process.argv.slice(2)){
       scenarioSummaries.push(aggregateScenario(def,[result],[]));
       continue;
     }
-    const rows=[],failures=[];
+    const rows=[],failures=[],results=[];
     for(const seed of seedsFor(opts,def.id)){
       try{
         const result=replayScenario(def.id,seed);
         const warnings=balanceWarnings(result);
+        result.balanceWarnings=warnings;results.push(result);
         const row={
           scenarioId:def.id,seed,status:warnings.length?'BALANCE_WARNING':'PASS',
           actionCount:result.actionCount??result.actions??0,
@@ -136,7 +150,7 @@ export async function main(argv=process.argv.slice(2)){
       }
     }
     writeCsv(path.join(outDir,'scenarios',`${def.id}.csv`),rows);
-    scenarioSummaries.push(aggregateScenario(def,rows.map(r=>({status:r.status==='BALANCE_WARNING'?'PASS':r.status})),failures));
+    scenarioSummaries.push(aggregateScenario(def,results,failures));
   }
 
   const skipped=skippedScenarioReport().filter(x=>selected.some(s=>s.id===x.scenarioId));
