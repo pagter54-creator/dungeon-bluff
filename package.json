@@ -6,7 +6,11 @@
   "scripts": {
     "start": "node scripts/serve.mjs",
     "check": "node scripts/check.mjs",
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "pve:stress": "node scripts/pve-stress.mjs",
+    "pve:stress:smoke": "node scripts/pve-stress.mjs --mode smoke",
+    "pve:stress:balance": "node scripts/pve-stress.mjs --mode balance",
+    "pve:stress:full": "node scripts/pve-stress.mjs --mode stress"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.8",
