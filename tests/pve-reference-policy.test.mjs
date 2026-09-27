@@ -117,8 +117,8 @@ test('Reference telemetry summary exposes conflict resolution, yield and fairnes
   const summary=summarizeReferenceTurns([{
     turn:1,
     records:[
-      {playerId:'p0',characterId:'adventurer',availableNumbers:[4,5],negotiationChanged:false,collisionExpectedBeforeNegotiation:true,collisionExpectedAfterNegotiation:false,actualCollision:false,validAttack:true,damage:5},
-      {playerId:'p1',characterId:'warrior',availableNumbers:[3,5],negotiationChanged:true,collisionExpectedBeforeNegotiation:true,collisionExpectedAfterNegotiation:false,actualCollision:false,validAttack:true,damage:3}
+      {playerId:'p0',characterId:'adventurer',availableNumbers:[4,5],negotiationChanged:false,yielded:false,collisionExpectedBeforeNegotiation:true,collisionExpectedAfterNegotiation:false,actualCollision:false,validAttack:true,damage:5},
+      {playerId:'p1',characterId:'warrior',availableNumbers:[3,5],negotiationChanged:true,yielded:true,collisionExpectedBeforeNegotiation:true,collisionExpectedAfterNegotiation:false,actualCollision:false,validAttack:true,damage:3}
     ]
   }]);
   assert.equal(summary.totalIntentConflicts,2);
