@@ -106,7 +106,7 @@ export async function handlePveAction({admin,user,body,json}){
   } else if(action==='pve.submitCard'){
     if(run.phase!=='COMBAT')return fail(json,'현재 전투 중이 아닙니다.');
     if(typeof body.card_instance_id!=='string')return fail(json,'card_instance_id가 필요합니다.');
-    submitCard(run,me.playerId,body.card_instance_id,body.skill_intent===true);
+    submitCard(run,me.playerId,body.card_instance_id,body.skill_intent===true,body.skill_data??null);
     resolveBasicTurn(run);
   } else if(action==='pve.chooseAugment'){
     if(typeof body.augment_id!=='string')return fail(json,'augment_id가 필요합니다.');
