@@ -37,7 +37,7 @@ test('MODE-01/04 server defaults missing mode to competitive and rejects invalid
  assert.equal(serverRoomMode({game_mode:null}),SERVER_MODE.COMPETITIVE);
  assert.throws(()=>parseRequestedGameMode('PVE_RANKED'),error=>error.code==='INVALID_GAME_MODE');
 });
-test('COOP_PVE kill switch defaults on and returns the canonical structured code when disabled',async()=>{
+test('COOP_PVE kill switch requires explicit enable and returns the canonical structured code when disabled',async()=>{
  assert.equal(coopPveEnabled(undefined),false);
  for(const value of ['true','1','on','yes','enabled'])assert.equal(coopPveEnabled(value),true);
  for(const value of ['false','0','off','no','disabled',''])assert.equal(coopPveEnabled(value),false);
