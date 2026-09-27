@@ -174,6 +174,12 @@ export const SPEC_AMBIGUITIES=Object.freeze([
     scenarioId:'T06',
     topic:'Fate Manipulator recovery after target cycle reset',
     detail:'BETA v0.1 defines recovery from an ally used card but does not define an archive for cards belonging to a completed prior cycle. Runtime therefore treats only the target current-cycle spent zone as eligible. After Full Burst or Acrobatics creates a new cycle, prior-cycle cards are not recoverable unless a future canonical rule introduces an explicit cross-cycle archive.'
+  },
+  {
+    id:'AMB-T06-TWINS-RECOVERY-CYCLE-COMPLETION',
+    scenarioId:'T06',
+    topic:'Recovered Twins card contribution to cycle completion',
+    detail:'BETA v0.1 does not define how an extra recovered physical card changes Twins parity scheduling or cycle-completion accounting. Runtime does not invent an extra parity flip or forced reset. Fate Manipulator therefore limits Twins recovery candidates to cards whose addition leaves the current-cycle remaining zone fully consumable under the existing one-flip-per-turn parity rule.'
   }
 ]);
 
