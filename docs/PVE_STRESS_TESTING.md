@@ -72,7 +72,7 @@ T14-6 locks the current `PLAYER_DAMAGED -> immediate heal -> DOWN_RESOLVE` order
 
 The 390-card catalog may contain selection metadata without runtime effects. That is valid.
 
-Only augments with executable `effects` count as executable to stress-scenario availability.
+Only augments with executable shared effects or an explicitly registered bounded runtime handler count as executable to stress-scenario availability.
 
 Current intentionally executable Tier-I T00 builds:
 
@@ -222,11 +222,123 @@ The four definitions use the shared effect structure: trigger, condition, operat
 | T05 Number Mutation | ACTIVE | Mage Reverse Math + Vampire/Full Thrall + Imp/Bold Steal + Knight executable |
 | T09 Resource Starvation | ACTIVE | Knight/Mage/Prophet/Gunner basic resource capabilities + starvation policy executable |
 | T02 Burst Ceiling | SKIP | Demon Swordsman / Martial Artist engines and required burst build effects unavailable |
-| T03 Sustain Fortress | SKIP | Warrior `수호벽`, Vampire `수혈`, Mage `백마도사` runtime effects unavailable |
+| T03 Sustain Fortress | ACTIVE | Guardian Wall / Transfusion / Immortal Fighter / White Mage + sustain/normal policies executable |
 | T04 Collision Farm | ACTIVE | Knight/Imp/Berserker/Vampire base engines, four Tier-I builds, farm/safe policies executable |
 | T06 Recovery Loop | SKIP | Prophet / Demon Swordsman PVE engines and required build effects unavailable |
 
 Availability is computed from runtime definitions. The generated SKIP report is authoritative.
+
+## T03 Sustain Fortress
+
+T03 is ACTIVE with:
+
+- Knight / `수호벽` (`aug-041`)
+- Vampire / `수혈` (`aug-321`)
+- Berserker / `불사 투사` (`aug-131`)
+- Mage / `백마도사` (`aug-101`)
+
+The BETA Tier-I values are not retuned by the stress harness.
+
+**Guardian Wall**
+- Toughness is consumed through the normal Knight resource path.
+- in a real final collision, the Knight's own card remains collision-invalid/consumed.
+- exactly one same-number ally is rescued, using stable lobby-seat priority.
+- that escorted ally's next DIRECT monster-damage packet is redirected in full to the Knight and consumes the escort.
+- redirect is one-hop only and keyed by a stable `damageEventId`.
+
+**Transfusion**
+- valid Vampire monster attack: Blood +1, cap 6.
+- Blood 4 -> heal HP 1.
+- target is the lowest-HP living ally, Vampire included; ties use lobby-seat priority.
+- DOWNED players are excluded; basic Transfusion never revives.
+- at most one Transfusion per turn; Blood is COMBAT-scoped.
+
+**White Mage**
+- only a Mana-spent, number-modified Mage card that finally collides with an ally can trigger White Magic.
+- the collision remains invalid for both attacks.
+- exactly one non-Mage collided ally heals HP 1.
+- Tier-I multi-ally priority is stable lobby-seat order; Chain Heal is not implemented.
+
+Immortal Fighter reuses the T04 implementation unchanged: collision heal to max HP, actual DIRECT damage grants Revenge up to 1, next valid attack consumes it for +2, and actualDamage=0 grants no Revenge.
+
+### DIRECT damage semantics
+
+The semantic order is locked as:
+
+`MONSTER_TARGET_SELECT -> DAMAGE_REDIRECT_DECISION -> DAMAGE_REDUCTION/PROTECTION -> APPLY_ACTUAL_DAMAGE -> ON_DAMAGE_TAKEN -> immediate effects -> DOWN_RESOLVE`.
+
+Every monster damage packet has a stable `damageEventId`. Reprocessing the same packet hard-fails with `DAMAGE_PACKET_REENTRY`. Redirect never applies damage to both original and redirected targets and never calls redirect recursively.
+
+RULE-T04-A is now canonical: a fully prevented DIRECT packet with `actualDamage=0` does not grant Revenge. RULE-T04-B records that monster pendingDown followed by same-resolve collision heal is structurally unreachable under the current phase order.
+
+### Sustain policy and comparison
+
+`SUSTAIN_OPTIMIZED` and `NORMAL_PLAY` use only owner PlayerView plus voluntarily shared intent data.
+
+Optimized play actively seeks useful Guardian Wall, Transfusion, White Magic and Immortal Fighter collision-heal opportunities, but does not sacrifice every attack unconditionally. Normal play avoids deliberate sustain loops and reserves support effects for ordinary/emergency use.
+
+Both policies run the same Normal / Elite / Boss definitions with identical seed and encounter RNG identity.
+
+Telemetry includes raw/redirected/prevented/actual damage, healing/wasted healing, heal/protection/redirect events, Revenge gains, collision heals, Transfusions, White Magic heals, HP1 rescues, pendingDown saves, Flame, KO and final party HP.
+
+`healingRatio = healing / max(1, actualDamage)`
+
+`mitigationRatio = preventedDamage / max(1, rawIncomingDamage)`
+
+`effectiveSustainValue = healing + preventedDamage`
+
+`SUSTAIN_TOO_HIGH` and `FORTRESS_DOMINATES` are BALANCE_WARNING classifications only. They never change production numbers or warning thresholds.
+
+### T03 hard invariants
+
+- one damage event cannot redirect twice
+- original and redirected targets cannot both take the redirected packet
+- redirect cannot chain recursively
+- identical damage packet cannot be processed twice
+- sustain heal event identity cannot be applied twice
+- heal cannot recursively generate another sustain heal
+- Transfusion cannot generate Blood
+- White Magic cannot call itself
+- basic sustain heal cannot revive DOWNED
+- HP/resources remain within canonical bounds
+- Blood/escort/Revenge combat resources cannot leak past COMBAT_END
+- PlayerView hidden-information and deterministic replay invariants remain active
+
+### T03 fixtures and golden
+
+F1-F20 cover Guardian rescue/no-collision/multi-ally, redirect/re-entry, Blood gain, Transfusion rejection/success/tie/no-resurrection, White Magic success/no-Mana/no-collision, Immortal collision heal, Revenge/zero-damage Revenge, Guard+Transfusion, Guard+White Magic, the full sustain chain, and recursion rejection.
+
+Golden: `tests/fixtures/pve-stress-t03-golden.json`.
+
+Generated artifacts:
+- `pve_sustain_turns.jsonl`
+- `pve_normal_sustain_turns.jsonl`
+- `pve_t03_fixtures.json`
+
+### T03 100-seed reference result
+
+Fair comparison uses identical seed + encounter identity for both policies.
+
+- hard failures: 0
+- clear rate: 100%
+- Sustain Normal / Elite / Boss: 11.01 / 19.11 / 25.25 turns
+- Sustain party DPT: 7.0590
+- Normal-play party DPT: 11.5075
+- DPT ratio: 0.6139
+- Sustain final party HP: 9.80 vs Normal 8.07
+- Sustain Flame spent: 1.34 vs Normal 1.80
+- Sustain KO: 1.39 vs Normal 2.80
+- healingRatio: 1.5332
+- mitigationRatio: 0.0000
+- recursive heal / redirect: 0 / 0
+- FORTRESS_DOMINATES: 0 / 100
+
+The sustain policy survives better and heals aggressively, but pays a large damage/turn-length cost. No production balance value was changed from this result.
+
+### T03 known ambiguities
+
+- `AMB-T03-GUARD-OVERWRITE`: BETA specifies one escorted ally / next DIRECT redirect but not stacking vs replacement before consumption. Runtime keeps one target per Knight; a later successful guard replaces the previous unconsumed target.
+- `AMB-T03-WHITE-MULTI-TARGET`: Tier-I specifies one non-self heal target but no priority among multiple collided allies. Runtime uses stable lobby-seat priority.
 
 ## T05 Number Mutation
 
@@ -617,6 +729,9 @@ Default: `artifacts/pve-stress/`
 - `pve_collision_farm_turns.jsonl` when T04 runs
 - `pve_collision_safe_turns.jsonl` when T04 runs
 - `pve_t04_fixtures.json` when T04 runs
+- `pve_sustain_turns.jsonl` when T03 runs
+- `pve_normal_sustain_turns.jsonl` when T03 runs
+- `pve_t03_fixtures.json` when T03 runs
 - `scenarios/<scenarioId>.csv`
 
 GitHub Actions uploads the whole directory as `pve-stress-smoke-<sha>`.
@@ -676,6 +791,7 @@ npm run pve:stress:balance -- --scenario T00 --output artifacts/pve-stress-balan
 npm run pve:stress:balance -- --scenario T05 --output artifacts/pve-stress-t05-balance
 npm run pve:stress:balance -- --scenario T09 --output artifacts/pve-stress-t09-balance
 npm run pve:stress:balance -- --scenario T04 --output artifacts/pve-stress-t04-balance
+npm run pve:stress:balance -- --scenario T03 --output artifacts/pve-stress-t03-balance
 ```
 
-T00, T04, T05 and T09 100-seed sweeps are uploaded separately. Neither balance sweep changes production combat values or warning thresholds.
+T00, T03, T04, T05 and T09 100-seed sweeps are uploaded separately. Neither balance sweep changes production combat values or warning thresholds.
