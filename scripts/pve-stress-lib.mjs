@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import {PVE_CHARACTER_DEFS,isCardSelectableForCharacter} from '../supabase/functions/game-api/pve/characters.js';
-import {AUGMENT_DEFINITIONS} from '../supabase/functions/game-api/pve/augment-catalog.js';
+import {AUGMENT_DEFINITIONS,AUGMENT_BY_ID} from '../supabase/functions/game-api/pve/augment-catalog.js';
+import {resourceMax} from '../supabase/functions/game-api/pve/resources.js';
 import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/pve/model.js';
 import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-api/pve/combat.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
@@ -92,47 +93,29 @@ export function scenarioAvailability(def){
   return {available:reasons.length===0,reasons,missingCharacters,missingBuildEffects};
 }
 
-export const SPEC_AMBIGUITIES=Object.freeze([
-  {
-    id:'AMB-T14-05',
-    scenarioId:'T14',
-    topic:'Boss kill and full-party wipe in the same resolve',
-    detail:'The stress spec requires a fixture but does not state precedence explicitly. Current rule engine resolves DOWN/RUN_FAILED at KILL_CHECK before boss-clear revival, so RUN_FAILED wins when Flame is 0 and everyone is DOWNED.'
-  },
-  {
-    id:'AMB-T14-06',
-    scenarioId:'T14',
-    topic:'Healing and lethal damage in the same resolve',
-    detail:'The stress spec names the case without an explicit precedence rule. Current engine fires PLAYER_DAMAGED effects before DOWN_RESOLVE, so an immediate heal can prevent DOWN.'
-  },
-  {
-    id:'AMB-BUILD-EXEC',
-    scenarioId:'MULTI',
-    topic:'Augment build metadata vs executable build effects',
-    detail:'The augment catalog currently provides selection metadata but no executable effects field. Scenarios that require named builds are SKIP even when the base character exists.'
-  },
-  {
-    id:'AMB-T14-TERM',
-    scenarioId:'T14',
-    topic:'stun/down/death terminology',
-    detail:'Stress T14 uses 기절/사망 wording while the server distinguishes STUNNED_NEXT_TURN (Flame rescue) from DOWNED (Flame 0). Fixtures use server states and core PVE ordering.'
-  },
-  {
-    id:'RULE-COMBAT-RESOURCE-RESET',
-    scenarioId:'MULTI',
-    topic:'combat-only resource cleanup timing',
-    kind:'RULE_CONFLICT',
-    detail:'The implementation spec says mana/revelation/combo-style combat resources reset at combat end. Current character code reinitializes known resources at the next combat start and the combat-end path does not explicitly clear publicResources. The stress invariant now hard-fails COMBAT_RESOURCE_LEAK when an enabled scenario reaches COMBAT_END with these keys. Production rules were not changed in this stress-test task.'
-  }
+export const CANONICAL_RULES=Object.freeze([
+  {id:'RULE-01',topic:'Boss kill + full wipe',rule:'Flame 0에서 같은 resolve에 보스 처치와 파티 전원 DOWNED가 동시에 확정되면 RUN_FAILED가 boss clear보다 우선한다.'},
+  {id:'RULE-02',topic:'Heal + lethal same resolve',rule:'lethal은 pending 상태로 두고 즉시 회복/보호/구조를 먼저 처리한 뒤 DOWN_RESOLVE에서 HP<=0인 플레이어만 DOWNED로 확정한다.'},
+  {id:'RULE-03',topic:'Executable augments',rule:'390장 metadata는 유지하되 실제 effects가 있는 증강만 executable로 취급한다. 이번 범위에서 T00의 4개 1차 증강만 executable이다.'},
+  {id:'RULE-04',topic:'DOWNED vs STUNNED_NEXT_TURN',rule:'DOWNED=쓰러짐/행동 불가, STUNNED_NEXT_TURN=기절/생존/다음 턴 자동 제출 대상으로 서로 다른 상태다.'},
+  {id:'RULE-05',topic:'Combat-only resource lifecycle',rule:'COMBAT_END에서 resetScope=COMBAT 자원을 clear하고 COMBAT_START에서도 방어적으로 initialize한다. run-persistent 자원은 유지한다.'}
 ]);
+
+export const SPEC_AMBIGUITIES=Object.freeze([]);
 
 function makeMembers(characterIds){
   return characterIds.map((character_id,i)=>({
     id:`p${i}`,user_id:`stress-user-${i}`,member_type:'human',character_id,seat_index:i
   }));
 }
-function makeCombatRun(seed,{caseId='combat',characterIds=['adventurer','adventurer','adventurer','adventurer'],flame=4,monsterDef=F1_MONSTER_DEFINITIONS.f1_armored_boar}={}){
+function makeCombatRun(seed,{caseId='combat',characterIds=['adventurer','adventurer','adventurer','adventurer'],augmentIdsByPlayer=[],flame=4,monsterDef=F1_MONSTER_DEFINITIONS.f1_armored_boar}={}){
   const players=makeMembers(characterIds).map(newPlayerRunState);
+  for(let i=0;i<players.length;i++){
+    const ids=[...(augmentIdsByPlayer[i]||[])];
+    players[i].augments=ids;
+    const first=ids.map(id=>AUGMENT_BY_ID[id]).find(Boolean);
+    if(first)players[i].augmentBuild=first.build;
+  }
   const run={
     id:`stress-run:${seed}:${caseId}`,roomId:'stress-room',seed,rngCounter:0,version:0,
     phase:'COMBAT',floor:1,depth:1,flame,maxFlame:5,currentRoomNodeId:`stress-node:${caseId}`,
@@ -297,8 +280,8 @@ export function assertRunInvariants(run){
     if(!finite(p.hp)||p.hp<0||p.hp>p.maxHp)fail('INVALID_HP','HP outside allowed range',{playerId:p.playerId,hp:p.hp,maxHp:p.maxHp});
     if(!finite(p.runGold)||p.runGold<0||!finite(p.growthExp)||p.growthExp<0)fail('NEGATIVE_RESOURCE','negative/invalid persistent resource',{playerId:p.playerId,runGold:p.runGold,growthExp:p.growthExp});
     for(const [name,value] of Object.entries(p.publicResources||{}))if(typeof value==='number'&&(!finite(value)||value<0))fail('NEGATIVE_RESOURCE','negative/invalid combat resource',{playerId:p.playerId,name,value});
-    if(Number(p.publicResources?.mana)>4)fail('INVALID_RESOURCE','mage mana exceeded cap 4',{playerId:p.playerId,value:p.publicResources.mana});
-    if(Number(p.publicResources?.toughnessCharges)>2)fail('INVALID_RESOURCE','warrior toughness exceeded cap 2',{playerId:p.playerId,value:p.publicResources.toughnessCharges});
+    if(Number(p.publicResources?.mana)>resourceMax(p,'mana',4))fail('INVALID_RESOURCE','mage mana exceeded current cap',{playerId:p.playerId,value:p.publicResources.mana,max:resourceMax(p,'mana',4)});
+    if(Number(p.publicResources?.toughnessCharges)>resourceMax(p,'toughnessCharges',2))fail('INVALID_RESOURCE','warrior toughness exceeded current cap',{playerId:p.playerId,value:p.publicResources.toughnessCharges,max:resourceMax(p,'toughnessCharges',2)});
     if(p.publicResources?.parity!=null&&![0,1].includes(p.publicResources.parity))fail('INVALID_RESOURCE','twins parity must be 0 or 1',{playerId:p.playerId,value:p.publicResources.parity});
     for(const [number,value] of Object.entries(p.engravings||{}))if(!finite(value)||value<0)fail('NEGATIVE_RESOURCE','negative/invalid engraving',{playerId:p.playerId,number,value});
     validateZone(p,run.combat?.privateByPlayer?.[p.playerId],'combat');
@@ -320,15 +303,17 @@ export function deterministicBotDecisionFromView(view,playerId,{policy='referenc
   const cards=legalCardsFromView(view,playerId);
   if(!cards.length)return null;
   let ordered=[...cards];
-  if(policy==='resource_starvation')ordered.sort((a,b)=>a.baseNumber-b.baseNumber||a.id.localeCompare(b.id));
-  else if(policy==='collision_farm')ordered.sort((a,b)=>a.baseNumber-b.baseNumber||a.id.localeCompare(b.id));
+  if(policy==='resource_starvation'||policy==='collision_farm'||(policy==='reference'&&player.characterId==='rogue'))ordered.sort((a,b)=>a.baseNumber-b.baseNumber||a.id.localeCompare(b.id));
   else ordered.sort((a,b)=>b.baseNumber-a.baseNumber||a.id.localeCompare(b.id));
   const top=ordered.filter(c=>c.baseNumber===ordered[0].baseNumber);
   const card=top[seededIndex(seed,`${policy}:${view.currentRoomNodeId}:${view.combat?.turn}:${playerId}`,top.length)];
   let skillIntent=false;
   if(policy!=='resource_starvation'){
     if(player.characterId==='gunner'&&player.publicResources.fullBurstReady)skillIntent=true;
-    if(player.characterId==='mage'&&(player.publicResources.mana||0)>=2)skillIntent=true;
+    if(player.characterId==='mage'){
+      const mana=player.publicResources.mana||0,maxMana=resourceMax(player,'mana',4);
+      if(mana>=(maxMana>=6?6:2))skillIntent=true;
+    }
     if(player.characterId==='warrior'&&(player.publicResources.toughnessCharges||0)>0&&card.baseNumber>=5)skillIntent=true;
   }else{
     if(player.characterId==='mage'&&(player.publicResources.mana||0)>=2)skillIntent=true;
@@ -342,8 +327,8 @@ export function deterministicBotDecision(run,playerId,options={}){
   return deterministicBotDecisionFromView(view,playerId,{...options,seed:options.seed??view.seed});
 }
 
-export function simulateCombat({seed,characterIds,monsterDef=F1_MONSTER_DEFINITIONS.f1_armored_boar,policy='reference',flame=4,maxTurns=HARD_MAX_TURNS}){
-  const run=makeCombatRun(seed,{caseId:'generic-combat',characterIds,flame,monsterDef});
+export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterDef=F1_MONSTER_DEFINITIONS.f1_armored_boar,policy='reference',flame=4,maxTurns=HARD_MAX_TURNS,caseId='generic-combat'}){
+  const run=makeCombatRun(seed,{caseId,characterIds,augmentIdsByPlayer,flame,monsterDef});
   let actions=0,resolves=0;
   while(run.phase==='COMBAT'){
     if(run.combat.turn>maxTurns)fail('INFINITE_LOOP','simulation exceeded turn ceiling',{seed,turn:run.combat.turn});
@@ -364,19 +349,55 @@ export function simulateCombat({seed,characterIds,monsterDef=F1_MONSTER_DEFINITI
     if(actions>HARD_MAX_ACTIONS)fail('INFINITE_LOOP','simulation action ceiling exceeded',{seed,actions});
   }
   const combatLog=(run._telemetryPending||[]).filter(x=>x.logType==='COMBAT').at(-1)?.payload||null;
+  const effectLogs=(run._telemetryPending||[]).filter(x=>x.logType==='EFFECT').map(x=>x.payload);
+  const effectTriggerCounts=effectLogs.reduce((m,x)=>(m[x.effect_id]=(m[x.effect_id]||0)+(Number(x.successful_trigger_count)||0),m),{});
   const combatMetric=combatLog?{
     roomType:combatLog.room_type,monsterId:combatLog.monster_id,outcome:combatLog.outcome,
     turns:combatLog.turn_count,partyDamage:combatLog.party_damage_total,
     partyDpt:combatLog.turn_count?combatLog.party_damage_total/combatLog.turn_count:0,
+    playerDamage:structuredClone(combatLog.player_damage_total||{}),
+    damageTaken:structuredClone(combatLog.damage_taken||{}),
+    healingDone:structuredClone(combatLog.healing_done||{}),
+    expGained:structuredClone(combatLog.exp_gained||{}),
     ko:Object.values(combatLog.down_count||{}).reduce((a,b)=>a+b,0),
     flameSpent:combatLog.flame_spent,
     collisions:Object.values(combatLog.collision_count||{}).reduce((a,b)=>a+b,0),
-    validAttacks:Object.values(combatLog.valid_attack_count||{}).reduce((a,b)=>a+b,0)
+    validAttacks:Object.values(combatLog.valid_attack_count||{}).reduce((a,b)=>a+b,0),
+    effectTriggerCounts
   }:null;
   return {
-    seed,outcome:run.phase,actions,resolves,finalFlame:run.flame,
-    players:run.players.map(p=>({playerId:p.playerId,hp:p.hp,status:p.status,runGold:p.runGold,growthExp:p.growthExp})),
+    seed,outcome:run.phase,actions,resolves,finalFlame:run.flame,effectTriggerCounts,
+    players:run.players.map(p=>({playerId:p.playerId,characterId:p.characterId,hp:p.hp,status:p.status,runGold:p.runGold,growthExp:p.growthExp})),
     combat:semantic(run.combat),combats:combatMetric?[combatMetric]:[]
+  };
+}
+
+export function runT00(seed){
+  const characterIds=['adventurer','warrior','mage','rogue'];
+  const augmentIdsByPlayer=[['aug-001'],['aug-031'],['aug-091'],['aug-061']];
+  const encounters=[
+    ['normal',F1_MONSTER_DEFINITIONS.f1_armored_boar],
+    ['elite',F1_MONSTER_DEFINITIONS.f1_echo_bat],
+    ['boss',F1_MONSTER_DEFINITIONS.f1_fallen_lord]
+  ];
+  const runs=encounters.map(([caseId,monsterDef])=>simulateCombat({
+    seed:`${seed}:${caseId}`,caseId:`T00-${caseId}`,characterIds,augmentIdsByPlayer,monsterDef,policy:'reference',flame:4
+  }));
+  const combats=runs.flatMap(x=>x.combats||[]);
+  const effectTriggerCounts={};
+  for(const r of runs)for(const [id,count] of Object.entries(r.effectTriggerCounts||{}))effectTriggerCounts[id]=(effectTriggerCounts[id]||0)+count;
+  const expectedAugmentEffects=['aug-001-veteran-valid','aug-031-toughness-cap','aug-061-sneaky-success','aug-091-mana-cap'];
+  if(expectedAugmentEffects.some(id=>(effectTriggerCounts[id]||0)<1))fail('T00_EFFECT_NOT_EXERCISED','reference run did not exercise every T00 executable augment',{seed,effectTriggerCounts});
+  const playerDamage=Object.fromEntries(characterIds.map((id,i)=>[id,combats.reduce((s,x)=>s+(Number(x.playerDamage?.[`p${i}])||0),0)]));
+  const partyDamage=Object.values(playerDamage).reduce((a,b)=>a+b,0);
+  const characterDamageShare=Object.fromEntries(Object.entries(playerDamage).map(([id,v])=>[id,partyDamage?v/partyDamage:0]));
+  return {
+    scenarioId:'T00',seed,status:'PASS',
+    outcome:runs.some(x=>x.outcome==='RUN_FAILED')?'RUN_FAILED':'COMPLETED',
+    actionCount:runs.reduce((s,x)=>s+x.actions,0),
+    combats,effectTriggerCounts,characterDamageShare,
+    expGainByCharacter:Object.fromEntries(characterIds.map((id,i)=>[id,combats.reduce((s,x)=>s+(Number(x.expGained?.[`p${i}])||0),0)])),
+    finalFlame:runs.at(-1)?.finalFlame??null
   };
 }
 
@@ -385,6 +406,7 @@ export function runScenario(scenarioId,seed){
   if(!def)fail('UNKNOWN_SCENARIO',`unknown stress scenario ${scenarioId}`);
   const availability=scenarioAvailability(def);
   if(!availability.available)return {scenarioId,seed,status:'SKIP',skipReasons:availability.reasons};
+  if(scenarioId==='T00')return runT00(seed);
   if(scenarioId==='T14')return runT14(seed);
   fail('SCENARIO_RUNNER_NOT_IMPLEMENTED',`${scenarioId} became available but its runner is not implemented yet`,{scenarioId});
 }
