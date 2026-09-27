@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import {PVE_CHARACTER_DEFS,isCardSelectableForCharacter} from '../supabase/functions/game-api/pve/characters.js';
 import {AUGMENT_DEFINITIONS,AUGMENT_BY_ID} from '../supabase/functions/game-api/pve/augment-catalog.js';
-import {resourceMax} from '../supabase/functions/game-api/pve/resources.js';
+import {PVE_RESOURCE_DEFS,resourceMax} from '../supabase/functions/game-api/pve/resources.js';
 import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/pve/model.js';
 import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-api/pve/combat.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
@@ -288,7 +288,10 @@ export function assertRunInvariants(run){
     validateZone(p,run.roomState?.privateByPlayer?.[p.playerId],'room');
     if(p.status==='DOWNED'&&(run.combat?.turnSubmissions?.[p.playerId]||run.roomState?.turnSubmissions?.[p.playerId]))fail('DOWNED_PLAYER_SUBMITTED','DOWNED player participated in a card submission',{playerId:p.playerId,phase:run.phase});
     if(run.combat?.phase==='COMBAT_END'&&run.phase!=='COMBAT'){
-      const leaked=['mana','toughnessCharges','fullBurstReady','burstReadyCycle','acrobaticsReady','parity','armor'].filter(k=>Object.hasOwn(p.publicResources||{},k));
+      const leaked=Object.entries(PVE_RESOURCE_DEFS)
+        .filter(([,def])=>def.resetScope==='COMBAT')
+        .map(([key])=>key)
+        .filter(key=>Object.hasOwn(p.publicResources||{},key));
       if(leaked.length)fail('COMBAT_RESOURCE_LEAK','combat-only resources remained after combat end',{playerId:p.playerId,resources:leaked});
     }
   }
