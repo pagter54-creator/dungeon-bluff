@@ -40,8 +40,8 @@ test('PVE-UI-01/20 competitive and PVE both route through shared Gameplay primit
 });
 test('PVE-UI-02 legacy text battle renderer is not imported by player app',async()=>{
  const source=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
- assert.equal(source.includes("from './"+"pve-beta-ui.js'"),false);
- assert.equal(source.includes("from './"+"pve-roguelike-ui.js'"),true);
+ assert.equal(source.includes('pve-beta-ui.js'),false);
+ assert.equal(source.includes('pve-roguelike-ui.js'),true);
 });
 test('PVE-UI-03/04/05 PVE submit uses authoritative action and existing reveal pipeline',async()=>{
  const source=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
