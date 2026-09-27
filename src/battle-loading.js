@@ -36,3 +36,21 @@ export async function loadEntryAssets(session,onProgress=()=>{}){
  await Promise.all([0,1].map(async()=>{while(next<work.length){const [url,optional]=work[next++];try{await load(url,optional);}catch{failures.push(url);}onProgress(++done,work.length);}}));
  if(failures.length)throw new Error(`${failures.length}개 이미지를 불러오지 못했습니다. 다시 시도해 주세요.`);
 }
+
+
+export function pveEntryAssetPlan(run,members=[]){
+ const humans=members.filter(member=>member.member_type==='human');
+ const skins=humans.map(member=>skinFor(member.character_id,member.loadout));
+ const monsterShapes=['boar','hunter','bat','seer'];
+ return {
+  required:[...new Set([...skins.flatMap(skinStandingAssets),...monsterShapes.map(shape=>MONSTER_IMAGES[shape])].filter(Boolean))],
+  poses:[...new Set(skins.flatMap(skinPoseAssets))]
+ };
+}
+export async function loadPveEntryAssets(run,members,onProgress=()=>{}){
+ stopLobbyLoading();
+ const plan=pveEntryAssetPlan(run,members),work=[...plan.required.map(url=>[url,false]),...plan.poses.map(url=>[url,true])];
+ let next=0,done=0;const failures=[];onProgress(0,work.length);
+ await Promise.all([0,1].map(async()=>{while(next<work.length){const [url,optional]=work[next++];try{await load(url,optional);}catch{failures.push(url);}onProgress(++done,work.length);}}));
+ if(failures.length)throw new Error(`${failures.length}개 이미지를 불러오지 못했습니다. 다시 시도해 주세요.`);
+}
