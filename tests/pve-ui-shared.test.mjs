@@ -80,7 +80,7 @@ test('PVE projection exposes public card counting without hidden physical IDs or
 });
 test('PVE-UI-11/12 shop is data-driven and card purchase enters shared replacement selector flow',async()=>{
  const run=projectRun(baseRun(),'p0');run.phase='SHOP';run.roomState={type:'SHOP',cardStock:Array.from({length:4},(_,i)=>({id:'card-'+i,kind:'CARD',value:i+1,price:2,sold:false})),relicStock:Array.from({length:4},(_,i)=>({id:'relic-'+i,kind:'RELIC',relicId:'f1_worn_whetstone',price:4,sold:false}))};
- const html=pveShopMarkup(run);assert.equal((html.match(/pve-shop-item/g)||[]).length,8);
+ const html=pveShopMarkup(run);assert.equal((html.match(/data-action="pve-shop-item"/g)||[]).length,8);
  const replacement=pveShopMarkup(run,{reservation:'card-0',selectedCardId:'c2'});assert.match(replacement,/교체할 내 카드를 선택/);assert.match(replacement,/구매 \+ 교체 확정/);
  const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');assert.match(app,/pve\.shopReserveCard/);assert.match(app,/pve\.shopConfirmCard/);
 });
@@ -108,7 +108,7 @@ test('PVE-UI-18 Result overlay leads back to map',()=>{
 });
 test('PVE-UI-19 Reward Room uses shared card selection and authoritative reward submit',async()=>{
  const source=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
- assert.match(source,/run\.phase==='REWARD_ROOM'.*scope='room'/s);assert.match(source,/pve\.rewardSubmitCard/);assert.match(source,/mobileSelection\(mePlayer/);
+ assert.match(source,/scope=run\.phase==='REWARD_ROOM'\?'room'/);assert.match(source,/pve\.rewardSubmitCard/);assert.match(source,/mobileSelection\(mePlayer/);
 });
 test('PVE-UI shared player adapter maps EXP, Run Gold, skills and used cards into competitive panel model',()=>{
  const run=projectRun(baseRun(),'p0'),players=pveGameplayPlayers(bundle(run),run);
