@@ -80,6 +80,11 @@ function enterNode(run,id){
   else if(type==='REWARD_ROOM')enterRewardRoom(run);
   else if(type==='EVENT')enterEventRoom(run);
 }
+function enterForcedNode(run){
+  if(run.phase!=='MAP_VOTE'||connectedNodeIds(run.map).length!==1)return false;
+  enterNode(run,resolveVote(run,[]));
+  return true;
+}
 async function readRun(admin,runId,actionId=null){
   const {data,error}=await admin.rpc('pve_read',{p_run:runId,p_action_id:actionId});
   if(error)throw new Error('PVE 원정 상태를 읽지 못했습니다.');
@@ -92,7 +97,7 @@ async function commitRun(admin,run,expectedVersion,actionId){
 }
 async function maintainForRead(admin,run){
   if(run.entryLoading)return run;
-  let changed=false;
+  let changed=enterForcedNode(run);
   if(run.phase==='SHOP')changed=expireShopReservations(run)||changed;
   if(run.phase==='MAP_VOTE'&&run.map?.voteDeadline&&Date.now()>=Date.parse(run.map.voteDeadline)){
     const humans=run.players.filter(p=>p.memberType==='human').map(p=>p.playerId);
@@ -192,7 +197,7 @@ export async function handlePveAction({admin,user,body,json}){
     const humans=run.players.filter(p=>p.memberType==='human').map(p=>p.playerId);
     const counts=Object.values(run.map.votes).reduce((m,id)=>(m[id]=(m[id]||0)+1,m),{});
     const majority=Object.values(counts).some(n=>n>humans.length/2);
-    if(majority||timedOut){const chosen=resolveVote(run,humans);enterNode(run,chosen);}
+    if(!enterForcedNode(run)&&(majority||timedOut)){const chosen=resolveVote(run,humans);enterNode(run,chosen);}
   } else if(action==='pve.activateSkill'){
     if(run.phase!=='COMBAT')return fail(json,'현재 전투 중이 아닙니다.');
     activateImmediateCharacterSkill(run,me,body.skill_data??null);
@@ -234,6 +239,7 @@ export async function handlePveAction({admin,user,body,json}){
     chooseRewardRelic(run,me.playerId,body.relic_id);
   } else if(action==='pve.roomReady'){
     roomReady(run,me.playerId);
+    enterForcedNode(run);
   } else return fail(json,'지원하지 않는 PVE action입니다.',400);
 
   run.updatedAt=new Date().toISOString();
