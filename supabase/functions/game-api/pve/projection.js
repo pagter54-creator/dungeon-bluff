@@ -1,8 +1,29 @@
+function publicCardCycles(players,privateByPlayer){
+  const states={};
+  for(const player of players||[]){
+    const state=privateByPlayer?.[player.playerId];
+    if(!state)continue;
+    const remaining=new Set(state.remainingCardIds||[]);
+    states[player.playerId]={
+      cycleIndex:Number(state.cycleIndex)||1,
+      cards:(player.cardPool||[]).map(card=>({baseNumber:card.baseNumber,used:!remaining.has(card.id)}))
+    };
+  }
+  return states;
+}
+
 export function projectRun(run,viewerPlayerId){
   const out=structuredClone(run);
   delete out.effectCatalog;
   delete out.relicCatalog;
   delete out._telemetryPending;
+
+  // Card counting is public in the shared Gameplay UI. Expose only numbers and
+  // spent/remaining state; never expose another player's physical card IDs or
+  // current selectedCardId/skillIntent.
+  if(out.combat?.privateByPlayer)out.combat.publicCardCycles=publicCardCycles(out.players,out.combat.privateByPlayer);
+  if(out.roomState?.privateByPlayer)out.roomState.publicCardCycles=publicCardCycles(out.players,out.roomState.privateByPlayer);
+
   for(const player of out.players||[]){
     if(player.playerId!==viewerPlayerId&&Array.isArray(player.cardPool)){
       player.cardPool=player.cardPool.map(({baseNumber,source,tags})=>({baseNumber,source,...(tags?{tags}: {})}));
