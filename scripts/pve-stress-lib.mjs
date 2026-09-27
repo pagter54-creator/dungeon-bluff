@@ -116,6 +116,13 @@ export const SPEC_AMBIGUITIES=Object.freeze([
     scenarioId:'T14',
     topic:'stun/down/death terminology',
     detail:'Stress T14 uses 기절/사망 wording while the server distinguishes STUNNED_NEXT_TURN (Flame rescue) from DOWNED (Flame 0). Fixtures use server states and core PVE ordering.'
+  },
+  {
+    id:'RULE-COMBAT-RESOURCE-RESET',
+    scenarioId:'MULTI',
+    topic:'combat-only resource cleanup timing',
+    kind:'RULE_CONFLICT',
+    detail:'The implementation spec says mana/revelation/combo-style combat resources reset at combat end. Current character code reinitializes known resources at the next combat start and the combat-end path does not explicitly clear publicResources. The stress invariant now hard-fails COMBAT_RESOURCE_LEAK when an enabled scenario reaches COMBAT_END with these keys. Production rules were not changed in this stress-test task.'
   }
 ]);
 
