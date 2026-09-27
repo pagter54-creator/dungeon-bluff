@@ -64,7 +64,8 @@ export function planNumberMutationTurn(intents,{seed='t05',contextKey='turn'}={}
       if(reverse)plan=reverse;
     }else if(intent.characterId==='vampire'){
       const thrallId=intent.publicResources?.thrallPlayerId;
-      const canCommand=Boolean(thrallId)&&intent.privateCycle.bloodCommandUsedCycle!==intent.privateCycle.cycleIndex;
+      const targetIsActive=clean.some(other=>other.playerId===thrallId);
+      const canCommand=Boolean(thrallId)&&targetIsActive&&intent.privateCycle.bloodCommandUsedCycle!==intent.privateCycle.cycleIndex;
       plan.skillIntent=canCommand;
     }else if(intent.characterId==='warrior'){
       const toughness=Number(intent.publicResources?.toughnessCharges)||0;
