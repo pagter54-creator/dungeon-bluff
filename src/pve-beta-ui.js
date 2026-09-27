@@ -12,7 +12,7 @@ export function pveConnectedNodes(run){
   return ids.map(id=>(map.nodes||[]).find(n=>n.id===id)).filter(Boolean);
 }
 function displayCharacterId(player){return player?.lobbyCharacterId||PVE_CHARACTER_TO_LOBBY[player?.characterId]||player?.characterId;}
-function memberName(bundle,player){return bundle.members?.find(m=>m.id===player.playerId)?.display_name||player.playerId;}
+function memberName(bundle,player){return bundle.members?.find(m=>m.id===player.playerId)?.display_name||player.displayName||player.playerId;}
 function characterName(bundle,player){
   const id=displayCharacterId(player);
   return bundle.characters?.find(c=>c.id===id)?.display_name||id||'모험가';
