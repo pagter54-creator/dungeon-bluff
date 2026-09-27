@@ -1,7 +1,7 @@
 import {choose} from './rng.js';
 import {
   onTurnStartCharacter,onCycleStartCharacter,onTurnEndCharacter,selfModifyCard,collisionImmunity,onValidAttack,
-  isCardSelectableForCharacter,validateCharacterSkillIntent,resolvePostCollisionCharacter,resolvePostCollisionEffects,
+  isCardSelectableForCharacter,validateCharacterSkillIntent,resolvePostCollisionCharacter,resolvePostCollisionEffects,resolveGuardianWallCollisions,
   applyPostPlayerAttackCharacter,baseDamageForCharacter,grantRunGold,onCombatEndCharacter
 } from './characters.js';
 import {publishMonsterIntent,executeMonsterIntent} from './monster.js';
@@ -166,7 +166,7 @@ export function resolveBasicTurn(run){
     const sub=c.turnSubmissions[pid],card=cardFor(run,pid,sub.cardInstanceId);if(!card)throw new Error('Submitted card missing.');
     return {playerId:pid,cardInstanceId:card.id,baseNumber:card.baseNumber,workingNumber:card.baseNumber,finalNumber:card.baseNumber,collisionImmune:false,valid:true};
   });
-  const mutationEvents=[],events=[];
+  const mutationEvents=[],events=[...(c.pendingSkillEvents||[])];c.pendingSkillEvents=[];
   initializeNumberHistories(cards);
   c.phase='PRE_COLLISION_SELF_MODIFY';phaseTrace.push(c.phase);
   for(const rc of cards){const p=playerFor(run,rc.playerId);selfModifyCard(p,rc,c.turnSubmissions[rc.playerId]);applyOwnedEffects(run,'PRE_COLLISION_SELF_MODIFY',{player:p,resolved:rc,events});}
@@ -181,6 +181,7 @@ export function resolveBasicTurn(run){
   for(const group of groups.values()){
     if(group.length>1)for(const rc of group)if(!rc.collisionImmune){rc.valid=false;rc.invalidReason='COLLISION';}
   }
+  resolveGuardianWallCollisions(run,cards,groups,events);
   assignVampireThralls(run,cards,groups,events);
   c.phase='POST_COLLISION_EFFECTS';phaseTrace.push(c.phase);
   const processedCollisionEventIds=new Set();
@@ -220,7 +221,7 @@ export function resolveBasicTurn(run){
     mutationEvents:structuredClone(mutationEvents)
   });
   for(const packet of packets){const p=playerFor(run,packet.sourcePlayerId);applyOwnedEffects(run,'AFTER_DAMAGE',{player:p,damage:{amount:packet.amount},followUp:packet.followUp,packet,events:[]});}
-  for(const rc of cards)if(rc.valid)onValidAttack(playerFor(run,rc.playerId));
+  for(const rc of cards)if(rc.valid)onValidAttack(playerFor(run,rc.playerId),run,rc,events);
   c.phase='POST_PLAYER_ATTACK';phaseTrace.push(c.phase);
   for(const rc of cards.filter(x=>x.valid))applyPostPlayerAttackCharacter(run,rc,events);
   for(const rc of cards.filter(x=>x.burstMisfire)){
