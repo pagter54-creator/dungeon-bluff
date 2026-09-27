@@ -9,6 +9,10 @@ export function projectRun(run,viewerPlayerId){
     }
   }
   if(out.combat?.pendingDownPlayerIds)delete out.combat.pendingDownPlayerIds;
+  if(out.combat?.publicTurnResult){
+    delete out.combat.publicTurnResult.numberHistories;
+    delete out.combat.publicTurnResult.mutationEvents;
+  }
   if(out.combat?.privateByPlayer){
     const own=out.combat.privateByPlayer[viewerPlayerId]||null;
     delete out.combat.privateByPlayer;
