@@ -71,7 +71,7 @@ export function applyMonsterDamage(run,originalPlayer,amount,damageType,{damageE
   c.pendingDownPlayerIds||=[];
   if(player.hp<=0&&!c.pendingDownPlayerIds.includes(player.playerId))c.pendingDownPlayerIds.push(player.playerId);
   events.push({
-    type:'PLAYER_DAMAGED',phase:'APPLY_ACTUAL_DAMAGE',damageEventId:id,
+    type:'PLAYER_DAMAGED',damageEventId:id,
     playerId:player.playerId,originalTarget:originalPlayer.playerId,
     redirectedFrom:redirect.redirected?originalPlayer.playerId:null,redirectSource:redirect.redirectSource||null,
     rawDamage,damageBeforeReduction:rawDamage,effectPrevented,blocked,preventedDamage,
