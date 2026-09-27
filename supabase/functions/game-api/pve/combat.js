@@ -1,7 +1,8 @@
 import {choose} from './rng.js';
 import {
   onTurnStartCharacter,onCycleStartCharacter,onTurnEndCharacter,selfModifyCard,collisionImmunity,onValidAttack,
-  isCardSelectableForCharacter,validateCharacterSkillIntent,resolvePostCollisionCharacter,baseDamageForCharacter,grantRunGold
+  isCardSelectableForCharacter,validateCharacterSkillIntent,resolvePostCollisionCharacter,baseDamageForCharacter,grantRunGold,
+  onCombatEndCharacter
 } from './characters.js';
 import {publishMonsterIntent,executeMonsterIntent} from './monster.js';
 import {beginAugmentChoices} from './augments.js';
@@ -42,8 +43,9 @@ function spendResolvedCards(run,cards){
   }
 }
 function resolveDowns(run){
-  const events=[];
-  const newlyDown=run.players.filter(p=>p.status!=='DOWNED'&&p.hp<=0).sort((a,b)=>a.seat-b.seat);
+  const events=[],pending=new Set(run.combat?.pendingDownPlayerIds||[]);
+  for(const p of run.players)if(p.hp<=0)pending.add(p.playerId);
+  const newlyDown=run.players.filter(p=>p.status!=='DOWNED'&&p.hp<=0&&pending.has(p.playerId)).sort((a,b)=>a.seat-b.seat);
   for(const p of newlyDown){
     if(run.flame>0){
       run.flame-=1;p.hp=1;p.status='STUNNED_NEXT_TURN';
@@ -53,6 +55,7 @@ function resolveDowns(run){
       events.push({type:'PLAYER_DOWNED',playerId:p.playerId,rescued:false,flame:run.flame,hp:0});applyOwnedEffects(run,'PLAYER_DOWNED',{player:p,events});
     }
   }
+  if(run.combat)run.combat.pendingDownPlayerIds=[];
   if(run.flame===0&&run.players.every(p=>p.status==='DOWNED')){
     run.phase='RUN_FAILED';run.combat.phase='COMBAT_END';
     events.push({type:'RUN_FAILED'});
@@ -158,12 +161,18 @@ export function resolveBasicTurn(run){
   c.phase='COLLISION_RESOLVE';phaseTrace.push(c.phase);
   for(const rc of cards)rc.collisionImmune=collisionImmunity(playerFor(run,rc.playerId),c.turnSubmissions[rc.playerId]);
   const groups=new Map();for(const rc of cards){const a=groups.get(rc.finalNumber)||[];a.push(rc);groups.set(rc.finalNumber,a);}
-  for(const group of groups.values())if(group.length>1)for(const rc of group)if(!rc.collisionImmune){rc.valid=false;rc.invalidReason='COLLISION';}
+  for(const group of groups.values()){
+    for(const rc of group)rc.collisionGroupSize=group.length;
+    if(group.length>1)for(const rc of group)if(!rc.collisionImmune){rc.valid=false;rc.invalidReason='COLLISION';}
+  }
   c.phase='VALIDITY_DERIVE';phaseTrace.push(c.phase);
+  const validCards=cards.filter(x=>x.valid),lowestNumber=validCards.length?Math.min(...validCards.map(x=>x.finalNumber)):null;
+  const lowestCards=validCards.filter(x=>x.finalNumber===lowestNumber);
+  for(const rc of cards)rc.soloLowest=Boolean(rc.valid&&lowestCards.length===1&&lowestCards[0]===rc);
   for(const rc of cards){const p=playerFor(run,rc.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player:p,resolved:rc,events:[]});resolvePostCollisionCharacter(run,rc,c.turnSubmissions[rc.playerId]);}
   c.phase='DAMAGE_BUILD';phaseTrace.push(c.phase);
   const defense=Math.max(0,Number(c.monster.defense)||0);
-  const packets=[];
+  const packets=[],events=[];
   for(const rc of cards.filter(x=>x.valid)){
     const player=playerFor(run,rc.playerId);
     const primary={sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,amount:Math.max(0,baseDamageForCharacter(player,rc)+(Number(player.engravings?.[String(rc.finalNumber)])||0)-defense),tags:['BASE_CARD'],followUp:false};
@@ -183,7 +192,6 @@ export function resolveBasicTurn(run){
   const totalDamage=packets.reduce((s,p)=>s+p.amount,0);c.monster.hp=Math.max(0,c.monster.hp-totalDamage);
   for(const packet of packets){const p=playerFor(run,packet.sourcePlayerId);applyOwnedEffects(run,'AFTER_DAMAGE',{player:p,damage:{amount:packet.amount},followUp:packet.followUp,packet,events:[]});}
   for(const rc of cards)if(rc.valid)onValidAttack(playerFor(run,rc.playerId));
-  const events=[];
   c.phase='POST_PLAYER_ATTACK';phaseTrace.push(c.phase);
   for(const rc of cards.filter(x=>x.burstMisfire)){
     const p=playerFor(run,rc.playerId);
@@ -195,7 +203,9 @@ export function resolveBasicTurn(run){
     events.push(...resolveDowns(run));
     spendResolvedCards(run,cards);c.turnSubmissions={};
     if(run.phase==='RUN_FAILED'){
+      // RULE-01: Flame 0 + boss kill + full-party DOWNED resolves as RUN_FAILED before any boss-clear revival.
       c.phase='COMBAT_END';phaseTrace.push(c.phase);
+      for(const p of run.players)onCombatEndCharacter(p);
       c.publicTurnResult={turn:c.turn,cards,damagePackets:packets,totalDamage,phaseTrace,events};
       recordCombatTurnTelemetry(run,c.publicTurnResult);finalizeCombatTelemetry(run,'RUN_FAILED');
       return c.publicTurnResult;
@@ -214,6 +224,7 @@ export function resolveBasicTurn(run){
     for(const p of run.players)applyOwnedEffects(run,'MONSTER_KILLED',{player:p,events});
     if(c.roomType==='BOSS')for(const p of run.players)applyOwnedEffects(run,'BOSS_CLEAR',{player:p,events});
     for(const p of run.players)applyOwnedEffects(run,'COMBAT_END',{player:p,events});
+    for(const p of run.players)onCombatEndCharacter(p);
     if(c.roomType==='BOSS'){
       run.phase='FLOOR_CLEAR';
       run.floorClear={floor:run.floor,bossId:c.monster.id,bossName:c.monster.name};
@@ -232,6 +243,7 @@ export function resolveBasicTurn(run){
   spendResolvedCards(run,cards);c.turnSubmissions={};
   if(run.phase==='RUN_FAILED'){
     c.phase='COMBAT_END';phaseTrace.push(c.phase);
+    for(const p of run.players)onCombatEndCharacter(p);
     c.publicTurnResult={turn:c.turn,cards,damagePackets:packets,totalDamage,phaseTrace,events};
     recordCombatTurnTelemetry(run,c.publicTurnResult);finalizeCombatTelemetry(run,'RUN_FAILED');
     return c.publicTurnResult;
