@@ -72,7 +72,7 @@
 .pve-shop-item:hover:not(:disabled){border-color:#b69b63;transform:translateY(-2px)}
 .pve-shop-item>i{font-style:normal;font-size:27px;color:#e7c780}.pve-shop-item>b{font-size:13px}.pve-shop-item>span{color:#efcf79;font-weight:800}.pve-shop-item>small{color:#aa9bb0;line-height:1.35}
 .pve-shop-item.sold{opacity:.38}.pve-shop-ready{margin-top:10px}
-.pve-modal-layer{position:fixed;inset:0;z-index:65;display:grid;place-items:center;padding:18px;background:#09070cbb;backdrop-filter:blur(5px)}
+.pve-modal-layer{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:18px;background:#09070cbb;backdrop-filter:blur(5px)}
 .pve-choice-popup{width:min(840px,94vw);max-height:88vh;overflow:auto;padding:22px;border:1px solid #65526f;border-radius:12px;background:linear-gradient(160deg,#292032,#17131e);box-shadow:0 30px 80px #0009}
 .pve-choice-popup h2{margin:6px 0 16px}.pve-choice-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .pve-choice-cards>button{min-height:170px;padding:16px;border:1px solid #6d5a77;border-radius:10px;background:linear-gradient(150deg,#30263a,#211927);color:#eee;text-align:left}
