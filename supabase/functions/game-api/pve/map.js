@@ -4,22 +4,20 @@ import {F1_MAP_LAYOUT,F1_MONSTER_DEFINITIONS} from './content-f1.js';
 export function generateFloorMap(run,depthCount=8){
   const nodes=[]; const edges={};
   for(let depth=1;depth<=depthCount;depth++){
-    const count=depth===depthCount?1:2;
+    const count=depth===depthCount?1:depth%3===1?2:1;
     const pair=F1_MAP_LAYOUT[(depth-1)%F1_MAP_LAYOUT.length]||['NORMAL_COMBAT','EVENT'];
     const swapped=count===2&&choose(run,[false,true],`map-lane-swap:${run.floor}:${depth}`);
     for(let lane=0;lane<count;lane++){
       const id=`f${run.floor}-d${depth}-n${lane}`;
       let type='BOSS';
-      if(depth!==depthCount)type=pair[swapped?1-lane:lane]||pair[0];
+      if(depth!==depthCount)type=count===1&&depth===3?pair[1]||pair[0]:pair[swapped?1-lane:lane]||pair[0];
       nodes.push({id,depth,type});
     }
   }
   for(let depth=1;depth<depthCount;depth++){
     const from=nodes.filter(n=>n.depth===depth), to=nodes.filter(n=>n.depth===depth+1);
     for(let i=0;i<from.length;i++){
-      // A route stays in its lane for two rooms, then opens into a new choice.
-      // Both lanes meet at the boss.
-      edges[from[i].id]=to.length===1?[to[0].id]:depth%3===0?to.map(node=>node.id):[to[i].id];
+      edges[from[i].id]=to.map(node=>node.id);
     }
   }
   return {
