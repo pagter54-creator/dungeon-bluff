@@ -32,6 +32,7 @@ export function buildInitialPveRun(bundle,{seed=null,depthCount=8,now=Date.now()
   const players=bundle.members.map(member=>{
     const player=newPlayerRunState({...member,character_id:pveCharacterIdForRoom(member.character_id)});
     player.lobbyCharacterId=member.character_id;
+    player.displayName=member.display_name;
     return player;
   });
   const run={id:crypto.randomUUID(),roomId:bundle.room.id,seed:typeof seed==='string'&&seed.length<=128?seed:crypto.randomUUID(),rngCounter:0,version:0,phase:'MAP_VOTE',floor:1,depth:0,flame:4,maxFlame:5,map:null,currentRoomNodeId:null,players,usedMonsterIds:[],chosenBossIds:{1:'f1_fallen_lord'},contentVersion:'F1_VERTICAL_SLICE_V1',createdAt:new Date(now).toISOString(),updatedAt:new Date(now).toISOString()};
