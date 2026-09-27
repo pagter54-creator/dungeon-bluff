@@ -53,6 +53,8 @@ export function pveGameplayPlayers(bundle,run,{scope='combat'}={}){
   for(const p of run.players||[]){
     const member=memberFor(bundle,p),character=characterForPlayer(bundle,p),cycle=publicCycle(run,p,scope);
     const physical=p.cardPool||[];
+    const rawSkillId=skillByCharacter[p.characterId]||character?.definition?.skill?.id||'';
+    const rewardSkillSupported=scope!=='room'||['warrior','mage','gunner','twins'].includes(p.characterId);
     players[p.playerId]={
       memberId:p.playerId,
       characterId:lobbyId(p),
@@ -67,10 +69,10 @@ export function pveGameplayPlayers(bundle,run,{scope='combat'}={}){
         id:physical[index]?.id||`pve-public:${p.playerId}:${cycle.cycleIndex||1}:${index}`,
         slot:index,value:card.baseNumber,used:Boolean(card.used)
       })),
-      skillId:skillByCharacter[p.characterId]||character?.definition?.skill?.id||'',
-      skillType:character?.definition?.skill?.type||'passive',
+      skillId:rewardSkillSupported?rawSkillId:'',
+      skillType:rewardSkillSupported?(character?.definition?.skill?.type||'passive'):'passive',
       characterRuntimeState:runtimeState(p),
-      activeSkillState:{available:activeSkillAvailable(p)}
+      activeSkillState:{available:rewardSkillSupported&&activeSkillAvailable(p)}
     };
   }
   return players;
