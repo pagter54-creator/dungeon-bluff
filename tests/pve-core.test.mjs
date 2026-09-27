@@ -32,7 +32,7 @@ test('PVE damage batch is independent of submission/seat processing order',()=>{
 });
 test('PVE combat phase spine preserves required ordering',()=>{
   const run=combatRun();const r=play(run,[1,2,3,4]);
-  const required=['SELECTION_LOCKED','PRE_COLLISION_SELF_MODIFY','PRE_COLLISION_SWAP','PRE_COLLISION_STEAL','FINAL_NUMBER_REVEAL','COLLISION_RESOLVE','VALIDITY_DERIVE','DAMAGE_BUILD','DAMAGE_BATCH_APPLY','POST_PLAYER_ATTACK','KILL_CHECK','MONSTER_ACTION','DOWN_RESOLVE','TURN_END'];
+  const required=['SELECTION_LOCKED','PRE_COLLISION_SELF_MODIFY','PRE_COLLISION_SWAP','PRE_COLLISION_STEAL','FINAL_NUMBER_REVEAL','COLLISION_RESOLVE','POST_COLLISION_EFFECTS','VALIDITY_DERIVE','DAMAGE_BUILD','DAMAGE_BATCH_APPLY','POST_PLAYER_ATTACK','KILL_CHECK','MONSTER_ACTION','DOWN_RESOLVE','TURN_END'];
   assert.deepEqual(r.phaseTrace,required);
   for(const phase of required)assert.ok(COMBAT_PHASES.includes(phase));
 });
