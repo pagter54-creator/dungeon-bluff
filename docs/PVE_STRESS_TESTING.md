@@ -24,13 +24,21 @@ npm run pve:stress -- --scenario T14 --seed "smoke:T14:0000"
 npm run pve:stress -- --mode balance --count 25 --output artifacts/pve-stress
 ```
 
-## Bot information boundary
+## Cooperation levels and information boundary
 
-Ordinary stress bots receive only `projectRun(run, playerId)`.
+The stress harness distinguishes cooperation level from character balance.
 
-The decision function is passed the projected PlayerView and does not receive authoritative `privateByPlayer`, another player's current physical card ids, or raw `turnSubmissions`. Every decision path also runs `assertNoHiddenInfo()`.
+| Scenario | Cooperation model | Information allowed |
+|---|---|---|
+| T12 No Communication | no hand/intent sharing | each bot uses only its own PlayerView and public state |
+| T00 Reference Communication | ordinary human-like chat/voice coordination | each bot may voluntarily broadcast information derived from its own PlayerView |
+| T13 Perfect Coordination | theoretical coordination ceiling | privileged/authoritative hidden state is allowed only here |
 
-T13 Perfect Coordination is the only scenario allowed to use an authoritative/privileged planner. T13 remains unimplemented.
+T12 and T13 are not activated by this policy task.
+
+T00 never receives authoritative `privateByPlayer`, another player's physical card ids, raw `turnSubmissions`, future RNG/draw state, or hidden monster state. Each bot first receives only `projectRun(run, playerId)`; the harness calls `buildReferenceIntent(view, playerId)` separately for each owner. The negotiation step receives only the resulting broadcast objects, never the authoritative run.
+
+T13 Perfect Coordination remains separate and unimplemented. T00 does not reuse a privileged planner.
 
 ## Canonical rules
 
@@ -114,24 +122,44 @@ Party:
 
 T00 uses ordinary PlayerView-only bots, not privileged coordination.
 
-Reference bot behavior is intentionally simple:
+Reference bot behavior models a basic communicating four-player party rather than four isolated greedy bots.
 
-- selects only from its own projected remaining cards
-- Rogue prefers low legal values to pursue solo-lowest play
-- Grand Amplification Mage saves to 6 Mana before using its augmented amplification
-- Knight uses Toughness in ordinary high-card situations
-- no bot reads another player's private remaining/used cards or committed number
+### Intent Broadcast
+
+Each active bot builds a broadcast from its own PlayerView:
+
+- `playerId`
+- `availableNumbers`: unique numbers from that owner's current remaining physical cards
+- `preferredNumbers`: simple local ranking
+- `initialChoice`
+- voluntary class/resource signals needed for ordinary coordination, such as Toughness availability or the Mage's currently available adjustment
+
+No physical card id is broadcast.
+
+### Deterministic limited negotiation
+
+Negotiation receives only the broadcasts.
+
+- lobby order is used with a deterministic seed-based rotation so the same fixed seat is not always forced to yield
+- a bot that clashes may inspect at most two alternate preferences
+- there is one negotiation pass; no backtracking, permutation search, Cartesian search, or global optimal assignment
+- unresolved collisions are legal and remain in the result
+- the Mage may use its currently available +1/+2/+3 adjustment when that resolves an announced clash
+- the Knight uses Toughness penetration only when limited normal concession cannot resolve the clash and the lost-card-value difference is material
+- the Rogue may change to an announced unique-lowest attempt after hearing team intents, but falls back to ordinary high-value play when that opportunity is not present
+- Adventurer remains high-card oriented; veteran streak does not grant access to any extra hidden information
+
+The chosen physical card is resolved afterwards from that player's own PlayerView only.
 
 The stress runner executes deterministic F1 Normal / Elite / Boss reference encounters and records:
 
 - turns / party DPT
-- per-character damage
-- damage share
-- collision count
-- HP damage / healing
-- Flame spent
-- EXP gain
+- per-character damage and share
+- HP damage / healing / Flame spent / EXP gain
 - successful effect trigger counts
+- intent conflicts before and after negotiation
+- negotiation changes and reasons
+- per-player/per-character yield, collision and valid-attack rates
 
 ### T00 class rules implemented
 
@@ -266,6 +294,7 @@ Default: `artifacts/pve-stress/`
 - `pve_skipped_scenarios.json`
 - `pve_spec_ambiguities.json`
 - `pve_canonical_rules.json`
+- `pve_reference_turns.jsonl` when T00 runs
 - `scenarios/<scenarioId>.csv`
 
 GitHub Actions uploads the whole directory as `pve-stress-smoke-<sha>`.
@@ -273,3 +302,55 @@ GitHub Actions uploads the whole directory as `pve-stress-smoke-<sha>`.
 Resolved RULE-01~05 are written to `pve_canonical_rules.json`; `pve_spec_ambiguities.json` is reserved for genuinely unresolved issues discovered later.
 
 No production HP / EXP / Gold / monster balance numbers are changed by this stress/T00 task.
+
+
+## T00 reference telemetry and fairness review
+
+Each T00 negotiated turn records, per participating player:
+
+- `availableNumbers`
+- `preferredNumbers`
+- `initialChoice`
+- `finalChoice`
+- `negotiationChanged`
+- `changeReason`
+- `skillIntent`
+- `collisionExpectedBeforeNegotiation`
+- `collisionExpectedAfterNegotiation`
+- `actualCollision`
+- `actualCollisionInvalidated`
+- `validAttack`
+- actual damage contributed by that turn
+
+The aggregate report includes:
+
+- `totalIntentConflicts`
+- `resolvedIntentConflicts`
+- `unresolvedIntentConflicts`
+- `negotiationChangeCount`
+- collision rates before/after negotiation
+- negotiation resolution rate
+- per-player and per-character first-choice keep rate
+- yield rate
+- actual collision rate
+- valid attack rate
+- average available number count
+
+For a 100-seed T00 balance run, policy-fairness BALANCE_WARNINGs are added when:
+
+- one lobby slot's yield rate is at least 2x another slot's
+- for the same available-number-count bucket, one character's actual collision rate is at least 2x another character's
+- a character's average damage share is below 5%
+
+These are bot-policy review warnings, not automatic game-balance changes.
+
+## CI reference baseline
+
+Project Checks run both:
+
+```bash
+npm run pve:stress:smoke
+npm run pve:stress:balance -- --scenario T00 --output artifacts/pve-stress-balance
+```
+
+The 100-seed T00 balance sweep is uploaded separately so reference-policy regressions can be compared without changing production combat values.
