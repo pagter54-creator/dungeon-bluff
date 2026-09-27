@@ -224,7 +224,7 @@ The four definitions use the shared effect structure: trigger, condition, operat
 | T02 Burst Ceiling | ACTIVE | Full Barrage / Released Demon Sword / One-Hit Kill / Blood Frenzy + burst/steady policies executable |
 | T03 Sustain Fortress | ACTIVE | Guardian Wall / Transfusion / Immortal Fighter / White Mage + sustain/normal policies executable |
 | T04 Collision Farm | ACTIVE | Knight/Imp/Berserker/Vampire base engines, four Tier-I builds, farm/safe policies executable |
-| T06 Recovery Loop | SKIP | Fortune Manipulator / Aerial Acrobatics / Devouring Ghost Slash remain metadata-only; recovery policy/runner is intentionally not implemented |
+| T06 Recovery Loop | ACTIVE | Fate Manipulator / Full Barrage / Aerial Acrobatics / Devouring Ghost Slash + recovery/steady policies + F1-F26 executable |
 
 Availability is computed from runtime definitions. The generated SKIP report is authoritative.
 
@@ -671,6 +671,47 @@ Generated artifacts include:
 ### T09 known ambiguity
 
 `AMB-T09-SEER-PEEK-TARGET`: PVE combat disallows direct teammate targeting, but the current base Prophet text does not define a class-specific priority when multiple teammates are already READY. The executable path uses the existing stable automatic-target convention — first eligible READY teammate by lobby seat. Reveal scope/resource semantics are fixed independently of this future content-rule choice.
+
+## T06 Recovery Loop
+
+T06 is ACTIVE with:
+
+- Prophet / `운명 조작자` (`aug-161`): spend Revelation to recover exactly one eligible BASE physical card from an explicitly selected living ally's current-cycle spent zone. The same `cardInstanceId` moves `SPENT -> REMAINING`; ownership never changes and no automatic card use is generated.
+- Gunslinger / `전탄 난사` (`aug-241`): reuses the T02 `1/2/2/3` magazine and bounded Full Burst follow-up chain. New-cycle cards are excluded from the old Full Burst root action.
+- Twins / `공중 곡예` (`aug-381`): base deck `1/2/3/4`, one parity flip per turn, Acrobatics performs exactly one cycle reset + one explicit parity flip, recharge changes to three valid attacks, and the first valid attack after Acrobatics gains +2 damage once.
+- Demon Swordsman / `포식 귀참` (`aug-331`): a valid Ghost Slash gains +1 additional Devour. Crossing the existing Devour-per-level threshold changes `USED -> READY` only; reactivation never auto-casts Ghost Slash.
+
+Recovery, cycle reset, skill reactivation, Full Burst follow-up use, and a new player action are tracked as distinct concepts. T06 does not create a new player action from a derived event.
+
+### Physical-card and chain invariants
+
+Every current physical `cardInstanceId` must remain in exactly one current zone. Recovery moves an existing ID and never clones it. Recovery/cycle/reactivation events carry stable identity fields where applicable:
+
+`rootActionId | recoveryChainId | parentEventId | chainDepth | sourceEffectId | sourceCardInstanceId`
+
+The stress runtime hard-fails duplicate current-zone cards, invalid ownership, recovery auto-use, old Full Burst roots consuming new-cycle cards, recursive Full Burst, recursive cycle reset, recursive Ghost Slash reactivation/cast, recovery-chain depth above 4, or more than 24 tracked derived events from one root action.
+
+### Twins + recovery ambiguity
+
+`AMB-T06-TWINS-RECOVERY-CYCLE-COMPLETION`: BETA v0.1 does not specify how an extra recovered Twins card participates in parity scheduling/cycle completion. Runtime therefore does not invent an extra parity flip or forced reset. When Fate Manipulator targets Twins, only current-cycle spent cards whose addition leaves the remaining hand fully consumable under the existing one-flip-per-turn parity rule are eligible recovery candidates.
+
+`AMB-T06-RECOVER-PREVIOUS-CYCLE-CARD`: no prior-cycle archive is defined. Once Full Burst or Acrobatics has reset the target into a new cycle, the previous cycle's spent zone is not a recovery source.
+
+### Recovery-loop policies and telemetry
+
+`RECOVERY_OPTIMIZED` aggressively uses Fate Manipulator, Full Burst, Acrobatics, and reactivated Ghost Slash while making decisions only from owner PlayerView + public resolved information. `STEADY_PLAY` uses the same party/seeded encounters without aggressively maximizing the loop.
+
+Telemetry includes card recoveries, ally recoveries, same-card recovery count, maximum recoveries of one physical card per combat, Full Burst resets, Acrobatics resets, Ghost Slash reactivations, cards used after recovery, `cardReuseRatio`, max recovery-chain depth, max derived events/root action, action-ceiling hits, and recursive recovery/reset/reactivation counts.
+
+The runner executes F1-F26 deterministic fixtures plus seeded Normal / Elite / Boss encounters. Generated artifacts include:
+
+- `pve_recovery_turns.jsonl`
+- `pve_steady_recovery_turns.jsonl`
+- `pve_t06_fixtures.json`
+- `pve_t06_golden.json`
+- `tests/fixtures/pve-stress-t06-golden.json`
+
+Balance warnings such as `SAME_CARD_RECOVERY_HIGH`, `CARD_REUSE_HIGH`, and `RECOVERY_DOMINATES` remain warnings rather than hard failures. No HP, monster HP, EXP, Gold, Flame, deck, damage, recovery-count, or warning-threshold value is retuned merely to make T06 pass.
 
 ## T14 fixtures
 
