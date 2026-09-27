@@ -1,11 +1,13 @@
 import {choose} from './rng.js';
 import {clearCombatResources,clearResourcesByScope,resourceMax} from './resources.js';
+import {executableAugmentRuntime} from './augment-runtime.js';
 
 export const PVE_CHARACTER_DEFS={
   adventurer:{deck:[1,2,3,4,5],skillId:'gold_bonus'},
   warrior:{deck:[2,3,4,5,5],skillId:'toughness'},
   mage:{deck:[1,2,3,4,4],skillId:'amplify'},
   rogue:{deck:[1,1,3,4,5],skillId:'sneaky_strike'},
+  berserker:{deck:[1,2,4,4,5],skillId:null},
   vampire:{deck:[1,2,3,4,5],skillId:'blood_command'},
   imp:{deck:[1,2,3,4,5],skillId:'steal'},
   prophet:{deck:[1,2,3,4,5],skillId:'revelation'},
@@ -25,6 +27,7 @@ export function initializeCombatCharacter(player){
   if(player.characterId==='warrior')player.publicResources.toughnessCharges=1;
   if(player.characterId==='mage')player.publicResources.mana=0;
   if(player.characterId==='prophet')player.publicResources.revelation=0;
+  if(player.characterId==='berserker'&&player.augments.includes('aug-131'))player.publicResources.revenge=0;
   if(player.characterId==='gunner'){
     player.publicResources.fullBurstReady=true;
     player.publicResources.burstReadyCycle=1;
@@ -169,6 +172,140 @@ export function collisionImmunity(player,submission){
   player.publicResources.toughnessCharges=charges-1;
   return true;
 }
+const runtimeConfig=augmentId=>executableAugmentRuntime(augmentId)?.config||{};
+const collisionInvariantError=(code,message)=>{const error=new Error(message);error.code=code;throw error;};
+const collisionMemberIds=(run,group)=>[...group].sort((a,b)=>{
+  const pa=run.players.find(p=>p.playerId===a.playerId),pb=run.players.find(p=>p.playerId===b.playerId);
+  return (pa?.seat??999)-(pb?.seat??999)||a.playerId.localeCompare(b.playerId);
+}).map(card=>card.playerId);
+
+export function resolvePostCollisionEffects(run,cards,groups,events=[],mutationEvents=[],processedCollisionEventIds=new Set()){
+  const collisionGroups=[];
+  const entries=[...groups.entries()].filter(([,group])=>group.length>1).sort((a,b)=>Number(a[0])-Number(b[0]));
+  let attributedCollisionResource=false;
+  for(const [finalNumber,group] of entries){
+    const members=collisionMemberIds(run,group);
+    const collisionEventId=`collision:${run.combat.id}:${run.combat.turn}:${finalNumber}:${members.join(',')}`;
+    if(processedCollisionEventIds.has(collisionEventId))collisionInvariantError('COLLISION_REWARD_REENTRY','동일 collision event가 POST_COLLISION_EFFECTS에 재진입했습니다.');
+    processedCollisionEventIds.add(collisionEventId);
+    for(const card of group)card.collisionEventId=collisionEventId;
+
+    const invalidated=group.filter(card=>card.invalidReason==='COLLISION'&&!card.valid);
+    const immune=group.filter(card=>card.collisionImmune&&card.valid);
+    let berserkerHeal=0,knightCrushBonusDamage=0,crushedCardCount=0;
+    const crushedCardIds=[];
+    let triggeredEffectCount=0;
+
+    for(const resolved of invalidated){
+      const player=run.players.find(p=>p.playerId===resolved.playerId);
+      if(player?.characterId!=='berserker'||player.status==='DOWNED')continue;
+      const immortal=player.augments.includes('aug-131');
+      const healCap=immortal?player.maxHp:Math.min(player.maxHp,2);
+      const before=player.hp,after=Math.min(healCap,before+1);
+      const healed=Math.max(0,after-before);
+      player.hp=after;
+      resolved.berserkerCollisionHeal=healed;
+      if(healed>0){
+        berserkerHeal+=healed;triggeredEffectCount++;
+        events.push({
+          type:'BERSERKER_COLLISION_HEAL',phase:'POST_COLLISION_EFFECTS',
+          collisionEventId,playerId:player.playerId,amount:healed,before,after,healCap
+        });
+      }
+    }
+
+    for(const resolved of immune){
+      const player=run.players.find(p=>p.playerId===resolved.playerId);
+      if(player?.characterId!=='warrior'||!player.augments.includes('aug-051'))continue;
+      const ids=invalidated.filter(card=>card.playerId!==player.playerId).map(card=>card.cardInstanceId);
+      const cfg=runtimeConfig('aug-051');
+      const perCard=Math.max(0,Number(cfg.crushDamagePerCard)||0);
+      const cap=Math.max(0,Number(cfg.crushDamageCap)||0);
+      const bonus=Math.min(cap,ids.length*perCard);
+      resolved.crushedCardIds=[...ids];
+      resolved.crushedCardCount=ids.length;
+      resolved.crushBonusDamage=bonus;
+      crushedCardIds.push(...ids);
+      crushedCardCount+=ids.length;
+      knightCrushBonusDamage+=bonus;
+      if(ids.length>0){
+        triggeredEffectCount++;
+        events.push({
+          type:'KNIGHT_CRUSH_CAPTURE',phase:'POST_COLLISION_EFFECTS',
+          collisionEventId,playerId:player.playerId,crushedCardIds:[...ids],crushedCardCount:ids.length,bonusDamage:bonus
+        });
+      }
+    }
+
+    if(new Set(crushedCardIds).size!==crushedCardIds.length)collisionInvariantError('CRUSH_DUPLICATE_CARD','같은 invalid card가 한 collision에서 두 번 압살로 계산되었습니다.');
+
+    const memberSet=new Set(members);
+    const impStolenBeforeCollision=(mutationEvents||[])
+      .filter(event=>event.effectId==='imp-steal'&&memberSet.has(event.targetId))
+      .reduce((sum,event)=>sum+(Number(event.stolen)||0),0);
+    const vampireSwapCount=(mutationEvents||[])
+      .filter(event=>event.phase==='PRE_COLLISION_SWAP'&&(memberSet.has(event.actorId)||memberSet.has(event.targetId))).length;
+
+    const resourcesGenerated=[];
+    if(!attributedCollisionResource){
+      const marks=(events||[]).filter(event=>event.type==='THRALL_MARKED');
+      if(marks.length){
+        resourcesGenerated.push(...marks.map(event=>({resource:'thrallPlayerId',playerId:event.playerId,targetId:event.targetId,amount:1})));
+        attributedCollisionResource=true;
+        triggeredEffectCount+=marks.length;
+      }
+    }
+    collisionGroups.push({
+      collisionEventId,turn:run.combat.turn,finalNumber:Number(finalNumber),members,
+      invalidatedPlayers:invalidated.map(card=>card.playerId),
+      immunePlayers:immune.map(card=>card.playerId),
+      crushedCardIds:[...crushedCardIds],crushedCardCount,
+      berserkerHeal,impStolenBeforeCollision,vampireSwapCount,knightCrushBonusDamage,
+      resourcesGenerated,
+      totalImmediateDamageValue:knightCrushBonusDamage,
+      totalHealingValue:berserkerHeal,
+      triggeredEffectCount,
+      recursiveCollisionTriggerCount:0
+    });
+  }
+
+  for(const resolved of cards.filter(card=>card.valid)){
+    const player=run.players.find(p=>p.playerId===resolved.playerId);
+    if(player?.characterId!=='berserker'||!player.augments.includes('aug-131')||player.status==='DOWNED')continue;
+    const revenge=Math.max(0,Number(player.publicResources.revenge)||0);
+    if(revenge<1)continue;
+    const cfg=runtimeConfig('aug-131');
+    const bonus=Math.max(0,Number(cfg.revengeBonusDamage)||0);
+    resolved.revengeBonusDamage=bonus;
+    resolved.revengeConsumed=1;
+    player.publicResources.revenge=0;
+    events.push({type:'BERSERKER_REVENGE_CONSUMED',phase:'POST_COLLISION_EFFECTS',playerId:player.playerId,amount:1,bonusDamage:bonus});
+  }
+  return collisionGroups;
+}
+
+export function applyPostPlayerAttackCharacter(run,resolved,events=[]){
+  if(!resolved?.valid)return 0;
+  const player=run.players.find(p=>p.playerId===resolved.playerId);
+  if(player?.characterId!=='berserker'||player.status==='DOWNED')return 0;
+  const before=player.hp,after=Math.max(1,before-1),cost=Math.max(0,before-after);
+  player.hp=after;resolved.berserkerAttackHpCost=cost;
+  events.push({type:'BERSERKER_ATTACK_HP_COST',phase:'POST_PLAYER_ATTACK',playerId:player.playerId,amount:cost,before,after});
+  return cost;
+}
+
+export function onMonsterPlayerDamagedCharacter(player,{damageType,actualDamage,events=[]}={}){
+  if(player?.characterId!=='berserker'||player.status==='DOWNED'||!player.augments.includes('aug-131'))return 0;
+  if(damageType!=='DIRECT'||!(Number(actualDamage)>0))return 0;
+  const before=Math.max(0,Number(player.publicResources.revenge)||0);
+  const max=resourceMax(player,'revenge',runtimeConfig('aug-131').revengeMax??1);
+  const after=Math.min(max,before+1);
+  player.publicResources.revenge=after;
+  const gained=after-before;
+  if(gained>0)events.push({type:'BERSERKER_REVENGE_GAINED',phase:'MONSTER_ACTION',playerId:player.playerId,before,after,amount:gained,damageType});
+  return gained;
+}
+
 export function resolvePostCollisionCharacter(run,resolved,submission,events=[]){
   const player=run.players.find(p=>p.playerId===resolved.playerId);
   if(!player)return;
@@ -196,7 +333,12 @@ export function resolvePostCollisionCharacter(run,resolved,submission,events=[])
 }
 export function baseDamageForCharacter(player,resolved){
   if(player.characterId==='rogue'&&resolved.soloLowest)return 5;
-  return resolved.finalNumber+(player.characterId==='twins'?2:0);
+  let damage=resolved.finalNumber;
+  if(player.characterId==='twins')damage+=2;
+  if(player.characterId==='berserker')damage+=1;
+  damage+=Math.max(0,Number(resolved.crushBonusDamage)||0);
+  damage+=Math.max(0,Number(resolved.revengeBonusDamage)||0);
+  return damage;
 }
 export function onCombatEndCharacter(player,run=null){
   clearCombatResources(player);
