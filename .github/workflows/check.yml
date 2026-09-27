@@ -29,3 +29,14 @@ jobs:
 
       - name: Run project checks
         run: npm run check
+
+      - name: Run PVE stress smoke
+        run: npm run pve:stress:smoke
+
+      - name: Upload PVE stress reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pve-stress-smoke-${{ github.sha }}
+          path: artifacts/pve-stress/
+          if-no-files-found: error
