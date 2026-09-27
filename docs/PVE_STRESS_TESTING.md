@@ -221,12 +221,29 @@ The four definitions use the shared effect structure: trigger, condition, operat
 | T14 Flame Boundary | ACTIVE | six canonical boundary fixtures |
 | T05 Number Mutation | ACTIVE | Mage Reverse Math + Vampire/Full Thrall + Imp/Bold Steal + Knight executable |
 | T09 Resource Starvation | ACTIVE | Knight/Mage/Prophet/Gunner basic resource capabilities + starvation policy executable |
-| T02 Burst Ceiling | SKIP | Demon Swordsman / Martial Artist engines and required burst build effects unavailable |
+| T02 Burst Ceiling | ACTIVE | Full Barrage / Released Demon Sword / One-Hit Kill / Blood Frenzy + burst/steady policies executable |
 | T03 Sustain Fortress | ACTIVE | Guardian Wall / Transfusion / Immortal Fighter / White Mage + sustain/normal policies executable |
 | T04 Collision Farm | ACTIVE | Knight/Imp/Berserker/Vampire base engines, four Tier-I builds, farm/safe policies executable |
-| T06 Recovery Loop | SKIP | Prophet / Demon Swordsman PVE engines and required build effects unavailable |
+| T06 Recovery Loop | SKIP | Fortune Manipulator / Aerial Acrobatics / Devouring Ghost Slash remain metadata-only; recovery policy/runner is intentionally not implemented |
 
 Availability is computed from runtime definitions. The generated SKIP report is authoritative.
+
+## T02 Burst Ceiling
+
+T02 is ACTIVE with:
+
+- Gunslinger / `전탄 난사` (`aug-241`): canonical magazine `1/2/2/3`, Full Burst consumes each remaining physical card exactly once.
+- Demon Swordsman / `해방된 귀검` (`aug-351`): Devour 6 transforms into temporary `2/4/5/6`; transformed cards never recursively re-enter transformation and the original physical pool/zones are restored on transformation or combat end.
+- Martial Artist / `일격필살` (`aug-291`): previous card uses revealed `final_number`; valid success consumes Combo once for +2 damage per consumed Combo; failed collision preserves Combo.
+- Berserker / `피의 광전` (`aug-121`): an actual 1 HP attack cost grants +2 damage, the self-cost cannot DOWN the Berserker, and HP 1 receives no cost-linked bonus.
+
+The runner executes F1-F22 deterministic fixtures plus the same seeded Normal / Elite / Boss encounters under `BURST_OPTIMIZED` and `STEADY_PLAY`.
+
+Burst damage packets carry stable `damageEventId`, `rootActionId`, `burstChainId`, `parentDamageEventId`, `followUpDepth`, base/class/augment damage decomposition, and telemetry-only boss threshold crossings. Tier-I follow-up depth is capped at 1; recursive follow-ups, duplicate physical-card use, duplicate damage packets, duplicate modifiers, negative resources, and invalid self-cost are hard failures.
+
+Boss threshold markers are telemetry-only. The current F1 boss runtime does not expose behavior phases, so `BEHAVIOR_SKIP` remains `NOT_MEASURABLE` rather than inventing a fake boss phase.
+
+The 100-seed validation snapshot used to activate T02 completed with zero hard failures. It observed max single-card damage 11, max single-player turn damage 11, max party turn damage 26, average Burst/Steady DPT 14.40 / 12.35, zero `BURST_DOMINATES`, zero recursive follow-ups, zero duplicate damage packets, and zero duplicate modifiers. `REPEATED_BURST` remains a balance warning and is intentionally not tuned away in this implementation task.
 
 ## T03 Sustain Fortress
 
