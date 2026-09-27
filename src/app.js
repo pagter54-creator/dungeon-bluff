@@ -48,7 +48,7 @@ let shownSummary=null;
 let roomEpoch = 0;
 let listLoading = false;
 let coopPveEnabled=true;
-let pveSelected=null,pveUseSkill=false,pveMapOpen=false,pveShopReservation=null,pveEngraveMode=false,pveAnimating=false,pveLastPresentedTurn=0,pveLastPresentedRewardKey='';
+let pveSelected=null,pveUseSkill=false,pveMapOpen=false,pveEngraveMode=false,pveAnimating=false,pveLastPresentedTurn=0,pveLastPresentedRewardKey='';
 let pveEntryWork=null,pveEntryProgress='',pveEntryError='',pveEntryCompleted=null;
 const pveVisitedNodes=new Set();
 let entryWork=null,entryProgress='',entryError='',entryCompleted=null;
@@ -181,15 +181,20 @@ function renderPveGameplay(run,{presentation=null}={}){
 function pveSelectorNumber(run,cardId){
   const me=pvePlayerForUser(run,api.user?.id);return me?.cardPool?.find(card=>card.id===cardId)?.baseNumber??null;
 }
+function pveOwnShopReservation(run,playerId){
+  if(run?.phase!=='SHOP'||!playerId)return null;
+  const item=(run.roomState?.cardStock||[]).find(product=>!product.sold&&product.reservedByPlayerId===playerId);
+  return item?.id||null;
+}
 function renderPveRoom(run){
-  const member=mine(),scope=run.phase==='REWARD_ROOM'?'room':'combat',adaptedBundle=pveGameplayBundle(bundle,run,{scope}),players=pveGameplayPlayers(bundle,run,{scope}),mePlayer=players[member?.id];
-  const selector=Boolean((run.phase==='SHOP'&&pveShopReservation)||(run.phase==='REST'&&pveEngraveMode)||(run.phase==='REWARD_ROOM'&&!run.roomState?.resolved&&run.roomState?.pickOrder?.[0]!==member?.id));
+  const member=mine(),scope=run.phase==='REWARD_ROOM'?'room':'combat',adaptedBundle=pveGameplayBundle(bundle,run,{scope}),players=pveGameplayPlayers(bundle,run,{scope}),mePlayer=players[member?.id],shopReservation=pveOwnShopReservation(run,member?.id);
+  const selector=Boolean((run.phase==='SHOP'&&shopReservation)||(run.phase==='REST'&&pveEngraveMode)||(run.phase==='REWARD_ROOM'&&!run.roomState?.resolved&&run.roomState?.pickOrder?.[0]!==member?.id));
   const roomName=run.phase==='EVENT'?(run.roomState?.name||'던전 이벤트'):run.phase==='REST'?'휴식처':run.phase==='SHOP'?'던전 상점':run.phase==='REWARD_ROOM'?'보상 방':run.phase==='AUGMENT_CHOICE'?'증강 선택':run.phase==='ROOM_RESULT'?'방 공략 완료':'협력 탐험';
   const roomCategory=run.phase==='REST'?'A MOMENT OF REST':run.phase==='SHOP'?'TRADING POST':run.phase==='REWARD_ROOM'?'REWARD ROOM':run.phase==='EVENT'?'UNKNOWN ENCOUNTER':'CO-OP EXPEDITION · BETA';
   app.innerHTML=pveTopMarkup(run)+sharedEncounterMarkup({categoryLabel:roomCategory,name:roomName,subtitle:'FLOOR '+run.floor+' · DEPTH '+run.depth,color:'#8b779c',enemyArt:pveEncounterArt(run),turnIndex:run.combat?.turn||1,threatLabel:'ROOM',threatValue:'Ⅰ',threatDetail:'협력 선택',intentLabel:'◇ 방의 규칙',intentText:run.phase==='MAP_VOTE'?'다음 경로를 투표하세요.':run.phase==='SHOP'?'Run Gold로 필요한 상품을 구매합니다.':run.phase==='REST'?'각 플레이어가 자신의 휴식 행동을 선택합니다.':'파티와 함께 방의 선택을 해결하세요.'})+'<section class="party-grid '+(selector?'pve-selector-shell':'')+'">'+partyPanels(adaptedBundle,players,{me:member,result:selector?null:{},selected:pveSelected,useSkill:false,statLabel:'EXP'})+'</section>'+(selector?mobileSelection(mePlayer,{result:null,locked:false,selected:pveSelected,useSkill:false,twoCards:false}):'')+pveRelicStripMarkup(bundle,run);
   if(run.phase==='EVENT')app.insertAdjacentHTML('beforeend',pveEventActionsMarkup(run));
   if(run.phase==='REST')app.insertAdjacentHTML('beforeend',pveRestActionsMarkup(run,{engraveMode:pveEngraveMode,selectedNumber:pveSelectorNumber(run,pveSelected)}));
-  if(run.phase==='SHOP')app.insertAdjacentHTML('beforeend',pveShopMarkup(run,{reservation:pveShopReservation,selectedCardId:pveSelected}));
+  if(run.phase==='SHOP')app.insertAdjacentHTML('beforeend',pveShopMarkup(run,{reservation:shopReservation,selectedCardId:pveSelected}));
   if(run.phase==='REWARD_ROOM')app.insertAdjacentHTML('beforeend',pveRewardPromptMarkup(run,pvePlayerForUser(run,api.user?.id)));
   if(run.phase==='AUGMENT_CHOICE'){
     if(run.augmentChoice?.resumePhase==='ROOM_RESULT')app.insertAdjacentHTML('beforeend',pveRoomResultOverlayMarkup(bundle,run,{interactive:false}));
@@ -243,7 +248,7 @@ async function accept(next, restoring = false) {
   if (bundle?.room.id === next.room.id && next.room.version < bundle.room.version) return;
   if (newRoom) roomEpoch++;
   if(newSession){entryError='';entryProgress='';entryCompleted=null;}
-  if(newPveRun){pveSelected=null;pveUseSkill=false;pveMapOpen=next.run?.phase==='MAP_VOTE';pveShopReservation=null;pveEngraveMode=false;pveEntryError='';pveEntryProgress='';pveEntryCompleted=null;pveVisitedNodes.clear();pveLastPresentedTurn=restoring?(next.run?.combat?.publicTurnResult?.turn||0):0;const rewardResult=next.run?.roomState?.publicTurnResult;pveLastPresentedRewardKey=restoring&&rewardResult?((next.run.currentRoomNodeId||'reward')+':'+(rewardResult.attempt||1)):'';}
+  if(newPveRun){pveSelected=null;pveUseSkill=false;pveMapOpen=next.run?.phase==='MAP_VOTE';pveEngraveMode=false;pveEntryError='';pveEntryProgress='';pveEntryCompleted=null;pveVisitedNodes.clear();pveLastPresentedTurn=restoring?(next.run?.combat?.publicTurnResult?.turn||0):0;const rewardResult=next.run?.roomState?.publicTurnResult;pveLastPresentedRewardKey=restoring&&rewardResult?((next.run.currentRoomNodeId||'reward')+':'+(rewardResult.attempt||1)):'';}
   bundle = next;
   void getAudio().setScene(next.session||next.run ? 'dungeon' : 'lobby');
   if (newRoom) await api.subscribe(next.room.id, sync, status);
@@ -496,12 +501,12 @@ document.addEventListener('click', async event => {
   if(action==='pve-rest-engrave-confirm'&&pveSelected){const number=pveSelectorNumber(bundle.run,pveSelected);if(number!=null)showModal('<div class="eyebrow">NUMBER ENGRAVING · CONFIRM</div><h2>숫자 '+escape(number)+'을 각인할까요?</h2><p>각인은 물리 카드 슬롯이 아니라 이 숫자 값에 적용됩니다.</p><button class="button primary full" data-action="pve-rest-engrave-apply" data-number="'+escape(number)+'">각인 적용 →</button>');}
   if(action==='pve-rest-engrave-apply'){const number=Number(button.dataset.number);modal.close();if(Number.isInteger(number)){pveEngraveMode=false;pveSelected=null;void performPve('pve.restChoice',{choice:'ENGRAVE',number});}}
   if(action==='pve-shop-item'){const room=bundle.run?.roomState||{},item=[...(room.cardStock||[]),...(room.relicStock||[])].find(x=>x.id===button.dataset.productId);if(item){if(item.kind==='CARD')showModal('<div class="eyebrow">SHOP · CARD</div><h2>숫자 '+escape(item.value)+' 카드</h2><p>가격 '+escape(item.price)+'G · 구매하면 내 카드 한 장과 교체합니다.</p><button class="button primary full" data-action="pve-shop-reserve" data-product-id="'+escape(item.id)+'">교체 카드 선택 →</button>');else{const relic=relicUi(item.relicId);showModal('<div class="eyebrow">SHOP · RELIC</div><h2>'+escape(relic.name)+'</h2><p>'+escape(relic.text)+'</p><p>'+escape(item.price)+'G</p><button class="button primary full" data-action="pve-shop-buy-relic-confirm" data-product-id="'+escape(item.id)+'">구매 확인 →</button>');}}}
-  if(action==='pve-shop-reserve'){const productId=button.dataset.productId;modal.close();pveShopReservation=productId;pveSelected=null;void performPve('pve.shopReserveCard',{product_id:productId});}
+  if(action==='pve-shop-reserve'){const productId=button.dataset.productId;modal.close();pveSelected=null;void performPve('pve.shopReserveCard',{product_id:productId});}
   if(action==='pve-shop-buy-relic-confirm'){const room=bundle.run?.roomState||{},item=(room.relicStock||[]).find(x=>x.id===button.dataset.productId);if(item){const relic=relicUi(item.relicId);showModal('<div class="eyebrow">SHOP · CONFIRM</div><h2>'+escape(relic.name)+'을 구매할까요?</h2><p>'+escape(item.price)+'G를 사용합니다.</p><button class="button primary full" data-action="pve-shop-buy-relic-apply" data-product-id="'+escape(item.id)+'">구매 확정 →</button>');}}
   if(action==='pve-shop-buy-relic-apply'){modal.close();void performPve('pve.shopBuyRelic',{product_id:button.dataset.productId});}
-  if(action==='pve-shop-confirm-card'&&pveShopReservation&&pveSelected){const room=bundle.run?.roomState||{},item=(room.cardStock||[]).find(x=>x.id===pveShopReservation),number=pveSelectorNumber(bundle.run,pveSelected);showModal('<div class="eyebrow">SHOP · CARD REPLACEMENT · CONFIRM</div><h2>이 카드를 교체할까요?</h2><p>내 숫자 '+escape(number)+' 카드 → 상점 숫자 '+escape(item?.value)+' 카드 · '+escape(item?.price)+'G</p><button class="button primary full" data-action="pve-shop-confirm-card-apply" data-product-id="'+escape(pveShopReservation)+'" data-replace-card-id="'+escape(pveSelected)+'">구매 + 교체 확정 →</button>');}
-  if(action==='pve-shop-confirm-card-apply'){const productId=button.dataset.productId,replaceId=button.dataset.replaceCardId;modal.close();pveShopReservation=null;pveSelected=null;void performPve('pve.shopConfirmCard',{product_id:productId,replace_card_id:replaceId});}
-  if(action==='pve-shop-cancel-card'&&pveShopReservation){const productId=pveShopReservation;pveShopReservation=null;pveSelected=null;void performPve('pve.shopCancelCard',{product_id:productId});}
+  if(action==='pve-shop-confirm-card'&&button.dataset.productId&&pveSelected){const productId=button.dataset.productId,room=bundle.run?.roomState||{},item=(room.cardStock||[]).find(x=>x.id===productId&&x.reservedByPlayerId===mine()?.id),number=pveSelectorNumber(bundle.run,pveSelected);if(item)showModal('<div class="eyebrow">SHOP · CARD REPLACEMENT · CONFIRM</div><h2>이 카드를 교체할까요?</h2><p>내 숫자 '+escape(number)+' 카드 → 상점 숫자 '+escape(item.value)+' 카드 · '+escape(item.price)+'G</p><button class="button primary full" data-action="pve-shop-confirm-card-apply" data-product-id="'+escape(productId)+'" data-replace-card-id="'+escape(pveSelected)+'">구매 + 교체 확정 →</button>');}
+  if(action==='pve-shop-confirm-card-apply'){const productId=button.dataset.productId,replaceId=button.dataset.replaceCardId;modal.close();pveSelected=null;void performPve('pve.shopConfirmCard',{product_id:productId,replace_card_id:replaceId});}
+  if(action==='pve-shop-cancel-card'&&button.dataset.productId){const productId=button.dataset.productId;pveSelected=null;void performPve('pve.shopCancelCard',{product_id:productId});}
   if(action==='pve-shop-ready')void performPve('pve.shopReady');
   if(action==='pve-reward-card')void performPve('pve.rewardSubmitCard',{card_instance_id:button.dataset.cardId,skill_intent:false});
   if(action==='pve-reward-relic')void performPve('pve.rewardChooseRelic',{relic_id:button.dataset.relicId});
