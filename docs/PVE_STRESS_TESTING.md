@@ -101,5 +101,6 @@ The generated `pve_spec_ambiguities.json` records these instead of silently chan
 - T14 heal + lethal precedence: PLAYER_DAMAGED healing runs before DOWN_RESOLVE, so immediate healing can prevent DOWN.
 - named augment builds exist as selection metadata but their effects are not executable yet.
 - stress-spec “stun/death” wording differs from server `STUNNED_NEXT_TURN` / `DOWNED` states.
+- implementation spec says combat-only resources reset at combat end, while current character code reinitializes known `publicResources` at the next combat start instead of explicitly clearing them at COMBAT_END. The harness reports this as a rule conflict and is prepared to hard-fail `COMBAT_RESOURCE_LEAK` once an enabled scenario reaches that boundary.
 
 No production balance numbers are changed by the stress harness.
