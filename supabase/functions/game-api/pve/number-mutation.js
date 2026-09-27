@@ -108,6 +108,7 @@ export function applyPreCollisionSteal(run,cards,events){
   actor.workingNumber=actorStart+total;
   actor.stealTotal=total;
   actor.stealTargetCount=actor.stealTargets.length;
+  actor.greedGained=total;
   imp.publicResources.greed=total;
   if(total>0)events.push({
     phase:'PRE_COLLISION_STEAL',effectId:'imp-steal-summary',actorId:imp.playerId,
