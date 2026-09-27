@@ -8,6 +8,20 @@ alter table public.rooms
   add constraint rooms_game_mode_check check(game_mode in ('COMPETITIVE','COOP_PVE'));
 update public.rooms set game_mode='COMPETITIVE' where game_mode is null;
 
+-- Server-authoritative emergency switch. Start OFF and enable only after
+-- migration/API/competitive smoke checks complete.
+create table public.pve_runtime_flags(
+  flag_key text primary key,
+  enabled boolean not null,
+  updated_at timestamptz not null default now(),
+  constraint pve_runtime_flags_key_check check(flag_key in ('COOP_PVE_ENABLED'))
+);
+alter table public.pve_runtime_flags enable row level security;
+revoke all on public.pve_runtime_flags from anon,authenticated;
+grant all on public.pve_runtime_flags to service_role;
+insert into public.pve_runtime_flags(flag_key,enabled)
+values('COOP_PVE_ENABLED',false);
+
 -- PVE permanent rewards are deliberately isolated from competitive game_results/RP.
 alter table public.pve_runs
   add column if not exists rewards_committed boolean not null default false;
