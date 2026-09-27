@@ -145,6 +145,7 @@ export function selfModifyCard(player,resolved,submission){
     const magnitude=spend===4?2:1,next=resolved.workingNumber+direction*magnitude;
     if(next<0||next>6)throw new Error('역산술 결과는 0~6 범위여야 합니다.');
     player.publicResources.mana=mana-spend;
+    resolved.resourceName='mana';resolved.resourceBefore=mana;resolved.resourceSpent=spend;resolved.resourceAfter=player.publicResources.mana;
     resolved.workingNumber=next;resolved.finalNumber=next;
     resolved.skillUsed='reverse_math';resolved.skillValue=direction*magnitude;resolved.resourceSpent=spend;
     return;
@@ -154,6 +155,7 @@ export function selfModifyCard(player,resolved,submission){
   if(mana<spend)rejectSkill('INSUFFICIENT_RESOURCE','마나가 부족합니다.');
   const bonus=spend===6?3:spend===4?2:1;
   player.publicResources.mana=mana-spend;
+  resolved.resourceName='mana';resolved.resourceBefore=mana;resolved.resourceSpent=spend;resolved.resourceAfter=player.publicResources.mana;
   resolved.workingNumber+=bonus;
   resolved.finalNumber=resolved.workingNumber;
   resolved.skillUsed='amplify';
@@ -184,9 +186,11 @@ export function resolvePostCollisionCharacter(run,resolved,submission,events=[])
     resolved.followUpCardIds=priv.remainingCardIds.filter(id=>id!==resolved.cardInstanceId);
     player.publicResources.burstReadyCycle=(priv.cycleIndex||1)+2;
     resolved.skillUsed='full_burst';
+    resolved.fullBurstOutcome='SUCCESS';
   }else if(resolved.invalidReason==='COLLISION'){
     player.publicResources.burstReadyCycle=(priv.cycleIndex||1)+1;
     resolved.skillUsed='full_burst';
+    resolved.fullBurstOutcome='FAIL_COLLISION';
     resolved.burstMisfire=true;
   }
 }
