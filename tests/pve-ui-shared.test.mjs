@@ -177,3 +177,24 @@ test('PVE preload marks local completion only after authoritative assets_loaded 
  assert.ok(block.indexOf("api.request('assets_loaded'")<block.indexOf('pveEntryCompleted=run.id'));
  assert.match(block,/pveEntryCompleted=null;pveEntryError=error\.message/);
 });
+
+test('PVE preload roster displays only server-authoritative ready members',async()=>{
+ const source=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
+ const start=source.indexOf('function renderPveEntryLoading');
+ const end=source.indexOf('async function preparePveEntry',start);
+ const block=source.slice(start,end);
+ assert.match(block,/ready\.includes\(member\.id\)/);
+ assert.doesNotMatch(block,/ready\.includes\(member\.id\)\|\|pveEntryCompleted/);
+});
+
+test('PVE-UI-20 competitive Gameplay keeps its existing shared player/card/reveal path',async()=>{
+ const source=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
+ const start=source.indexOf('function renderGame(');
+ const end=source.indexOf('async function sync()',start);
+ const block=source.slice(start,end);
+ assert.match(block,/sharedGameTopMarkup/);
+ assert.match(block,/sharedEncounterMarkup/);
+ assert.match(block,/partyPanels\(bundle,players/);
+ assert.match(block,/mobileSelection\(player/);
+ assert.match(block,/renderGame\(result\); await reveal\(result\)/);
+});
