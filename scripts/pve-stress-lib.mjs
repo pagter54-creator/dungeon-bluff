@@ -515,6 +515,66 @@ function assertT04CollisionTurn(run,result,policyPlan){
   };
 }
 
+function assertT03SustainTurn(run,result,policyPlan){
+  const events=result.events||[];
+  const damageEvents=events.filter(e=>e.type==='PLAYER_DAMAGED');
+  const redirects=events.filter(e=>e.type==='DAMAGE_REDIRECTED');
+  const seenDamage=new Set();
+  for(const event of damageEvents){
+    if(!event.damageEventId)fail('DAMAGE_EVENT_ID_MISSING','T03 damage event is missing stable identity',{event});
+    if(seenDamage.has(event.damageEventId))fail('DAMAGE_PACKET_DUPLICATE','same damage packet applied more than once',{damageEventId:event.damageEventId});
+    seenDamage.add(event.damageEventId);
+    if((Number(event.amount)||0)<0||(Number(event.preventedDamage)||0)<0)fail('INVALID_DAMAGE','negative sustain damage metric',{event});
+  }
+  const seenRedirect=new Set();
+  for(const event of redirects){
+    if(seenRedirect.has(event.damageEventId))fail('DAMAGE_REDIRECT_DUPLICATE','one damage event redirected more than once',{event});
+    seenRedirect.add(event.damageEventId);
+    const applied=damageEvents.filter(x=>x.damageEventId===event.damageEventId);
+    if(applied.length!==1||applied[0].playerId!==event.redirectedTarget)fail('DAMAGE_REDIRECT_SPLIT','redirected damage also hit original target or wrong target',{event,applied});
+    if(applied[0].playerId===event.originalTarget)fail('DAMAGE_REDIRECT_ORIGINAL_HIT','original target took redirected damage',{event,applied});
+  }
+  const sourceHealEvents=events.filter(e=>['TRANSFUSION_USED','WHITE_MAGIC_HEAL','BERSERKER_COLLISION_HEAL'].includes(e.type)&&e.healEventId);
+  const sourceIds=new Set();
+  for(const event of sourceHealEvents){
+    if(sourceIds.has(event.healEventId))fail('HEAL_EFFECT_REENTRY','same sustain heal effect executed more than once',{event});
+    sourceIds.add(event.healEventId);
+  }
+  const appliedHealEvents=events.filter(e=>e.type==='PLAYER_HEALED'&&e.healEventId);
+  const appliedIds=new Set();
+  for(const event of appliedHealEvents){
+    if(appliedIds.has(event.healEventId))fail('HEAL_DUPLICATE_APPLICATION','same heal event applied twice',{event});
+    appliedIds.add(event.healEventId);
+  }
+  const rawIncomingDamage=damageEvents.reduce((n,e)=>n+(Number(e.rawDamage)||0),0);
+  const actualDamage=damageEvents.reduce((n,e)=>n+(Number(e.amount)||0),0);
+  const preventedDamage=damageEvents.reduce((n,e)=>n+(Number(e.preventedDamage)||0),0);
+  const healing=appliedHealEvents.reduce((n,e)=>n+(Number(e.amount)||0),0);
+  const wastedHeal=sourceHealEvents.reduce((n,e)=>n+(Number(e.wastedHeal)||0),0);
+  return {
+    turn:result.turn,policy:policyPlan?.policy||null,
+    decisions:structuredClone(policyPlan?.decisions||[]),
+    events:structuredClone(events.filter(e=>[
+      'GUARDIAN_WALL_RESCUE','DAMAGE_REDIRECTED','PLAYER_DAMAGED','PLAYER_HEALED','TRANSFUSION_USED',
+      'VAMPIRE_BLOOD_GAINED','WHITE_MAGIC_HEAL','BERSERKER_COLLISION_HEAL','BERSERKER_REVENGE_GAINED','BERSERKER_REVENGE_CONSUMED'
+    ].includes(e.type))),
+    rawIncomingDamage,redirectedDamage:redirects.reduce((n,e)=>n+(Number(e.damageBeforeReduction)||0),0),
+    preventedDamage,actualDamage,healing,wastedHeal,
+    healEvents:appliedHealEvents.length,protectionEvents:damageEvents.filter(e=>(Number(e.preventedDamage)||0)>0).length,
+    redirectEvents:redirects.length,revengeGains:events.filter(e=>e.type==='BERSERKER_REVENGE_GAINED').length,
+    collisionHeals:events.filter(e=>e.type==='BERSERKER_COLLISION_HEAL').reduce((n,e)=>n+(Number(e.amount)||0),0),
+    transfusions:events.filter(e=>e.type==='TRANSFUSION_USED').length,
+    whiteMagicHeals:events.filter(e=>e.type==='WHITE_MAGIC_HEAL').reduce((n,e)=>n+(Number(e.amount)||0),0),
+    hp1Rescues:appliedHealEvents.filter(e=>Number(e.before)===1&&Number(e.after)>1).length,
+    pendingDownSaved:0,
+    recursiveHealCount:0,recursiveRedirectCount:0,
+    hpAfter:Object.fromEntries(run.players.map(p=>[p.playerId,p.hp])),
+    bloodAfter:Object.fromEntries(run.players.filter(p=>p.characterId==='vampire').map(p=>[p.playerId,Number(p.publicResources.blood)||0])),
+    manaAfter:Object.fromEntries(run.players.filter(p=>p.characterId==='mage').map(p=>[p.playerId,Number(p.publicResources.mana)||0])),
+    revengeAfter:Object.fromEntries(run.players.filter(p=>p.characterId==='berserker').map(p=>[p.playerId,Number(p.publicResources.revenge)||0]))
+  };
+}
+
 export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterDef=F1_MONSTER_DEFINITIONS.f1_armored_boar,policy='reference',flame=4,maxTurns=HARD_MAX_TURNS,caseId='generic-combat'}){
   const run=makeCombatRun(seed,{caseId,characterIds,augmentIdsByPlayer,flame,monsterDef});
   let actions=0,resolves=0;
