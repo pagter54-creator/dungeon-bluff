@@ -394,7 +394,7 @@ All policy decisions are made from owner PlayerView plus public READY informatio
 - Mana, Toughness and Revelation never become negative.
 - resource values never exceed their current registry-defined cap.
 - rejected requests cannot consume resource or mutate card/submission state.
-- committed duplicate submissions reject with `ALREADY_USED`.
+- normal card resubmission during `SELECTION_OPEN` preserves the existing latest-submission-authoritative rule and cannot double-spend resource; an immediate Prophet skill attempted after the Prophet has committed a card rejects with `ALREADY_USED`.
 - remaining + spent is an exact partition of existing physical card IDs.
 - recovery moves an existing card ID and never creates a new instance.
 - an active empty hand cannot persist without cycle reset.
