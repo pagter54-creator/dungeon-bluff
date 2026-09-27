@@ -93,7 +93,7 @@ async function performPve(action,params={}){
       ...params
     });
     if(response.run){
-      bundle={...bundle,run:response.run,pveSettlement:response.settlement??bundle.pveSettlement};
+      bundle={...bundle,run:response.run,pveSettlement:response.settlement??bundle.pveSettlement,pveRewardsCommitted:response.settlement?.settled===true?true:bundle.pveRewardsCommitted};
       if(['RUN_CLEAR','RUN_FAILED','ABANDONED'].includes(response.run.phase))void refreshAccount().catch(()=>{});
       renderPve();
     }
