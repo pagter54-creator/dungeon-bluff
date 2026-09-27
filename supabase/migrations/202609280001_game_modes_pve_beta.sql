@@ -30,7 +30,7 @@ grant all on public.pve_results to service_role;
 -- Closing/expiring a room also terminates an unfinished PVE run without
 -- inventing any failure/abandon Gold payout.
 create or replace function public.pve_abandon_closed_room() returns trigger
-language plpgsql security definer set search_path='' as $
+language plpgsql security definer set search_path='' as $$
 begin
   if new.status='closed' and old.status is distinct from 'closed' then
     update public.pve_runs
@@ -39,7 +39,7 @@ begin
         and coalesce(state->>'phase','') not in ('RUN_CLEAR','RUN_FAILED','ABANDONED');
   end if;
   return new;
-end $;
+end $$;
 drop trigger if exists pve_abandon_on_room_close on public.rooms;
 create trigger pve_abandon_on_room_close
 after update of status on public.rooms
