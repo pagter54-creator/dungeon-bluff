@@ -70,8 +70,15 @@ async function publicBundleView(bundle:any,userId:string){
     if(error)throw new Error('협력 탐험 상태를 읽지 못했습니다.');
     if(data?.state){
       const run=structuredClone(data.state);run.version=data.version;
+      let settlement=null;
+      if(['RUN_CLEAR','RUN_FAILED','ABANDONED'].includes(run.phase)){
+        const settled=await admin.rpc('pve_settle_rewards',{p_run:run.id});
+        if(settled.error)throw new Error('PVE 보상을 확인하지 못했습니다.');
+        settlement=settled.data;
+      }
       out.run=projectPveRunForUser(run,userId);
-      out.pveRewardsCommitted=Boolean(data.rewards_committed);
+      out.pveSettlement=settlement;
+      out.pveRewardsCommitted=Boolean(data.rewards_committed||settlement?.settled);
     }else out.run=null;
   }
   return out;
