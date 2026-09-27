@@ -917,10 +917,12 @@ export function runT09(seed){
     seed:`${seed}:stress`,caseId:'T09-stress',characterIds:T09_CHARACTER_IDS,
     monsterDef:F1_MONSTER_DEFINITIONS.f1_armored_boar,policy:'resource_starvation',flame:4
   });
+  const resourceMetrics=t09Metrics(stress.resourceTimeline,stress.combatResourceLeakCount);
+  if(resourceMetrics.resourceLeakAtCombatEnd>0)fail('RESOURCE_LEAK_COMBAT_END','T09 combat-scoped resources survived COMBAT_END',{seed,count:resourceMetrics.resourceLeakAtCombatEnd});
   return {
     scenarioId:'T09',seed,status:'PASS',outcome:stress.outcome,actionCount:stress.actions,
     fixtures:fixtures.cases,resourceTimeline:stress.resourceTimeline,
-    resourceMetrics:t09Metrics(stress.resourceTimeline,stress.combatResourceLeakCount),
+    resourceMetrics,
     combats:stress.combats,finalFlame:stress.finalFlame
   };
 }
