@@ -482,6 +482,7 @@ function assertT04CollisionTurn(run,result,policyPlan){
     targetNumber:policyPlan?.targetNumber??null,
     intentionalParticipantIds:[...(policyPlan?.intentionalParticipantIds||[])],
     intentionalCollisionAttempt:Boolean(policyPlan?.intentionalCollisionAttempt),
+    resolvedCards:structuredClone(result.cards||[]),
     numberHistories:structuredClone(result.numberHistories||[]),
     mutationEvents:structuredClone(result.mutationEvents||[]),
     collisionGroups:structuredClone(result.collisionGroups||[]),
@@ -900,7 +901,7 @@ function resolveT04Fixture(run,id,{numbers,skills={},thrallId=null,hpByPlayer={}
     checkedTurn:turn
   };
 }
-function t04Card(fixture,pid){const card=fixture.numberHistories.find(x=>x.playerId===pid);if(!card)fail('T04_FIXTURE_CARD_MISSING','fixture result card missing',{id:fixture.id,pid});return card;}
+function t04Card(fixture,pid){const card=fixture.resolvedCards.find(x=>x.playerId===pid);if(!card)fail('T04_FIXTURE_CARD_MISSING','fixture result card missing',{id:fixture.id,pid});return card;}
 function t04Packet(fixture,pid){return fixture.damagePackets.find(x=>x.sourcePlayerId===pid&&!x.followUp)||null;}
 function t04Group(fixture){return fixture.collisionGroups[0]||null;}
 
@@ -1044,7 +1045,7 @@ function t04CollisionMetrics(turns){
     berserkerCollisionHeal:sum('berserkerHeal'),
     berserkerRevengeGain:events.filter(e=>e.type==='BERSERKER_REVENGE_GAINED').reduce((s,e)=>s+(Number(e.amount)||0),0),
     berserkerRevengeConsume:events.filter(e=>e.type==='BERSERKER_REVENGE_CONSUMED').reduce((s,e)=>s+(Number(e.amount)||0),0),
-    impStolenAmount:groups.length?sum('impStolenBeforeCollision'):(turns||[]).flatMap(turn=>turn.mutationEvents||[]).filter(e=>e.effectId==='imp-steal-summary').reduce((s,e)=>s+(Number(e.totalActuallyStolen)||0),0),
+    impStolenAmount:(turns||[]).flatMap(turn=>turn.mutationEvents||[]).filter(e=>e.effectId==='imp-steal-summary').reduce((s,e)=>s+(Number(e.totalActuallyStolen)||0),0),
     vampireSwapCount:(turns||[]).flatMap(turn=>turn.mutationEvents||[]).filter(e=>e.phase==='PRE_COLLISION_SWAP').length,
     generatedResourceValue:resourceCount,
     triggeredEffectCount:triggered,
