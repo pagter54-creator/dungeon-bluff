@@ -42,6 +42,9 @@ jobs:
       - name: Run PVE T09 100-seed balance
         run: npm run pve:stress:balance -- --scenario T09 --output artifacts/pve-stress-t09-balance
 
+      - name: Run PVE T04 100-seed balance
+        run: npm run pve:stress:balance -- --scenario T04 --output artifacts/pve-stress-t04-balance
+
       - name: Upload PVE stress smoke reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -72,4 +75,12 @@ jobs:
         with:
           name: pve-stress-t09-balance-${{ github.sha }}
           path: artifacts/pve-stress-t09-balance/
+          if-no-files-found: error
+
+      - name: Upload PVE T04 balance reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pve-stress-t04-balance-${{ github.sha }}
+          path: artifacts/pve-stress-t04-balance/
           if-no-files-found: error
