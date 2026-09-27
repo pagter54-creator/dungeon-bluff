@@ -15,11 +15,11 @@ test('PVE stress scenario availability activates T00 only when its four builds a
   const status=Object.fromEntries(STRESS_SCENARIOS.map(s=>[s.id,scenarioAvailability(s)]));
   assert.equal(status.T00.available,true);
   assert.equal(status.T14.available,true);
-  for(const id of ['T05','T09','T02','T03','T04','T06'])assert.equal(status[id].available,false,id);
+  assert.equal(status.T05.available,true);
+  for(const id of ['T09','T02','T03','T04','T06'])assert.equal(status[id].available,false,id);
   assert.deepEqual(status.T00.missingCharacters,[]);
   assert.deepEqual(status.T00.missingBuildEffects,[]);
   assert.ok(status.T09.missingCharacters.includes('prophet'));
-  assert.ok(status.T05.missingCharacters.includes('vampire'));
   assert.ok(skippedScenarioReport().some(x=>x.scenarioId==='T06'));
 });
 
@@ -108,6 +108,16 @@ test('PVE stress CLI writes required JSON and seed CSV outputs',async()=>{
   assert.equal(summary.scenarios[0].scenarioId,'T14');
   const failed=JSON.parse(fs.readFileSync(path.join(dir,'pve_failed_seeds.json'),'utf8'));
   assert.deepEqual(failed,[]);
+});
+
+test('PVE stress T05 CLI emits mutation history and fixture artifacts',async()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'pve-stress-t05-'));
+  const code=await stressMain(['--scenario','T05','--seed','cli-t05-seed','--output',dir]);
+  assert.equal(code,0);
+  for(const name of ['pve_number_mutation_turns.jsonl','pve_t05_fixtures.json'])assert.equal(fs.existsSync(path.join(dir,name)),true,name);
+  const fixtures=JSON.parse(fs.readFileSync(path.join(dir,'pve_t05_fixtures.json'),'utf8'));
+  assert.equal(fixtures.scenarioId,'T05');
+  assert.ok(fixtures.fixtures.length>=8);
 });
 
 test('PVE stress T00 CLI emits turn-level reference communication telemetry',async()=>{
