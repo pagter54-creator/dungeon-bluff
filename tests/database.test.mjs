@@ -112,6 +112,9 @@ before(async () => {
   await db.exec(await readFile(new URL('../supabase/migrations/202609250004_gambler_eleven_cards.sql', import.meta.url), 'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/202609250005_demonsword_predation.sql', import.meta.url), 'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/202609250006_imp_number_steal.sql', import.meta.url), 'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/202609270001_pve_core.sql', import.meta.url), 'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/202609270002_pve_hardening_telemetry.sql', import.meta.url), 'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/202609280001_game_modes_pve_beta.sql', import.meta.url), 'utf8'));
   globalThis.__testCreateClient = () => admin;
   globalThis.Deno = { env: { get: () => 'test-value' }, serve: fn => { handler = fn; } };
   let router = stripTypeScriptTypes(await readFile(new URL('../supabase/functions/game-api/index.ts', import.meta.url), 'utf8'));
@@ -193,7 +196,7 @@ test('revelation activation commits once under concurrent retries and exposes on
 
 test('real migration parses and enforces service-only RPC and private table access', async () => {
   const { rows } = await db.query(`select tablename from pg_tables where schemaname='public'`);
-  assert.equal(rows.length, 14);
+  assert.equal(rows.length, 18);
   await db.exec(`set role authenticated`);
   try {
     await assert.rejects(db.query('select * from public.turn_submissions'), /permission denied/);
@@ -884,4 +887,95 @@ test('twins immediate acrobatics is atomic, public, parity-validated and recharg
   }
   assert.equal(p.cycleIndex,old.cycleIndex+2);
  }finally{if(room)for(const id of ids)await api(id,'leave_room',{room_id:room.id});useRemakeHandler=false;}
+});
+
+
+test('MODE-01..08 room mode is authoritative, legacy defaults competitive, and COOP starts a real PVE run',async()=>{
+  const host=await newAccount('ModeHost'),peer=await newAccount('ModePeer');
+  let legacy=await rawApi(host,'create_room',{room_title:'Legacy mode default'});
+  assert.equal(legacy.status,200,legacy.error);assert.equal(legacy.room.gameMode,'COMPETITIVE');
+  assert.equal((await db.query('select game_mode from public.rooms where id=$1',[legacy.room.id])).rows[0].game_mode,'COMPETITIVE');
+  const invalid=await rawApi(host,'create_room',{room_title:'Bad mode',gameMode:'RANKED_PVE'});assert.equal(invalid.status,400);
+  await rawApi(host,'leave_room',{room_id:legacy.room.id});
+
+  let competitive=await rawApi(host,'create_room',{room_title:'Competitive route',gameMode:'COMPETITIVE'});
+  for(let i=0;i<3;i++)competitive=await rawApi(host,'add_ai',{room_id:competitive.room.id,ai_type:'balanced'});
+  await rawApi(host,'set_ready',{room_id:competitive.room.id,ready:true});
+  const competitiveStarted=await rawApi(host,'start_game',{room_id:competitive.room.id});
+  assert.equal(competitiveStarted.status,200,competitiveStarted.error);assert.ok(competitiveStarted.session);assert.equal(competitiveStarted.run,undefined);
+  assert.equal(Number((await db.query('select count(*) as n from public.pve_runs where room_id=$1',[competitive.room.id])).rows[0].n),0);
+  await rawApi(host,'leave_room',{room_id:competitive.room.id});
+
+  let coop=await rawApi(host,'create_room',{room_title:'COOP beta route',gameMode:'COOP_PVE'});
+  assert.equal(coop.status,200,coop.error);assert.equal(coop.room.gameMode,'COOP_PVE');
+  const listed=await rawApi(peer,'list_rooms');const listedCoop=listed.rooms.find(r=>r.id===coop.room.id);
+  assert.equal(listedCoop.gameMode,'COOP_PVE');
+  coop=await rawApi(peer,'join_room',{room_id:coop.room.id,gameMode:'COMPETITIVE'});
+  assert.equal(coop.room.gameMode,'COOP_PVE');
+  const reconnect=await rawApi(peer,'get_room_state',{room_id:coop.room.id});assert.equal(reconnect.room.gameMode,'COOP_PVE');
+  const hostMember=coop.members.find(m=>m.user_id===users[host]);
+  await rawApi(host,'set_character',{room_id:coop.room.id,member_id:hostMember.id,character_id:'seer'});
+  await rawApi(host,'add_ai',{room_id:coop.room.id,ai_type:'balanced'});coop=await rawApi(host,'add_ai',{room_id:coop.room.id,ai_type:'balanced'});
+  await rawApi(host,'set_ready',{room_id:coop.room.id,ready:true});await rawApi(peer,'set_ready',{room_id:coop.room.id,ready:true});
+  const started=await rawApi(host,'start_game',{room_id:coop.room.id});
+  assert.equal(started.status,200,started.error);assert.equal(started.session,null);assert.ok(started.run);assert.equal(started.run.phase,'MAP_VOTE');
+  const pveHost=started.run.players.find(p=>p.userId===users[host]);assert.equal(pveHost.characterId,'prophet');assert.equal(pveHost.lobbyCharacterId,'seer');
+  assert.equal(Number((await db.query('select count(*) as n from public.game_sessions where room_id=$1',[coop.room.id])).rows[0].n),0);
+  assert.equal(Number((await db.query('select count(*) as n from public.pve_runs where room_id=$1',[coop.room.id])).rows[0].n),1);
+  const peerState=await rawApi(peer,'get_room_state',{room_id:coop.room.id});assert.equal(peerState.room.gameMode,'COOP_PVE');assert.equal(peerState.run.id,started.run.id);
+
+  await rawApi(peer,'leave_room',{room_id:coop.room.id});await rawApi(host,'leave_room',{room_id:coop.room.id});
+});
+
+test('COOP_PVE start rejects unsupported lobby characters instead of silently falling back',async()=>{
+  const host=await newAccount('UnsupportedPve');
+  let coop=await rawApi(host,'create_room',{room_title:'Unsupported PVE',gameMode:'COOP_PVE'});
+  for(let i=0;i<3;i++)coop=await rawApi(host,'add_ai',{room_id:coop.room.id,ai_type:'balanced'});
+  const member=coop.members.find(m=>m.user_id===users[host]);
+  await rawApi(host,'set_character',{room_id:coop.room.id,member_id:member.id,character_id:'gambler'});
+  await rawApi(host,'set_ready',{room_id:coop.room.id,ready:true});
+  const start=await rawApi(host,'start_game',{room_id:coop.room.id});
+  assert.equal(start.status,400);assert.match(start.error,/지원하지 않는 캐릭터/);
+  assert.equal(Number((await db.query('select count(*) as n from public.pve_runs where room_id=$1',[coop.room.id])).rows[0].n),0);
+  assert.equal((await db.query('select status from public.rooms where id=$1',[coop.room.id])).rows[0].status,'waiting');
+  await rawApi(host,'leave_room',{room_id:coop.room.id});
+});
+
+test('REWARD-02/04/05 COOP clear pays authoritative runGold while RP and competitive ranking points stay unchanged',async()=>{
+  const host=await newAccount('PveRewardClear');
+  let coop=await rawApi(host,'create_room',{room_title:'PVE reward clear',gameMode:'COOP_PVE'});
+  for(let i=0;i<3;i++)coop=await rawApi(host,'add_ai',{room_id:coop.room.id,ai_type:'balanced'});
+  await rawApi(host,'set_ready',{room_id:coop.room.id,ready:true});
+  const started=await rawApi(host,'start_game',{room_id:coop.room.id});assert.equal(started.status,200,started.error);
+  const runId=started.run.id;
+  const stored=(await db.query('select state from public.pve_runs where id=$1',[runId])).rows[0].state;
+  const mine=stored.players.find(p=>p.userId===users[host]);mine.runGold=12;stored.phase='RUN_CLEAR';
+  await db.query('update public.pve_runs set state=$2 where id=$1',[runId,JSON.stringify(stored)]);
+  const before=(await accountApi(host,'get_account')).stats;
+  const result=await rawApi(host,'pve.getState',{run_id:runId,rpDelta:9999,gold:9999});
+  assert.equal(result.status,200,result.error);assert.equal(result.settlement.settled,true);assert.equal(result.settlement.rp_delta,0);
+  const after=(await accountApi(host,'get_account')).stats;
+  assert.equal(after.account_gold,before.account_gold+12);assert.equal(after.rating_points,before.rating_points);
+  const row=(await db.query('select * from public.pve_results where run_id=$1 and user_id=$2',[runId,users[host]])).rows[0];
+  assert.equal(row.run_gold,12);assert.equal(row.rating_delta,0);assert.equal(row.rating_before,row.rating_after);
+  const retry=await rawApi(host,'pve.getState',{run_id:runId,rpDelta:-9999});assert.equal(retry.settlement.idempotent,true);
+  const afterRetry=(await accountApi(host,'get_account')).stats;assert.equal(afterRetry.account_gold,after.account_gold);assert.equal(afterRetry.rating_points,before.rating_points);
+  await rawApi(host,'leave_room',{room_id:coop.room.id});
+});
+
+test('REWARD-03 PVE failure never changes RP and leaves failure Gold unresolved instead of inventing payout rules',async()=>{
+  const host=await newAccount('PveRewardFail');
+  let coop=await rawApi(host,'create_room',{room_title:'PVE reward failure',gameMode:'COOP_PVE'});
+  for(let i=0;i<3;i++)coop=await rawApi(host,'add_ai',{room_id:coop.room.id,ai_type:'balanced'});
+  await rawApi(host,'set_ready',{room_id:coop.room.id,ready:true});
+  const started=await rawApi(host,'start_game',{room_id:coop.room.id});const runId=started.run.id;
+  const stored=(await db.query('select state from public.pve_runs where id=$1',[runId])).rows[0].state;
+  stored.players.find(p=>p.userId===users[host]).runGold=9;stored.phase='RUN_FAILED';
+  await db.query('update public.pve_runs set state=$2 where id=$1',[runId,JSON.stringify(stored)]);
+  const before=(await accountApi(host,'get_account')).stats;
+  const state=await rawApi(host,'pve.getState',{run_id:runId,rpDelta:100});
+  assert.equal(state.status,200,state.error);assert.equal(state.settlement.settled,false);assert.equal(state.settlement.reason,'AMBIGUOUS_FAILURE_GOLD');assert.equal(state.settlement.rp_delta,0);
+  const after=(await accountApi(host,'get_account')).stats;assert.equal(after.rating_points,before.rating_points);assert.equal(after.account_gold,before.account_gold);
+  assert.equal(Number((await db.query('select count(*) as n from public.pve_results where run_id=$1',[runId])).rows[0].n),0);
+  await rawApi(host,'leave_room',{room_id:coop.room.id});
 });
