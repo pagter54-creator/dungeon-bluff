@@ -98,6 +98,7 @@ export async function handlePveAction({admin,user,body,json}){
     if(roomGameMode(bundle.room)!==GAME_MODE.COOP_PVE)return fail(json,'협력 탐험 방에서만 PVE 원정을 시작할 수 있습니다.',409);
     if(bundle.room.status!=='waiting')return fail(json,'대기 중인 방에서만 PVE 원정을 시작할 수 있습니다.',409);
     if(bundle.members?.length!==4)return fail(json,'PVE 원정은 4인이 필요합니다.');
+    if(!bundle.members.every(m=>m.member_type==='ai'||m.lobby_ready===true))return fail(json,'모든 플레이어가 준비를 완료해야 합니다.',409);
     if(bundle.session)return fail(json,'기존 PVP 원정이 진행 중입니다.');
     let run;try{run=buildInitialPveRun(bundle,{seed:body.seed,depthCount:body.depth_count});}
     catch(error){return fail(json,error.message||'PVE 캐릭터 구성을 확인해 주세요.',409);}
