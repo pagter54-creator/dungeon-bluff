@@ -262,7 +262,8 @@ export async function main(argv=process.argv.slice(2)){
     mode:opts.seed?'replay':opts.mode,
     requestedSeedCount:seedCount(opts),
     hardFailCount:hardFailures,
-    balanceWarningCount:allRows.filter(x=>x.status==='BALANCE_WARNING').length,
+    balanceWarningCount:allRows.filter(x=>x.status==='BALANCE_WARNING').length+
+      scenarioSummaries.reduce((sum,x)=>sum+(x.fairnessWarnings?.length||0),0),
     scenarioCount:selected.length,
     scenarios:scenarioSummaries,
     skippedScenarios:skipped,
