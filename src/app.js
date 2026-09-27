@@ -186,6 +186,7 @@ function renderPve(){
 }
 async function accept(next, restoring = false) {
   if (!next.room) return;
+  const previousPve=bundle?.run&&next.run?.id===bundle.run.id?structuredClone(bundle.run):null;
   if (bundle?.room.id === next.room.id && next.room.version < bundle.room.version) return;
   const newRoom = bundle?.room.id !== next.room.id;
   const newSession = next.session?.id && next.session.id !== sessionIdentity;
@@ -195,13 +196,17 @@ async function accept(next, restoring = false) {
   if (bundle?.room.id === next.room.id && next.room.version < bundle.room.version) return;
   if (newRoom) roomEpoch++;
   if(newSession){entryError='';entryProgress='';entryCompleted=null;}
+  if(newPveRun){pveSelected=null;pveUseSkill=false;pveMapOpen=false;pveShopReservation=null;pveEngraveMode=false;pveEntryError='';pveEntryProgress='';pveEntryCompleted=null;pveVisitedNodes.clear();pveLastPresentedTurn=restoring?(next.run?.combat?.publicTurnResult?.turn||0):0;}
   bundle = next;
   void getAudio().setScene(next.session||next.run ? 'dungeon' : 'lobby');
   if (newRoom) await api.subscribe(next.room.id, sync, status);
   if(next.run){
     pveRunIdentity=next.run.id;
+    if(next.run.map?.currentNodeId)pveVisitedNodes.add(next.run.map.currentNodeId);
     if(['RUN_CLEAR','RUN_FAILED','ABANDONED'].includes(next.run.phase)&&rewardRefreshSession!==next.run.id){rewardRefreshSession=next.run.id;void refreshAccount().catch(()=>{});}
-    renderPve();
+    const presentation=previousPve?adaptPveTurnResult(bundle,previousPve,next.run):null;
+    if(presentation&&presentation.turnIndex>pveLastPresentedTurn&&!pveAnimating&&!document.hidden)await presentPveTurn(previousPve,next.run,presentation);
+    else renderPve();
     updateBusy();
     return;
   }
