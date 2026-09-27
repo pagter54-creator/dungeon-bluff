@@ -219,7 +219,7 @@ The four definitions use the shared effect structure: trigger, condition, operat
 |---|---|---|
 | T00 Reference | ACTIVE | four required classes/build effects executable |
 | T14 Flame Boundary | ACTIVE | six canonical boundary fixtures |
-| T05 Number Mutation | SKIP | Vampire and Imp PVE engines/build effects unavailable; 역산술 remains metadata-only |
+| T05 Number Mutation | ACTIVE | Mage Reverse Math + Vampire/Full Thrall + Imp/Bold Steal + Knight executable |
 | T09 Resource Starvation | SKIP | Prophet PVE engine unavailable |
 | T02 Burst Ceiling | SKIP | Demon Swordsman / Martial Artist / Berserker PVE engines and required build effects unavailable |
 | T03 Sustain Fortress | SKIP | Vampire / Berserker PVE engines and required build effects unavailable |
@@ -227,6 +227,106 @@ The four definitions use the shared effect structure: trigger, condition, operat
 | T06 Recovery Loop | SKIP | Prophet / Demon Swordsman PVE engines and required build effects unavailable |
 
 Availability is computed from runtime definitions. The generated SKIP report is authoritative.
+
+## T05 Number Mutation
+
+T05 is ACTIVE with:
+
+- Mage / `역산술` (`aug-111`)
+- Vampire / `완전한 권속` (`aug-301`)
+- Imp / `대담한 슬쩍` (`aug-181`)
+- Knight / `불굴의 기사` (`aug-031`)
+
+The authoritative mutation order is explicit code, not an accidental effect-priority ordering:
+
+```text
+BASE_NUMBER
+→ SELF_MODIFY
+→ PRE_COLLISION_SWAP
+→ PRE_COLLISION_STEAL
+→ FINAL_NUMBER
+→ COLLISION_GROUP
+→ COLLISION_RESOLUTION
+→ VALIDITY
+→ DAMAGE
+```
+
+### Tier-I BETA rules used
+
+**Reverse Math**
+- Mana 2 => ±1
+- Mana 4 => ±2
+- result must be an integer in 0..6
+- direction and Mana spend are fixed in `skill_data` before resolve.
+
+**Vampire base / Full Thrall**
+- base deck 1/2/3/4/5
+- a collision creates a Thrall mark when none exists: highest growth EXP, seat order tie-break
+- Blood Command swaps numeric working values after SELF_MODIFY; physical cards and cycle ownership never move
+- Full Thrall limits Blood Command to once per cycle
+- valid Blood Command earns Dominance +1, cap 2
+- a later valid Blood Command consumes existing Dominance for +1 damage per stack; the current success can then establish the next Dominance stack.
+
+**Imp base / Bold Steal**
+- base deck 1/2/3/4/5
+- in PRE_COLLISION_STEAL, each matching non-Imp loses up to 1, never below 0
+- Imp gains exactly the sum actually removed
+- if at least two players are successfully stolen from in the same turn, Bold Steal grants +2 damage once for that attack
+- the damage bonus does not rerun STEAL.
+
+### Number-history telemetry
+
+Debug/stress turn results retain for every submitted physical card:
+
+```json
+{
+  "playerId": "p1",
+  "cardInstanceId": "card-123",
+  "baseNumber": 3,
+  "selfModifiedNumber": 4,
+  "postSwapNumber": 5,
+  "postStealNumber": 4,
+  "finalNumber": 4,
+  "collisionGroup": ["p1", "p3"],
+  "collisionImmune": false,
+  "valid": false,
+  "damage": 0
+}
+```
+
+Mutation events are also ordered and stored with their phase, effect id, actor/target, and before/after values.
+
+These debug structures are removed by `projectRun()`: ordinary PlayerView does not receive `numberHistories`, `mutationEvents`, or embedded per-card mutation debug state.
+
+Artifacts:
+- `pve_number_mutation_turns.jsonl`
+- `pve_t05_fixtures.json`
+- `tests/fixtures/pve-stress-t05-golden.json`
+
+### T05 hard invariants
+
+- NUMBER-01: all history numbers are finite integers
+- NUMBER-02: `history.finalNumber === resolved.finalNumber`
+- NUMBER-03: damage packets identify the same `finalNumber` as their `numberUsed`
+- NUMBER-04: swap never moves physical card ownership
+- NUMBER-05: Imp gain equals the sum actually removed from victims
+- NUMBER-06: victim values never fall below 0
+- NUMBER-07: a mutation effect cannot accidentally execute twice in the same phase/actor/target slot
+- NUMBER-08: mutation event phase order cannot move backwards or re-enter PRE_COLLISION after finalization
+
+T05 also keeps all existing card-zone, hidden-information, resource and deterministic replay hard failures.
+
+### Fixtures
+
+The semantic golden contains F1-F8 required chain fixtures plus:
+- F9 Reverse Math -1
+- F10 steal minimum boundary at 0
+- F11 Bold Steal two-target +2 damage
+- F12 Full Thrall existing-Dominance damage consumption
+
+### Known ambiguity
+
+`AMB-T05-MULTI-IMP`: the current BETA rules do not define ordering for multiple simultaneous Imps. T05 contains exactly one Imp. The resolver rejects that undefined case instead of inventing an ordering rule.
 
 ## T14 fixtures
 
@@ -245,7 +345,7 @@ Golden fixture:
 
 RULE-01 and RULE-02 formalize the existing golden behavior; the expected outcomes are not loosened to make the tests pass.
 
-## Effect Engine additions used by T00
+## Effect Engine additions used by T00/T05
 
 The existing Effect Engine remains the shared execution path.
 
@@ -295,13 +395,15 @@ Default: `artifacts/pve-stress/`
 - `pve_spec_ambiguities.json`
 - `pve_canonical_rules.json`
 - `pve_reference_turns.jsonl` when T00 runs
+- `pve_number_mutation_turns.jsonl` when T05 runs
+- `pve_t05_fixtures.json` when T05 runs
 - `scenarios/<scenarioId>.csv`
 
 GitHub Actions uploads the whole directory as `pve-stress-smoke-<sha>`.
 
 Resolved RULE-01~05 are written to `pve_canonical_rules.json`; `pve_spec_ambiguities.json` is reserved for genuinely unresolved issues discovered later.
 
-No production HP / EXP / Gold / monster balance numbers are changed by this stress/T00 task.
+No production HP / EXP / Gold / Flame / monster / card-pool balance numbers are changed by the T00/T05 stress work.
 
 
 ## T00 reference telemetry and fairness review
@@ -346,11 +448,12 @@ These are bot-policy review warnings, not automatic game-balance changes.
 
 ## CI reference baseline
 
-Project Checks run both:
+Project Checks run:
 
 ```bash
 npm run pve:stress:smoke
 npm run pve:stress:balance -- --scenario T00 --output artifacts/pve-stress-balance
+npm run pve:stress:balance -- --scenario T05 --output artifacts/pve-stress-t05-balance
 ```
 
-The 100-seed T00 balance sweep is uploaded separately so reference-policy regressions can be compared without changing production combat values.
+T00 and T05 100-seed sweeps are uploaded separately. Neither balance sweep changes production combat values or warning thresholds.
