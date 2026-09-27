@@ -8,6 +8,7 @@ export function projectRun(run,viewerPlayerId){
       player.cardPool=player.cardPool.map(({baseNumber,source,tags})=>({baseNumber,source,...(tags?{tags}: {})}));
     }
   }
+  if(out.combat?.pendingDownPlayerIds)delete out.combat.pendingDownPlayerIds;
   if(out.combat?.privateByPlayer){
     const own=out.combat.privateByPlayer[viewerPlayerId]||null;
     delete out.combat.privateByPlayer;
