@@ -165,6 +165,13 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
     config:{collisionHealCapMode:'MAX_HP',revengeMax:1,revengeBonusDamage:2},
     effects:[]
   },
+  'aug-161':{
+    executable:true,
+    source:'BETA_v0.1',
+    specialHandlers:['FATE_MANIPULATOR'],
+    config:{recoverCount:1,targetMode:'EXPLICIT_ALLY',recoverableSources:['BASE'],excludeTemporary:true},
+    effects:[]
+  },
   'aug-181':{
     executable:true,
     source:'BETA_v0.1',
@@ -195,11 +202,25 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
     config:{bonusDamagePerCombo:2,comboMax:3,maxUsesPerCycle:1,consumeOn:'VALID_SUCCESS',preserveComboOnCollision:true},
     effects:[]
   },
+  'aug-331':{
+    executable:true,
+    source:'BETA_v0.1',
+    specialHandlers:['DEVOURING_GHOST_SLASH'],
+    config:{extraDevourOnValidGhostSlash:1,levelThreshold:8},
+    effects:[]
+  },
   'aug-351':{
     executable:true,
     source:'BETA_v0.1',
     specialHandlers:['RELEASED_DEMON_SWORD'],
     config:{transformThreshold:6,transformedDeck:[2,4,5,6],resetDevourOnCombat:true,returnAfterCardsUsed:4},
+    effects:[]
+  },
+  'aug-381':{
+    executable:true,
+    source:'BETA_v0.1',
+    specialHandlers:['AERIAL_ACROBATICS'],
+    config:{rechargeValidAttacks:3,postAcrobaticsFirstValidBonusDamage:2},
     effects:[]
   },
   'aug-321':{
