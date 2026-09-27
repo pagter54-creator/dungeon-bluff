@@ -73,13 +73,17 @@ function mergeReferenceRows(summaries){
   const mergeBucket=(target,key,source)=>{
     const row=target[key]||(target[key]={
       intents:0,firstChoiceKept:0,yieldCount:0,actualCollisionCount:0,validAttackCount:0,
-      availableNumberTotal:0,beforeConflictCount:0,afterConflictCount:0,damage:0,availableBuckets:{}
+      availableNumberTotal:0,beforeConflictCount:0,afterConflictCount:0,damage:0,availableBuckets:{},availableSignatureBuckets:{}
     });
     for(const field of ['intents','firstChoiceKept','yieldCount','actualCollisionCount','validAttackCount','availableNumberTotal','beforeConflictCount','afterConflictCount','damage']){
       row[field]+=Number(source?.[field])||0;
     }
     for(const [count,bucket] of Object.entries(source?.availableBuckets||{})){
       const b=row.availableBuckets[count]||(row.availableBuckets[count]={intents:0,collisions:0});
+      b.intents+=Number(bucket.intents)||0;b.collisions+=Number(bucket.collisions)||0;
+    }
+    for(const [signature,bucket] of Object.entries(source?.availableSignatureBuckets||{})){
+      const b=row.availableSignatureBuckets[signature]||(row.availableSignatureBuckets[signature]={intents:0,collisions:0});
       b.intents+=Number(bucket.intents)||0;b.collisions+=Number(bucket.collisions)||0;
     }
   };
@@ -123,15 +127,15 @@ function referenceFairnessWarnings(reference,characterDamageShare,seedCount){
   const chars=Object.entries(reference.byCharacter||{});
   for(let i=0;i<chars.length;i++)for(let j=i+1;j<chars.length;j++){
     const [aId,a]=chars[i],[bId,b]=chars[j];
-    for(const count of [...new Set([...Object.keys(a.availableBuckets||{}),...Object.keys(b.availableBuckets||{})])]){
-      const aa=a.availableBuckets?.[count],bb=b.availableBuckets?.[count];
+    for(const signature of [...new Set([...Object.keys(a.availableSignatureBuckets||{}),...Object.keys(b.availableSignatureBuckets||{})])]){
+      const aa=a.availableSignatureBuckets?.[signature],bb=b.availableSignatureBuckets?.[signature];
       if(!aa?.intents||!bb?.intents)continue;
       const ar=aa.collisions/aa.intents,br=bb.collisions/bb.intents;
       const high=ar>=br?{id:aId,rate:ar}:{id:bId,rate:br};
       const low=ar>=br?{id:bId,rate:br}:{id:aId,rate:ar};
       const ratio=low.rate===0?(high.rate>0?Infinity:1):high.rate/low.rate;
       if(ratio>=2&&high.rate>low.rate&&(!worst||ratio>worst.ratio)){
-        worst={ratio,availableNumbers:Number(count),high,low};
+        worst={ratio,availableNumbers:signature.split(',').filter(Boolean).map(Number),high,low};
       }
     }
   }
