@@ -31,27 +31,33 @@ const setCanonicalBaseDeck=(player,numbers)=>{
   if(!onlyBase)return;
   player.cardPool=numbers.map((baseNumber,i)=>({id:`${player.playerId}:base:${i+1}`,baseNumber,source:'BASE'}));
 };
-const updateGhostSlashLevel=(player,events=[],reason='DEVOUR')=>{
+const updateGhostSlashLevel=(player,events=[],reason='DEVOUR',context={})=>{
   if(player.characterId!=='demon_swordsman'||player.augments.includes('aug-351'))return 0;
   const devour=Math.max(0,Number(player.publicResources.devour)||0);
-  const before=Math.max(0,Number(player.publicResources.ghostSlashLevel)||0),after=Math.floor(devour/8);
+  const threshold=Math.max(1,Number(runtimeConfig('aug-331').levelThreshold)||8);
+  const before=Math.max(0,Number(player.publicResources.ghostSlashLevel)||0),after=Math.floor(devour/threshold);
   if(after<=before)return 0;
+  const readyBefore=player.publicResources.ghostSlashReady===true;
   player.publicResources.ghostSlashLevel=after;player.publicResources.ghostSlashReady=true;
-  events.push({type:'GHOST_SLASH_LEVEL_UP',playerId:player.playerId,before,after,devour,reason,reactivated:true});
+  const rootActionId=context.rootActionId||null,recoveryChainId=context.recoveryChainId||rootActionId&&`reactivation:${rootActionId}`||null;
+  events.push({type:'GHOST_SLASH_LEVEL_UP',playerId:player.playerId,before,after,devour,reason,reactivated:!readyBefore,rootActionId,recoveryChainId,parentEventId:context.parentEventId||null,chainDepth:Number(context.chainDepth)||1,sourceEffectId:context.sourceEffectId||'DEMON_BASE'});
+  if(!readyBefore)events.push({type:'GHOST_SLASH_REACTIVATED',playerId:player.playerId,skillId:'ghost_slash',stateBefore:'USED',stateAfter:'READY',reactivationReason:'LEVEL_UP',devourBefore:context.devourBefore??null,devourAfter:devour,levelBefore:before,levelAfter:after,rootActionId,recoveryChainId,parentEventId:context.parentEventId||null,chainDepth:Number(context.chainDepth)||1,sourceEffectId:context.sourceEffectId||'DEMON_BASE'});
   return after-before;
 };
-const gainDevour=(player,amount,events=[],reason='VALID_ATTACK')=>{
+const gainDevour=(player,amount,events=[],reason='VALID_ATTACK',context={})=>{
   const gain=Math.max(0,Number(amount)||0);if(player.characterId!=='demon_swordsman'||gain<=0)return 0;
   const before=Math.max(0,Number(player.publicResources.devour)||0),after=before+gain;
   player.publicResources.devour=after;
-  events.push({type:'DEVOUR_GAINED',playerId:player.playerId,before,after,amount:gain,reason});
+  const rootActionId=context.rootActionId||null,recoveryChainId=context.recoveryChainId||rootActionId&&`reactivation:${rootActionId}`||null;
+  const eventId=context.eventId||rootActionId&&`devour:${rootActionId}:${reason}:${before}->${after}`||null;
+  events.push({type:'DEVOUR_GAINED',eventId,playerId:player.playerId,before,after,amount:gain,reason,rootActionId,recoveryChainId,parentEventId:context.parentEventId||null,chainDepth:Number(context.chainDepth)||1,sourceEffectId:context.sourceEffectId||'DEMON_BASE'});
   if(player.augments.includes('aug-351')){
     const threshold=Math.max(1,Number(runtimeConfig('aug-351').transformThreshold)||6);
     if(before<threshold&&after>=threshold&&!player.publicResources.transformationActive&&!player.publicResources.transformationPending){
       player.publicResources.transformationPending=true;
-      events.push({type:'DEMON_TRANSFORMATION_READY',playerId:player.playerId,threshold,before,after});
+      events.push({type:'DEMON_TRANSFORMATION_READY',playerId:player.playerId,threshold,before,after,rootActionId,recoveryChainId,parentEventId:eventId,chainDepth:(Number(context.chainDepth)||1)+1,sourceEffectId:'aug-351'});
     }
-  }else updateGhostSlashLevel(player,events,reason);
+  }else updateGhostSlashLevel(player,events,reason,{...context,devourBefore:before,parentEventId:eventId,chainDepth:(Number(context.chainDepth)||1)+1});
   return gain;
 };
 function activateDemonTransformation(player,privateState,run,events=[]){
@@ -93,6 +99,20 @@ export function initializeCombatCharacter(player){
     player.publicResources.fullBurstReady=true;
     player.publicResources.burstReadyCycle=1;
   }
+  if(player.characterId==='twins'&&player.augments.includes('aug-381')&&resolved.valid){
+    const cfg=runtimeConfig('aug-381');
+    if(player.publicResources.acrobaticsBoostReady){
+      const bonus=Math.max(0,Number(cfg.postAcrobaticsFirstValidBonusDamage)||2);
+      resolved.acrobaticsBonusDamage=bonus;player.publicResources.acrobaticsBoostReady=false;
+      events.push({type:'AERIAL_ACROBATICS_BONUS_CONSUMED',playerId:player.playerId,bonusDamage:bonus,cardInstanceId:resolved.cardInstanceId});
+    }
+    if(!player.publicResources.acrobaticsReady){
+      const before=Math.max(0,Number(player.publicResources.acrobaticsRechargeProgress)||0),need=Math.max(1,Number(cfg.rechargeValidAttacks)||3),after=Math.min(need,before+1);
+      player.publicResources.acrobaticsRechargeProgress=after;
+      events.push({type:'ACROBATICS_RECHARGE_PROGRESS',playerId:player.playerId,before,after,required:need,cardInstanceId:resolved.cardInstanceId});
+      if(after>=need){player.publicResources.acrobaticsReady=true;events.push({type:'ACROBATICS_RECHARGED',playerId:player.playerId,progress:after,required:need,reason:'VALID_ATTACKS'});}
+    }
+  }
   if(player.characterId==='martial_artist'){
     player.publicResources.combo=0;delete player.publicResources.lastSubmittedNumber;
   }
@@ -107,6 +127,8 @@ export function initializeCombatCharacter(player){
   }
   if(player.characterId==='twins'){
     player.publicResources.acrobaticsReady=true;
+    player.publicResources.acrobaticsRechargeProgress=0;
+    player.publicResources.acrobaticsBoostReady=false;
     delete player.publicResources.parity;
   }
 }
@@ -129,6 +151,7 @@ export function onCycleStartCharacter(player,privateState){
   }
   if(player.characterId==='demon_swordsman'&&!player.augments.includes('aug-351'))player.publicResources.ghostSlashReady=true;
   if(player.characterId==='twins'){
+    if(player.augments.includes('aug-381'))return;
     const lock=player.persistentCharacterState.acrobaticsLockCycle;
     if(lock!=null&&(privateState.cycleIndex||1)>lock){
       player.publicResources.acrobaticsReady=true;
@@ -184,7 +207,7 @@ export function validateCharacterSkillIntent(player,privateState,skillIntent,car
     if(player.augments.includes('aug-301')&&(privateState?.bloodCommandUsedCycle=== (privateState?.cycleIndex||1)))rejectSkill('ALREADY_USED','완전한 권속의 피의 명령은 사이클당 1회만 사용할 수 있습니다.');
   }
 }
-export function activateImmediateCharacterSkill(run,player){
+export function activateImmediateCharacterSkill(run,player,skillData=null){
   const c=run.combat;if(!c||c.phase!=='SELECTION_OPEN')rejectSkill('INVALID_PHASE','현재 스킬을 사용할 수 없습니다.');
   if(player.status==='DOWNED')rejectSkill('INVALID_PHASE','쓰러진 플레이어는 스킬을 사용할 수 없습니다.');
   if(c.turnSubmissions[player.playerId])rejectSkill('ALREADY_USED','카드 확정 제출 이후에는 이번 턴 즉시 스킬을 사용할 수 없습니다.');
@@ -212,6 +235,35 @@ export function activateImmediateCharacterSkill(run,player){
   }
   if(player.characterId==='prophet'){
     if((player.publicResources.revelation||0)<1)rejectSkill('INSUFFICIENT_RESOURCE','계시가 없습니다.');
+    if(player.augments.includes('aug-161')){
+      const targetPlayerId=String(skillData?.target_player_id||skillData?.targetPlayerId||'');
+      if(!targetPlayerId)rejectSkill('INVALID_SKILL_REQUEST','운명 조작자는 복구할 아군을 지정해야 합니다.');
+      const target=run.players.find(p=>p.playerId===targetPlayerId&&p.playerId!==player.playerId&&p.status!=='DOWNED');
+      if(!target)rejectSkill('INVALID_SKILL_REQUEST','운명 조작자 대상이 올바르지 않습니다.');
+      const targetPriv=c.privateByPlayer[target.playerId];
+      const recoverable=(targetPriv?.spentCardIds||[]).filter(id=>{
+        const card=target.cardPool.find(x=>x.id===id);
+        return card?.source==='BASE'&&!(card.tags||[]).some(tag=>['TEMPORARY','TRANSFORMED','SPECIAL'].includes(tag));
+      }).sort();
+      if(!recoverable.length)rejectSkill('SKILL_NOT_READY','대상 아군의 현재 사이클에 복구 가능한 사용 카드가 없습니다.');
+      const cardId=choose(run,recoverable,`fate-manipulator:${run.floor}:${run.depth}:${run.currentRoomNodeId||c.monster.id}:${c.turn}:${player.playerId}:${target.playerId}`);
+      const card=target.cardPool.find(x=>x.id===cardId);
+      if(!card||!targetPriv.spentCardIds.includes(cardId)||targetPriv.remainingCardIds.includes(cardId))rejectSkill('INVALID_STATE','복구 대상 physical card zone이 올바르지 않습니다.');
+      const cycleId=targetPriv.cycleIndex||1;
+      targetPriv.spentCardIds=targetPriv.spentCardIds.filter(id=>id!==cardId);
+      targetPriv.remainingCardIds.push(cardId);
+      const order=new Map(target.cardPool.map((x,index)=>[x.id,index]));
+      targetPriv.remainingCardIds.sort((a,b)=>(order.get(a)??999)-(order.get(b)??999)||a.localeCompare(b));
+      player.publicResources.revelation=0;
+      c.derivedEventSequence=(Number(c.derivedEventSequence)||0)+1;
+      const rootActionId=`skill:${c.id}:${c.turn}:${player.playerId}:fate-manipulator`;
+      const recoveryChainId=`recovery:${rootActionId}`,eventId=`recovery-event:${c.id}:${c.turn}:${c.derivedEventSequence}`;
+      const recovery={type:'CARD_RECOVERED',eventId,turn:c.turn,actorId:player.playerId,targetPlayerId:target.playerId,cardInstanceId:cardId,fromZone:'SPENT',toZone:'REMAINING',cycleIdBefore:cycleId,cycleIdAfter:cycleId,sourceEffectId:'aug-161',sourceCardInstanceId:null,rootActionId,recoveryChainId,parentEventId:null,chainDepth:1};
+      const used={type:'FATE_MANIPULATOR_USED',eventId:`fate:${eventId}`,turn:c.turn,playerId:player.playerId,targetPlayerId:target.playerId,recoveredCardId:cardId,rootActionId,recoveryChainId,parentEventId:null,chainDepth:0,sourceEffectId:'aug-161'};
+      c.pendingSkillEvents||=[];c.pendingSkillEvents.push(used,recovery);
+      priv.revelationPeek={turn:c.turn,targetPlayerId:target.playerId,recoveredCardId:cardId,recoveryMode:'ALLY'};
+      return used;
+    }
     const targets=run.players
       .filter(p=>p.playerId!==player.playerId&&p.status!=='DOWNED'&&c.turnSubmissions[p.playerId])
       .sort((a,b)=>a.seat-b.seat||a.playerId.localeCompare(b.playerId));
@@ -236,14 +288,24 @@ export function activateImmediateCharacterSkill(run,player){
     };
   }
   if(player.characterId!=='twins')rejectSkill('SKILL_NOT_READY','즉시 발동할 수 있는 PVE 스킬이 아닙니다.');
-  if(!player.publicResources.acrobaticsReady)rejectSkill('SKILL_NOT_READY','새 사이클을 완주하면 곡예가 재충전됩니다.');
-  priv.cycleIndex=(priv.cycleIndex||1)+1;
+  if(!player.publicResources.acrobaticsReady)rejectSkill('SKILL_NOT_READY',player.augments.includes('aug-381')?'유효 공격 3회를 달성하면 곡예가 재충전됩니다.':'새 사이클을 완주하면 곡예가 재충전됩니다.');
+  const previousCycleId=priv.cycleIndex||1,remainingBefore=[...(priv.remainingCardIds||[])],spentBefore=[...(priv.spentCardIds||[])],parityBefore=player.publicResources.parity||0;
+  priv.cycleIndex=previousCycleId+1;
   priv.spentCardIds=[];
   priv.remainingCardIds=player.cardPool.map(card=>card.id);
-  player.publicResources.parity=1-(player.publicResources.parity||0);
+  player.publicResources.parity=1-parityBefore;
   player.publicResources.acrobaticsReady=false;
-  player.persistentCharacterState.acrobaticsLockCycle=priv.cycleIndex;
-  return {type:'ACROBATICS_USED',playerId:player.playerId,cycleIndex:priv.cycleIndex,parity:player.publicResources.parity};
+  if(player.augments.includes('aug-381')){
+    player.publicResources.acrobaticsRechargeProgress=0;
+    player.publicResources.acrobaticsBoostReady=true;
+    delete player.persistentCharacterState.acrobaticsLockCycle;
+  }else player.persistentCharacterState.acrobaticsLockCycle=priv.cycleIndex;
+  c.derivedEventSequence=(Number(c.derivedEventSequence)||0)+1;
+  const rootActionId=`skill:${c.id}:${c.turn}:${player.playerId}:acrobatics`,recoveryChainId=`recovery:${rootActionId}`;
+  const resetEvent={type:'CYCLE_RESET',eventId:`cycle-reset:${c.id}:${c.turn}:${c.derivedEventSequence}`,turn:c.turn,playerId:player.playerId,classId:'twins',previousCycleId,nextCycleId:priv.cycleIndex,resetReason:'ACROBATICS',remainingBefore,spentBefore,remainingAfter:[...priv.remainingCardIds],spentAfter:[],parityBefore,parityAfter:player.publicResources.parity,rootActionId,recoveryChainId,parentEventId:null,chainDepth:1,sourceEffectId:player.augments.includes('aug-381')?'aug-381':'TWINS_BASE'};
+  const used={type:'ACROBATICS_USED',eventId:`acrobatics:${c.id}:${c.turn}:${c.derivedEventSequence}`,playerId:player.playerId,cycleIndex:priv.cycleIndex,parity:player.publicResources.parity,rootActionId,recoveryChainId,parentEventId:null,chainDepth:0,sourceEffectId:player.augments.includes('aug-381')?'aug-381':'TWINS_BASE'};
+  c.pendingSkillEvents||=[];c.pendingSkillEvents.push(used,resetEvent);
+  return used;
 }
 export function selfModifyCard(player,resolved,submission){
   if(player.characterId!=='mage'||!submission.skillIntent)return;
@@ -535,7 +597,7 @@ export function resolvePostCollisionCharacter(run,resolved,submission,events=[])
 export function baseDamageForCharacter(player,resolved){
   if(player.characterId==='rogue'&&resolved.soloLowest)return 5;
   let damage=resolved.finalNumber;
-  if(player.characterId==='twins')damage+=2;
+  if(player.characterId==='twins')damage+=2+Math.max(0,Number(resolved.acrobaticsBonusDamage)||0);
   if(player.characterId==='berserker')damage+=1;
   if(player.characterId==='martial_artist')damage+=Math.max(0,Number(resolved.martialComboBonus)||0);
   damage+=Math.max(0,Number(resolved.crushBonusDamage)||0);
@@ -562,7 +624,15 @@ export function onCombatEndCharacter(player,run=null){
 }
 export function onValidAttack(player,run=null,resolved=null,events=[]){
   if(player.characterId==='adventurer')player.growthExp+=1;
-  if(player.characterId==='demon_swordsman')gainDevour(player,1,events,'VALID_ATTACK');
+  if(player.characterId==='demon_swordsman'){
+    const rootActionId=run?.combat&&resolved?`action:${run.combat.id}:${run.combat.turn}:${player.playerId}:${resolved.cardInstanceId}`:null;
+    const context={rootActionId,recoveryChainId:rootActionId?`reactivation:${rootActionId}`:null,sourceEffectId:'DEMON_BASE',chainDepth:1};
+    gainDevour(player,1,events,'VALID_ATTACK',context);
+    if(player.augments.includes('aug-331')&&resolved?.skillUsed==='ghost_slash'){
+      const extra=Math.max(0,Number(runtimeConfig('aug-331').extraDevourOnValidGhostSlash)||1);
+      if(extra>0)gainDevour(player,extra,events,'GHOST_SLASH_VALID',{...context,sourceEffectId:'aug-331',chainDepth:2});
+    }
+  }
   if(player.characterId==='vampire'&&player.augments.includes('aug-321')){
     const cfg=runtimeConfig('aug-321'),gain=Math.max(0,Number(cfg.bloodPerValidAttack)||1);
     const before=Math.max(0,Number(player.publicResources.blood)||0),max=resourceMax(player,'blood',Number(cfg.bloodMax)||6),after=Math.min(max,before+gain);
@@ -578,7 +648,11 @@ export function onMonsterKilledCharacter(run,cards,packets,events=[]){
     const contribution=Number(damageByPlayer[player.playerId])||0;if(contribution<=0)continue;
     const totalAward=contribution===maxDamage?5:3;
     const extra=Math.max(0,totalAward-1);
-    if(extra>0)gainDevour(player,extra,events,contribution===maxDamage?'KILL_TOP_DAMAGE':'KILL_CONTRIBUTION');
+    if(extra>0){
+      const packet=(packets||[]).find(x=>x.sourcePlayerId===player.playerId&&!x.followUp)||(packets||[]).find(x=>x.sourcePlayerId===player.playerId);
+      const rootActionId=packet?.rootActionId||run?.combat&&`kill:${run.combat.id}:${run.combat.turn}:${player.playerId}`;
+      gainDevour(player,extra,events,contribution===maxDamage?'KILL_TOP_DAMAGE':'KILL_CONTRIBUTION',{rootActionId,recoveryChainId:rootActionId?`reactivation:${rootActionId}`:null,sourceEffectId:'DEMON_KILL',chainDepth:2});
+    }
     events.push({type:'DEVOUR_KILL_AWARD',playerId:player.playerId,totalAward,topDamage:contribution===maxDamage,turnDamage:contribution});
   }
   for(const player of run.players.filter(p=>p.characterId==='martial_artist'))player.publicResources.combo=0;
