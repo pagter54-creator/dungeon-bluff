@@ -1,4 +1,5 @@
 import {PVE_CHARACTER_TO_LOBBY} from './game-mode.js';
+import {skinPortrait} from './skins.js';
 import {augmentUi,relicUi} from './pve-ui-catalog.js';
 
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
@@ -85,10 +86,15 @@ export function pveAugmentPopupMarkup(run){
   const cards=offer?(offer.augmentIds||[]).map(id=>{const item=augmentUi(id,offer.tier);return '<button data-action="pve-augment" data-augment-id="'+esc(id)+'"><i aria-hidden="true">◇</i><small>TIER '+item.tier+'</small><b>'+esc(item.name)+'</b><p>'+esc(item.description)+'</p></button>';}).join(''):'';
   return '<div class="pve-modal-layer"><section class="pve-choice-popup augment-popup"><div class="eyebrow">AUGMENT CHOICE</div><h2>증강을 선택하세요.</h2>'+(offer?'<div class="pve-choice-cards">'+cards+'</div>':'<p>다른 플레이어의 선택을 기다리는 중입니다.</p>')+'</section></div>';
 }
-export function pveRoomResultOverlayMarkup(bundle,run,{interactive=true}={}){
-  const rows=(run.players||[]).map(p=>{const m=bundle.members?.find(x=>x.id===p.playerId);return '<div><b>'+esc(m?.display_name||p.displayName)+'</b><span>HP '+p.hp+'/'+p.maxHp+'</span><span>EXP '+(p.growthExp||0)+'</span><span>RUN GOLD '+(p.runGold||0)+'G</span></div>';}).join('');
-  const actions=interactive?'<div class="room-result-actions"><button class="button primary" data-action="pve-room-ready">결과 확인 ✓</button><button class="button secondary" data-action="pve-map-open">지도로 ◇</button></div>':'<div class="room-result-actions"><span class="muted">증강 선택 후 결과 확인을 계속합니다.</span></div>';
-  return '<section class="room-result-overlay pve-room-result"><div class="room-result-sheet pve-room-result-sheet"><div class="eyebrow">ROOM COMPLETE</div><h2>방 공략 완료</h2><div class="pve-result-players">'+rows+'</div><p>모든 인간 플레이어가 준비하면 다음 경로 투표로 이동합니다.</p>'+actions+'</div></section>';
+export function pveRoomResultOverlayMarkup(bundle,run,{interactive=true,playerId=null}={}){
+  const readyIds=run.roomResult?.readyPlayerIds||[],ready=new Set(readyIds);
+  const rows=[...(run.players||[])].sort((a,b)=>(a.seat||0)-(b.seat||0)).map(p=>{
+    const m=bundle.members?.find(x=>x.id===p.playerId),name=m?.display_name||p.displayName||'플레이어';
+    return '<article><div class="summary-portrait">'+skinPortrait(pveLobbyCharacterId(p),m?.loadout)+'</div><b title="'+esc(name)+'">'+esc(name)+'</b><div class="summary-changes"><span>HP '+p.hp+'/'+p.maxHp+'</span><span>EXP '+(p.growthExp||0)+'</span><span>RUN GOLD '+(p.runGold||0)+'G</span></div><small class="summary-ready">'+(ready.has(p.playerId)?'✓ 확인 완료':'결과 확인 대기')+'</small></article>';
+  }).join('');
+  const mineReady=Boolean(playerId&&ready.has(playerId)),readyText=readyIds.length+' / '+(run.players?.length||0)+' 확인';
+  const actions=interactive?'<footer><span>'+readyText+'</span><button class="button secondary" data-action="pve-map-open">지도 미리보기 ◇</button><button class="button primary" data-action="pve-room-ready" data-network '+(mineReady?'disabled data-unavailable="true"':'')+'>'+(mineReady?'확인 완료 ✓':'지도로 →')+'</button></footer>':'<footer><span>증강 선택 후 결과 확인을 계속합니다.</span></footer>';
+  return '<section class="room-result-overlay pve-room-result" role="dialog" aria-modal="true" aria-labelledby="pve-room-result-title"><div class="room-result-sheet pve-room-result-sheet"><small class="eyebrow">ROOM COMPLETE</small><h2 id="pve-room-result-title">방 공략 완료 <small>협력 탐험</small></h2><div class="room-result-party">'+rows+'</div><div class="summary-party">EXPEDITION FLAME <b>'+esc(run.flame)+' / '+esc(run.maxFlame)+'</b></div>'+actions+'</div></section>';
 }
 export function pveTerminalMarkup(bundle,run,me){
   const clear=run.phase==='RUN_CLEAR',mineGold=Number(me?.runGold)||0,settlement=bundle.pveSettlement;
