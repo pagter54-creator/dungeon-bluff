@@ -158,13 +158,15 @@ export function assignVampireThralls(run,cards,groups,events){
     events.push({type:'THRALL_MARKED',playerId:vampire.playerId,targetId:target.playerId,growthExp:target.growthExp});
   }
 }
-export function validateNumberMutationState(run,cards,events,{minimum=0}={}){
+export function validateNumberMutationState(run,cards,events,{minimum=0,packets=[]}={}){
   for(const card of cards){
     const h=card.numberHistory;
     for(const field of ['baseNumber','selfModifiedNumber','postSwapNumber','postStealNumber','finalNumber']){
       if(!Number.isFinite(h?.[field])||!Number.isInteger(h[field]))throw new Error(`NUMBER_01_INVALID_INTEGER:${card.playerId}:${field}`);
     }
     if(h.finalNumber!==card.finalNumber||h.postStealNumber!==card.finalNumber)throw new Error(`NUMBER_02_FINAL_MISMATCH:${card.playerId}`);
+    const primary=(packets||[]).find(packet=>packet.sourcePlayerId===card.playerId&&packet.sourceCardId===card.cardInstanceId&&!packet.followUp);
+    if(card.valid&&primary&&primary.numberUsed!==card.finalNumber)throw new Error(`NUMBER_03_DAMAGE_NUMBER_MISMATCH:${card.playerId}`);
     if(h.postStealNumber<minimum)throw new Error(`NUMBER_06_BELOW_MINIMUM:${card.playerId}`);
     const owner=playerById(run,card.playerId);
     if(!owner?.cardPool.some(x=>x.id===card.cardInstanceId))throw new Error(`NUMBER_04_OWNERSHIP_CHANGED:${card.playerId}`);
@@ -175,6 +177,14 @@ export function validateNumberMutationState(run,cards,events,{minimum=0}={}){
   if(summaries.length){
     const stolen=stealEvents.reduce((sum,e)=>sum+(Number(e.stolen)||0),0);
     if(stolen!==summaries[0].totalActuallyStolen)throw new Error('NUMBER_05_STEAL_CONSERVATION');
+  }
+  const uniqueMutationKeys=new Set();
+  for(const event of events||[]){
+    if(!['SELF_MODIFY','PRE_COLLISION_SWAP','PRE_COLLISION_STEAL'].includes(event.phase))continue;
+    if(event.effectId==='imp-steal-summary')continue;
+    const key=`${event.phase}:${event.effectId}:${event.actorId||''}:${event.targetId||''}`;
+    if(uniqueMutationKeys.has(key))throw new Error('NUMBER_07_DUPLICATE_MUTATION');
+    uniqueMutationKeys.add(key);
   }
   const phaseOrder=Object.fromEntries(NUMBER_MUTATION_PHASES.map((phase,index)=>[phase,index]));
   let previous=-1;
