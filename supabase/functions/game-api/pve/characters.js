@@ -28,6 +28,7 @@ export function initializeCombatCharacter(player){
   if(player.characterId==='mage')player.publicResources.mana=0;
   if(player.characterId==='prophet')player.publicResources.revelation=0;
   if(player.characterId==='berserker'&&player.augments.includes('aug-131'))player.publicResources.revenge=0;
+  if(player.characterId==='vampire'&&player.augments.includes('aug-321'))player.publicResources.blood=0;
   if(player.characterId==='gunner'){
     player.publicResources.fullBurstReady=true;
     player.publicResources.burstReadyCycle=1;
@@ -93,6 +94,7 @@ export function validateCharacterSkillIntent(player,privateState,skillIntent,car
     }
   }
   if(player.characterId==='vampire'){
+    if(player.augments.includes('aug-321'))rejectSkill('INVALID_PHASE','수혈은 카드 제출 전에 별도 스킬로 사용해야 합니다.');
     const targetId=player.publicResources.thrallPlayerId;
     if(!targetId)rejectSkill('SKILL_NOT_READY','피의 명령에 사용할 권속 표식이 없습니다.');
     if(player.augments.includes('aug-301')&&(privateState?.bloodCommandUsedCycle=== (privateState?.cycleIndex||1)))rejectSkill('ALREADY_USED','완전한 권속의 피의 명령은 사이클당 1회만 사용할 수 있습니다.');
@@ -103,6 +105,27 @@ export function activateImmediateCharacterSkill(run,player){
   if(player.status==='DOWNED')rejectSkill('INVALID_PHASE','쓰러진 플레이어는 스킬을 사용할 수 없습니다.');
   if(c.turnSubmissions[player.playerId])rejectSkill('ALREADY_USED','카드 확정 제출 이후에는 이번 턴 즉시 스킬을 사용할 수 없습니다.');
   const priv=c.privateByPlayer[player.playerId];
+  if(player.characterId==='vampire'&&player.augments.includes('aug-321')){
+    const cfg=executableAugmentRuntime('aug-321')?.config||{};
+    const cost=Math.max(1,Number(cfg.bloodCost)||4),healAmount=Math.max(1,Number(cfg.healAmount)||1);
+    const blood=Math.max(0,Number(player.publicResources.blood)||0);
+    if(blood<cost)rejectSkill('INSUFFICIENT_RESOURCE','수혈에 필요한 혈액이 부족합니다.');
+    c.transfusionUsedTurnByPlayer||={};
+    if(c.transfusionUsedTurnByPlayer[player.playerId]===c.turn)rejectSkill('ALREADY_USED','수혈은 턴당 1회만 사용할 수 있습니다.');
+    const candidates=run.players
+      .filter(p=>p.status!=='DOWNED'&&p.hp>0&&p.hp<p.maxHp&&(cfg.includeSelf!==false||p.playerId!==player.playerId))
+      .sort((a,b)=>a.hp-b.hp||a.seat-b.seat||a.playerId.localeCompare(b.playerId));
+    const target=candidates[0];
+    if(!target)rejectSkill('SKILL_NOT_READY','회복이 필요한 생존 아군이 없습니다.');
+    player.publicResources.blood=blood-cost;
+    const before=target.hp,after=Math.min(target.maxHp,before+healAmount),healed=Math.max(0,after-before);
+    target.hp=after;c.transfusionUsedTurnByPlayer[player.playerId]=c.turn;
+    const healEventId=`heal:transfusion:${run.floor}:${run.depth}:${c.monster?.id||'combat'}:${c.turn}:${player.playerId}`;
+    const event={type:'TRANSFUSION_USED',phase:'SELECTION_OPEN',healEventId,playerId:player.playerId,targetId:target.playerId,bloodBefore:blood,bloodSpent:cost,bloodAfter:player.publicResources.blood,requestedHeal:healAmount,amount:healed,before,after,wastedHeal:Math.max(0,healAmount-healed)};
+    c.pendingSkillEvents||=[];c.pendingSkillEvents.push(event);
+    if(healed>0)c.pendingSkillEvents.push({type:'PLAYER_HEALED',phase:'SELECTION_OPEN',healEventId,playerId:target.playerId,sourcePlayerId:player.playerId,source:'TRANSFUSION',amount:healed,before,after});
+    return event;
+  }
   if(player.characterId==='prophet'){
     if((player.publicResources.revelation||0)<1)rejectSkill('INSUFFICIENT_RESOURCE','계시가 없습니다.');
     const targets=run.players
@@ -170,6 +193,7 @@ export function collisionImmunity(player,submission){
   const charges=player.publicResources.toughnessCharges||0;
   if(charges<1)rejectSkill('INSUFFICIENT_RESOURCE','강인함 충전이 없습니다.');
   player.publicResources.toughnessCharges=charges-1;
+  if(player.augments.includes('aug-041'))return false;
   return true;
 }
 const runtimeConfig=augmentId=>executableAugmentRuntime(augmentId)?.config||{};
@@ -178,6 +202,42 @@ const collisionMemberIds=(run,group)=>[...group].sort((a,b)=>{
   const pa=run.players.find(p=>p.playerId===a.playerId),pb=run.players.find(p=>p.playerId===b.playerId);
   return (pa?.seat??999)-(pb?.seat??999)||a.playerId.localeCompare(b.playerId);
 }).map(card=>card.playerId);
+
+export function resolveGuardianWallCollisions(run,cards,groups,events=[]){
+  let rescueCount=0;
+  for(const [finalNumber,group] of [...groups.entries()].sort((a,b)=>Number(a[0])-Number(b[0]))){
+    if(group.length<2)continue;
+    const guardians=[...group].filter(card=>{
+      const player=run.players.find(p=>p.playerId===card.playerId);
+      const submission=run.combat?.turnSubmissions?.[card.playerId];
+      return player?.status!=='DOWNED'&&player?.characterId==='warrior'&&player.augments.includes('aug-041')&&submission?.skillIntent===true&&card.invalidReason==='COLLISION';
+    }).sort((a,b)=>{
+      const pa=run.players.find(p=>p.playerId===a.playerId),pb=run.players.find(p=>p.playerId===b.playerId);
+      return (pa?.seat??999)-(pb?.seat??999)||a.playerId.localeCompare(b.playerId);
+    });
+    for(const guardian of guardians){
+      const guardianPlayer=run.players.find(p=>p.playerId===guardian.playerId);
+      const candidates=[...group].filter(card=>{
+        if(card.playerId===guardian.playerId||card.invalidReason!=='COLLISION'||card.valid)return false;
+        const targetPlayer=run.players.find(p=>p.playerId===card.playerId);
+        const targetSubmission=run.combat?.turnSubmissions?.[card.playerId];
+        const sacrificingGuardian=targetPlayer?.characterId==='warrior'&&targetPlayer.augments.includes('aug-041')&&targetSubmission?.skillIntent===true;
+        return targetPlayer?.status!=='DOWNED'&&!sacrificingGuardian;
+      }).sort((a,b)=>{
+        const pa=run.players.find(p=>p.playerId===a.playerId),pb=run.players.find(p=>p.playerId===b.playerId);
+        return (pa?.seat??999)-(pb?.seat??999)||a.playerId.localeCompare(b.playerId);
+      });
+      const target=candidates[0];if(!target)continue;
+      target.valid=true;delete target.invalidReason;target.guardianRescued=true;target.guardianRescuedBy=guardian.playerId;
+      guardian.valid=false;guardian.invalidReason='COLLISION';guardian.guardianSacrifice=true;guardian.guardianRescueTargetId=target.playerId;
+      guardianPlayer.publicResources.guardianTargetPlayerId=target.playerId;
+      const guardEventId=`guard:${run.floor}:${run.depth}:${run.combat?.monster?.id||'combat'}:${run.combat?.turn||0}:${guardian.playerId}`;
+      events.push({type:'GUARDIAN_WALL_RESCUE',phase:'COLLISION_RESOLVE',guardEventId,finalNumber:Number(finalNumber),playerId:guardian.playerId,targetId:target.playerId,redirectCount:1});
+      rescueCount++;
+    }
+  }
+  return rescueCount;
+}
 
 export function resolvePostCollisionEffects(run,cards,groups,events=[],mutationEvents=[],processedCollisionEventIds=new Set()){
   const collisionGroups=[];
@@ -192,7 +252,7 @@ export function resolvePostCollisionEffects(run,cards,groups,events=[],mutationE
 
     const invalidated=group.filter(card=>card.invalidReason==='COLLISION'&&!card.valid);
     const immune=group.filter(card=>card.collisionImmune&&card.valid);
-    let berserkerHeal=0,knightCrushBonusDamage=0,crushedCardCount=0;
+    let berserkerHeal=0,whiteMagicHeal=0,knightCrushBonusDamage=0,crushedCardCount=0;
     const crushedCardIds=[];
     let triggeredEffectCount=0;
 
@@ -207,11 +267,31 @@ export function resolvePostCollisionEffects(run,cards,groups,events=[],mutationE
       resolved.berserkerCollisionHeal=healed;
       if(healed>0){
         berserkerHeal+=healed;triggeredEffectCount++;
+        const healEventId=`heal:berserker:${collisionEventId}:${player.playerId}`;
         events.push({
           type:'BERSERKER_COLLISION_HEAL',phase:'POST_COLLISION_EFFECTS',
-          collisionEventId,playerId:player.playerId,amount:healed,before,after,healCap
+          collisionEventId,healEventId,playerId:player.playerId,amount:healed,before,after,healCap
         });
+        events.push({type:'PLAYER_HEALED',phase:'POST_COLLISION_EFFECTS',collisionEventId,healEventId,playerId:player.playerId,sourcePlayerId:player.playerId,source:'BERSERKER_COLLISION',amount:healed,before,after});
       }
+    }
+
+    for(const resolved of invalidated){
+      const player=run.players.find(p=>p.playerId===resolved.playerId);
+      if(player?.characterId!=='mage'||!player.augments.includes('aug-101')||!(Number(resolved.resourceSpent)>0))continue;
+      const cfg=runtimeConfig('aug-101'),healAmount=Math.max(1,Number(cfg.healAmount)||1);
+      const targetCards=[...group].filter(card=>card.playerId!==player.playerId).sort((a,b)=>{
+        const pa=run.players.find(p=>p.playerId===a.playerId),pb=run.players.find(p=>p.playerId===b.playerId);
+        return (pa?.seat??999)-(pb?.seat??999)||a.playerId.localeCompare(b.playerId);
+      });
+      const targetCard=targetCards.find(card=>run.players.find(p=>p.playerId===card.playerId)?.status!=='DOWNED');
+      if(!targetCard)continue;
+      const target=run.players.find(p=>p.playerId===targetCard.playerId),before=target.hp,after=Math.min(target.maxHp,before+healAmount),healed=Math.max(0,after-before);
+      target.hp=after;resolved.whiteMagicTargetId=target.playerId;resolved.whiteMagicHeal=healed;
+      whiteMagicHeal+=healed;triggeredEffectCount++;
+      const healEventId=`heal:white:${collisionEventId}:${player.playerId}:${target.playerId}`;
+      events.push({type:'WHITE_MAGIC_HEAL',phase:'POST_COLLISION_EFFECTS',collisionEventId,healEventId,playerId:player.playerId,targetId:target.playerId,requestedHeal:healAmount,amount:healed,before,after,wastedHeal:Math.max(0,healAmount-healed)});
+      if(healed>0)events.push({type:'PLAYER_HEALED',phase:'POST_COLLISION_EFFECTS',collisionEventId,healEventId,playerId:target.playerId,sourcePlayerId:player.playerId,source:'WHITE_MAGIC',amount:healed,before,after});
     }
 
     for(const resolved of immune){
@@ -260,10 +340,10 @@ export function resolvePostCollisionEffects(run,cards,groups,events=[],mutationE
       invalidatedPlayers:invalidated.map(card=>card.playerId),
       immunePlayers:immune.map(card=>card.playerId),
       crushedCardIds:[...crushedCardIds],crushedCardCount,
-      berserkerHeal,impStolenBeforeCollision,vampireSwapCount,knightCrushBonusDamage,
+      berserkerHeal,whiteMagicHeal,impStolenBeforeCollision,vampireSwapCount,knightCrushBonusDamage,
       resourcesGenerated,
       totalImmediateDamageValue:knightCrushBonusDamage,
-      totalHealingValue:berserkerHeal,
+      totalHealingValue:berserkerHeal+whiteMagicHeal,
       triggeredEffectCount,
       recursiveCollisionTriggerCount:0
     });
@@ -345,8 +425,14 @@ export function onCombatEndCharacter(player,run=null){
   const priv=run?.combat?.privateByPlayer?.[player.playerId];
   if(priv)delete priv.revelationPeek;
 }
-export function onValidAttack(player){
+export function onValidAttack(player,run=null,resolved=null,events=[]){
   if(player.characterId==='adventurer')player.growthExp+=1;
+  if(player.characterId==='vampire'&&player.augments.includes('aug-321')){
+    const cfg=runtimeConfig('aug-321'),gain=Math.max(0,Number(cfg.bloodPerValidAttack)||1);
+    const before=Math.max(0,Number(player.publicResources.blood)||0),max=resourceMax(player,'blood',Number(cfg.bloodMax)||6),after=Math.min(max,before+gain);
+    player.publicResources.blood=after;
+    if(after>before)events.push({type:'VAMPIRE_BLOOD_GAINED',phase:'POST_DAMAGE',playerId:player.playerId,amount:after-before,before,after,sourceCardId:resolved?.cardInstanceId||null});
+  }
 }
 export function grantRunGold(player,amount){
   if(amount<=0)return 0;
