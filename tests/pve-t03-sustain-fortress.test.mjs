@@ -15,8 +15,7 @@ test('T03 is ACTIVE only with Guardian Wall Transfusion White Mage and sustain r
   const def=STRESS_SCENARIOS.find(x=>x.id==='T03'),a=scenarioAvailability(def);
   assert.equal(a.available,true);assert.deepEqual(a.missingCharacters,[]);assert.deepEqual(a.missingBuildEffects,[]);assert.deepEqual(a.missingCapabilities,[]);
   const status=Object.fromEntries(STRESS_SCENARIOS.map(s=>[s.id,scenarioAvailability(s).available]));
-  for(const id of ['T00','T03','T04','T05','T09','T14'])assert.equal(status[id],true,id);
-  assert.equal(status.T02,true);assert.equal(status.T06,false);
+  for(const id of ['T00','T02','T03','T04','T05','T06','T09','T14'])assert.equal(status[id],true,id);
 });
 
 test('T03 uses the locked BETA Tier-I sustain configs without balance invention',()=>{
