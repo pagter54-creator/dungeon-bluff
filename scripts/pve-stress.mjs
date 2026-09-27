@@ -3,7 +3,7 @@ import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {
   STRESS_SCHEMA_VERSION,STRESS_SCENARIOS,SPEC_AMBIGUITIES,CANONICAL_RULES,
-  StressHardFailure,replayScenario,scenarioAvailability,skippedScenarioReport,balanceWarnings
+  StressHardFailure,replayScenario,scenarioAvailability,skippedScenarioReport,balanceWarnings,t02GoldenComparable
 } from './pve-stress-lib.mjs';
 
 function argsOf(argv){
@@ -265,14 +265,34 @@ function aggregateScenario(def,results,failures){
     avgNonBurstTurnDamage:avg(burstRows.map(x=>x.averageNonBurstTurnDamage)),
     avgBurstNonBurstRatio:avg(burstRows.map(x=>x.burstNonBurstRatio).filter(Number.isFinite)),
     maxConsecutiveBurstTurns:Math.max(...burstRows.map(x=>Number(x.maxConsecutiveBurstTurns)||0)),
+    fullBurstActivationCount:burstRows.reduce((n,x)=>n+(Number(x.fullBurstActivationCount)||0),0),
     fullBurstFollowUpCount:burstRows.reduce((n,x)=>n+(Number(x.fullBurstFollowUpCount)||0),0),
+    fullBurstConsumedPhysicalCards:burstRows.reduce((n,x)=>n+(Number(x.fullBurstConsumedPhysicalCards)||0),0),
+    fullBurstDamage:burstRows.reduce((n,x)=>n+(Number(x.fullBurstDamage)||0),0),
+    transformationCount:burstRows.reduce((n,x)=>n+(Number(x.transformationCount)||0),0),
     transformedDemonTurns:burstRows.reduce((n,x)=>n+(Number(x.transformedDemonTurns)||0),0),
+    demonTransformedDamage:burstRows.reduce((n,x)=>n+(Number(x.demonTransformedDamage)||0),0),
+    devourTransformCost:burstRows.reduce((n,x)=>n+(Number(x.devourTransformCost)||0),0),
     oneHitKillUses:burstRows.reduce((n,x)=>n+(Number(x.oneHitKillUses)||0),0),
+    oneHitKillDamage:burstRows.reduce((n,x)=>n+(Number(x.oneHitKillDamage)||0),0),
     bloodFrenzyBonusOccurrences:burstRows.reduce((n,x)=>n+(Number(x.bloodFrenzyBonusOccurrences)||0),0),
     bloodFrenzyBonusDamage:burstRows.reduce((n,x)=>n+(Number(x.bloodFrenzyBonusDamage)||0),0),
+    bloodFrenzyAttackDamage:burstRows.reduce((n,x)=>n+(Number(x.bloodFrenzyAttackDamage)||0),0),
     berserkerHpCost:burstRows.reduce((n,x)=>n+(Number(x.berserkerHpCost)||0),0),
     comboConsumed:burstRows.reduce((n,x)=>n+(Number(x.comboConsumed)||0),0),
     devourGained:burstRows.reduce((n,x)=>n+(Number(x.devourGained)||0),0),
+    resourcesConsumed:{
+      gunslingerPhysicalCards:burstRows.reduce((n,x)=>n+(Number(x.resourcesConsumed?.gunslingerPhysicalCards)||0),0),
+      demonDevourAtTransform:burstRows.reduce((n,x)=>n+(Number(x.resourcesConsumed?.demonDevourAtTransform)||0),0),
+      martialCombo:burstRows.reduce((n,x)=>n+(Number(x.resourcesConsumed?.martialCombo)||0),0),
+      berserkerHp:burstRows.reduce((n,x)=>n+(Number(x.resourcesConsumed?.berserkerHp)||0),0)
+    },
+    burstDamagePerResource:{
+      gunslinger:(()=>{const c=burstRows.reduce((n,x)=>n+(Number(x.resourcesConsumed?.gunslingerPhysicalCards)||0),0);const d=burstRows.reduce((n,x)=>n+(Number(x.fullBurstDamage)||0),0);return c?d/c:null;})(),
+      demonSwordsman:(()=>{const c=burstRows.reduce((n,x)=>n+(Number(x.resourcesConsumed?.demonDevourAtTransform)||0),0);const d=burstRows.reduce((n,x)=>n+(Number(x.demonTransformedDamage)||0),0);return c?d/c:null;})(),
+      martialArtist:(()=>{const c=burstRows.reduce((n,x)=>n+(Number(x.resourcesConsumed?.martialCombo)||0),0);const d=burstRows.reduce((n,x)=>n+(Number(x.oneHitKillDamage)||0),0);return c?d/c:null;})(),
+      berserker:(()=>{const c=burstRows.reduce((n,x)=>n+(Number(x.resourcesConsumed?.berserkerHp)||0),0);const d=burstRows.reduce((n,x)=>n+(Number(x.bloodFrenzyAttackDamage)||0),0);return c?d/c:null;})()
+    },
     multiThresholdBurstCount:burstRows.reduce((n,x)=>n+(Number(x.multiThresholdBurstCount)||0),0),
     behaviorSkipMeasurable:burstRows.some(x=>x.behaviorSkipMeasurable===true),
     bossBehaviorSkipCount:null,
@@ -365,7 +385,7 @@ export async function main(argv=process.argv.slice(2)){
   if(opts.scenario&&!selected.length)throw new Error(`Unknown scenario: ${opts.scenario}`);
 
   const allRows=[],failedSeeds=[],scenarioSummaries=[],referenceTurnRows=[],numberMutationTurnRows=[],resourceStarvationRows=[],collisionFarmRows=[],collisionSafeRows=[],sustainRows=[],normalSustainRows=[],burstTurnRows=[],steadyBurstRows=[];
-  let t02FixtureArtifact=null,t03FixtureArtifact=null,t04FixtureArtifact=null,t05FixtureArtifact=null,t09FixtureArtifact=null;
+  let t02FixtureArtifact=null,t02GoldenArtifact=null,t03FixtureArtifact=null,t04FixtureArtifact=null,t05FixtureArtifact=null,t09FixtureArtifact=null;
   let hardFailures=0;
   for(const def of selected){
     const availability=scenarioAvailability(def);
@@ -390,6 +410,7 @@ export async function main(argv=process.argv.slice(2)){
         for(const turn of result.burstTurns||[])burstTurnRows.push({scenarioId:def.id,seed,...turn});
         for(const turn of result.steadyBurstTurns||[])steadyBurstRows.push({scenarioId:def.id,seed,...turn});
         if(def.id==='T02'&&!t02FixtureArtifact&&result.fixtures)t02FixtureArtifact={scenarioId:'T02',seed,fixtures:result.fixtures};
+        if(def.id==='T02'&&!t02GoldenArtifact)t02GoldenArtifact={seed,golden:t02GoldenComparable(result)};
         if(def.id==='T03'&&!t03FixtureArtifact&&result.fixtures)t03FixtureArtifact={scenarioId:'T03',seed,fixtures:result.fixtures};
         if(def.id==='T04'&&!t04FixtureArtifact&&result.fixtures)t04FixtureArtifact={scenarioId:'T04',seed,fixtures:result.fixtures};
         if(def.id==='T05'&&!t05FixtureArtifact&&result.fixtures)t05FixtureArtifact={scenarioId:'T05',seed,fixtures:result.fixtures};
@@ -455,6 +476,7 @@ export async function main(argv=process.argv.slice(2)){
   if(burstTurnRows.length)fs.writeFileSync(path.join(outDir,'pve_burst_turns.jsonl'),burstTurnRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
   if(steadyBurstRows.length)fs.writeFileSync(path.join(outDir,'pve_steady_burst_turns.jsonl'),steadyBurstRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
   if(t02FixtureArtifact)fs.writeFileSync(path.join(outDir,'pve_t02_fixtures.json'),JSON.stringify(t02FixtureArtifact,null,2)+'\n');
+  if(t02GoldenArtifact)fs.writeFileSync(path.join(outDir,'pve_t02_golden.json'),JSON.stringify(t02GoldenArtifact,null,2)+'\n');
   if(t03FixtureArtifact)fs.writeFileSync(path.join(outDir,'pve_t03_fixtures.json'),JSON.stringify(t03FixtureArtifact,null,2)+'\n');
   if(t04FixtureArtifact)fs.writeFileSync(path.join(outDir,'pve_t04_fixtures.json'),JSON.stringify(t04FixtureArtifact,null,2)+'\n');
   if(t05FixtureArtifact)fs.writeFileSync(path.join(outDir,'pve_t05_fixtures.json'),JSON.stringify(t05FixtureArtifact,null,2)+'\n');
