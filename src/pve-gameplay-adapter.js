@@ -185,6 +185,34 @@ export function adaptPveTurnResult(bundle,beforeRun,afterRun){
   };
 }
 
+export function adaptPveRewardResult(beforeRun,afterRun){
+  const result=afterRun?.roomState?.publicTurnResult;
+  if(!result||afterRun?.roomState?.type!=='REWARD_ROOM')return null;
+  const key=`${afterRun.currentRoomNodeId||'reward'}:${result.attempt||1}`;
+  return {
+    key,
+    turnIndex:result.attempt||1,
+    stageIndex:afterRun.depth||1,
+    stage:{category:'event',roomType:'REWARD_ROOM',name:'보상 방',subtitle:`FLOOR ${afterRun.floor} · DEPTH ${afterRun.depth}`,color:'#8b779c',shape:'seer',contentId:'REWARD_ROOM'},
+    cards:(result.cards||[]).map(card=>({
+      memberId:card.playerId,
+      cardId:null,
+      value:card.finalNumber,
+      valid:Boolean(card.valid),
+      resisted:Boolean(card.collisionImmune&&card.valid&&Number(card.collisionGroupSize)>1),
+      skillUsed:false,
+      skillId:null,
+      amplifyLevel:0
+    })),
+    effects:[],
+    monsterBefore:null,
+    monsterAfter:null,
+    totalDamage:0,
+    stageCleared:false,
+    success:Boolean(result.success)
+  };
+}
+
 export function pveRelicRows(run){
   return (run.players||[]).map(player=>({
     playerId:player.playerId,
