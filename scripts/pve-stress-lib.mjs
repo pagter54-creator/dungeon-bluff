@@ -1093,20 +1093,36 @@ export function runT04(seed){
   };
 }
 export function t04GoldenComparable(result){
-  const fixtureFields=[
-    'id','resolvedCards','numberHistories','mutationEvents','collisionGroups','combatEvents','damagePackets',
-    'phaseTrace','hpAfter','revengeAfter','totalDamage','collisionResolutionPasses','postCollisionEffectPasses'
+  const historyFields=['playerId','cardInstanceId','baseNumber','selfModifiedNumber','postSwapNumber','postStealNumber','finalNumber','collisionGroup','collisionImmune','valid','damage'];
+  const collisionGroupFields=['collisionEventId','turn','finalNumber','members','invalidatedPlayers','immunePlayers','crushedCardIds','crushedCardCount','berserkerHeal','impStolenBeforeCollision','vampireSwapCount','knightCrushBonusDamage','resourcesGenerated','totalImmediateDamageValue','totalHealingValue','triggeredEffectCount','recursiveCollisionTriggerCount'];
+  const eventFields=['type','phase','collisionEventId','playerId','targetId','amount','before','after','healCap','crushedCardIds','crushedCardCount','bonusDamage','damageType'];
+  const packetFields=['sourcePlayerId','sourceCardId','numberUsed','amount','tags','followUp'];
+  const relevantEvents=new Set(['THRALL_MARKED','BERSERKER_COLLISION_HEAL','KNIGHT_CRUSH_CAPTURE','BERSERKER_REVENGE_GAINED','BERSERKER_REVENGE_CONSUMED','BERSERKER_ATTACK_HP_COST','PLAYER_DAMAGED']);
+  const row=(fields,obj)=>fields.map(field=>obj?.[field]??null);
+  const events=items=>(items||[]).filter(event=>relevantEvents.has(event.type)).map(event=>row(eventFields,event));
+  const fixtureRow=f=>{
+    if(f.id==='F14_NO_RECURSIVE_REWARDS')return [f.id,'REENTRY',f.collisionEventId,f.reentryRejected,f.rejectCode,f.hpUnchanged,f.processedCollisionEventIds];
+    return [
+      f.id,(f.numberHistories||[]).map(h=>row(historyFields,h)),f.mutationEvents||[],
+      (f.collisionGroups||[]).map(g=>row(collisionGroupFields,g)),events(f.combatEvents),
+      (f.damagePackets||[]).map(packet=>row(packetFields,packet)),f.phaseTrace||[],f.hpAfter||{},
+      f.revengeAfter??0,f.totalDamage??0,f.collisionResolutionPasses??null,f.postCollisionEffectPasses??null
+    ];
+  };
+  const turnRow=turn=>[
+    turn.turn,turn.policy,turn.targetNumber??null,turn.intentionalParticipantIds||[],
+    (turn.numberHistories||[]).map(h=>row(historyFields,h)),turn.mutationEvents||[],
+    (turn.collisionGroups||[]).map(g=>row(collisionGroupFields,g)),events(turn.combatEvents),
+    (turn.damagePackets||[]).map(packet=>row(packetFields,packet)),turn.phaseTrace||[],
+    turn.hpAfter||{},turn.revengeAfter||{}
   ];
   return {
     scenarioId:result.scenarioId,status:result.status,
-    fixtures:(result.fixtures||[]).map(f=>semantic(Object.fromEntries(fixtureFields.filter(key=>Object.hasOwn(f,key)).map(key=>[key,f[key]])))),
-    collisionTimeline:(result.collisionTurns||[]).map(turn=>semantic({
-      turn:turn.turn,policy:turn.policy,targetNumber:turn.targetNumber,
-      intentionalParticipantIds:turn.intentionalParticipantIds,
-      numberHistories:turn.numberHistories,mutationEvents:turn.mutationEvents,
-      collisionGroups:turn.collisionGroups,combatEvents:turn.combatEvents,
-      damagePackets:turn.damagePackets,phaseTrace:turn.phaseTrace,hpAfter:turn.hpAfter,revengeAfter:turn.revengeAfter
-    }))
+    historyFields,collisionGroupFields,eventFields,packetFields,
+    fixtureRowFormat:['id','numberHistoriesOrMarker','mutationEventsOrCollisionEventId','collisionGroupsOrReentryRejected','combatEventsOrRejectCode','damagePacketsOrHpUnchanged','phaseTraceOrProcessedIds','hpAfter','revengeAfter','totalDamage','collisionResolutionPasses','postCollisionEffectPasses'],
+    fixtures:(result.fixtures||[]).map(fixtureRow),
+    timelineRowFormat:['turn','policy','targetNumber','intentionalParticipantIds','numberHistories','mutationEvents','collisionGroups','combatEvents','damagePackets','phaseTrace','hpAfter','revengeAfter'],
+    collisionTimeline:(result.collisionTurns||[]).map(turnRow)
   };
 }
 
