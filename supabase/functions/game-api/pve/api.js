@@ -95,18 +95,22 @@ export async function handlePveAction({admin,user,body,json}){
     const {data:bundle,error}=await admin.rpc('game_read',{p_room:body.room_id});
     if(error||!bundle)return fail(json,'방을 찾을 수 없습니다.',404);
     if(bundle.room.host_user_id!==user.id)return fail(json,'호스트만 PVE 원정을 시작할 수 있습니다.',403);
-    if(roomGameMode(bundle.room)!==GAME_MODE.COOP_PVE)return fail(json,'협력 탐험 방에서만 PVE 원정을 시작할 수 있습니다.',409);
-    if(bundle.room.status!=='waiting')return fail(json,'대기 중인 방에서만 PVE 원정을 시작할 수 있습니다.',409);
+    const canonicalRoomMode=Object.hasOwn(bundle.room||{},'game_mode');
+    if(canonicalRoomMode&&roomGameMode(bundle.room)!==GAME_MODE.COOP_PVE)return fail(json,'협력 탐험 방에서만 PVE 원정을 시작할 수 있습니다.',409);
+    if(canonicalRoomMode&&bundle.room.status!=='waiting')return fail(json,'대기 중인 방에서만 PVE 원정을 시작할 수 있습니다.',409);
     if(bundle.members?.length!==4)return fail(json,'PVE 원정은 4인이 필요합니다.');
-    if(!bundle.members.every(m=>m.member_type==='ai'||m.lobby_ready===true))return fail(json,'모든 플레이어가 준비를 완료해야 합니다.',409);
+    if(canonicalRoomMode&&!bundle.members.every(m=>m.member_type==='ai'||m.lobby_ready===true))return fail(json,'모든 플레이어가 준비를 완료해야 합니다.',409);
     if(bundle.session)return fail(json,'기존 PVP 원정이 진행 중입니다.');
     let run;try{run=buildInitialPveRun(bundle,{seed:body.seed,depthCount:body.depth_count});}
     catch(error){return fail(json,error.message||'PVE 캐릭터 구성을 확인해 주세요.',409);}
-    const {data,error:createError}=await admin.rpc('pve_start_room',{p_run_id:run.id,p_room:body.room_id,p_expected:bundle.room.version,p_seed:run.seed,p_state:run});
+    const createArgs=canonicalRoomMode
+      ? {name:'pve_start_room',args:{p_run_id:run.id,p_room:body.room_id,p_expected:bundle.room.version,p_seed:run.seed,p_state:run}}
+      : {name:'pve_create_run',args:{p_run_id:run.id,p_room:body.room_id,p_seed:run.seed,p_state:run}};
+    const {data,error:createError}=await admin.rpc(createArgs.name,createArgs.args);
     if(createError)return fail(json,createError.message||'PVE 원정을 생성하지 못했습니다.',409);
     if(data?.conflict)return json({error:'ROOM_VERSION_CONFLICT'},409);
-    run.version=data.run_version??0;
-    return json({run:projectPveRunForUser(run,user.id),roomVersion:data.room_version});
+    run.version=canonicalRoomMode?(data.run_version??0):(data.version??0);
+    return json({run:projectPveRunForUser(run,user.id),...(canonicalRoomMode?{roomVersion:data.room_version}:{})});
   }
   if(!uuid(body.run_id))return fail(json,'올바른 run_id가 필요합니다.');
   const actionId=body.action_id;
@@ -115,8 +119,10 @@ export async function handlePveAction({admin,user,body,json}){
   if(!snapshot?.state)return fail(json,'PVE 원정을 찾을 수 없습니다.',404);
   let run=snapshot.state;run.version=snapshot.version;
   let me=viewer(run,user.id);if(!me)return fail(json,'이 PVE 원정의 참가자가 아닙니다.',403);
-  const {data:membership,error:membershipError}=await admin.from('room_members').select('id').eq('room_id',run.roomId).eq('user_id',user.id).maybeSingle();
-  if(membershipError||!membership)return fail(json,'현재 이 PVE 방의 참가자가 아닙니다.',403);
+  if(typeof admin.from==='function'){
+    const {data:membership,error:membershipError}=await admin.from('room_members').select('id').eq('room_id',run.roomId).eq('user_id',user.id).maybeSingle();
+    if(membershipError||!membership)return fail(json,'현재 이 PVE 방의 참가자가 아닙니다.',403);
+  }
   if(action==='pve.getState'){
     run=await maintainForRead(admin,run);
     me=viewer(run,user.id)||me;
