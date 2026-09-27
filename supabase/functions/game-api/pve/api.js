@@ -55,8 +55,22 @@ async function settleIfTerminal(admin,run){
 const fail=(json,message,status=400)=>json({error:message},status);
 function viewer(run,userId){return run.players.find(p=>p.userId===userId);}
 function nodeType(run,id){return run.map.nodes.find(n=>n.id===id)?.type;}
+function captureRoomPresentationBaseline(run,id,type){
+  run.roomPresentationBaseline={
+    roomNodeId:id,
+    roomType:type,
+    flame:Number(run.flame)||0,
+    players:Object.fromEntries((run.players||[]).map(player=>[player.playerId,{
+      hp:Number(player.hp)||0,
+      growthExp:Number(player.growthExp)||0,
+      runGold:Number(player.runGold)||0,
+      relics:[...(player.relics||[])],
+      engravings:{...(player.engravings||{})}
+    }]))
+  };
+}
 function enterNode(run,id){
-  const type=nodeType(run,id);run.currentRoomNodeId=id;run.phase='ROOM_ENTER';
+  const type=nodeType(run,id);captureRoomPresentationBaseline(run,id,type);run.currentRoomNodeId=id;run.phase='ROOM_ENTER';
   if(type==='NORMAL_COMBAT'||type==='ELITE_COMBAT'||type==='BOSS'){
     const monster=selectF1Monster(run,type);markF1MonsterUsed(run,monster);
     run.phase='COMBAT';run.combat=newCombatState(run.players,monster.baseHp,type,monster);beginTurn(run);
