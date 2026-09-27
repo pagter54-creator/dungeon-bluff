@@ -987,7 +987,7 @@ test('REWARD-PVE-02 failed run forfeits runGold, preserves RP, and settles idemp
 
 
 test('REWARD-PVE-03 abandoned run forfeits authoritative runGold and never mutates RP',async()=>{
-  const host=await newAccount('PveRewardAbandoned');
+  const host=await newAccount('PveAbandon');
   let coop=await rawApi(host,'create_room',{room_title:'PVE reward abandoned',gameMode:'COOP_PVE'});
   for(let i=0;i<3;i++)coop=await rawApi(host,'add_ai',{room_id:coop.room.id,ai_type:'balanced'});
   await rawApi(host,'set_ready',{room_id:coop.room.id,ready:true});
