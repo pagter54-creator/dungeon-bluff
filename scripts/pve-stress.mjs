@@ -65,6 +65,87 @@ function writeCsv(file,rows){
   fs.writeFileSync(file,lines.join('\n')+'\n');
 }
 const avg=values=>values.length?values.reduce((a,b)=>a+b,0)/values.length:null;
+function mergeReferenceRows(summaries){
+  const total={
+    intentCount:0,totalIntentConflicts:0,resolvedIntentConflicts:0,unresolvedIntentConflicts:0,
+    negotiationChangeCount:0,byPlayer:{},byCharacter:{}
+  };
+  const mergeBucket=(target,key,source)=>{
+    const row=target[key]||(target[key]={
+      intents:0,firstChoiceKept:0,yieldCount:0,actualCollisionCount:0,validAttackCount:0,
+      availableNumberTotal:0,beforeConflictCount:0,afterConflictCount:0,damage:0,availableBuckets:{}
+    });
+    for(const field of ['intents','firstChoiceKept','yieldCount','actualCollisionCount','validAttackCount','availableNumberTotal','beforeConflictCount','afterConflictCount','damage']){
+      row[field]+=Number(source?.[field])||0;
+    }
+    for(const [count,bucket] of Object.entries(source?.availableBuckets||{})){
+      const b=row.availableBuckets[count]||(row.availableBuckets[count]={intents:0,collisions:0});
+      b.intents+=Number(bucket.intents)||0;b.collisions+=Number(bucket.collisions)||0;
+    }
+  };
+  for(const summary of summaries){
+    total.intentCount+=Number(summary.intentCount)||0;
+    total.totalIntentConflicts+=Number(summary.totalIntentConflicts)||0;
+    total.resolvedIntentConflicts+=Number(summary.resolvedIntentConflicts)||0;
+    total.unresolvedIntentConflicts+=Number(summary.unresolvedIntentConflicts)||0;
+    total.negotiationChangeCount+=Number(summary.negotiationChangeCount)||0;
+    for(const [key,row] of Object.entries(summary.byPlayer||{}))mergeBucket(total.byPlayer,key,row);
+    for(const [key,row] of Object.entries(summary.byCharacter||{}))mergeBucket(total.byCharacter,key,row);
+  }
+  const decorate=bucket=>Object.fromEntries(Object.entries(bucket).map(([key,row])=>[key,{
+    ...row,
+    firstChoiceKeepRate:row.intents?row.firstChoiceKept/row.intents:0,
+    yieldRate:row.intents?row.yieldCount/row.intents:0,
+    collisionRate:row.intents?row.actualCollisionCount/row.intents:0,
+    validAttackRate:row.intents?row.validAttackCount/row.intents:0,
+    avgAvailableNumbers:row.intents?row.availableNumberTotal/row.intents:0
+  }]));
+  return {
+    ...total,
+    collisionRateBeforeNegotiation:total.intentCount?total.totalIntentConflicts/total.intentCount:0,
+    collisionRateAfterNegotiation:total.intentCount?total.unresolvedIntentConflicts/total.intentCount:0,
+    negotiationResolutionRate:total.totalIntentConflicts?total.resolvedIntentConflicts/total.totalIntentConflicts:1,
+    byPlayer:decorate(total.byPlayer),byCharacter:decorate(total.byCharacter)
+  };
+}
+function referenceFairnessWarnings(reference,characterDamageShare,seedCount){
+  if(seedCount<100||!reference)return [];
+  const warnings=[];
+  const slots=Object.entries(reference.byPlayer||{}).filter(([,x])=>x.intents>0);
+  if(slots.length>1){
+    const sorted=[...slots].sort((a,b)=>a[1].yieldRate-b[1].yieldRate||a[0].localeCompare(b[0]));
+    const low=sorted[0],high=sorted.at(-1);
+    if(high[1].yieldRate>low[1].yieldRate&&high[1].yieldRate>=low[1].yieldRate*2){
+      warnings.push({code:'REFERENCE_SLOT_YIELD_2X',highSlot:high[0],highRate:high[1].yieldRate,lowSlot:low[0],lowRate:low[1].yieldRate});
+    }
+  }
+  let worst=null;
+  const chars=Object.entries(reference.byCharacter||{});
+  for(let i=0;i<chars.length;i++)for(let j=i+1;j<chars.length;j++){
+    const [aId,a]=chars[i],[bId,b]=chars[j];
+    for(const count of [...new Set([...Object.keys(a.availableBuckets||{}),...Object.keys(b.availableBuckets||{})])]){
+      const aa=a.availableBuckets?.[count],bb=b.availableBuckets?.[count];
+      if(!aa?.intents||!bb?.intents)continue;
+      const ar=aa.collisions/aa.intents,br=bb.collisions/bb.intents;
+      const high=ar>=br?{id:aId,rate:ar}:{id:bId,rate:br};
+      const low=ar>=br?{id:bId,rate:br}:{id:aId,rate:ar};
+      const ratio=low.rate===0?(high.rate>0?Infinity:1):high.rate/low.rate;
+      if(ratio>=2&&high.rate>low.rate&&(!worst||ratio>worst.ratio)){
+        worst={ratio,availableNumbers:Number(count),high,low};
+      }
+    }
+  }
+  if(worst)warnings.push({
+    code:'REFERENCE_CLASS_COLLISION_2X_SAME_AVAILABILITY',
+    availableNumbers:worst.availableNumbers,
+    highCharacter:worst.high.id,highRate:worst.high.rate,
+    lowCharacter:worst.low.id,lowRate:worst.low.rate
+  });
+  for(const [characterId,share] of Object.entries(characterDamageShare||{})){
+    if(Number.isFinite(share)&&share<.05)warnings.push({code:'REFERENCE_DAMAGE_SHARE_UNDER_5_PERCENT',characterId,share});
+  }
+  return warnings;
+}
 function aggregateScenario(def,results,failures){
   const skip=results.find(x=>x.status==='SKIP');
   if(skip)return {
@@ -87,9 +168,14 @@ function aggregateScenario(def,results,failures){
   const avgCharacterDamageShare=Object.fromEntries(shareKeys.map(k=>[k,avg(passed.map(x=>x.characterDamageShare?.[k]).filter(Number.isFinite))]));
   const expKeys=[...new Set(passed.flatMap(x=>Object.keys(x.expGainByCharacter||{})))];
   const avgExpGainByCharacter=Object.fromEntries(expKeys.map(k=>[k,avg(passed.map(x=>x.expGainByCharacter?.[k]).filter(Number.isFinite))]));
+  const referenceCommunication=def.id==='T00'
+    ?mergeReferenceRows(passed.map(x=>x.referenceCommunication).filter(Boolean))
+    :null;
+  const fairnessWarnings=def.id==='T00'?referenceFairnessWarnings(referenceCommunication,avgCharacterDamageShare,passed.length):[];
+  const allWarnings=[...warnings,...fairnessWarnings];
   return {
     scenarioId:def.id,name:def.name,
-    status:failures.length?'FAIL':warnings.length?'BALANCE_WARNING':'PASS',
+    status:failures.length?'FAIL':allWarnings.length?'BALANCE_WARNING':'PASS',
     seedCount:passed.length,
     clearRate:outcomes.length?clears/outcomes.length:null,
     avgTurnsByRoomType:byRoom,
@@ -99,7 +185,9 @@ function aggregateScenario(def,results,failures){
     avgHpDamage:avg(combats.map(x=>Object.values(x.damageTaken||{}).reduce((a,b)=>a+b,0))),
     avgHealing:avg(combats.map(x=>Object.values(x.healingDone||{}).reduce((a,b)=>a+b,0))),
     effectTriggerCounts,avgCharacterDamageShare,avgExpGainByCharacter,
-    warnings,failedSeeds:failures.map(x=>x.seed)
+    referenceCommunication,
+    fairnessWarnings,
+    warnings:allWarnings,failedSeeds:failures.map(x=>x.seed)
   };
 }
 function ensureDir(p){fs.mkdirSync(p,{recursive:true});}
@@ -116,7 +204,7 @@ export async function main(argv=process.argv.slice(2)){
     : STRESS_SCENARIOS;
   if(opts.scenario&&!selected.length)throw new Error(`Unknown scenario: ${opts.scenario}`);
 
-  const allRows=[],failedSeeds=[],scenarioSummaries=[];
+  const allRows=[],failedSeeds=[],scenarioSummaries=[],referenceTurnRows=[];
   let hardFailures=0;
   for(const def of selected){
     const availability=scenarioAvailability(def);
@@ -131,6 +219,7 @@ export async function main(argv=process.argv.slice(2)){
         const result=replayScenario(def.id,seed);
         const warnings=balanceWarnings(result);
         result.balanceWarnings=warnings;results.push(result);
+        for(const turn of result.referenceTurns||[])referenceTurnRows.push({scenarioId:def.id,seed,...turn});
         const row={
           scenarioId:def.id,seed,status:warnings.length?'BALANCE_WARNING':'PASS',
           actionCount:result.actionCount??result.actions??0,
@@ -181,6 +270,7 @@ export async function main(argv=process.argv.slice(2)){
   fs.writeFileSync(path.join(outDir,'pve_skipped_scenarios.json'),JSON.stringify(skipped,null,2)+'\n');
   fs.writeFileSync(path.join(outDir,'pve_spec_ambiguities.json'),JSON.stringify(SPEC_AMBIGUITIES,null,2)+'\n');
   fs.writeFileSync(path.join(outDir,'pve_canonical_rules.json'),JSON.stringify(CANONICAL_RULES,null,2)+'\n');
+  if(referenceTurnRows.length)fs.writeFileSync(path.join(outDir,'pve_reference_turns.jsonl'),referenceTurnRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
   writeCsv(path.join(outDir,'pve_stress_seeds.csv'),allRows);
 
   console.log('[PVE_STRESS_SUMMARY]',JSON.stringify(summary));
