@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {
-  STRESS_SCHEMA_VERSION,STRESS_SCENARIOS,SPEC_AMBIGUITIES,
+  STRESS_SCHEMA_VERSION,STRESS_SCENARIOS,SPEC_AMBIGUITIES,CANONICAL_RULES,
   StressHardFailure,replayScenario,scenarioAvailability,skippedScenarioReport,balanceWarnings
 } from './pve-stress-lib.mjs';
 
@@ -81,6 +81,12 @@ function aggregateScenario(def,results,failures){
   }
   const outcomes=passed.filter(x=>typeof x.outcome==='string');
   const clears=outcomes.filter(x=>!['RUN_FAILED','ABANDONED'].includes(x.outcome)).length;
+  const effectTriggerCounts={};
+  for(const result of passed)for(const [id,count] of Object.entries(result.effectTriggerCounts||{}))effectTriggerCounts[id]=(effectTriggerCounts[id]||0)+count;
+  const shareKeys=[...new Set(passed.flatMap(x=>Object.keys(x.characterDamageShare||{})))];
+  const avgCharacterDamageShare=Object.fromEntries(shareKeys.map(k=>[k,avg(passed.map(x=>x.characterDamageShare?.[k]).filter(Number.isFinite))]));
+  const expKeys=[...new Set(passed.flatMap(x=>Object.keys(x.expGainByCharacter||{})))];
+  const avgExpGainByCharacter=Object.fromEntries(expKeys.map(k=>[k,avg(passed.map(x=>x.expGainByCharacter?.[k]).filter(Number.isFinite))]));
   return {
     scenarioId:def.id,name:def.name,
     status:failures.length?'FAIL':warnings.length?'BALANCE_WARNING':'PASS',
@@ -90,6 +96,9 @@ function aggregateScenario(def,results,failures){
     avgPartyDpt:avg(combats.map(x=>x.partyDpt)),
     avgKo:avg(combats.map(x=>x.ko)),
     avgFlameSpent:avg(combats.map(x=>x.flameSpent)),
+    avgHpDamage:avg(combats.map(x=>Object.values(x.damageTaken||{}).reduce((a,b)=>a+b,0))),
+    avgHealing:avg(combats.map(x=>Object.values(x.healingDone||{}).reduce((a,b)=>a+b,0))),
+    effectTriggerCounts,avgCharacterDamageShare,avgExpGainByCharacter,
     warnings,failedSeeds:failures.map(x=>x.seed)
   };
 }
@@ -164,12 +173,14 @@ export async function main(argv=process.argv.slice(2)){
     scenarioCount:selected.length,
     scenarios:scenarioSummaries,
     skippedScenarios:skipped,
+    canonicalRules:CANONICAL_RULES,
     specAmbiguities:SPEC_AMBIGUITIES
   };
   fs.writeFileSync(path.join(outDir,'pve_stress_summary.json'),JSON.stringify(summary,null,2)+'\n');
   fs.writeFileSync(path.join(outDir,'pve_failed_seeds.json'),JSON.stringify(failedSeeds,null,2)+'\n');
   fs.writeFileSync(path.join(outDir,'pve_skipped_scenarios.json'),JSON.stringify(skipped,null,2)+'\n');
   fs.writeFileSync(path.join(outDir,'pve_spec_ambiguities.json'),JSON.stringify(SPEC_AMBIGUITIES,null,2)+'\n');
+  fs.writeFileSync(path.join(outDir,'pve_canonical_rules.json'),JSON.stringify(CANONICAL_RULES,null,2)+'\n');
   writeCsv(path.join(outDir,'pve_stress_seeds.csv'),allRows);
 
   console.log('[PVE_STRESS_SUMMARY]',JSON.stringify(summary));
