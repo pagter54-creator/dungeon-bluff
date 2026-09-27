@@ -23,8 +23,8 @@ test('T04 availability is active only with all collision-farm runtime capabiliti
   assert.deepEqual(a.missingBuildEffects,[]);
   assert.deepEqual(a.missingCapabilities,[]);
   const status=Object.fromEntries(STRESS_SCENARIOS.map(s=>[s.id,scenarioAvailability(s).available]));
-  for(const id of ['T00','T03','T04','T05','T09','T14'])assert.equal(status[id],true,id);
-  for(const id of ['T02','T06'])assert.equal(status[id],false,id);
+  for(const id of ['T00','T02','T03','T04','T05','T09','T14'])assert.equal(status[id],true,id);
+  assert.equal(status.T06,false,'T06');
 });
 
 test('T04 uses canonical Berserker deck and BETA Tier-I configs without inventing values',()=>{
