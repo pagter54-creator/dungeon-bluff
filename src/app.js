@@ -141,6 +141,28 @@ function pveEncounterArt(run){
   const category=run.phase==='REST'?'recovery':run.phase==='SHOP'||run.phase==='REWARD_ROOM'?'treasure':'event';
   return eventArt(category,run.roomState?.id);
 }
+function pveMageIntentChoices(player,selectedCardId){
+  const mana=Number(player?.publicResources?.mana)||0,augments=player?.augments||[];
+  const max=augments.includes('aug-091')?3:2;
+  const magnitudes=Array.from({length:max},(_,i)=>i+1).filter(level=>mana>=level*2);
+  if(!augments.includes('aug-111'))return magnitudes;
+  const base=player?.cardPool?.find(card=>card.id===selectedCardId)?.baseNumber;
+  const choices=[];
+  for(const level of magnitudes){
+    for(const sign of [1,-1]){
+      const delta=level*sign;
+      if(base==null||base+delta>=0&&base+delta<=6)choices.push(delta);
+    }
+  }
+  return choices;
+}
+function pveSkillData(run){
+  const player=pvePlayerForUser(run,api.user?.id),level=Number(pveUseSkill)||0;
+  if(player?.characterId!=='mage'||!level)return undefined;
+  const data={manaSpend:Math.abs(level)*2};
+  if((player.augments||[]).includes('aug-111'))data.direction=Math.sign(level);
+  return data;
+}
 function renderPveGameplay(run,{presentation=null}={}){
   const adaptedBundle=pveGameplayBundle(bundle,run,{scope:'combat'}),players=pveGameplayPlayers(bundle,run,{scope:'combat'}),member=mine(),mePlayer=players[member?.id];
   const stage=pveStageModel(run),monster=presentation?.monsterBefore||run.combat?.monster,intent=run.combat?.monster?.intent;
@@ -414,7 +436,7 @@ document.addEventListener('click', async event => {
     const c = characterFor(bundle, button.dataset.character), skill = c.definition?.skill;
     if (skill) showModal(`<div class="eyebrow">${skill.type === 'hybrid' ? 'PASSIVE & ACTIVE' : skill.type.toUpperCase()} · ${escape(c.display_name)}</div><h2>${escape(skill.name)}</h2><p>${escape(skill.description)}</p>`);
   }
-  if (action === 'toggle-skill' && !animating && !pveAnimating) { if(view==='pve'){pveUseSkill=!pveUseSkill;renderPve();}else{const p=bundle?.session?.state.players[mine()?.id];useSkill=p?.skillId==='amplify'?nextAmplifyLevel(p.characterRuntimeState.mana||0,Number(useSkill)||0):!useSkill;renderGame();} }
+  if (action === 'toggle-skill' && !animating && !pveAnimating) { if(view==='pve'){const p=pvePlayerForUser(bundle?.run,api.user?.id);if(p?.characterId==='mage'){const choices=pveMageIntentChoices(p,pveSelected),current=Number(pveUseSkill)||0,index=choices.indexOf(current);pveUseSkill=choices.length?(index<0?choices[0]:index===choices.length-1?0:choices[index+1]):0;}else pveUseSkill=!pveUseSkill;renderPve();}else{const p=bundle?.session?.state.players[mine()?.id];useSkill=p?.skillId==='amplify'?nextAmplifyLevel(p.characterRuntimeState.mana||0,Number(useSkill)||0):!useSkill;renderGame();} }
   if(action==='activate-acrobatics'&&!animating&&!pveAnimating&&view==='pve'){void performPve('pve.activateSkill');}
   else if(action==='activate-acrobatics'&&!animating&&bundle?.session){
     const member=mine(),session=bundle.session;
@@ -466,8 +488,8 @@ document.addEventListener('click', async event => {
   if(action==='echo-info')showModal('<h2>확인한 조건</h2><p>'+escape(bundle.session.state.roomInfo)+'</p>');
   if(action==='room-ready'||action==='room-choice')void perform(action==='room-ready'?'room_ready':'room_choice',{session_id:bundle.session.id,stage_index:bundle.session.state.roomSummary.stageIndex,choice:button.dataset.choice});
   if(action==='confirm-card')void perform('confirm_card',{session_id:bundle.session.id,turn_index:bundle.session.turn_index});
-  if (action === 'select-card' && !animating && !pveAnimating) { if(view==='pve'){pveSelected=button.dataset.cardId;renderPve();}else if(!bundle?.session?.state.roomSummary){selected=toggleCardSelection(selected,button.dataset.cardId,isShuffleTurn(bundle.session));renderGame();} }
-  if(action==='submit'&&view==='pve'&&pveSelected!==null&&!pveAnimating){const cardId=pveSelected,skill=Boolean(pveUseSkill);void (async()=>{const response=bundle.run.phase==='REWARD_ROOM'?await performPve('pve.rewardSubmitCard',{card_instance_id:cardId,skill_intent:skill}):await performPve('pve.submitCard',{card_instance_id:cardId,skill_intent:skill});if(response){pveSelected=null;pveUseSkill=false;renderPve();}})();}
+  if (action === 'select-card' && !animating && !pveAnimating) { if(view==='pve'){pveSelected=button.dataset.cardId;const p=pvePlayerForUser(bundle?.run,api.user?.id);if(p?.characterId==='mage'&&(p.augments||[]).includes('aug-111')&&pveUseSkill&&!pveMageIntentChoices(p,pveSelected).includes(Number(pveUseSkill)))pveUseSkill=0;renderPve();}else if(!bundle?.session?.state.roomSummary){selected=toggleCardSelection(selected,button.dataset.cardId,isShuffleTurn(bundle.session));renderGame();} }
+  if(action==='submit'&&view==='pve'&&pveSelected!==null&&!pveAnimating){const cardId=pveSelected,skill=Boolean(pveUseSkill);void (async()=>{const response=bundle.run.phase==='REWARD_ROOM'?await performPve('pve.rewardSubmitCard',{card_instance_id:cardId,skill_intent:skill,skill_data:pveSkillData(bundle.run)}):await performPve('pve.submitCard',{card_instance_id:cardId,skill_intent:skill,skill_data:pveSkillData(bundle.run)});if(response){pveSelected=null;pveUseSkill=false;renderPve();}})();}
   else if (action === 'submit' && selected !== null && !animating) {
     const me = mine(), g = bundle.session;
     const twoCards=isShuffleTurn(g),info=selectionInfo(g.state.players[me.id],selected,twoCards);
