@@ -402,13 +402,15 @@ document.addEventListener('click', async event => {
   if (action === 'character-select') showModal(characterChoices(bundle, button.dataset.member));
   if(action==='lobby-ready')void perform('set_ready',{ready:button.dataset.ready==='true'});
   if(action==='retry-entry'){entryError='';void prepareEntry();}
+  if(action==='retry-pve-entry'){pveEntryError='';void preparePveEntry();}
   if (action === 'set-character') void perform('set_character', { member_id: button.dataset.member, character_id: button.dataset.character });
   if (action === 'skill-info') {
     const c = characterFor(bundle, button.dataset.character), skill = c.definition?.skill;
     if (skill) showModal(`<div class="eyebrow">${skill.type === 'hybrid' ? 'PASSIVE & ACTIVE' : skill.type.toUpperCase()} · ${escape(c.display_name)}</div><h2>${escape(skill.name)}</h2><p>${escape(skill.description)}</p>`);
   }
-  if (action === 'toggle-skill' && !animating) { const p=bundle?.session?.state.players[mine()?.id];useSkill=p?.skillId==='amplify'?nextAmplifyLevel(p.characterRuntimeState.mana||0,Number(useSkill)||0):!useSkill;renderGame(); }
-  if(action==='activate-acrobatics'&&!animating&&bundle?.session){
+  if (action === 'toggle-skill' && !animating && !pveAnimating) { if(view==='pve'){pveUseSkill=!pveUseSkill;renderPve();}else{const p=bundle?.session?.state.players[mine()?.id];useSkill=p?.skillId==='amplify'?nextAmplifyLevel(p.characterRuntimeState.mana||0,Number(useSkill)||0):!useSkill;renderGame();} }
+  if(action==='activate-acrobatics'&&!animating&&!pveAnimating&&view==='pve'){void performPve('pve.activateSkill');}
+  else if(action==='activate-acrobatics'&&!animating&&bundle?.session){
     const member=mine(),session=bundle.session;
     const response=await perform('activate_skill',{session_id:session.id,turn_index:session.turn_index,member_id:member.id});
     if(response?.session?.state.players[member.id]?.characterRuntimeState.acrobatTurn===session.turn_index){
@@ -416,7 +418,8 @@ document.addEventListener('click', async event => {
       void showSkillEffect(document.querySelector(`[data-player="${member.id}"]`),'acrobatics','곡예 · 교대!');
     }
   }
-  if (action === 'activate-revelation' && !animating && bundle?.session) {
+  if(action==='activate-revelation'&&!animating&&!pveAnimating&&view==='pve'){void performPve('pve.activateSkill');}
+  else if (action === 'activate-revelation' && !animating && bundle?.session) {
     const member = mine(), session = bundle.session;
     const response = await perform('activate_skill', { session_id:session.id, turn_index:session.turn_index, member_id:member.id });
     if (response?.session?.state.players[member.id]?.characterRuntimeState.revealExpiresTurn === session.turn_index) {
@@ -426,12 +429,22 @@ document.addEventListener('click', async event => {
   if (action === 'add-ai') void perform('add_ai', { ai_type: button.dataset.type });
   if (action === 'remove-ai') void perform('remove_ai', { member_id: button.dataset.id });
   if (action === 'start') void perform('start_game');
+  if(action==='pve-map-open'){pveMapOpen=true;renderPve();}
+  if(action==='pve-map-close'){pveMapOpen=false;renderPve();}
   if(action==='pve-vote')void performPve('pve.voteNextRoom',{node_id:button.dataset.nodeId});
+  if(action==='pve-relic-info'){const relic=relicUi(button.dataset.relicId);showModal('<div class="eyebrow">RELIC</div><h2>'+escape(relic.name)+'</h2><p>'+escape(relic.text)+'</p>');}
   if(action==='pve-submit-card')void performPve('pve.submitCard',{card_instance_id:button.dataset.cardId,skill_intent:button.dataset.useSkill==='true'});
   if(action==='pve-augment')void performPve('pve.chooseAugment',{augment_id:button.dataset.augmentId});
   if(action==='pve-event')void performPve('pve.chooseEventOption',{option_id:button.dataset.optionId});
   if(action==='pve-rest')void performPve('pve.restChoice',{choice:button.dataset.choice});
-  if(action==='pve-buy-relic')void performPve('pve.shopBuyRelic',{product_id:button.dataset.productId});
+  if(action==='pve-rest-engrave'){pveEngraveMode=true;pveSelected=null;renderPve();}
+  if(action==='pve-rest-engrave-cancel'){pveEngraveMode=false;pveSelected=null;renderPve();}
+  if(action==='pve-rest-engrave-confirm'&&pveSelected){const number=pveSelectorNumber(bundle.run,pveSelected);if(number!=null){pveEngraveMode=false;pveSelected=null;void performPve('pve.restChoice',{choice:'ENGRAVE',number});}}
+  if(action==='pve-shop-item'){const room=bundle.run?.roomState||{},item=[...(room.cardStock||[]),...(room.relicStock||[])].find(x=>x.id===button.dataset.productId);if(item){if(item.kind==='CARD')showModal('<div class="eyebrow">SHOP · CARD</div><h2>숫자 '+escape(item.value)+' 카드</h2><p>가격 '+escape(item.price)+'G · 구매하면 내 카드 한 장과 교체합니다.</p><button class="button primary full" data-action="pve-shop-reserve" data-product-id="'+escape(item.id)+'">교체 카드 선택 →</button>');else{const relic=relicUi(item.relicId);showModal('<div class="eyebrow">SHOP · RELIC</div><h2>'+escape(relic.name)+'</h2><p>'+escape(relic.text)+'</p><p>'+escape(item.price)+'G</p><button class="button primary full" data-action="pve-shop-buy-relic" data-product-id="'+escape(item.id)+'">구매 확인 →</button>');}}}
+  if(action==='pve-shop-reserve'){const productId=button.dataset.productId;modal.close();pveShopReservation=productId;pveSelected=null;void performPve('pve.shopReserveCard',{product_id:productId});}
+  if(action==='pve-shop-buy-relic'){modal.close();void performPve('pve.shopBuyRelic',{product_id:button.dataset.productId});}
+  if(action==='pve-shop-confirm-card'&&pveShopReservation&&pveSelected){const productId=pveShopReservation,replaceId=pveSelected;pveShopReservation=null;pveSelected=null;void performPve('pve.shopConfirmCard',{product_id:productId,replace_card_id:replaceId});}
+  if(action==='pve-shop-cancel-card'&&pveShopReservation){const productId=pveShopReservation;pveShopReservation=null;pveSelected=null;void performPve('pve.shopCancelCard',{product_id:productId});}
   if(action==='pve-shop-ready')void performPve('pve.shopReady');
   if(action==='pve-reward-card')void performPve('pve.rewardSubmitCard',{card_instance_id:button.dataset.cardId,skill_intent:false});
   if(action==='pve-reward-relic')void performPve('pve.rewardChooseRelic',{relic_id:button.dataset.relicId});
@@ -447,8 +460,9 @@ document.addEventListener('click', async event => {
   if(action==='echo-info')showModal('<h2>확인한 조건</h2><p>'+escape(bundle.session.state.roomInfo)+'</p>');
   if(action==='room-ready'||action==='room-choice')void perform(action==='room-ready'?'room_ready':'room_choice',{session_id:bundle.session.id,stage_index:bundle.session.state.roomSummary.stageIndex,choice:button.dataset.choice});
   if(action==='confirm-card')void perform('confirm_card',{session_id:bundle.session.id,turn_index:bundle.session.turn_index});
-  if (action === 'select-card' && !animating && !bundle?.session?.state.roomSummary) { selected = toggleCardSelection(selected,button.dataset.cardId,isShuffleTurn(bundle.session)); renderGame(); }
-  if (action === 'submit' && selected !== null && !animating) {
+  if (action === 'select-card' && !animating && !pveAnimating) { if(view==='pve'){pveSelected=button.dataset.cardId;renderPve();}else if(!bundle?.session?.state.roomSummary){selected=toggleCardSelection(selected,button.dataset.cardId,isShuffleTurn(bundle.session));renderGame();} }
+  if(action==='submit'&&view==='pve'&&pveSelected!==null&&!pveAnimating){const cardId=pveSelected,skill=Boolean(pveUseSkill);void (async()=>{const response=bundle.run.phase==='REWARD_ROOM'?await performPve('pve.rewardSubmitCard',{card_instance_id:cardId,skill_intent:skill}):await performPve('pve.submitCard',{card_instance_id:cardId,skill_intent:skill});if(response){pveSelected=null;pveUseSkill=false;renderPve();}})();}
+  else if (action === 'submit' && selected !== null && !animating) {
     const me = mine(), g = bundle.session;
     const twoCards=isShuffleTurn(g),info=selectionInfo(g.state.players[me.id],selected,twoCards);
     if(info.ready)void perform(g.state.selectionHolds?.[me.id]&&g.state.lockedMembers.includes(me.id)?'reselect_card':'submit_card',{session_id:g.id,turn_index:g.turn_index,member_id:me.id,...(twoCards?{card_ids:info.cards.map(c=>c.id)}:{card_id:info.cards[0].id,card_value:info.cards[0].value}),use_skill:Boolean(useSkill),amplify_level:g.state.players[me.id].skillId==='amplify'?Number(useSkill)||0:0});
