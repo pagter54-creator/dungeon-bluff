@@ -271,7 +271,7 @@ Deno.serve(async req => {
               await assertCoopPveEnabledNow();
               const unsupported=unsupportedPveRoomCharacters(b.members);
               check(!unsupported.length,`협력 탐험에서 아직 지원하지 않는 캐릭터가 있습니다: ${unsupported.join(', ')}`);
-              const run=buildInitialPveRun(b);
+              const run=buildInitialPveRun(b);beginEntryLoading(run);
               const {data:start,error:startError}=await admin.rpc('pve_start_room',{p_run_id:run.id,p_room:roomId,p_expected:expected,p_seed:run.seed,p_state:run});
               if(startError)throw new Error(startError.message||'협력 탐험을 시작하지 못했습니다.');
               if(start?.conflict){await waitForConflictRetry(attempt);continue;}
