@@ -10,6 +10,7 @@ import {installRelicCatalog} from '../supabase/functions/game-api/pve/relics.js'
 import {buildReferenceIntent,negotiateReferenceIntents,summarizeReferenceTurns} from './pve-reference-policy.mjs';
 import {buildNumberMutationIntent,planNumberMutationTurn} from './pve-number-mutation-policy.mjs';
 import {buildResourceStarvationDecision,invalidResourceProbe} from './pve-resource-starvation-policy.mjs';
+import {buildCollisionFarmIntent,planCollisionFarmTurn,planCollisionSafeTurn} from './pve-collision-farm-policy.mjs';
 
 export const STRESS_SCHEMA_VERSION=1;
 export const HARD_MAX_TURNS=100;
@@ -56,7 +57,16 @@ const EXECUTABLE_RUNTIME_CAPABILITIES=new Set([
   'prophet_recovery',
   'gunner_basic_cycle',
   'gunner_full_burst',
-  'resource_starvation_policy'
+  'resource_starvation_policy',
+  'berserker_base',
+  'crush_knight',
+  'imp_base',
+  'bold_steal',
+  'immortal_fighter',
+  'vampire_base',
+  'full_thrall',
+  'collision_farm_policy',
+  'collision_safe_policy'
 ]);
 export const STRESS_SCENARIOS=Object.freeze([
   {
@@ -88,7 +98,8 @@ export const STRESS_SCENARIOS=Object.freeze([
   {
     id:'T04',name:'Collision Farm',runner:'combat',policy:'collision_farm',
     characters:['warrior','imp','berserker','vampire'],
-    builds:[['warrior','압살 기사'],['imp','대담한 슬쩍'],['berserker','불사 투사'],['vampire','완전한 권속']]
+    builds:[['warrior','압살 기사'],['imp','대담한 슬쩍'],['berserker','불사 투사'],['vampire','완전한 권속']],
+    requires:['warrior_basic_resource','crush_knight','imp_base','bold_steal','berserker_base','immortal_fighter','vampire_base','full_thrall','collision_farm_policy','collision_safe_policy']
   },
   {
     id:'T06',name:'Recovery Loop',runner:'combat',policy:'recovery',
@@ -312,6 +323,7 @@ export function assertRunInvariants(run){
     if(Number(p.publicResources?.mana)>resourceMax(p,'mana',4))fail('INVALID_RESOURCE','mage mana exceeded current cap',{playerId:p.playerId,value:p.publicResources.mana,max:resourceMax(p,'mana',4)});
     if(Number(p.publicResources?.toughnessCharges)>resourceMax(p,'toughnessCharges',2))fail('INVALID_RESOURCE','warrior toughness exceeded current cap',{playerId:p.playerId,value:p.publicResources.toughnessCharges,max:resourceMax(p,'toughnessCharges',2)});
     if(Number(p.publicResources?.revelation)>resourceMax(p,'revelation',1))fail('INVALID_RESOURCE','prophet revelation exceeded current cap',{playerId:p.playerId,value:p.publicResources.revelation,max:resourceMax(p,'revelation',1)});
+    if(Number(p.publicResources?.revenge)>resourceMax(p,'revenge',1))fail('INVALID_RESOURCE','berserker revenge exceeded current cap',{playerId:p.playerId,value:p.publicResources.revenge,max:resourceMax(p,'revenge',1)});
     if(p.publicResources?.parity!=null&&![0,1].includes(p.publicResources.parity))fail('INVALID_RESOURCE','twins parity must be 0 or 1',{playerId:p.playerId,value:p.publicResources.parity});
     for(const [number,value] of Object.entries(p.engravings||{}))if(!finite(value)||value<0)fail('NEGATIVE_RESOURCE','negative/invalid engraving',{playerId:p.playerId,number,value});
     validateZone(p,run.combat?.privateByPlayer?.[p.playerId],'combat');
