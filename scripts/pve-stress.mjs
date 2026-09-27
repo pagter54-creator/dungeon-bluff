@@ -3,7 +3,7 @@ import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {
   STRESS_SCHEMA_VERSION,STRESS_SCENARIOS,SPEC_AMBIGUITIES,CANONICAL_RULES,
-  StressHardFailure,replayScenario,scenarioAvailability,skippedScenarioReport,balanceWarnings,t02GoldenComparable
+  StressHardFailure,replayScenario,scenarioAvailability,skippedScenarioReport,balanceWarnings,t02GoldenComparable,t06GoldenComparable
 } from './pve-stress-lib.mjs';
 
 function argsOf(argv){
@@ -301,7 +301,49 @@ function aggregateScenario(def,results,failures){
     duplicateModifierCount:burstRows.reduce((n,x)=>n+(Number(x.duplicateModifierCount)||0),0),
     bossMaxHp:Math.max(...burstRows.map(x=>Number(x.bossMaxHp)||0))
   }:null;
+  const recoveryRows=passed.map(x=>x.recoveryMetrics).filter(Boolean);
+  const recoveryMetrics=def.id==='T06'&&recoveryRows.length?{
+    totalCardRecoveries:recoveryRows.reduce((n,x)=>n+(Number(x.totalCardRecoveries)||0),0),
+    allyCardRecoveries:recoveryRows.reduce((n,x)=>n+(Number(x.allyCardRecoveries)||0),0),
+    sameCardRecoveryCount:recoveryRows.reduce((n,x)=>n+(Number(x.sameCardRecoveryCount)||0),0),
+    maxTimesOneCardRecovered:Math.max(...recoveryRows.map(x=>Number(x.maxTimesOneCardRecovered)||0)),
+    cycleResets:recoveryRows.reduce((n,x)=>n+(Number(x.cycleResets)||0),0),
+    fullBurstCycleResets:recoveryRows.reduce((n,x)=>n+(Number(x.fullBurstCycleResets)||0),0),
+    acrobaticsCycleResets:recoveryRows.reduce((n,x)=>n+(Number(x.acrobaticsCycleResets)||0),0),
+    ghostSlashReactivations:recoveryRows.reduce((n,x)=>n+(Number(x.ghostSlashReactivations)||0),0),
+    cardsUsedAfterRecovery:recoveryRows.reduce((n,x)=>n+(Number(x.cardsUsedAfterRecovery)||0),0),
+    duplicatePhysicalCardViolations:recoveryRows.reduce((n,x)=>n+(Number(x.duplicatePhysicalCardViolations)||0),0),
+    invalidZoneTransitions:recoveryRows.reduce((n,x)=>n+(Number(x.invalidZoneTransitions)||0),0),
+    maxRecoveryChainDepth:Math.max(...recoveryRows.map(x=>Number(x.maxRecoveryChainDepth)||0)),
+    maxDerivedEventsPerRootAction:Math.max(...recoveryRows.map(x=>Number(x.maxDerivedEventsPerRootAction)||0)),
+    actionCeilingHits:recoveryRows.reduce((n,x)=>n+(Number(x.actionCeilingHits)||0),0),
+    recursiveRecoveryAttempts:recoveryRows.reduce((n,x)=>n+(Number(x.recursiveRecoveryAttempts)||0),0),
+    recursiveCycleResetAttempts:recoveryRows.reduce((n,x)=>n+(Number(x.recursiveCycleResetAttempts)||0),0),
+    recursiveSkillReactivationAttempts:recoveryRows.reduce((n,x)=>n+(Number(x.recursiveSkillReactivationAttempts)||0),0),
+    deterministicReplayMismatch:recoveryRows.reduce((n,x)=>n+(Number(x.deterministicReplayMismatch)||0),0),
+    totalPhysicalCardUses:recoveryRows.reduce((n,x)=>n+(Number(x.totalPhysicalCardUses)||0),0),
+    uniquePhysicalCardsUsed:recoveryRows.reduce((n,x)=>n+(Number(x.uniquePhysicalCardsUsed)||0),0),
+    avgCardReuseRatio:avg(recoveryRows.map(x=>x.cardReuseRatio)),
+    skillCasts:recoveryRows.reduce((n,x)=>n+(Number(x.skillCasts)||0),0)
+  }:null;
   const comparisonRows=passed.map(x=>x.comparison).filter(Boolean);
+  const recoveryComparison=def.id==='T06'&&comparisonRows.length?{
+    avgRecoveryDpt:avg(comparisonRows.map(x=>x.recoveryDpt)),
+    avgSteadyDpt:avg(comparisonRows.map(x=>x.steadyDpt)),
+    avgDptRatio:avg(comparisonRows.map(x=>x.dptRatio)),
+    avgRecoveryTurns:avg(comparisonRows.map(x=>x.recoveryTurns)),
+    avgSteadyTurns:avg(comparisonRows.map(x=>x.steadyTurns)),
+    avgRecoveryFinalHp:avg(comparisonRows.map(x=>x.recoveryFinalHp)),
+    avgSteadyFinalHp:avg(comparisonRows.map(x=>x.steadyFinalHp)),
+    avgRecoveryFlameSpent:avg(comparisonRows.map(x=>x.recoveryFlameSpent)),
+    avgSteadyFlameSpent:avg(comparisonRows.map(x=>x.steadyFlameSpent)),
+    avgRecoveryCardReuseRatio:avg(comparisonRows.map(x=>x.recoveryCardReuseRatio)),
+    avgSteadyCardReuseRatio:avg(comparisonRows.map(x=>x.steadyCardReuseRatio)),
+    avgRecoveryCount:avg(comparisonRows.map(x=>x.recoveryCount)),
+    avgSteadyRecoveryCount:avg(comparisonRows.map(x=>x.steadyRecoveryCount)),
+    recoveryDominatesCount:comparisonRows.filter(x=>x.recoveryDominates).length,
+    recoveryDominatesRate:comparisonRows.filter(x=>x.recoveryDominates).length/comparisonRows.length
+  }:null;
   const burstComparison=def.id==='T02'&&comparisonRows.length?{
     avgBurstDpt:avg(comparisonRows.map(x=>x.burstDpt)),
     avgSteadyDpt:avg(comparisonRows.map(x=>x.steadyDpt)),
@@ -366,6 +408,8 @@ function aggregateScenario(def,results,failures){
     burstComparison,
     sustainMetrics,
     sustainComparison,
+    recoveryMetrics,
+    recoveryComparison,
     fairnessWarnings,
     warnings:allWarnings,failedSeeds:failures.map(x=>x.seed)
   };
@@ -384,8 +428,8 @@ export async function main(argv=process.argv.slice(2)){
     : STRESS_SCENARIOS;
   if(opts.scenario&&!selected.length)throw new Error(`Unknown scenario: ${opts.scenario}`);
 
-  const allRows=[],failedSeeds=[],scenarioSummaries=[],referenceTurnRows=[],numberMutationTurnRows=[],resourceStarvationRows=[],collisionFarmRows=[],collisionSafeRows=[],sustainRows=[],normalSustainRows=[],burstTurnRows=[],steadyBurstRows=[];
-  let t02FixtureArtifact=null,t02GoldenArtifact=null,t03FixtureArtifact=null,t04FixtureArtifact=null,t05FixtureArtifact=null,t09FixtureArtifact=null;
+  const allRows=[],failedSeeds=[],scenarioSummaries=[],referenceTurnRows=[],numberMutationTurnRows=[],resourceStarvationRows=[],collisionFarmRows=[],collisionSafeRows=[],sustainRows=[],normalSustainRows=[],burstTurnRows=[],steadyBurstRows=[],recoveryTurnRows=[],steadyRecoveryRows=[];
+  let t02FixtureArtifact=null,t02GoldenArtifact=null,t03FixtureArtifact=null,t04FixtureArtifact=null,t05FixtureArtifact=null,t06FixtureArtifact=null,t06GoldenArtifact=null,t09FixtureArtifact=null;
   let hardFailures=0;
   for(const def of selected){
     const availability=scenarioAvailability(def);
@@ -409,11 +453,15 @@ export async function main(argv=process.argv.slice(2)){
         for(const turn of result.normalSustainTurns||[])normalSustainRows.push({scenarioId:def.id,seed,...turn});
         for(const turn of result.burstTurns||[])burstTurnRows.push({scenarioId:def.id,seed,...turn});
         for(const turn of result.steadyBurstTurns||[])steadyBurstRows.push({scenarioId:def.id,seed,...turn});
+        for(const turn of result.recoveryTurns||[])recoveryTurnRows.push({scenarioId:def.id,seed,...turn});
+        for(const turn of result.steadyRecoveryTurns||[])steadyRecoveryRows.push({scenarioId:def.id,seed,...turn});
         if(def.id==='T02'&&!t02FixtureArtifact&&result.fixtures)t02FixtureArtifact={scenarioId:'T02',seed,fixtures:result.fixtures};
         if(def.id==='T02'&&!t02GoldenArtifact)t02GoldenArtifact={seed,golden:t02GoldenComparable(result)};
         if(def.id==='T03'&&!t03FixtureArtifact&&result.fixtures)t03FixtureArtifact={scenarioId:'T03',seed,fixtures:result.fixtures};
         if(def.id==='T04'&&!t04FixtureArtifact&&result.fixtures)t04FixtureArtifact={scenarioId:'T04',seed,fixtures:result.fixtures};
         if(def.id==='T05'&&!t05FixtureArtifact&&result.fixtures)t05FixtureArtifact={scenarioId:'T05',seed,fixtures:result.fixtures};
+        if(def.id==='T06'&&!t06FixtureArtifact&&result.fixtures)t06FixtureArtifact={scenarioId:'T06',seed,fixtures:result.fixtures};
+        if(def.id==='T06'&&!t06GoldenArtifact)t06GoldenArtifact={seed,golden:t06GoldenComparable(result)};
         if(def.id==='T09'&&!t09FixtureArtifact&&result.fixtures)t09FixtureArtifact={scenarioId:'T09',seed,fixtures:result.fixtures};
         const row={
           scenarioId:def.id,seed,status:warnings.length?'BALANCE_WARNING':'PASS',
@@ -475,11 +523,15 @@ export async function main(argv=process.argv.slice(2)){
   if(normalSustainRows.length)fs.writeFileSync(path.join(outDir,'pve_normal_sustain_turns.jsonl'),normalSustainRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
   if(burstTurnRows.length)fs.writeFileSync(path.join(outDir,'pve_burst_turns.jsonl'),burstTurnRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
   if(steadyBurstRows.length)fs.writeFileSync(path.join(outDir,'pve_steady_burst_turns.jsonl'),steadyBurstRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
+  if(recoveryTurnRows.length)fs.writeFileSync(path.join(outDir,'pve_recovery_turns.jsonl'),recoveryTurnRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
+  if(steadyRecoveryRows.length)fs.writeFileSync(path.join(outDir,'pve_steady_recovery_turns.jsonl'),steadyRecoveryRows.map(x=>JSON.stringify(x)).join('\n')+'\n');
   if(t02FixtureArtifact)fs.writeFileSync(path.join(outDir,'pve_t02_fixtures.json'),JSON.stringify(t02FixtureArtifact,null,2)+'\n');
   if(t02GoldenArtifact)fs.writeFileSync(path.join(outDir,'pve_t02_golden.json'),JSON.stringify(t02GoldenArtifact,null,2)+'\n');
   if(t03FixtureArtifact)fs.writeFileSync(path.join(outDir,'pve_t03_fixtures.json'),JSON.stringify(t03FixtureArtifact,null,2)+'\n');
   if(t04FixtureArtifact)fs.writeFileSync(path.join(outDir,'pve_t04_fixtures.json'),JSON.stringify(t04FixtureArtifact,null,2)+'\n');
   if(t05FixtureArtifact)fs.writeFileSync(path.join(outDir,'pve_t05_fixtures.json'),JSON.stringify(t05FixtureArtifact,null,2)+'\n');
+  if(t06FixtureArtifact)fs.writeFileSync(path.join(outDir,'pve_t06_fixtures.json'),JSON.stringify(t06FixtureArtifact,null,2)+'\n');
+  if(t06GoldenArtifact)fs.writeFileSync(path.join(outDir,'pve_t06_golden.json'),JSON.stringify(t06GoldenArtifact,null,2)+'\n');
   if(t09FixtureArtifact)fs.writeFileSync(path.join(outDir,'pve_t09_fixtures.json'),JSON.stringify(t09FixtureArtifact,null,2)+'\n');
   writeCsv(path.join(outDir,'pve_stress_seeds.csv'),allRows);
 
