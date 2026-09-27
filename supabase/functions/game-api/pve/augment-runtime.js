@@ -1,4 +1,4 @@
-export const T00_EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
+export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
   'aug-001':{
     executable:true,
     source:'BETA_v0.1',
@@ -123,7 +123,58 @@ export const T00_EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
         tags:['T00','REFERENCE']
       }
     ]
+  },
+  'aug-111':{
+    executable:true,
+    source:'BETA_v0.1',
+    specialHandlers:['REVERSE_MATH'],
+    effects:[]
+  },
+  'aug-181':{
+    executable:true,
+    source:'BETA_v0.1',
+    specialHandlers:['BOLD_STEAL'],
+    effects:[
+      {
+        id:'aug-181-bold-steal-damage',
+        trigger:'BEFORE_DAMAGE',
+        priority:55,
+        condition:{path:'resolved.stealTargetCount',gte:2},
+        operations:[{type:'MODIFY_DAMAGE',amount:2}],
+        maxTriggers:1,resetScope:'TURN',
+        tags:['T05','NUMBER_MUTATION']
+      }
+    ]
+  },
+  'aug-301':{
+    executable:true,
+    source:'BETA_v0.1',
+    specialHandlers:['FULL_THRALL'],
+    effects:[
+      {
+        id:'aug-301-dominance-cycle',
+        trigger:'CARD_VALIDATED',
+        priority:35,
+        condition:{all:[{path:'resolved.bloodCommandUsed',eq:true},{path:'resolved.valid',eq:true}]},
+        operations:[
+          {type:'CAPTURE_RESOURCE',resource:'dominance',field:'dominanceBonus'},
+          {type:'SET_RESOURCE',resource:'dominance',amount:0},
+          {type:'ADD_RESOURCE',resource:'dominance',amount:1}
+        ],
+        maxTriggers:1,resetScope:'TURN',
+        tags:['T05','NUMBER_MUTATION']
+      },
+      {
+        id:'aug-301-dominance-damage',
+        trigger:'BEFORE_DAMAGE',
+        priority:56,
+        condition:{path:'resolved.dominanceBonus',gt:0},
+        operations:[{type:'MODIFY_DAMAGE',amountPath:'resolved.dominanceBonus'}],
+        maxTriggers:1,resetScope:'TURN',
+        tags:['T05','NUMBER_MUTATION']
+      }
+    ]
   }
 });
 
-export function executableAugmentRuntime(augmentId){return T00_EXECUTABLE_AUGMENT_RUNTIME[augmentId]||null;}
+export function executableAugmentRuntime(augmentId){return EXECUTABLE_AUGMENT_RUNTIME[augmentId]||null;}
