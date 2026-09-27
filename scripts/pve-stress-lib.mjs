@@ -1600,6 +1600,7 @@ export function balanceWarnings(result){
     if((Number(m.maxPartyTurnDamage)||0)>=(Number(m.bossMaxHp)||Infinity)*0.5)warnings.push({code:'BURST_TOO_HIGH',maxPartyTurnDamage:m.maxPartyTurnDamage,bossMaxHp:m.bossMaxHp});
     if((Number(m.multiThresholdBurstCount)||0)>0)warnings.push({code:'MULTI_THRESHOLD_BURST',count:m.multiThresholdBurstCount});
     if((Number(m.maxConsecutiveBurstTurns)||0)>=2)warnings.push({code:'REPEATED_BURST',maxConsecutiveBurstTurns:m.maxConsecutiveBurstTurns});
+    if((Number(m.maxPartyTurnDamage)||0)>=(Number(m.bossMaxHp)||Infinity)*0.5&&(Number(c.costSignals)||0)===0)warnings.push({code:'BURST_WITHOUT_COST',maxPartyTurnDamage:m.maxPartyTurnDamage,bossMaxHp:m.bossMaxHp});
     if(c.burstDominates)warnings.push({code:'BURST_DOMINATES',dptRatio:c.dptRatio,burstDpt:c.burstDpt,steadyDpt:c.steadyDpt,costLow:c.costLow});
   }
   if(result.scenarioId==='T04'&&result.comparison?.farmDominates){
