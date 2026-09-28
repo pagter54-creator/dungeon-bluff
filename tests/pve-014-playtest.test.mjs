@@ -124,15 +124,15 @@ test('PVE-014 fully automatic turn resolves when the only human is stunned inste
   if(run.phase==='COMBAT')assert.equal(run.players[0].status,'ACTIVE');
 });
 
-test('PVE-014 internal API playtest: four humans can traverse every F1 room family and reach FLOOR_CLEAR',async()=>{
+test('PVE-014 internal API playtest: four humans can traverse every F1 room family and reach Floor 2',async()=>{
   const admin=memoryAdmin(humanBundle()),users=['u0','u1','u2','u3'];let seq=1;
   let run=await call(admin,{action:'pve.createRun',room_id:ROOM_ID,seed:'pve-014-four-human-playtest',depth_count:8},'u0');
-  assert.equal(run.floor,1);assert.equal(run.phase,'MAP_VOTE');assert.equal(run.contentVersion,'F1_VERTICAL_SLICE_V1');assert.equal(run.flame,4);assert.equal(run.maxFlame,5);
-  assert.equal(run.map.bossName,'몰락한 성주');
+  assert.equal(run.floor,1);assert.equal(run.phase,'MAP_VOTE');assert.equal(run.contentVersion,'F1_CONTENT_001B');assert.equal(run.flame,4);assert.equal(run.maxFlame,5);
+  const selectedBossId=run.map.bossId;
 
   const visited=[],combatTurns={},version=()=>admin.version;
   let rewardResolved=false,lastVisitedNodeId=null;
-  for(let guard=0;guard<800&&run.phase!=='FLOOR_CLEAR'&&run.phase!=='RUN_FAILED';guard++){
+  for(let guard=0;guard<800&&run.floor===1&&run.phase!=='RUN_FAILED';guard++){
     if(run.currentRoomNodeId&&run.currentRoomNodeId!==lastVisitedNodeId){
       visited.push(run.map.nodes.find(n=>n.id===run.currentRoomNodeId)?.type);
       lastVisitedNodeId=run.currentRoomNodeId;
@@ -254,12 +254,12 @@ test('PVE-014 internal API playtest: four humans can traverse every F1 room fami
   }
 
   assert.notEqual(run.phase,'RUN_FAILED',JSON.stringify({visited,combatTurns,flame:run.flame,players:run.players.map(p=>({id:p.playerId,hp:p.hp,status:p.status,gold:p.runGold}))}));
-  assert.equal(run.phase,'FLOOR_CLEAR',JSON.stringify({visited,combatTurns}));
+  assert.equal(run.phase,'MAP_VOTE',JSON.stringify({visited,combatTurns}));assert.equal(run.floor,2);
   assert.deepEqual(visited,['NORMAL_COMBAT','EVENT','SHOP','ELITE_COMBAT','REST','NORMAL_COMBAT','REWARD_ROOM','BOSS']);
-  assert.equal(run.floorClear.bossName,'몰락한 성주');
+  assert.equal(run.floorClear.bossId,selectedBossId);
   assert.equal(rewardResolved,true);
   assert.ok(run.players.some(p=>p.relics.length>0));
-  assert.ok(admin.telemetry.some(x=>x.logType==='COMBAT'&&x.payload.monster_id==='f1_fallen_lord'));
+  assert.ok(admin.telemetry.some(x=>x.logType==='COMBAT'&&x.payload.monster_id===selectedBossId));
   const combatLogs=admin.telemetry.filter(x=>x.logType==='COMBAT').map(x=>x.payload);
   assert.ok(combatLogs.length>=4);
   console.log('[PVE-014 F1 playtest]',JSON.stringify({
