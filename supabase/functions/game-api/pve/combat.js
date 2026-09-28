@@ -1,4 +1,5 @@
 import {choose} from './rng.js';
+import {persistCardCycles} from './card-cycle.js';
 import {
   onTurnStartCharacter,onCycleStartCharacter,onTurnEndCharacter,selfModifyCard,collisionImmunity,onValidAttack,
   isCardSelectableForCharacter,validateCharacterSkillIntent,resolvePostCollisionCharacter,resolvePostCollisionEffects,resolveGuardianWallCollisions,
@@ -54,6 +55,7 @@ function spendResolvedCards(run,cards,events=[]){
     const rootActionId=`action:${run.combat.id}:${run.combat.turn}:${rc.playerId}:${rc.cardInstanceId}`;
     resetCycleIfNeeded(run,player,events,{reason:(rc.followUpCardIds||[]).length?'FULL_BURST':'NATURAL_EXHAUSTION',rootActionId,recoveryChainId:`recovery:${rootActionId}`,parentEventId:null,chainDepth:1,sourceEffectId:(rc.followUpCardIds||[]).length?'FULL_BURST':'CYCLE_EXHAUSTION'});
   }
+  persistCardCycles(run,run.combat.privateByPlayer);
 }
 function resolveDowns(run){
   const events=[],pending=new Set(run.combat?.pendingDownPlayerIds||[]);
