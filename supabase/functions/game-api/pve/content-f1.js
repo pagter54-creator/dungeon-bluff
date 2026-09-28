@@ -49,17 +49,36 @@ export const F1_MONSTER_DEFINITIONS=Object.freeze({
 
 export const F1_EVENT_DEFINITIONS=Object.freeze([
   {
-    id:'f1_abandoned_camp',name:'버려진 야영지',
+    id:'f1_abandoned_camp',name:'버려진 야영지',illustration:'shared_supplies',
+    description:'남겨진 물자를 살핍니다. 누가 가장 먼저 쓸 만한 물건을 찾을까요?',
+    ruleSummary:'최고 유효 숫자: +3G · 최저 유효 숫자: HP -1 · 중복: 무효',
+    resolutionType:'HIGHEST_LOWEST',
+    successCondition:{primitive:'VALID_COUNT',gte:1},
+    allCollide:{outcome:'ALL_COLLIDE',rules:[]},
+    rules:[
+      {when:'SUCCESS',target:'HIGHEST_VALID',effects:[{type:'ADD_RUN_GOLD',amount:3}]},
+      {when:'SUCCESS',target:'LOWEST_VALID',effects:[{type:'DAMAGE_HP',amount:1}]}
+    ],
+    // Kept only so a run saved under the earlier choice-based version can finish.
     options:[
       {id:'patch_up',label:'남은 붕대로 상처를 돌본다',result:[{type:'HEAL',amount:1}]},
-      {id:'search_supplies',label:'쓸 만한 물자를 챙긴다',result:[{type:'ADD_RUN_GOLD',amount:1}]},
+      {id:'search_supplies',label:'쓸 만한 물자를 챙긴다',result:[{type:'ADD_RUN_GOLD',amount:1}]}
     ]
   },
   {
-    id:'f1_weathered_shrine',name:'풍화된 제단',
+    id:'f1_weathered_shrine',name:'풍화된 제단',illustration:'ancient_gate',
+    description:'희미한 문양에 힘을 모읍니다. 유효한 숫자의 합으로 제단을 깨우세요.',
+    ruleSummary:'유효 숫자 합 10 이상: 파티 Flame +1 · 실패: 최고 유효 카드 EXP +1 · 전원 중복: 실패',
+    resolutionType:'VALID_SUM',threshold:10,
+    successCondition:{primitive:'ABOVE_THRESHOLD'},
+    allCollide:{outcome:'ALL_COLLIDE',rules:[]},
+    rules:[
+      {when:'SUCCESS',target:'PARTY',effects:[{type:'ADD_FLAME',amount:1}]},
+      {when:'FAILURE',target:'HIGHEST_VALID',effects:[{type:'ADD_EXP',amount:1}]}
+    ],
     options:[
       {id:'study_marks',label:'희미한 문양을 기록한다',result:[{type:'ADD_EXP',amount:2}]},
-      {id:'rest_by_shrine',label:'제단 곁에서 잠시 쉰다',result:[{type:'HEAL',amount:1}]},
+      {id:'rest_by_shrine',label:'제단 곁에서 잠시 쉰다',result:[{type:'HEAL',amount:1}]}
     ]
   }
 ]);
