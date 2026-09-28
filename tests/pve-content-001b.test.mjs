@@ -11,7 +11,7 @@ import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-
 function make(id){
   const def=F1_MONSTER_DEFINITIONS[id];
   const players=Array.from({length:4},(_,seat)=>newPlayerRunState({id:`p${seat}`,user_id:`u${seat}`,seat_index:seat,member_type:'human',character_id:'adventurer'}));
-  const run={id:'same-run',seed:'monster-replay',rngCounter:0,phase:'COMBAT',floor:1,depth:1,currentRoomNodeId:'f1-d1-n0',flame:4,maxFlame:5,players,cardCycles:{}};
+  const run={id:'same-run',seed:'monster-replay',rngCounter:0,phase:'COMBAT',floor:1,depth:1,currentRoomNodeId:'f1-d1-n0',flame:4,maxFlame:5,players,cardCycles:{},map:{depthCount:8}};
   run.combat=newCombatState(players,def.baseHp,def.tier==='BOSS'?'BOSS':def.tier==='ELITE'?'ELITE_COMBAT':'NORMAL_COMBAT',def);
   return run;
 }
