@@ -145,7 +145,7 @@ async function preparePveEntry(){
 }
 function pveEncounterArt(run){
   const stage=pveStageModel(run);
-  if(run.combat?.monster)return creatureArt(stage.shape,stage.color);
+  if(run.combat?.monster)return stage.shape?creatureArt(stage.shape,stage.color):'';
   const category=run.phase==='REST'?'recovery':run.phase==='SHOP'||run.phase==='REWARD_ROOM'?'treasure':'event';
   return eventArt(category,run.roomState?.illustration||run.roomState?.eventId);
 }
@@ -175,10 +175,10 @@ function renderPveGameplay(run,{presentation=null}={}){
   const adaptedBundle=pveGameplayBundle(bundle,run,{scope:'combat'}),players=pveGameplayPlayers(bundle,run,{scope:'combat'}),member=mine(),mePlayer=players[member?.id];
   const stage=pveStageModel(run),monster=presentation?.monsterBefore||run.combat?.monster,intent=run.combat?.monster?.intent;
   const locked=Boolean((run.combat?.readyPlayerIds||[]).includes(member?.id));
-  app.innerHTML=pveTopMarkup(run)+sharedEncounterMarkup({categoryLabel:PVE_ROOM_LABELS[run.combat?.roomType]||'COMBAT',name:monster?.name||stage.name,subtitle:stage.subtitle,color:stage.color,enemyArt:pveEncounterArt(run),monster:monster?{...monster,boss:run.combat?.roomType==='BOSS',imminent:!presentation&&intent?.type&&!['CHARGE','DEFEND'].includes(intent.type)}:null,turnIndex:presentation?.turnIndex||run.combat?.turn||1,revealing:Boolean(presentation),threatLabel:run.combat?.roomType==='BOSS'?'BOSS PATTERN':'THREAT',threatValue:run.combat?.roomType==='BOSS'?'Ⅲ':'Ⅱ',threatDetail:presentation?'판정 중':'행동 예고',intentLabel:presentation?'◇ 카드 판정':intent?.type?'⚠ '+intent.type:'◇ 몬스터 의도',intentText:presentation?'동시 공개 결과를 판정하고 있습니다.':intent?.telegraphText||'몬스터의 행동을 주시하세요.'})+pveRelicStripMarkup(bundle,run)+'<section class="party-grid">'+partyPanels(adaptedBundle,players,{me:member,result:presentation,selected:pveSelected,useSkill:pveUseSkill,statLabel:'EXP'})+'</section>'+(presentation?'':mobileSelection(mePlayer,{result:null,locked,selected:pveSelected,useSkill:pveUseSkill,twoCards:false}));
+  app.innerHTML=pveTopMarkup(run)+sharedEncounterMarkup({categoryLabel:PVE_ROOM_LABELS[run.combat?.roomType]||'COMBAT',name:monster?.name||stage.name,subtitle:stage.subtitle,color:stage.color,enemyArt:pveEncounterArt(run),monster:monster?{...monster,boss:run.combat?.roomType==='BOSS',imminent:!presentation&&intent?.type&&!['CHARGE','DEFEND'].includes(intent.type)}:null,turnIndex:presentation?.turnIndex||run.combat?.turn||1,revealing:Boolean(presentation),threatLabel:run.combat?.roomType==='BOSS'?'BOSS PATTERN':'THREAT',threatValue:run.combat?.roomType==='BOSS'?'Ⅲ':'Ⅱ',threatDetail:presentation?'판정 중':'행동 예고',intentLabel:presentation?'◇ 카드 판정':intent?.type?'⚠ '+intent.type:'◇ 몬스터 의도',intentText:presentation?'동시 공개 결과를 판정하고 있습니다.':intent?.telegraphText||'몬스터의 행동을 주시하세요.',bossStatus:monster?.presentation?.statusText||''})+pveRelicStripMarkup(bundle,run)+'<section class="party-grid">'+partyPanels(adaptedBundle,players,{me:member,result:presentation,selected:pveSelected,useSkill:pveUseSkill,statLabel:'EXP'})+'</section>'+(presentation?'':mobileSelection(mePlayer,{result:null,locked,selected:pveSelected,useSkill:pveUseSkill,twoCards:false}));
   bindEventArtFallback(app);
   for(const p of Object.values(players))if(p.knockedOut)void setKnockoutPose(app.querySelector('[data-player="'+p.memberId+'"]'),true);
-  if(pveMapOpen)app.insertAdjacentHTML('beforeend',pveMapOverlayMarkup(run,api.user?.id,{visitedNodes:[...pveVisitedNodes]}));
+  if(pveMapOpen&&!presentation)app.insertAdjacentHTML('beforeend',pveMapOverlayMarkup(run,api.user?.id,{visitedNodes:[...pveVisitedNodes]}));
   updateBusy();
 }
 function pveSelectorNumber(run,cardId){
@@ -204,7 +204,7 @@ function renderPveRoom(run){
     app.insertAdjacentHTML('beforeend',pveAugmentPopupMarkup(run));
   }
   if(run.phase==='ROOM_RESULT')app.insertAdjacentHTML('beforeend',pveRoomResultOverlayMarkup(bundle,run,{playerId:member?.id}));
-  if(run.phase==='FLOOR_CLEAR'||run.phase==='FLOOR_TRANSITION')app.insertAdjacentHTML('beforeend','<section class="room-result-overlay pve-room-result"><div class="room-result-sheet pve-room-result-sheet"><div class="eyebrow">FLOOR CLEAR</div><h2>Floor '+escape(run.floor)+' 공략 완료</h2><button class="button secondary" data-action="pve-map-open">지도 확인 ◇</button></div></section>');
+  if(run.phase==='FLOOR_CLEAR'||run.phase==='FLOOR_TRANSITION')app.insertAdjacentHTML('beforeend','<section class="room-result-overlay pve-room-result"><div class="room-result-sheet pve-room-result-sheet"><div class="eyebrow">FLOOR CLEAR</div><h2>Floor '+escape(run.floor)+' 공략 완료</h2><button class="button secondary" data-action="pve-continue-floor">다음 층으로 이동 →</button></div></section>');
   if(pveMapOpen)app.insertAdjacentHTML('beforeend',pveMapOverlayMarkup(run,api.user?.id,{visitedNodes:[...pveVisitedNodes]}));
   bindEventArtFallback(app);updateBusy();
 }
@@ -508,6 +508,7 @@ document.addEventListener('click', async event => {
   if (action === 'remove-ai') void perform('remove_ai', { member_id: button.dataset.id });
   if (action === 'start') void perform('start_game');
   if(action==='pve-map-open'){pveMapOpen=true;if(pveAnimating)app.insertAdjacentHTML('beforeend',pveMapOverlayMarkup(bundle.run,api.user?.id,{visitedNodes:[...pveVisitedNodes]}));else renderPve();}
+  if(action==='pve-continue-floor')void performPve('pve.continueFloor');
   if(action==='pve-map-close'){pveMapOpen=false;if(pveAnimating)button.closest('.pve-map-layer')?.remove();else renderPve();}
   if(action==='pve-vote')void performPve('pve.voteNextRoom',{node_id:button.dataset.nodeId});
   if(action==='pve-relic-info'){const relic=relicUi(button.dataset.relicId);showModal('<div class="eyebrow">RELIC</div><h2>'+escape(relic.name)+'</h2><p>'+escape(relic.text)+'</p>');}
