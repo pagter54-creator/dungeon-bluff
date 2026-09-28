@@ -16,6 +16,6 @@ The existing 100 run PVE-014 sweep, using the initial 90 / 160 / 240 HP baseline
 
 ## Verification notes
 
-The deterministic roster tests and full Floor 1 route test pass. `node scripts/check.mjs` and `node scripts/pve-stress.mjs --mode smoke` pass. The full `node --test tests/*.test.mjs` run reports six semantic golden failures in T04, T06, T09, and T14. A temporary comparison using the previous Floor 1 monster definitions made all 42 T04/T09 tests pass; restoring the new canonical definitions reproduced the golden failures. The stress fixtures and harness rules were left unchanged. The stress smoke exit status alone does not satisfy the full golden regression gate.
+The original CONTENT-001B golden failures are resolved by CONTENT-001C reference encounter isolation; see `PVE_CONTENT_001C.md`. The existing stress fixtures and golden files remain unchanged.
 
 `AMB-FLOOR-TRANSITION-DEVOUR`: existing `onCombatEndCharacter` sets transformed Demon Swordsman Devour to zero at combat end. The transition preserves the state produced by that canonical cleanup and does not define a new Devour number.
