@@ -68,8 +68,7 @@ export function resolveEventDefinition(run,definition,cards,privateByPlayer){
     for(const playerId of recipientIds){
       const player=run.players.find(p=>p.playerId===playerId);
       for(const effect of rule.effects||[]){
-        if(rule.target==='PARTY'&&['ADD_FLAME','SPEND_FLAME'].includes(effect.type)&&playerId!==recipientIds[0])continue;
-        applyEffect(run,player,effect,privateByPlayer?.[playerId]);
+        if(!(rule.target==='PARTY'&&['ADD_FLAME','SPEND_FLAME'].includes(effect.type)&&playerId!==recipientIds[0]))applyEffect(run,player,effect,privateByPlayer?.[playerId]);
         rewards[playerId].push({type:effect.type,amount:effect.amount??null});
       }
     }
