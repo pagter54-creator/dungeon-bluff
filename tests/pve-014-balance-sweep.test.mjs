@@ -120,7 +120,9 @@ async function playFloor({seed,characters,mixed=false}){
         if(run.phase!=='EVENT')break;
         const me=run.players.find(p=>p.userId===userId);
         if(run.roomState.choicesByPlayer?.[me.playerId])continue;
-        run=await call(admin,userId,{action:'pve.chooseEventOption',run_id:run.id,action_id:aid(seq++),expected_version:admin.version,option_id:run.roomState.options[0].id});
+        const cardId=run.privateRoomState.remainingCardIds.find(id=>{const card=me.cardPool.find(c=>c.id===id);return card&&(me.characterId!=='twins'||card.baseNumber%2===(me.publicResources.parity||0));});
+        assert.ok(cardId,'event card is available');
+        run=await call(admin,userId,{action:'pve.submitEventCard',run_id:run.id,action_id:aid(seq++),expected_version:admin.version,card_instance_id:cardId});
       }
       continue;
     }
