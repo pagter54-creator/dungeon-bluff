@@ -1,5 +1,6 @@
 import {choose} from './rng.js';
 import {AUGMENT_BY_ID,augmentCandidates} from './augment-catalog.js';
+import {advanceCompletedFloor} from './floor-transition.js';
 
 export const AUGMENT_THRESHOLDS=[50,150,350,750];
 
@@ -38,6 +39,7 @@ function finishIfComplete(run){
   const resume=state.resumePhase;
   delete run.augmentChoice;
   run.phase=resume;
+  if(resume==='FLOOR_CLEAR'&&Number.isInteger(run.map?.depthCount))advanceCompletedFloor(run);
   return true;
 }
 function applyChoice(run,playerId,augmentId){
