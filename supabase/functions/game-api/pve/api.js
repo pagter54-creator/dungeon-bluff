@@ -10,8 +10,10 @@ import {activateImmediateCharacterSkill} from './characters.js';
 import {chooseAugment} from './augments.js';
 import {enterRestRoom,applyRestChoice,enterShopRoom,reserveShopCard,cancelShopCardReservation,confirmShopCard,buyShopRelic,finishShop,enterRewardRoom,activateRewardSkill,submitRewardCard,resolveRewardAttempt,chooseRewardRelic,roomReady,expireShopReservations} from './rooms.js';
 import {enterEventRoom,chooseEventOption,submitEventCard} from './events.js';
-import {F1_RELIC_DEFINITIONS,selectF1Monster,markF1MonsterUsed} from './content-f1.js';
+import {F1_RELIC_DEFINITIONS,F1_MONSTER_DEFINITIONS,selectF1Monster,markF1MonsterUsed} from './content-f1.js';
 import {installRelicCatalog} from './relics.js';
+import {choose} from './rng.js';
+import {advanceCompletedFloor} from './floor-transition.js';
 
 const uuid=v=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 export const PVE_ROOM_CHARACTER_MAP=Object.freeze({
@@ -37,7 +39,8 @@ export function buildInitialPveRun(bundle,{seed=null,depthCount=8,now=Date.now()
     player.displayName=member.display_name;
     return player;
   });
-  const run={id:crypto.randomUUID(),roomId:bundle.room.id,seed:typeof seed==='string'&&seed.length<=128?seed:crypto.randomUUID(),rngCounter:0,version:0,phase:'MAP_VOTE',floor:1,depth:0,flame:4,maxFlame:5,map:null,currentRoomNodeId:null,players,usedMonsterIds:[],chosenBossIds:{1:'f1_fallen_lord'},contentVersion:'F1_VERTICAL_SLICE_V1',createdAt:new Date(now).toISOString(),updatedAt:new Date(now).toISOString()};
+  const run={id:crypto.randomUUID(),roomId:bundle.room.id,seed:typeof seed==='string'&&seed.length<=128?seed:crypto.randomUUID(),rngCounter:0,version:0,phase:'MAP_VOTE',floor:1,depth:0,flame:4,maxFlame:5,map:null,currentRoomNodeId:null,players,usedMonsterIds:[],chosenBossIds:{},contentVersion:'F1_CONTENT_001B',createdAt:new Date(now).toISOString(),updatedAt:new Date(now).toISOString()};
+  run.chosenBossIds[1]=choose(run,Object.values(F1_MONSTER_DEFINITIONS).filter(def=>def.tier==='BOSS'),`f1-boss:${run.seed}`).id;
   installRelicCatalog(run,F1_RELIC_DEFINITIONS);
   run.map=generateFloorMap(run,Number.isInteger(depthCount)&&depthCount>=2&&depthCount<=12?depthCount:8);
   run.map.voteDeadline=new Date(now+15000).toISOString();
@@ -72,6 +75,7 @@ function captureRoomPresentationBaseline(run,id,type){
   };
 }
 function enterNode(run,id){
+  if(run.floor>=2){const error=new Error('Floor 2 전투 콘텐츠는 CONTENT-002에서 열립니다.');error.code='CONTENT_NOT_IMPLEMENTED';throw error;}
   const type=nodeType(run,id);captureRoomPresentationBaseline(run,id,type);run.currentRoomNodeId=id;run.phase='ROOM_ENTER';
   if(type==='NORMAL_COMBAT'||type==='ELITE_COMBAT'||type==='BOSS'){
     const monster=selectF1Monster(run,type);markF1MonsterUsed(run,monster);
@@ -85,7 +89,7 @@ function enterNode(run,id){
   else if(type==='EVENT')enterEventRoom(run);
 }
 function enterForcedNode(run){
-  if(run.phase!=='MAP_VOTE'||connectedNodeIds(run.map).length!==1)return false;
+  if(run.phase!=='MAP_VOTE'||run.floor>=2||connectedNodeIds(run.map).length!==1)return false;
   enterNode(run,resolveVote(run,[]));
   return true;
 }
@@ -103,7 +107,7 @@ async function maintainForRead(admin,run){
   if(run.entryLoading)return run;
   let changed=enterForcedNode(run);
   if(run.phase==='SHOP')changed=expireShopReservations(run)||changed;
-  if(run.phase==='MAP_VOTE'&&run.map?.voteDeadline&&Date.now()>=Date.parse(run.map.voteDeadline)){
+  if(run.floor===1&&run.phase==='MAP_VOTE'&&run.map?.voteDeadline&&Date.now()>=Date.parse(run.map.voteDeadline)){
     const humans=run.players.filter(p=>p.memberType==='human').map(p=>p.playerId);
     const chosen=resolveVote(run,humans);
     enterNode(run,chosen);
@@ -193,6 +197,7 @@ export async function handlePveAction({admin,user,body,json}){
 
   if(action==='pve.voteNextRoom'){
     if(run.phase!=='MAP_VOTE')return fail(json,'현재는 다음 방 투표 단계가 아닙니다.');
+    if(run.floor>=2)return json({error:'CONTENT_NOT_IMPLEMENTED',message:'Floor 2 방은 CONTENT-002에서 열립니다.',run:projectRun(run,me.playerId)},409);
     if(me.memberType!=='human')return fail(json,'AI는 맵 투표를 하지 않습니다.',403);
     const candidates=connectedNodeIds(run.map);
     const timedOut=run.map.voteDeadline&&Date.now()>=Date.parse(run.map.voteDeadline);
@@ -202,6 +207,9 @@ export async function handlePveAction({admin,user,body,json}){
     const counts=Object.values(run.map.votes).reduce((m,id)=>(m[id]=(m[id]||0)+1,m),{});
     const majority=Object.values(counts).some(n=>n>humans.length/2);
     if(!enterForcedNode(run)&&(majority||timedOut)){const chosen=resolveVote(run,humans);enterNode(run,chosen);}
+  } else if(action==='pve.continueFloor'){
+    if(run.phase!=='FLOOR_CLEAR'||run.floor!==1)return fail(json,'지금은 다음 층으로 이동할 수 없습니다.');
+    advanceCompletedFloor(run);
   } else if(action==='pve.activateSkill'){
     if(run.phase!=='COMBAT')return fail(json,'현재 전투 중이 아닙니다.');
     activateImmediateCharacterSkill(run,me,body.skill_data??null);
