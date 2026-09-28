@@ -53,6 +53,8 @@ export function submitEventCard(run,playerId,cardInstanceId,skillIntent=false,sk
   if(skillIntent&&!['mage','warrior','vampire'].includes(player.characterId))throw new Error('이 스킬은 이벤트 카드 판정에 사용할 수 없습니다.');
   validateCharacterSkillIntent(player,run.roomState.privateByPlayer[playerId],skillIntent,card,skillData);
   run.roomState.turnSubmissions[playerId]={playerId,cardInstanceId,skillIntent:Boolean(skillIntent),...(skillData?{skillData:structuredClone(skillData)}:{})};
+  run.roomState.privateByPlayer[playerId].selectedCardId=cardInstanceId;
+  run.roomState.privateByPlayer[playerId].skillIntent=Boolean(skillIntent);
   const active=run.players.filter(p=>p.status!=='DOWNED');
   if(active.every(p=>run.roomState.turnSubmissions[p.playerId]))return resolveEventTurn(run);
   return null;
