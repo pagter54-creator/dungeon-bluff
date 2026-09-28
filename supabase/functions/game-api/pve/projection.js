@@ -4,7 +4,8 @@ export function projectRun(run,viewerPlayerId){
   delete out.relicCatalog;
   delete out._telemetryPending;
   delete out.cardCycles;
-  if(out.combat?.monster){delete out.combat.monster.mechanic;delete out.combat.monster.behaviorState;}
+  if(!out.combat&&run.cardCycles?.[viewerPlayerId])out.privateCombat=structuredClone(run.cardCycles[viewerPlayerId]);
+  if(out.combat?.monster){delete out.combat.monster.mechanic;delete out.combat.monster.behaviorState;delete out.combat.monster.pattern;}
 
   // Physical card numbers are public; current-cycle usage stays private.
 
