@@ -22,8 +22,8 @@ export function generateFloorMap(run,depthCount=8){
   }
   return {
     depthCount,nodes,edges,currentNodeId:null,visitedNodeIds:[],votes:{},voteRound:0,voteDeadline:null,
-    bossId:F1_MONSTER_DEFINITIONS.f1_fallen_lord.id,
-    bossName:F1_MONSTER_DEFINITIONS.f1_fallen_lord.name
+    bossId:run.floor===1?(run.chosenBossIds?.[1]||F1_MONSTER_DEFINITIONS.f1_fallen_lord.id):null,
+    bossName:run.floor===1?(F1_MONSTER_DEFINITIONS[run.chosenBossIds?.[1]]||F1_MONSTER_DEFINITIONS.f1_fallen_lord).name:'2층 보스 · CONTENT-002 준비 중'
   };
 }
 export function startingNodeIds(map){return map.nodes.filter(n=>n.depth===1).map(n=>n.id);}
