@@ -5,6 +5,8 @@ import {enterEventRoom,submitEventCard} from '../supabase/functions/game-api/pve
 import {eventPrimitives,resolveEventDefinition} from '../supabase/functions/game-api/pve/event-resolution.js';
 import {restoreCardCycle} from '../supabase/functions/game-api/pve/card-cycle.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
+import {adaptPveEventResult} from '../src/pve-gameplay-adapter.js';
+import {pveEventActionsMarkup,pveRoomResultOverlayMarkup} from '../src/pve-roguelike-ui.js';
 
 function runFor(characters=['adventurer','adventurer','adventurer','adventurer'],seed='event-001'){
   const players=characters.map((character_id,i)=>newPlayerRunState({id:`p${i}`,user_id:`u${i}`,member_type:'human',character_id,seat_index:i}));
@@ -108,4 +110,19 @@ test('EVENT E14: identical seed and submissions replay identical results without
   };
   assert.deepEqual(play(),play());
   assert.ok(play().players.every(p=>p.gold<99));
+});
+
+test('EVENT shared Gameplay presentation shows rules, revealed cards and per-player results',()=>{
+  const run=runFor();
+  const before=projectRun(run,'p0');
+  const prompt=pveEventActionsMarkup(before);
+  assert.match(prompt,/CARD JUDGMENT/);assert.match(prompt,/카드를 선택해 제출/);
+  assert.doesNotMatch(prompt,/data-action="pve-event"/);
+  submitValues(run,[1,2,3,4]);
+  const after=projectRun(run,'p0'),presentation=adaptPveEventResult(before,after);
+  assert.equal(presentation.cards.length,4);
+  assert.equal(presentation.stage.category,'event');
+  const bundle={members:run.players.map(player=>({id:player.playerId,display_name:player.playerId}))};
+  const overlay=pveRoomResultOverlayMarkup(bundle,after,{playerId:'p0'});
+  assert.match(overlay,/카드 1/);assert.match(overlay,/유효/);
 });
