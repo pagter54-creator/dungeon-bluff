@@ -83,6 +83,7 @@ test('EVENT E13: submitted physical card is spent, keeps its ID, and reconnect h
   submitEventCard(run,'p0',id);
   const own=projectRun(run,'p0'),peer=projectRun(run,'p1');
   assert.ok(own.privateRoomState.remainingCardIds.includes(id));
+  assert.equal(own.privateRoomState.selectedCardId,id);
   assert.equal(peer.privateRoomState.playerId,'p1');
   assert.equal(peer.roomState.privateByPlayer,undefined);
   assert.equal(peer.cardCycles,undefined);
