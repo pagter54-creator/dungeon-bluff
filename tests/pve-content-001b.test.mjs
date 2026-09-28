@@ -6,6 +6,7 @@ import {publishMonsterIntent,executeMonsterIntent} from '../supabase/functions/g
 import {applyMonsterCardRules,recordMonsterDamageBatch,prepareMonsterAction,monsterPresentation} from '../supabase/functions/game-api/pve/monster-behavior.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 import {advanceCompletedFloor} from '../supabase/functions/game-api/pve/floor-transition.js';
+import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-api/pve/combat.js';
 
 function make(id){
   const def=F1_MONSTER_DEFINITIONS[id];
@@ -102,6 +103,7 @@ const cases=[
   ['F1-B02 gatebreaker colossus','f1_gatebreaker_colossus',(run)=>{
     publishMonsterIntent(run);recordMonsterDamageBatch(run,10);recordMonsterDamageBatch(run,10);recordMonsterDamageBatch(run,10);
     assert.equal(run.combat.monster.behaviorState.pendingFailure,false);
+    const over=make('f1_gatebreaker_colossus');recordMonsterDamageBatch(over,31);recordMonsterDamageBatch(over,0);recordMonsterDamageBatch(over,0);assert.equal(over.combat.monster.behaviorState.pendingFailure,false);
     const bad=make('f1_gatebreaker_colossus');publishMonsterIntent(bad);recordMonsterDamageBatch(bad,10);recordMonsterDamageBatch(bad,10);recordMonsterDamageBatch(bad,9);
     assert.equal(bad.combat.monster.behaviorState.pendingFailure,true);
     assert.equal(prepareMonsterAction(bad,bad.combat.monster.intent).type,'AOE_DAMAGE');
@@ -111,6 +113,20 @@ const cases=[
 ];
 
 for(const [label,id,verify] of cases)test(label,()=>{const run=make(id);verify(run);assert.ok(monsterPresentation(run)?.ruleSummary);});
+
+for(const bossId of ['f1_fallen_lord','f1_gatebreaker_colossus'])test(`${bossId} death during its mechanic window pays once and skips the enemy action`,()=>{
+  const run=make(bossId);run.combat.monster.hp=1;run.combat.turn=3;
+  beginTurn(run);
+  for(let i=0;i<4;i++){
+    const player=run.players[i],card=player.cardPool.find(item=>item.baseNumber===i+1);
+    submitCard(run,player.playerId,card.id);
+  }
+  const result=resolveBasicTurn(run);
+  assert.equal(result.events.filter(event=>event.type==='PLAYER_DAMAGED').length,0);
+  assert.equal(run.floor,2);assert.equal(run.phase,'MAP_VOTE');assert.equal(run.flame,5);
+  assert.equal(run.players.every(player=>player.runGold>=3),true);
+  assert.equal(advanceCompletedFloor(run),false);assert.equal(run.flame,5);
+});
 
 test('CONTENT-001B Floor 1 to Floor 2 keeps persistent state and prevents unimplemented voting',()=>{
   const run=make('f1_fallen_lord');run.phase='FLOOR_CLEAR';run.floorClear={floor:1,bossId:'f1_fallen_lord'};
