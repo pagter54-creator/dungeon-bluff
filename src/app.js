@@ -19,7 +19,7 @@ import { showGameBackground } from './game-background.js';
 import { initMotionControl } from './motion.js';
 import {GAME_MODE,roomGameMode,gameModeMeta,gameModeBadge,gameModeSelectorMarkup,PVE_SUPPORTED_LOBBY_CHARACTER_IDS} from './game-mode.js';
 import {sharedGameTopMarkup,sharedEncounterMarkup} from './shared-gameplay-ui.js';
-import {pveGameplayPlayers,pveGameplayBundle,pveStageModel,adaptPveTurnResult,adaptPveRewardResult} from './pve-gameplay-adapter.js';
+import {pveGameplayPlayers,pveGameplayBundle,pveStageModel,adaptPveTurnResult,adaptPveRewardResult,adaptPveEventResult} from './pve-gameplay-adapter.js';
 import {pvePlayerForUser,pveOwnShopReservation,pveMapOverlayMarkup,pveRelicStripMarkup,pveEventActionsMarkup,pveRestActionsMarkup,pveShopMarkup,pveRewardPromptMarkup,pveAugmentPopupMarkup,pveRoomResultOverlayMarkup,pveTerminalMarkup,PVE_ROOM_LABELS} from './pve-roguelike-ui.js';
 import {relicUi} from './pve-ui-catalog.js';
 
@@ -48,7 +48,7 @@ let shownSummary=null;
 let roomEpoch = 0;
 let listLoading = false;
 let coopPveEnabled=true;
-let pveSelected=null,pveUseSkill=false,pveMapOpen=false,pveEngraveMode=false,pveAnimating=false,pveLastPresentedTurn=0,pveLastPresentedRewardKey='';
+let pveSelected=null,pveUseSkill=false,pveMapOpen=false,pveEngraveMode=false,pveAnimating=false,pveLastPresentedTurn=0,pveLastPresentedRewardKey='',pveLastPresentedEventKey='';
 let pveEntryWork=null,pveEntryProgress='',pveEntryError='',pveEntryCompleted=null;
 const pveVisitedNodes=new Set();
 let entryWork=null,entryProgress='',entryError='',entryCompleted=null;
@@ -108,8 +108,10 @@ async function performPve(action,params={}){
       if(['RUN_CLEAR','RUN_FAILED','ABANDONED'].includes(response.run.phase))void refreshAccount().catch(()=>{});
       const presentation=adaptPveTurnResult(bundle,before,response.run);
       const rewardPresentation=adaptPveRewardResult(before,response.run);
+      const eventPresentation=adaptPveEventResult(before,response.run);
       if(presentation&&presentation.turnIndex>pveLastPresentedTurn&&!document.hidden)await presentPveTurn(before,response.run,presentation);
       else if(rewardPresentation&&rewardPresentation.key!==pveLastPresentedRewardKey&&!document.hidden)await presentPveRewardAttempt(before,response.run,rewardPresentation);
+      else if(eventPresentation&&eventPresentation.key!==pveLastPresentedEventKey&&!document.hidden)await presentPveEvent(before,response.run,eventPresentation);
       else renderPve();
     }
     return response;
@@ -145,7 +147,7 @@ function pveEncounterArt(run){
   const stage=pveStageModel(run);
   if(run.combat?.monster)return creatureArt(stage.shape,stage.color);
   const category=run.phase==='REST'?'recovery':run.phase==='SHOP'||run.phase==='REWARD_ROOM'?'treasure':'event';
-  return eventArt(category,run.roomState?.id);
+  return eventArt(category,run.roomState?.illustration||run.roomState?.eventId);
 }
 function pveMageIntentChoices(player,selectedCardId){
   const mana=Number(player?.publicResources?.mana)||0,augments=player?.augments||[];
@@ -183,13 +185,15 @@ function pveSelectorNumber(run,cardId){
   const me=pvePlayerForUser(run,api.user?.id);return me?.cardPool?.find(card=>card.id===cardId)?.baseNumber??null;
 }
 function renderPveRoom(run){
-  const member=mine(),scope=run.phase==='REWARD_ROOM'?'room':'combat',adaptedBundle=pveGameplayBundle(bundle,run,{scope}),players=pveGameplayPlayers(bundle,run,{scope}),mePlayer=players[member?.id],shopReservation=pveOwnShopReservation(run,member?.id);
+  const member=mine(),scope=run.roomState?.type==='EVENT'?'event':run.phase==='REWARD_ROOM'?'room':'combat',adaptedBundle=pveGameplayBundle(bundle,run,{scope}),players=pveGameplayPlayers(bundle,run,{scope}),mePlayer=players[member?.id],shopReservation=pveOwnShopReservation(run,member?.id);
   const rewardSelecting=run.phase==='REWARD_ROOM'&&!run.roomState?.pickOrder?.length;
-  const selectionLocked=rewardSelecting&&Boolean(run.roomState?.readyPlayerIds?.includes(member?.id));
-  const selector=Boolean((run.phase==='SHOP'&&shopReservation)||(run.phase==='REST'&&pveEngraveMode)||rewardSelecting);
+  const rewardLocked=rewardSelecting&&Boolean(run.roomState?.readyPlayerIds?.includes(member?.id));
+  const eventSelecting=run.phase==='EVENT'&&run.roomState?.type==='EVENT'&&!run.roomState?.options;
+  const selectionLocked=eventSelecting&&Boolean(run.roomState?.readyPlayerIds?.includes(member?.id));
+  const selector=Boolean((run.phase==='SHOP'&&shopReservation)||(run.phase==='REST'&&pveEngraveMode)||rewardSelecting||eventSelecting);
   const roomName=run.phase==='EVENT'?(run.roomState?.name||'던전 이벤트'):run.phase==='REST'?'휴식처':run.phase==='SHOP'?'던전 상점':run.phase==='REWARD_ROOM'?'보상 방':run.phase==='AUGMENT_CHOICE'?'증강 선택':run.phase==='ROOM_RESULT'?'방 공략 완료':'협력 탐험';
   const roomCategory=run.phase==='REST'?'A MOMENT OF REST':run.phase==='SHOP'?'TRADING POST':run.phase==='REWARD_ROOM'?'REWARD ROOM':run.phase==='EVENT'?'UNKNOWN ENCOUNTER':'CO-OP EXPEDITION · BETA';
-  app.innerHTML=pveTopMarkup(run)+sharedEncounterMarkup({categoryLabel:roomCategory,name:roomName,subtitle:'FLOOR '+run.floor+' · DEPTH '+run.depth,color:'#8b779c',enemyArt:pveEncounterArt(run),turnIndex:run.combat?.turn||1,threatLabel:'ROOM',threatValue:'Ⅰ',threatDetail:'협력 선택',intentLabel:'◇ 방의 규칙',intentText:run.phase==='MAP_VOTE'?'다음 경로를 투표하세요.':run.phase==='SHOP'?'Run Gold로 필요한 상품을 구매합니다.':run.phase==='REST'?'각 플레이어가 자신의 휴식 행동을 선택합니다.':'파티와 함께 방의 선택을 해결하세요.'})+pveRelicStripMarkup(bundle,run)+'<section class="party-grid '+(selector?'pve-selector-shell':'')+'">'+partyPanels(adaptedBundle,players,{me:member,result:selector?null:{},selected:pveSelected,useSkill:false,statLabel:'EXP'})+'</section>'+(selector?mobileSelection(mePlayer,{result:null,locked:selectionLocked,selected:pveSelected,useSkill:false,twoCards:false}):'');
+  app.innerHTML=pveTopMarkup(run)+sharedEncounterMarkup({categoryLabel:roomCategory,name:roomName,subtitle:'FLOOR '+run.floor+' · DEPTH '+run.depth,color:'#8b779c',enemyArt:pveEncounterArt(run),turnIndex:run.combat?.turn||1,threatLabel:'ROOM',threatValue:'Ⅰ',threatDetail:'협력 선택',intentLabel:'◇ 방의 규칙',intentText:run.phase==='EVENT'?run.roomState?.ruleSummary:run.phase==='MAP_VOTE'?'다음 경로를 투표하세요.':run.phase==='SHOP'?'Run Gold로 필요한 상품을 구매합니다.':run.phase==='REST'?'각 플레이어가 자신의 휴식 행동을 선택합니다.':'파티와 함께 방의 선택을 해결하세요.'})+pveRelicStripMarkup(bundle,run)+'<section class="party-grid '+(selector?'pve-selector-shell':'')+'">'+partyPanels(adaptedBundle,players,{me:member,result:selector?null:{},selected:pveSelected,useSkill:eventSelecting?pveUseSkill:false,statLabel:'EXP'})+'</section>'+(selector?mobileSelection(mePlayer,{result:null,locked:selectionLocked||rewardLocked,selected:pveSelected,useSkill:eventSelecting?pveUseSkill:false,twoCards:false}):'');
   if(run.phase==='EVENT')app.insertAdjacentHTML('beforeend',pveEventActionsMarkup(run));
   if(run.phase==='REST')app.insertAdjacentHTML('beforeend',pveRestActionsMarkup(run,{engraveMode:pveEngraveMode,selectedNumber:pveSelectorNumber(run,pveSelected)}));
   if(run.phase==='SHOP')app.insertAdjacentHTML('beforeend',pveShopMarkup(run,{reservation:shopReservation,selectedCardId:pveSelected}));
@@ -209,6 +213,18 @@ async function presentPveTurn(beforeRun,afterRun,presentation){
   pveAnimating=true;pveSelected=null;pveUseSkill=false;
   try{renderPveGameplay(beforeRun,{presentation});await reveal(presentation);pveLastPresentedTurn=Math.max(pveLastPresentedTurn,presentation.turnIndex||0);}
   catch(error){console.error('PVE turn presentation failed:',error);toast('일부 협력 전투 연출을 재생하지 못했습니다. 최신 상태로 복구합니다.');}
+  finally{pveAnimating=false;if(bundle?.run?.id===afterRun.id)renderPve();}
+}
+function renderPveEventGameplay(run,{presentation}={}){
+  const adaptedBundle=pveGameplayBundle(bundle,run,{scope:'event'}),players=pveGameplayPlayers(bundle,run,{scope:'event'}),member=mine(),room=run.roomState||{};
+  app.innerHTML=pveTopMarkup(run)+sharedEncounterMarkup({categoryLabel:'EVENT',name:room.name||'던전 이벤트',subtitle:room.description||'',color:'#7f9a91',enemyArt:pveEncounterArt(run),turnIndex:1,revealing:true,threatLabel:'EVENT',threatValue:'◇',threatDetail:'카드 판정',intentLabel:'◇ 판정 규칙',intentText:room.ruleSummary||''})+pveRelicStripMarkup(bundle,run)+'<section class="party-grid">'+partyPanels(adaptedBundle,players,{me:member,result:presentation,selected:null,useSkill:false,statLabel:'EXP'})+'</section>';
+  bindEventArtFallback(app);updateBusy();
+}
+async function presentPveEvent(beforeRun,afterRun,presentation){
+  if(pveAnimating)return;
+  pveAnimating=true;pveSelected=null;pveUseSkill=false;
+  try{renderPveEventGameplay(beforeRun,{presentation});await reveal(presentation);pveLastPresentedEventKey=presentation.key;}
+  catch(error){console.error('PVE event presentation failed:',error);toast('이벤트 공개 연출을 재생하지 못했습니다. 최신 상태로 복구합니다.');}
   finally{pveAnimating=false;if(bundle?.run?.id===afterRun.id)renderPve();}
 }
 function renderPveRewardGameplay(run,{presentation=null}={}){
@@ -246,7 +262,7 @@ async function accept(next, restoring = false) {
   if (bundle?.room.id === next.room.id && next.room.version < bundle.room.version) return;
   if (newRoom) roomEpoch++;
   if(newSession){entryError='';entryProgress='';entryCompleted=null;}
-  if(newPveRun){pveSelected=null;pveUseSkill=false;pveMapOpen=next.run?.phase==='MAP_VOTE';pveEngraveMode=false;pveEntryError='';pveEntryProgress='';pveEntryCompleted=null;pveVisitedNodes.clear();pveLastPresentedTurn=restoring?(next.run?.combat?.publicTurnResult?.turn||0):0;const rewardResult=next.run?.roomState?.publicTurnResult;pveLastPresentedRewardKey=restoring&&rewardResult?((next.run.currentRoomNodeId||'reward')+':'+(rewardResult.attempt||1)):'';}
+  if(newPveRun){pveSelected=null;pveUseSkill=false;pveMapOpen=next.run?.phase==='MAP_VOTE';pveEngraveMode=false;pveEntryError='';pveEntryProgress='';pveEntryCompleted=null;pveVisitedNodes.clear();pveLastPresentedTurn=restoring?(next.run?.combat?.publicTurnResult?.turn||0):0;const rewardResult=next.run?.roomState?.publicTurnResult;pveLastPresentedRewardKey=restoring&&rewardResult?((next.run.currentRoomNodeId||'reward')+':'+(rewardResult.attempt||1)):'';pveLastPresentedEventKey=restoring&&next.run?.roomState?.type==='EVENT'&&rewardResult?((next.run.currentRoomNodeId||next.run.roomState.eventId)+':'+(rewardResult.turn||1)):'';}
   bundle = next;
   void getAudio().setScene(next.session||next.run ? 'dungeon' : 'lobby');
   if (newRoom) await api.subscribe(next.room.id, sync, status);
@@ -260,8 +276,10 @@ async function accept(next, restoring = false) {
     if(pveAnimating){updateBusy();return;}
     const presentation=previousPve?adaptPveTurnResult(bundle,previousPve,next.run):null;
     const rewardPresentation=previousPve?adaptPveRewardResult(previousPve,next.run):null;
+    const eventPresentation=previousPve?adaptPveEventResult(previousPve,next.run):null;
     if(presentation&&presentation.turnIndex>pveLastPresentedTurn&&!pveAnimating&&!document.hidden)await presentPveTurn(previousPve,next.run,presentation);
     else if(rewardPresentation&&rewardPresentation.key!==pveLastPresentedRewardKey&&!pveAnimating&&!document.hidden)await presentPveRewardAttempt(previousPve,next.run,rewardPresentation);
+    else if(eventPresentation&&eventPresentation.key!==pveLastPresentedEventKey&&!pveAnimating&&!document.hidden)await presentPveEvent(previousPve,next.run,eventPresentation);
     else renderPve();
     updateBusy();
     return;
@@ -524,7 +542,7 @@ document.addEventListener('click', async event => {
   if(action==='room-ready'||action==='room-choice')void perform(action==='room-ready'?'room_ready':'room_choice',{session_id:bundle.session.id,stage_index:bundle.session.state.roomSummary.stageIndex,choice:button.dataset.choice});
   if(action==='confirm-card')void perform('confirm_card',{session_id:bundle.session.id,turn_index:bundle.session.turn_index});
   if (action === 'select-card' && !animating && !pveAnimating) { if(view==='pve'){pveSelected=button.dataset.cardId;const p=pvePlayerForUser(bundle?.run,api.user?.id);if(p?.characterId==='mage'&&(p.augments||[]).includes('aug-111')&&pveUseSkill&&!pveMageIntentChoices(p,pveSelected).includes(Number(pveUseSkill)))pveUseSkill=0;renderPve();}else if(!bundle?.session?.state.roomSummary){selected=toggleCardSelection(selected,button.dataset.cardId,isShuffleTurn(bundle.session));renderGame();} }
-  if(action==='submit'&&view==='pve'&&pveSelected!==null&&!pveAnimating){const cardId=pveSelected,skill=Boolean(pveUseSkill);void (async()=>{const response=bundle.run.phase==='REWARD_ROOM'?await performPve('pve.rewardSubmitCard',{card_instance_id:cardId,skill_intent:skill,skill_data:pveSkillData(bundle.run)}):await performPve('pve.submitCard',{card_instance_id:cardId,skill_intent:skill,skill_data:pveSkillData(bundle.run)});if(response){pveSelected=null;pveUseSkill=false;renderPve();}})();}
+  if(action==='submit'&&view==='pve'&&pveSelected!==null&&!pveAnimating){const cardId=pveSelected,skill=Boolean(pveUseSkill);void (async()=>{const eventAction=bundle.run.phase==='EVENT'?'pve.submitEventCard':bundle.run.phase==='REWARD_ROOM'?'pve.rewardSubmitCard':'pve.submitCard';const response=await performPve(eventAction,{card_instance_id:cardId,skill_intent:skill,skill_data:pveSkillData(bundle.run)});if(response){pveSelected=null;pveUseSkill=false;renderPve();}})();}
   else if (action === 'submit' && selected !== null && !animating) {
     const me = mine(), g = bundle.session;
     const twoCards=isShuffleTurn(g),info=selectionInfo(g.state.players[me.id],selected,twoCards);
