@@ -22,6 +22,7 @@ function runBase(ids,opts={}){
 }
 function combatRun(monsterDef,ids=['warrior','warrior','warrior','warrior']){
   const run=runBase(ids);run.phase='COMBAT';run.depth=1;run.currentRoomNodeId='combat';
+  run.map={depthCount:8};
   const roomType=monsterDef.tier==='BOSS'?'BOSS':monsterDef.tier==='ELITE'?'ELITE_COMBAT':'NORMAL_COMBAT';
   run.combat=newCombatState(run.players,monsterDef.baseHp,roomType,monsterDef);beginTurn(run);return run;
 }
