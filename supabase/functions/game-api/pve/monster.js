@@ -17,7 +17,7 @@ function materializeIntent(run,template){
 export function publishMonsterIntent(run){
   const c=run.combat;if(!c||c.monster.hp<=0)return null;
   const living=run.players.filter(p=>p.status!=='DOWNED');if(!living.length)return null;
-  const def=f1MonsterById(c.monster.id);
+  const def=c.monster.pattern?.length?c.monster:f1MonsterById(c.monster.id);
   let intent;
   if(def?.pattern?.length){
     const template=def.pattern[(c.turn-1)%def.pattern.length];
