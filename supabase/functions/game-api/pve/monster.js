@@ -2,6 +2,7 @@ import {choose} from './rng.js';
 import {applyOwnedEffects} from './effects.js';
 import {f1MonsterById} from './content-f1.js';
 import {onMonsterPlayerDamagedCharacter} from './characters.js';
+import {prepareMonsterTurn,prepareMonsterAction,finishMonsterAction} from './monster-behavior.js';
 
 function materializeIntent(run,template){
   const intent=structuredClone(template);
@@ -25,7 +26,7 @@ export function publishMonsterIntent(run){
     const target=choose(run,living,`monster-target:${run.floor}:${run.depth}:${run.currentRoomNodeId||c.monster.id}:${c.turn}:${c.monster.id}`);
     intent={type:'DIRECT_DAMAGE',telegraphText:`${target.seat+1}번 자리 공격`,payload:{targetPlayerId:target.playerId,amount:1}};
   }else intent={type:'CHARGE',telegraphText:'힘을 모으고 있다',payload:{}};
-  c.monster.intent=intent;return intent;
+  c.monster.intent=prepareMonsterTurn(run,intent);return c.monster.intent;
 }
 function nextDamageEventId(run){
   const c=run.combat;c.damageEventSequence=(Number(c.damageEventSequence)||0)+1;
@@ -86,7 +87,8 @@ export function applyMonsterDamage(run,originalPlayer,amount,damageType,{damageE
   return events;
 }
 export function executeMonsterIntent(run){
-  const c=run.combat,intent=c?.monster?.intent;if(!c||!intent)return [];
+  const c=run.combat,telegraph=c?.monster?.intent;if(!c||!telegraph)return [];
+  const intent=prepareMonsterAction(run,telegraph);
   const events=[];
   if(intent.type==='DIRECT_DAMAGE'){
     const target=run.players.find(p=>p.playerId===intent.payload?.targetPlayerId&&p.status!=='DOWNED')||run.players.filter(p=>p.status!=='DOWNED').sort((a,b)=>a.seat-b.seat)[0];
@@ -101,5 +103,6 @@ export function executeMonsterIntent(run){
   }else if(['APPLY_STATUS','SEAL_NUMBER','FORCE_RANDOM_CHOICE','CHARGE','SPECIAL'].includes(intent.type)){
     events.push({type:'MONSTER_INTENT_EXECUTED',intentType:intent.type,payload:intent.payload||{}});
   }else throw new Error('Unsupported monster intent.');
+  finishMonsterAction(run,intent,events);
   return events;
 }
