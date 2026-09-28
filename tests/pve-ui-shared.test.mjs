@@ -128,12 +128,13 @@ test('PVE-UI-10 MAP_VOTE exposes only connected server nodes as vote actions',()
  assert.equal((html.match(/data-action="pve-vote"/g)||[]).length,2);
  assert.match(html,/data-node-id="n3"/);assert.match(html,/data-node-id="n4"/);
 });
-test('PVE projection exposes public card counting without hidden physical IDs or selection',()=>{
+test('PVE projection keeps current-cycle usage private while exposing card-pool numbers',()=>{
  const view=projectRun(baseRun(),'p0');
- assert.deepEqual(view.combat.publicCardCycles.p1.cards,[{baseNumber:2,used:false},{baseNumber:3,used:true}]);
+ assert.equal(view.combat.publicCardCycles,undefined);
+ assert.equal(view.privateCombat.playerId,'p0');
  assert.equal(view.players[1].cardPool[0].id,undefined);
+ assert.equal(view.combat.privateByPlayer,undefined);
  assert.equal(view.combat.turnSubmissions,undefined);
- assert.equal(view.combat.publicCardCycles.p1.selectedCardId,undefined);
 });
 test('Reward Room public presentation never exposes physical card ids or hidden submissions',()=>{
  const raw=baseRun();raw.phase='REWARD_ROOM';raw.roomState={
@@ -245,7 +246,7 @@ test('PVE-UI-19 Reward Room uses shared card selection, reveal and collision pre
  const presentation=adaptPveRewardResult(before,after);
  assert.equal(presentation.key,'n1:1');assert.equal(presentation.cards.length,2);assert.equal(presentation.cards[0].valid,false);
  const source=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
- assert.match(source,/scope=run\.phase==='REWARD_ROOM'\?'room'/);assert.match(source,/pve\.rewardSubmitCard/);assert.match(source,/mobileSelection\(mePlayer/);
+ assert.ok(source.includes("run.phase==='REWARD_ROOM'?'room'"));assert.match(source,/pve\.rewardSubmitCard/);assert.match(source,/mobileSelection\(mePlayer/);
  assert.match(source,/presentPveRewardAttempt/);assert.match(source,/renderPveRewardGameplay/);assert.match(source,/await reveal\(presentation\)/);
 });
 test('PVE-UI shared player adapter maps EXP, Run Gold, skills and used cards into competitive panel model',()=>{
