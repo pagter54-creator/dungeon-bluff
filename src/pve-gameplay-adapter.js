@@ -100,14 +100,14 @@ export function pveGameplayBundle(bundle,run,{scope='combat'}={}){
 export function pveStageModel(run){
   const roomType=run.combat?.roomType||run.roomState?.type||run.map?.nodes?.find(n=>n.id===run.currentRoomNodeId)?.type||'EVENT';
   const monster=run.combat?.monster;
-  const shapeByMonster={f1_armored_boar:'boar',f1_coward_hunter:'hunter',f1_echo_bat:'bat',f1_fallen_lord:'seer'};
+  const shapeByMonster={f1_armored_boar:'boar',f1_coward_hunter:'hunter',f1_echo_bat:'bat'};
   return {
     category:roomType==='BOSS'?'boss':roomType.includes('COMBAT')?'monster':'event',
     roomType,
     name:monster?.name||roomType,
     subtitle:`FLOOR ${run.floor} · DEPTH ${run.depth}`,
     color:roomType==='BOSS'?'#c76578':roomType==='ELITE_COMBAT'?'#9b77c8':'#7f9a91',
-    shape:shapeByMonster[monster?.id]||'seer',
+    shape:shapeByMonster[monster?.id]||null,
     contentId:monster?.id||roomType
   };
 }
@@ -143,11 +143,11 @@ function combatEventEffects(turnResult){
 }
 
 export function adaptPveTurnResult(bundle,beforeRun,afterRun){
-  const turnResult=afterRun?.combat?.publicTurnResult;
+  const turnResult=afterRun?.combat?.publicTurnResult||afterRun?.floorTransitionResult?.publicTurnResult;
   if(!turnResult)return null;
   const stage=pveStageModel(beforeRun||afterRun);
-  const beforeMonster=structuredClone(beforeRun?.combat?.monster||afterRun.combat?.monster||null);
-  const afterMonster=structuredClone(afterRun?.combat?.monster||beforeMonster||null);
+  const beforeMonster=structuredClone(beforeRun?.combat?.monster||afterRun.combat?.monster||afterRun?.floorTransitionResult?.monster||null);
+  const afterMonster=structuredClone(afterRun?.combat?.monster||afterRun?.floorTransitionResult?.monster||beforeMonster||null);
   const effects=[...mutationEffects(turnResult),...combatEventEffects(turnResult)];
   for(const packet of turnResult.damagePackets||[]){
     const player=(afterRun.players||[]).find(p=>p.playerId===packet.sourcePlayerId);
