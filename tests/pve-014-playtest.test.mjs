@@ -181,7 +181,9 @@ test('PVE-014 internal API playtest: four humans can traverse every F1 room fami
         if(run.phase!=='EVENT')break;
         const me=run.players.find(p=>p.userId===userId);
         if(run.roomState.choicesByPlayer?.[me.playerId])continue;
-        run=await call(admin,{action:'pve.chooseEventOption',run_id:run.id,action_id:actionId(seq++),expected_version:version(),option_id:run.roomState.options[0].id},userId);
+        const cardId=run.privateRoomState.remainingCardIds.find(id=>{const card=me.cardPool.find(c=>c.id===id);return card&&(me.characterId!=='twins'||card.baseNumber%2===(me.publicResources.parity||0));});
+        assert.ok(cardId,'event card is available');
+        run=await call(admin,{action:'pve.submitEventCard',run_id:run.id,action_id:actionId(seq++),expected_version:version(),card_instance_id:cardId},userId);
       }
       continue;
     }
