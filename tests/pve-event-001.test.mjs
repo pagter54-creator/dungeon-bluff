@@ -116,7 +116,7 @@ test('EVENT shared Gameplay presentation shows rules, revealed cards and per-pla
   const run=runFor();
   const before=projectRun(run,'p0');
   const prompt=pveEventActionsMarkup(before);
-  assert.match(prompt,/CARD JUDGMENT/);assert.match(prompt,/카드를 선택해 제출/);
+  assert.match(prompt,/CARD JUDGMENT/);assert.match(prompt,/한 장을 선택해 제출/);
   assert.doesNotMatch(prompt,/data-action="pve-event"/);
   submitValues(run,[1,2,3,4]);
   const after=projectRun(run,'p0'),presentation=adaptPveEventResult(before,after);
