@@ -10,10 +10,10 @@ const memberFor=(bundle,player)=>bundle?.members?.find(m=>m.id===player.playerId
 const characterForPlayer=(bundle,player)=>bundle?.characters?.find(c=>c.id===lobbyId(player))||null;
 
 function publicCycle(run,player,scope='combat'){
-  const state=scope==='room'?run.roomState:run.combat;
+  const state=scope==='room'||scope==='event'?run.roomState:run.combat;
   const publicState=state?.publicCardCycles?.[player.playerId];
   if(publicState)return publicState;
-  const own=scope==='room'?run.privateRoomState:run.privateCombat;
+  const own=scope==='room'||scope==='event'?run.privateRoomState:run.privateCombat;
   if(own?.playerId!==player.playerId)return {cycleIndex:1,cards:(player.cardPool||[]).map(c=>({baseNumber:c.baseNumber,used:false}))};
   const remaining=new Set(own.remainingCardIds||[]);
   return {cycleIndex:own.cycleIndex||1,cards:(player.cardPool||[]).map(c=>({baseNumber:c.baseNumber,used:c.id?!remaining.has(c.id):false}))};
@@ -54,7 +54,7 @@ export function pveGameplayPlayers(bundle,run,{scope='combat'}={}){
     const member=memberFor(bundle,p),character=characterForPlayer(bundle,p),cycle=publicCycle(run,p,scope);
     const physical=p.cardPool||[];
     const rawSkillId=skillByCharacter[p.characterId]||character?.definition?.skill?.id||'';
-    const rewardSkillSupported=scope!=='room'||['warrior','mage','gunner','twins'].includes(p.characterId);
+    const rewardSkillSupported=scope==='event'?['warrior','mage','vampire'].includes(p.characterId):scope!=='room'||['warrior','mage','gunner','twins'].includes(p.characterId);
     players[p.playerId]={
       memberId:p.playerId,
       characterId:lobbyId(p),
@@ -79,7 +79,7 @@ export function pveGameplayPlayers(bundle,run,{scope='combat'}={}){
 }
 
 export function pveGameplayBundle(bundle,run,{scope='combat'}={}){
-  const ready=scope==='room'?(run.roomState?.readyPlayerIds||[]):(run.combat?.readyPlayerIds||[]);
+  const ready=scope==='room'||scope==='event'?(run.roomState?.readyPlayerIds||[]):(run.combat?.readyPlayerIds||[]);
   const roomType=run.combat?.roomType||run.roomState?.type||'EVENT';
   const category=roomType==='BOSS'?'boss':roomType.includes('COMBAT')?'monster':'event';
   return {
@@ -225,4 +225,22 @@ export function pveRelicRows(run){
     playerId:player.playerId,
     relicIds:[...(player.relics||[])]
   }));
+}
+
+export function adaptPveEventResult(beforeRun,afterRun){
+  const room=afterRun?.roomState,result=room?.publicTurnResult;
+  if(room?.type!=='EVENT'||!result)return null;
+  return {
+    key:`${afterRun.currentRoomNodeId||room.eventId}:${result.turn||1}`,
+    turnIndex:result.turn||1,stageIndex:afterRun.depth||1,
+    stage:{category:'event',roomType:'EVENT',name:room.name,subtitle:room.ruleSummary,color:'#7f9a91',shape:'seer',contentId:room.illustration||room.eventId},
+    cards:(result.cards||[]).map(card=>({
+      memberId:card.playerId,cardId:null,value:card.finalNumber,valid:Boolean(card.valid),
+      resisted:Boolean(card.collisionImmune&&card.valid&&Number(card.collisionGroupSize)>1),
+      skillUsed:false,skillId:null,amplifyLevel:0
+    })),
+    effects:mutationEffects(result),monsterBefore:null,monsterAfter:null,totalDamage:0,
+    stageCleared:true,success:result.outcome==='SUCCESS',
+    resolutionLabel:result.outcome==='ALL_COLLIDE'?'전원 중복 · 실패':result.outcome==='SUCCESS'?'이벤트 성공':'조건 미달'
+  };
 }
