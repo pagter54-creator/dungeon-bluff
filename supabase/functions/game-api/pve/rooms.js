@@ -1,5 +1,7 @@
 import {choose,drawIndex} from './rng.js';
 import {selfModifyCard,collisionImmunity,isCardSelectableForCharacter,onCycleStartCharacter,onTurnStartCharacter,onTurnEndCharacter,initializeCombatCharacter,baseDamageForCharacter} from './characters.js';
+import {restoreCardCycle,persistCardCycles} from './card-cycle.js';
+import {initializeNumberHistories,recordSelfModification,applyPreCollisionSwap,applyPreCollisionSteal,finalizeNumbers,attachCollisionGroups,attachValidity,assignVampireThralls,validateNumberMutationState} from './number-mutation.js';
 import {applyOwnedEffects} from './effects.js';
 import {relicPool} from './relics.js';
 
@@ -31,8 +33,8 @@ function spendRoomCards(run,resolved){
     delete state.selectedCardId;delete state.skillIntent;
     resetRoomCycle(run,player,state);
   }
+  persistCardCycles(run,room.privateByPlayer);
 }
-function basePrivate(player){return {playerId:player.playerId,cycleIndex:1,spentCardIds:[],remainingCardIds:player.cardPool.map(c=>c.id)};}
 
 export function enterRestRoom(run){
   run.phase='REST';run.roomState={type:'REST',choicesByPlayer:{}};
@@ -140,11 +142,12 @@ function fillRewardAiSubmissions(run){
   }
 }
 export function enterRewardRoom(run){
-  for(const p of run.players){initializeCombatCharacter(p);onTurnStartCharacter(p,run);}
+  for(const p of run.players)initializeCombatCharacter(p);
   const defs=run.relicCatalog||[],general=relicPool(defs,'GENERAL');
   const offered=pickUniqueRelics(run,general,4,`reward:${run.currentRoomNodeId}`).map(x=>x.id);
   run.phase='REWARD_ROOM';
-  run.roomState={type:'REWARD_ROOM',attempt:1,relicIds:offered,catalogIncomplete:offered.length<4,privateByPlayer:Object.fromEntries(run.players.map(p=>[p.playerId,basePrivate(p)])),turnSubmissions:{},pickOrder:[],picks:{},autoAssigned:{},resolved:false};
+  run.roomState={type:'REWARD_ROOM',attempt:1,relicIds:offered,catalogIncomplete:offered.length<4,privateByPlayer:Object.fromEntries(run.players.map(p=>[p.playerId,restoreCardCycle(run,p)])),turnSubmissions:{},pickOrder:[],picks:{},autoAssigned:{},resolved:false};
+  for(const p of run.players)onTurnStartCharacter(p,run);
   fillRewardAiSubmissions(run);
   if(run.players.filter(p=>p.status!=='DOWNED').every(p=>run.roomState.turnSubmissions[p.playerId]))resolveRewardAttempt(run);
 }
@@ -200,10 +203,22 @@ function autoResolveAiPickers(run){
 export function resolveRewardAttempt(run){
   if(run.phase!=='REWARD_ROOM'||run.roomState?.type!=='REWARD_ROOM')throw new Error('현재 보상방이 아닙니다.');
   const room=run.roomState,active=run.players.filter(p=>p.status!=='DOWNED');if(active.some(p=>!room.turnSubmissions[p.playerId]))return null;
-  const cards=active.map(p=>{const sub=room.turnSubmissions[p.playerId],card=cardFor(p,sub.cardInstanceId);return {playerId:p.playerId,cardInstanceId:card.id,baseNumber:card.baseNumber,workingNumber:card.baseNumber,finalNumber:card.baseNumber,collisionImmune:false,valid:true};});
-  for(const rc of cards){const p=playerFor(run,rc.playerId),sub=room.turnSubmissions[rc.playerId];selfModifyCard(p,rc,sub);applyOwnedEffects(run,'PRE_COLLISION_SELF_MODIFY',{player:p,resolved:rc,privateState:room.privateByPlayer[rc.playerId],events:[]});rc.collisionImmune=collisionImmunity(p,sub);}
-  const counts=cards.reduce((m,c)=>(m[c.finalNumber]=(m[c.finalNumber]||0)+1,m),{});
-  for(const c of cards)if(counts[c.finalNumber]>1&&!c.collisionImmune){c.valid=false;c.invalidReason='COLLISION';}
+  const cards=active.map(p=>{const sub=room.turnSubmissions[p.playerId],card=cardFor(p,sub.cardInstanceId);return {playerId:p.playerId,seat:p.seat,cardInstanceId:card.id,baseNumber:card.baseNumber,workingNumber:card.baseNumber,finalNumber:card.baseNumber,collisionImmune:false,valid:true};});
+  const mutationEvents=[];
+  initializeNumberHistories(cards);
+  for(const rc of cards){const p=playerFor(run,rc.playerId),sub=room.turnSubmissions[rc.playerId];selfModifyCard(p,rc,sub);applyOwnedEffects(run,'PRE_COLLISION_SELF_MODIFY',{player:p,resolved:rc,privateState:room.privateByPlayer[rc.playerId],events:[]});}
+  recordSelfModification(cards,mutationEvents);
+  applyPreCollisionSwap(run,cards,mutationEvents,room);
+  applyPreCollisionSteal(run,cards,mutationEvents);
+  finalizeNumbers(cards);
+  for(const rc of cards)rc.collisionImmune=collisionImmunity(playerFor(run,rc.playerId),room.turnSubmissions[rc.playerId]);
+  const groups=new Map();for(const card of cards){const group=groups.get(card.finalNumber)||[];group.push(card);groups.set(card.finalNumber,group);}
+  attachCollisionGroups(run,cards,groups);
+  for(const group of groups.values())if(group.length>1)for(const card of group)if(!card.collisionImmune){card.valid=false;card.invalidReason='COLLISION';}
+  assignVampireThralls(run,cards,groups,[]);
+  attachValidity(cards);
+  validateNumberMutationState(run,cards,mutationEvents);
+  const counts=Object.fromEntries([...groups].map(([number,group])=>[number,group.length]));
   for(const c of cards)applyOwnedEffects(run,'CARD_VALIDATED',{player:playerFor(run,c.playerId),resolved:c,privateState:room.privateByPlayer[c.playerId],events:[]});
   for(const c of cards){
     const p=playerFor(run,c.playerId),sub=room.turnSubmissions[c.playerId],st=room.privateByPlayer[c.playerId];
@@ -218,6 +233,7 @@ export function resolveRewardAttempt(run){
   const valid=cards.filter(c=>c.valid);
   room.publicTurnResult={
     attempt:room.attempt,
+    mutationEvents,
     cards:cards.map(card=>({
       playerId:card.playerId,
       finalNumber:card.finalNumber,
