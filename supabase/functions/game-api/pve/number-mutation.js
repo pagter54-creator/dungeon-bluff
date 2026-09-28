@@ -54,16 +54,16 @@ export function recordSelfModification(cards,events){
     }
   }
 }
-export function applyPreCollisionSwap(run,cards,events){
+export function applyPreCollisionSwap(run,cards,events,state=run.combat){
   const vampires=run.players.filter(p=>p.characterId==='vampire'&&p.status!=='DOWNED').sort((a,b)=>a.seat-b.seat);
   for(const vampire of vampires){
-    const submission=run.combat.turnSubmissions[vampire.playerId];
+    const submission=state.turnSubmissions[vampire.playerId];
     if(!submission?.skillIntent)continue;
     const actor=cardByPlayer(cards,vampire.playerId);
     const targetId=vampire.publicResources.thrallPlayerId;
     const target=targetId?cardByPlayer(cards,targetId):null;
     if(!actor||!target)throw new Error('피의 명령 대상이 이번 턴 판정에 없습니다.');
-    const priv=run.combat.privateByPlayer[vampire.playerId];
+    const priv=state.privateByPlayer[vampire.playerId];
     const cycleIndex=priv?.cycleIndex||1;
     if(vampire.augments.includes('aug-301')&&priv.bloodCommandUsedCycle===cycleIndex)throw new Error('완전한 권속의 피의 명령은 사이클당 1회만 사용할 수 있습니다.');
     const actorBefore=actor.workingNumber,targetBefore=target.workingNumber;

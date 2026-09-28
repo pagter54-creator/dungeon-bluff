@@ -4,7 +4,7 @@ import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/p
 import {generateFloorMap} from '../supabase/functions/game-api/pve/map.js';
 import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-api/pve/combat.js';
 import {publishMonsterIntent,executeMonsterIntent} from '../supabase/functions/game-api/pve/monster.js';
-import {enterEventRoom,chooseEventOption} from '../supabase/functions/game-api/pve/events.js';
+import {enterEventRoom,submitEventCard} from '../supabase/functions/game-api/pve/events.js';
 import {installRelicCatalog} from '../supabase/functions/game-api/pve/relics.js';
 import {
   F1_MONSTER_DEFINITIONS,F1_EVENT_DEFINITIONS,F1_RELIC_DEFINITIONS,
@@ -78,26 +78,31 @@ test('PVE-013 monster definitions drive public telegraphs and executable intents
   assert.equal(intent.payload.target,undefined);
 });
 
-test('PVE-013 provides two simple data-driven events and resolves four independent choices into ROOM_RESULT',()=>{
+test('PVE-013 converts two data-driven events to four-card judgments',()=>{
   const run=runBase();run.phase='ROOM_ENTER';run.currentRoomNodeId='event';
   enterEventRoom(run);
-  assert.equal(F1_EVENT_DEFINITIONS.length,2);assert.equal(run.phase,'EVENT');assert.equal(run.roomState.options.length,2);
-  run.players[0].hp=1;
-  for(const p of run.players){
-    const option=run.roomState.options[0];
-    chooseEventOption(run,p.playerId,option.id);
+  assert.equal(F1_EVENT_DEFINITIONS.length,2);assert.equal(run.phase,'EVENT');
+  assert.ok(run.roomState.ruleSummary);assert.ok(run.roomState.description);
+  for(let i=0;i<run.players.length;i++){
+    const player=run.players[i],state=run.roomState.privateByPlayer[player.playerId];
+    const card=player.cardPool.find(card=>card.baseNumber===i+2&&state.remainingCardIds.includes(card.id));
+    submitEventCard(run,player.playerId,card.id);
   }
   assert.equal(run.phase,'ROOM_RESULT');
-  assert.equal(Object.keys(run.roomState.choicesByPlayer).length,4);
-  assert.ok(run.players[0].hp>=1);
+  assert.equal(run.roomState.publicTurnResult.cards.length,4);
+  assert.ok(run.cardCycles.p0.spentCardIds.length>0);
 });
 
-test('PVE-013 mixed human/AI event automatically resolves AI choices with deterministic run RNG',()=>{
+test('PVE-013 mixed human/AI event automatically submits AI cards with deterministic run RNG',()=>{
   const make=()=>{const run=runBase(undefined,{ai:[2,3],seed:'event-ai'});run.phase='ROOM_ENTER';run.currentRoomNodeId='event';enterEventRoom(run);return run;};
   const a=make(),b=make();
-  assert.deepEqual(a.roomState.choicesByPlayer,b.roomState.choicesByPlayer);
-  assert.ok(a.roomState.choicesByPlayer.p2);assert.ok(a.roomState.choicesByPlayer.p3);
-  for(const pid of ['p0','p1'])chooseEventOption(a,pid,a.roomState.options[0].id);
+  assert.deepEqual(a.roomState.turnSubmissions,b.roomState.turnSubmissions);
+  assert.ok(a.roomState.turnSubmissions.p2);assert.ok(a.roomState.turnSubmissions.p3);
+  for(const pid of ['p0','p1']){
+    const player=a.players.find(p=>p.playerId===pid);
+    const id=a.roomState.privateByPlayer[pid].remainingCardIds[0];
+    submitEventCard(a,pid,id);
+  }
   assert.equal(a.phase,'ROOM_RESULT');
 });
 

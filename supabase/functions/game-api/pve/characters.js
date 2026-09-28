@@ -126,8 +126,11 @@ export function onTurnStartCharacter(player,run){
   }
   if(player.status==='DOWNED')return;
   if(player.characterId==='mage')player.publicResources.mana=Math.min(resourceMax(player,'mana',4),(player.publicResources.mana||0)+1);
-  if(player.characterId==='twins'&&!Number.isInteger(player.publicResources.parity)){
-    player.publicResources.parity=choose(run,[0,1],`twins-parity:${player.playerId}`);
+  if(player.characterId==='twins'){
+    if(!Number.isInteger(player.publicResources.parity))player.publicResources.parity=choose(run,[0,1],`twins-parity:${player.playerId}`);
+    const state=run.combat?.privateByPlayer?.[player.playerId]||run.roomState?.privateByPlayer?.[player.playerId];
+    const remaining=(state?.remainingCardIds||[]).map(id=>player.cardPool.find(card=>card.id===id)?.baseNumber).filter(Number.isInteger);
+    if(remaining.length&&!remaining.some(number=>number%2===player.publicResources.parity))player.publicResources.parity=1-player.publicResources.parity;
   }
 }
 export function onCycleStartCharacter(player,privateState){
