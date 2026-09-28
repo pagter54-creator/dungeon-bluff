@@ -65,6 +65,7 @@ function captureRoomPresentationBaseline(run,id,type){
       hp:Number(player.hp)||0,
       growthExp:Number(player.growthExp)||0,
       runGold:Number(player.runGold)||0,
+      score:Number(player.score)||0,
       relics:[...(player.relics||[])],
       engravings:{...(player.engravings||{})}
     }]))
