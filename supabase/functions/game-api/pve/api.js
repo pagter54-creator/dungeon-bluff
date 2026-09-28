@@ -3,12 +3,13 @@ import {PVE_CHARACTER_DEFS} from './characters.js';
 import {GAME_MODE,roomGameMode} from '../game-mode.js';
 import {beginEntryLoading,finishEntryLoading} from '../entry-loading.js';
 import {generateFloorMap,connectedNodeIds,resolveVote} from './map.js';
+import {restoreCardCycle} from './card-cycle.js';
 import {projectRun} from './projection.js';
 import {submitCard,resolveBasicTurn,beginTurn} from './combat.js';
 import {activateImmediateCharacterSkill} from './characters.js';
 import {chooseAugment} from './augments.js';
 import {enterRestRoom,applyRestChoice,enterShopRoom,reserveShopCard,cancelShopCardReservation,confirmShopCard,buyShopRelic,finishShop,enterRewardRoom,activateRewardSkill,submitRewardCard,resolveRewardAttempt,chooseRewardRelic,roomReady,expireShopReservations} from './rooms.js';
-import {enterEventRoom,chooseEventOption} from './events.js';
+import {enterEventRoom,chooseEventOption,submitEventCard} from './events.js';
 import {F1_RELIC_DEFINITIONS,selectF1Monster,markF1MonsterUsed} from './content-f1.js';
 import {installRelicCatalog} from './relics.js';
 
@@ -73,7 +74,9 @@ function enterNode(run,id){
   const type=nodeType(run,id);captureRoomPresentationBaseline(run,id,type);run.currentRoomNodeId=id;run.phase='ROOM_ENTER';
   if(type==='NORMAL_COMBAT'||type==='ELITE_COMBAT'||type==='BOSS'){
     const monster=selectF1Monster(run,type);markF1MonsterUsed(run,monster);
-    run.phase='COMBAT';run.combat=newCombatState(run.players,monster.baseHp,type,monster);beginTurn(run);
+    run.phase='COMBAT';run.combat=newCombatState(run.players,monster.baseHp,type,monster);
+    run.combat.privateByPlayer=Object.fromEntries(run.players.map(player=>[player.playerId,restoreCardCycle(run,player)]));
+    beginTurn(run);
   }
   else if(type==='REST')enterRestRoom(run);
   else if(type==='SHOP')enterShopRoom(run);
@@ -209,6 +212,10 @@ export async function handlePveAction({admin,user,body,json}){
   } else if(action==='pve.chooseAugment'){
     if(typeof body.augment_id!=='string')return fail(json,'augment_id가 필요합니다.');
     chooseAugment(run,me.playerId,body.augment_id);
+  } else if(action==='pve.submitEventCard'){
+    if(me.memberType!=='human')return fail(json,'인간 플레이어만 직접 이벤트 카드를 제출할 수 있습니다.',403);
+    if(typeof body.card_instance_id!=='string')return fail(json,'card_instance_id가 필요합니다.');
+    submitEventCard(run,me.playerId,body.card_instance_id,body.skill_intent===true,body.skill_data??null);
   } else if(action==='pve.chooseEventOption'){
     if(me.memberType!=='human')return fail(json,'인간 플레이어만 직접 이벤트 선택을 할 수 있습니다.',403);
     if(typeof body.option_id!=='string')return fail(json,'option_id가 필요합니다.');
