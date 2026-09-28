@@ -7,7 +7,7 @@ export function baseCards(playerId,characterId='adventurer'){
 }
 export function newPlayerRunState(member){
   const characterId=member.character_id||'adventurer';
-  return {playerId:member.id,userId:member.user_id||undefined,seat:member.seat_index,memberType:member.member_type,characterId,hp:3,maxHp:3,runGold:0,growthExp:0,augments:[],relics:[],engravings:{},cardPool:baseCards(member.id,characterId),publicResources:{},persistentCharacterState:{},status:'ACTIVE'};
+  return {playerId:member.id,userId:member.user_id||undefined,seat:member.seat_index,memberType:member.member_type,characterId,hp:3,maxHp:3,runGold:0,growthExp:0,score:0,augments:[],relics:[],engravings:{},cardPool:baseCards(member.id,characterId),publicResources:{},persistentCharacterState:{},status:'ACTIVE'};
 }
 export function newPrivateCombatState(player){
   return {playerId:player.playerId,cycleIndex:1,spentCardIds:[],remainingCardIds:player.cardPool.map(c=>c.id)};
