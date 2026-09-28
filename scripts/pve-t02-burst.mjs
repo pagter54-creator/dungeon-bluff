@@ -1,7 +1,8 @@
 import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/pve/model.js';
 import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-api/pve/combat.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
-import {F1_MONSTER_DEFINITIONS,F1_RELIC_DEFINITIONS} from '../supabase/functions/game-api/pve/content-f1.js';
+import {F1_RELIC_DEFINITIONS} from '../supabase/functions/game-api/pve/content-f1.js';
+import {STRESS_REFERENCE_MONSTERS as F1_MONSTER_DEFINITIONS} from './pve-stress-reference-monsters.mjs';
 import {installRelicCatalog} from '../supabase/functions/game-api/pve/relics.js';
 
 export const T02_CHARACTER_IDS=Object.freeze(['gunner','demon_swordsman','martial_artist','berserker']);

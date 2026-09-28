@@ -39,6 +39,7 @@ function memoryAdmin(roomBundle=bundle()){
   let state=null,version=0;const actions=new Map(),telemetry=[];
   return {
     get state(){return structuredClone(state);},get version(){return version;},telemetry,
+    seedDueAugment(playerId){state.players.find(player=>player.playerId===playerId).growthExp=50;},
     async rpc(name,args){
       if(name==='game_read')return {data:roomBundle,error:null};
       if(name==='pve_create_run'){
@@ -124,15 +125,15 @@ test('PVE-014 fully automatic turn resolves when the only human is stunned inste
   if(run.phase==='COMBAT')assert.equal(run.players[0].status,'ACTIVE');
 });
 
-test('PVE-014 internal API playtest: four humans can traverse every F1 room family and reach FLOOR_CLEAR',async()=>{
+test('PVE-014 internal API playtest: four humans can traverse every F1 room family and reach Floor 2',async()=>{
   const admin=memoryAdmin(humanBundle()),users=['u0','u1','u2','u3'];let seq=1;
   let run=await call(admin,{action:'pve.createRun',room_id:ROOM_ID,seed:'pve-014-four-human-playtest',depth_count:8},'u0');
-  assert.equal(run.floor,1);assert.equal(run.phase,'MAP_VOTE');assert.equal(run.contentVersion,'F1_VERTICAL_SLICE_V1');assert.equal(run.flame,4);assert.equal(run.maxFlame,5);
-  assert.equal(run.map.bossName,'몰락한 성주');
+  assert.equal(run.floor,1);assert.equal(run.phase,'MAP_VOTE');assert.equal(run.contentVersion,'F1_CONTENT_001B');assert.equal(run.flame,4);assert.equal(run.maxFlame,5);
+  const selectedBossId=run.map.bossId;
 
   const visited=[],combatTurns={},version=()=>admin.version;
-  let rewardResolved=false,lastVisitedNodeId=null;
-  for(let guard=0;guard<800&&run.phase!=='FLOOR_CLEAR'&&run.phase!=='RUN_FAILED';guard++){
+  let rewardResolved=false,lastVisitedNodeId=null,sawBossAugment=false,seededBossAugment=false;
+  for(let guard=0;guard<800&&run.floor===1&&run.phase!=='RUN_FAILED';guard++){
     if(run.currentRoomNodeId&&run.currentRoomNodeId!==lastVisitedNodeId){
       visited.push(run.map.nodes.find(n=>n.id===run.currentRoomNodeId)?.type);
       lastVisitedNodeId=run.currentRoomNodeId;
@@ -146,6 +147,7 @@ test('PVE-014 internal API playtest: four humans can traverse every F1 room fami
       continue;
     }
     if(run.phase==='COMBAT'){
+      if(run.combat.roomType==='BOSS'&&!seededBossAugment){admin.seedDueAugment('p0');seededBossAugment=true;run=await call(admin,{action:'pve.getState',run_id:run.id},'u0');}
       const turn=run.combat.turn,used=new Set();
       for(const userId of users){
         let view=await call(admin,{action:'pve.getState',run_id:run.id},userId);
@@ -238,6 +240,7 @@ test('PVE-014 internal API playtest: four humans can traverse every F1 room fami
       continue;
     }
     if(run.phase==='AUGMENT_CHOICE'){
+      if(run.augmentChoice?.resumePhase==='FLOOR_CLEAR')sawBossAugment=true;
       let changed=false;
       for(const userId of users){
         const view=await call(admin,{action:'pve.getState',run_id:run.id},userId);run=view;
@@ -254,14 +257,34 @@ test('PVE-014 internal API playtest: four humans can traverse every F1 room fami
   }
 
   assert.notEqual(run.phase,'RUN_FAILED',JSON.stringify({visited,combatTurns,flame:run.flame,players:run.players.map(p=>({id:p.playerId,hp:p.hp,status:p.status,gold:p.runGold}))}));
-  assert.equal(run.phase,'FLOOR_CLEAR',JSON.stringify({visited,combatTurns}));
+  assert.equal(run.phase,'MAP_VOTE',JSON.stringify({visited,combatTurns}));assert.equal(run.floor,2);
   assert.deepEqual(visited,['NORMAL_COMBAT','EVENT','SHOP','ELITE_COMBAT','REST','NORMAL_COMBAT','REWARD_ROOM','BOSS']);
-  assert.equal(run.floorClear.bossName,'몰락한 성주');
+  assert.equal(run.floorClear.bossId,selectedBossId);
+  assert.equal(sawBossAugment,true,'boss reward must exercise the augment-choice API before transition');
   assert.equal(rewardResolved,true);
   assert.ok(run.players.some(p=>p.relics.length>0));
-  assert.ok(admin.telemetry.some(x=>x.logType==='COMBAT'&&x.payload.monster_id==='f1_fallen_lord'));
+  assert.ok(admin.telemetry.some(x=>x.logType==='COMBAT'&&x.payload.monster_id===selectedBossId));
   const combatLogs=admin.telemetry.filter(x=>x.logType==='COMBAT').map(x=>x.payload);
   assert.ok(combatLogs.length>=4);
+  const committed=admin.state,committedVersion=admin.version;
+  assert.equal(committed.id,run.id);assert.equal(committed.floor,2);assert.equal(committed.phase,'MAP_VOTE');
+  assert.equal(committed.combat,undefined);assert.ok(committed.map.nodes.some(node=>node.type==='BOSS'));
+  assert.equal(committed.map.depthCount,12);assert.equal(committed.currentRoomNodeId,null);
+  for(const userId of users){
+    const reconnect=await call(admin,{action:'pve.getState',run_id:run.id},userId);
+    const own=reconnect.players.find(player=>player.userId===userId),saved=committed.players.find(player=>player.userId===userId);
+    assert.equal(reconnect.id,run.id);assert.equal(reconnect.floor,2);assert.equal(reconnect.phase,'MAP_VOTE');
+    for(const field of ['hp','runGold','growthExp','score'])assert.equal(own[field],saved[field],field);
+    for(const field of ['cardPool','engravings','relics','augments'])assert.deepEqual(own[field],saved[field],field);
+    assert.deepEqual(reconnect.privateCombat,committed.cardCycles[own.playerId]);
+    assert.equal(reconnect.cardCycles,undefined);assert.equal(reconnect.combat,undefined);
+    assert.equal(JSON.stringify(reconnect).includes('privateByPlayer'),false);
+    assert.equal(JSON.stringify(reconnect).includes('behaviorState'),false);
+  }
+  const beforeGuard=admin.state;
+  const rejected=await handlePveAction({admin,user:{id:'u0'},body:{action:'pve.voteNextRoom',run_id:run.id,action_id:actionId(seq++),expected_version:admin.version,node_id:connectedNodeIds(run.map)[0]},json});
+  assert.equal(rejected.status,409);assert.equal(rejected.body.error,'CONTENT_NOT_IMPLEMENTED');
+  assert.deepEqual(admin.state,beforeGuard);assert.equal(admin.version,committedVersion);
   console.log('[PVE-014 F1 playtest]',JSON.stringify({
     route:visited,
     combats:combatLogs.map(x=>({room:x.room_type,monster:x.monster_id,turns:x.turn_count,damage:x.party_damage_total,flameSpent:x.flame_spent})),

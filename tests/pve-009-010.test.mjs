@@ -41,6 +41,25 @@ function submitRewardNumbers(run,values){
   return resolveRewardAttempt(run);
 }
 
+test('CONTENT-001 reward room reuses steal/collision ordering and preserves the physical card cycle',()=>{
+  const run=makeRun(['imp','adventurer','adventurer','adventurer']);delete run.combat;
+  installRelicCatalog(run,fixtureRelics());
+  const firstId=run.players[0].cardPool.find(card=>card.baseNumber===1).id;
+  const submittedId=run.players[0].cardPool.find(card=>card.baseNumber===3).id;
+  run.cardCycles={p0:{playerId:'p0',cycleIndex:1,spentCardIds:[firstId],remainingCardIds:run.players[0].cardPool.filter(card=>card.id!==firstId).map(card=>card.id)}};
+  enterRewardRoom(run);
+  assert.equal(run.roomState.privateByPlayer.p0.remainingCardIds.includes(firstId),false);
+  submitRewardNumbers(run,[3,3,2,5]);
+  const cards=run.roomState.publicTurnResult.cards;
+  assert.deepEqual(cards.map(card=>card.finalNumber),[4,2,2,5]);
+  assert.deepEqual(cards.map(card=>card.valid),[true,false,false,true]);
+  assert.ok(run.roomState.publicTurnResult.mutationEvents.some(event=>event.effectId==='imp-steal'));
+  assert.equal(run.cardCycles.p0.spentCardIds.includes(firstId),true);
+  assert.equal(run.cardCycles.p0.spentCardIds.includes(submittedId),true);
+  const view=projectRun(run,'p0');
+  assert.equal(JSON.stringify(view).includes('cardCycles'),false);
+});
+
 test('PVE-009 number engraving changes valid damage only and never collision grouping',()=>{
   const run=makeRun();run.players[0].engravings['2']=2;
   let result=submitNumbers(run,[2,1,3,4]);

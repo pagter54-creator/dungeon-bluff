@@ -1,5 +1,6 @@
 import {choose} from './rng.js';
 import {AUGMENT_BY_ID,augmentCandidates} from './augment-catalog.js';
+import {advanceCompletedFloor} from './floor-transition.js';
 
 export const AUGMENT_THRESHOLDS=[50,150,350,750];
 
@@ -9,9 +10,8 @@ function completedTiers(player){
 }
 export function dueAugmentTiers(player){
   const done=new Set(completedTiers(player));
-  if(!augmentCandidates(player.characterId,1).length)return [];
   return AUGMENT_THRESHOLDS.map((threshold,i)=>({tier:i+1,threshold}))
-    .filter(x=>player.growthExp>=x.threshold&&!done.has(x.tier))
+    .filter(x=>player.growthExp>=x.threshold&&!done.has(x.tier)&&offerFor(player,x.tier).length>0)
     .map(x=>x.tier);
 }
 export function grantGrowthExp(run,playerId,amount){
@@ -22,14 +22,14 @@ export function grantGrowthExp(run,playerId,amount){
   return amount;
 }
 function offerFor(player,tier){
-  return augmentCandidates(player.characterId,tier,player.augmentBuild).map(x=>x.id);
+  return augmentCandidates(player.characterId,tier,player.augmentBuild).filter(x=>x.executable===true).map(x=>x.id);
 }
 function refreshOffer(run,playerId){
   const state=run.augmentChoice,tiers=state?.pendingByPlayer?.[playerId]||[];
   if(!tiers.length){delete state.offersByPlayer[playerId];return;}
   const player=run.players.find(p=>p.playerId===playerId);
   const ids=offerFor(player,tiers[0]);
-  if(ids.length!==3)throw new Error('증강 후보 데이터가 3장을 제공하지 못했습니다.');
+  if(!ids.length)throw new Error('실행 가능한 증강 후보가 없습니다.');
   state.offersByPlayer[playerId]=ids;
 }
 function finishIfComplete(run){
@@ -39,6 +39,7 @@ function finishIfComplete(run){
   const resume=state.resumePhase;
   delete run.augmentChoice;
   run.phase=resume;
+  if(resume==='FLOOR_CLEAR'&&Number.isInteger(run.map?.depthCount))advanceCompletedFloor(run);
   return true;
 }
 function applyChoice(run,playerId,augmentId){

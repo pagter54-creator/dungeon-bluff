@@ -4,6 +4,8 @@ export function projectRun(run,viewerPlayerId){
   delete out.relicCatalog;
   delete out._telemetryPending;
   delete out.cardCycles;
+  if(!out.combat&&run.cardCycles?.[viewerPlayerId])out.privateCombat=structuredClone(run.cardCycles[viewerPlayerId]);
+  if(out.combat?.monster){delete out.combat.monster.mechanic;delete out.combat.monster.behaviorState;delete out.combat.monster.pattern;}
 
   // Physical card numbers are public; current-cycle usage stays private.
 
@@ -13,17 +15,17 @@ export function projectRun(run,viewerPlayerId){
     }
   }
   if(out.combat?.pendingDownPlayerIds)delete out.combat.pendingDownPlayerIds;
-  if(out.combat?.publicTurnResult){
-    const mutations=out.combat.publicTurnResult.mutationEvents||[];
-    out.combat.publicTurnResult.presentationMutations=mutations.map(event=>{
+  for(const result of [out.combat?.publicTurnResult,out.floorTransitionResult?.publicTurnResult].filter(Boolean)){
+    const mutations=result.mutationEvents||[];
+    result.presentationMutations=mutations.map(event=>{
       const safe={phase:event.phase,effectId:event.effectId,actorId:event.actorId??null,targetId:event.targetId??null};
       for(const key of ['before','after','actorBefore','targetBefore','actorAfter','targetAfter','stolen','totalActuallyStolen'])if(Number.isFinite(event[key]))safe[key]=event[key];
       if(Array.isArray(event.targetIds))safe.targetIds=[...event.targetIds];
       return safe;
     });
-    delete out.combat.publicTurnResult.numberHistories;
-    delete out.combat.publicTurnResult.mutationEvents;
-    for(const card of out.combat.publicTurnResult.cards||[]){
+    delete result.numberHistories;
+    delete result.mutationEvents;
+    for(const card of result.cards||[]){
       delete card.numberHistory;
       delete card.stealTargets;
       delete card.dominanceBefore;

@@ -6,6 +6,8 @@ import {
   applyPostPlayerAttackCharacter,baseDamageForCharacter,grantRunGold,onCombatEndCharacter,handleCycleExhaustedCharacter,onMonsterKilledCharacter
 } from './characters.js';
 import {publishMonsterIntent,executeMonsterIntent} from './monster.js';
+import {applyMonsterCardRules,recordMonsterDamageBatch} from './monster-behavior.js';
+import {advanceCompletedFloor} from './floor-transition.js';
 import {beginAugmentChoices} from './augments.js';
 import {applyOwnedEffects} from './effects.js';
 import {initCombatTelemetry,recordCombatTurnTelemetry,finalizeCombatTelemetry} from './telemetry.js';
@@ -202,6 +204,7 @@ export function resolveBasicTurn(run){
   for(const rc of cards)rc.soloLowest=Boolean(rc.valid&&lowestCards.length===1&&lowestCards[0]===rc);
   for(const rc of cards){const p=playerFor(run,rc.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player:p,resolved:rc,events});resolvePostCollisionCharacter(run,rc,c.turnSubmissions[rc.playerId],events);}
   attachValidity(cards);
+  applyMonsterCardRules(run,cards,events);
   c.phase='DAMAGE_BUILD';phaseTrace.push(c.phase);
   const defense=Math.max(0,Number(c.monster.defense)||0);
   const packets=[],monsterHpBeforeBatch=c.monster.hp;
@@ -229,7 +232,7 @@ export function resolveBasicTurn(run){
       ...(Number(rc.bloodFrenzyBonusDamage)>0?['AUG_121_BLOOD_FRENZY']:[]),
       ...(Number(rc.ghostSlashBonusDamage)>0?['GHOST_SLASH']:[])
     ];
-    let primary=burstPacket({sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,amount:Math.max(0,baseDamageForCharacter(player,rc)+engraving-defense),tags:['BASE_CARD'],followUp:false},
+    let primary=burstPacket({sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,amount:Math.max(0,baseDamageForCharacter(player,rc)+engraving-defense-(rc.monsterDamagePenalty||0)),tags:['BASE_CARD'],followUp:false},
       {resolved:rc,player,baseNumber:rc.finalNumber,baseDamage:rc.finalNumber,classBonus,augmentBonus,modifierIds});
     const primaryDamage={amount:primary.amount},queued=[];
     applyOwnedEffects(run,'BEFORE_DAMAGE',{player,resolved:rc,damage:primaryDamage,followUps:queued,followUp:false,events:[]});
@@ -261,6 +264,7 @@ export function resolveBasicTurn(run){
     packet.bossPhasesSkipped='NOT_MEASURABLE';virtualHp=next;
   }
   c.monster.hp=Math.max(0,c.monster.hp-totalDamage);
+  recordMonsterDamageBatch(run,totalDamage);
   attachDamage(cards,packets);
   validateNumberMutationState(run,cards,mutationEvents,{packets});
   const buildTurnResult=(trace=phaseTrace)=>({
@@ -317,6 +321,10 @@ export function resolveBasicTurn(run){
     }
     c.publicTurnResult=buildTurnResult([...phaseTrace,'COMBAT_END']);
     recordCombatTurnTelemetry(run,c.publicTurnResult);finalizeCombatTelemetry(run,'VICTORY');
+    if(c.roomType==='BOSS'&&run.phase==='FLOOR_CLEAR'&&Number.isInteger(run.map?.depthCount)){
+      run.floorTransitionResult={publicTurnResult:structuredClone(c.publicTurnResult),monster:{id:c.monster.id,name:c.monster.name,hp:c.monster.hp,maxHp:c.monster.maxHp}};
+      advanceCompletedFloor(run);
+    }
     return c.publicTurnResult;
   }
   c.phase='MONSTER_ACTION';phaseTrace.push(c.phase);events.push(...executeMonsterIntent(run));

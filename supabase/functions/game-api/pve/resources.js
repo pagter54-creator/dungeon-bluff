@@ -34,7 +34,8 @@ export const PVE_RESOURCE_DEFS=Object.freeze({
   poison:{resetScope:'COMBAT'},
   break:{resetScope:'COMBAT'},
   prank:{resetScope:'COMBAT'},
-  heat:{resetScope:'COMBAT'}
+  heat:{resetScope:'COMBAT'},
+  chain:{resetScope:'COMBAT'}
 });
 
 export const PVE_PERSISTENT_STATE_DEFS=Object.freeze({

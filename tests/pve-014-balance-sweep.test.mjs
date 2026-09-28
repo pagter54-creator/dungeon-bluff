@@ -87,7 +87,7 @@ async function playFloor({seed,characters,mixed=false}){
   let seq=1,guard=0,run=await call(admin,'u0',{action:'pve.createRun',room_id:ROOM_ID,seed,depth_count:8});
   const visited=[];
   let lastVisitedNodeId=null;
-  while(guard++<1200&&!['FLOOR_CLEAR','RUN_FAILED'].includes(run.phase)){
+  while(guard++<1200&&run.floor===1&&run.phase!=='RUN_FAILED'){
     if(run.currentRoomNodeId&&run.currentRoomNodeId!==lastVisitedNodeId){
       visited.push(run.map.nodes.find(n=>n.id===run.currentRoomNodeId)?.type);
       lastVisitedNodeId=run.currentRoomNodeId;
@@ -196,7 +196,7 @@ async function playFloor({seed,characters,mixed=false}){
   if(guard>=1200)throw new Error(`playtest guard exhausted at ${run.phase}`);
   const combats=admin.telemetry.filter(x=>x.logType==='COMBAT').map(x=>x.payload);
   return {
-    seed,mixed,outcome:run.phase,visited,
+    seed,mixed,outcome:run.floor===2?'FLOOR_CLEAR':run.phase,visited,
     failedRoom:run.phase==='RUN_FAILED'?run.map.nodes.find(n=>n.id===run.currentRoomNodeId)?.type:null,
     finalFlame:run.flame,
     finalHp:run.players.map(p=>p.hp),

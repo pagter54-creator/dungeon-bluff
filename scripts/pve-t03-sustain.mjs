@@ -4,7 +4,8 @@ import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-
 import {activateImmediateCharacterSkill} from '../supabase/functions/game-api/pve/characters.js';
 import {applyMonsterDamage} from '../supabase/functions/game-api/pve/monster.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
-import {F1_MONSTER_DEFINITIONS,F1_RELIC_DEFINITIONS} from '../supabase/functions/game-api/pve/content-f1.js';
+import {F1_RELIC_DEFINITIONS} from '../supabase/functions/game-api/pve/content-f1.js';
+import {STRESS_REFERENCE_MONSTERS as F1_MONSTER_DEFINITIONS} from './pve-stress-reference-monsters.mjs';
 import {installRelicCatalog} from '../supabase/functions/game-api/pve/relics.js';
 
 export const T03_CHARACTER_IDS=Object.freeze(['warrior','vampire','berserker','mage']);
