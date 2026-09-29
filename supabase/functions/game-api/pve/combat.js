@@ -7,8 +7,9 @@ import {
 } from './characters.js';
 import {publishMonsterIntent,executeMonsterIntent} from './monster.js';
 import {applyMonsterCardRules,recordMonsterDamageBatch} from './monster-behavior.js';
-import {advanceCompletedFloor} from './floor-transition.js';
+import {advanceCompletedFloor,finalizeExpeditionClear} from './floor-transition.js';
 import {resolveF2AfterDamage} from './monster-behavior-f2.js';
+import {resolveF3AfterDamage} from './monster-behavior-f3.js';
 import {applyMonsterDamage} from './monster.js';
 import {beginAugmentChoices} from './augments.js';
 import {applyOwnedEffects} from './effects.js';
@@ -285,6 +286,7 @@ export function resolveBasicTurn(run){
     events.push({type:'FULL_BURST_MISFIRE',playerId:p.playerId,amount:1,hp:p.hp});
   }
   resolveF2AfterDamage(run,events,applyMonsterDamage);
+  resolveF3AfterDamage(run,events,applyMonsterDamage);
   c.phase='KILL_CHECK';phaseTrace.push(c.phase);
   if(c.monster.hp<=0){
     onMonsterKilledCharacter(run,cards,packets,events);
@@ -316,7 +318,7 @@ export function resolveBasicTurn(run){
     if(c.roomType==='BOSS'){
       run.phase='FLOOR_CLEAR';
       run.floorClear={floor:run.floor,bossId:c.monster.id,bossName:c.monster.name};
-      beginAugmentChoices(run,'FLOOR_CLEAR');
+      if(run.floor<3)beginAugmentChoices(run,'FLOOR_CLEAR');
     }else{
       run.phase='ROOM_RESULT';
       run.roomResult={roomNodeId:run.currentRoomNodeId,readyPlayerIds:run.players.filter(p=>p.memberType==='ai').map(p=>p.playerId)};
@@ -324,10 +326,11 @@ export function resolveBasicTurn(run){
     }
     c.publicTurnResult=buildTurnResult([...phaseTrace,'COMBAT_END']);
     recordCombatTurnTelemetry(run,c.publicTurnResult);finalizeCombatTelemetry(run,'VICTORY');
-    if(c.roomType==='BOSS'&&run.phase==='FLOOR_CLEAR'&&Number.isInteger(run.map?.depthCount)){
+    if(c.roomType==='BOSS'&&run.floor<3&&run.phase==='FLOOR_CLEAR'&&Number.isInteger(run.map?.depthCount)){
       run.floorTransitionResult={publicTurnResult:structuredClone(c.publicTurnResult),monster:{id:c.monster.id,name:c.monster.name,hp:c.monster.hp,maxHp:c.monster.maxHp}};
       advanceCompletedFloor(run);
     }
+    if(c.roomType==='BOSS'&&run.floor===3)finalizeExpeditionClear(run);
     return c.publicTurnResult;
   }
   c.phase='MONSTER_ACTION';phaseTrace.push(c.phase);events.push(...executeMonsterIntent(run));
