@@ -7,6 +7,19 @@ export function projectRun(run,viewerPlayerId){
   if(!out.combat&&run.cardCycles?.[viewerPlayerId])out.privateCombat=structuredClone(run.cardCycles[viewerPlayerId]);
   if(out.combat?.monster){delete out.combat.monster.mechanic;delete out.combat.monster.behaviorState;delete out.combat.monster.pattern;}
 
+  // Gambler pile counts and composition are public; ordered physical IDs stay private.
+  for(const player of out.players||[]){
+    if(player.characterId!=='gambler')continue;
+    const source=run.players.find(p=>p.playerId===player.playerId);
+    const state=run.combat?.privateByPlayer?.[player.playerId]||run.roomState?.privateByPlayer?.[player.playerId]||run.cardCycles?.[player.playerId];
+    if(!state)continue;
+    const composition=ids=>Array.from({length:7},(_,i)=>(ids||[]).filter(id=>source.cardPool.find(c=>c.id===id)?.baseNumber===i+1).length);
+    const active=value=>source.cardPool.filter(c=>c.baseNumber===value&&!(state.vanishedCardIds||[]).includes(c.id)).length;
+    player.gamblerDeck={handCount:(state.remainingCardIds||[]).length,drawCount:(state.drawPileIds||[]).length,discardCount:(state.discardPileIds||[]).length,
+      drawComposition:composition(state.drawPileIds),discardComposition:composition(state.discardPileIds),
+      sixProgress:[...(state.sixProgress||[])],sevenProgress:[...(state.sevenProgress||[])],
+      sixCount:active(6),sevenCount:active(7),sixMax:active(6)>=2,sevenMax:active(7)>=2};
+  }
   // Physical card numbers are public; current-cycle usage stays private.
 
   for(const player of out.players||[]){
