@@ -1,6 +1,7 @@
 import {choose,drawIndex} from './rng.js';
 import {selfModifyCard,collisionImmunity,isCardSelectableForCharacter,validateCharacterSkillIntent,onCycleStartCharacter,onTurnStartCharacter,onTurnEndCharacter,initializeCombatCharacter,baseDamageForCharacter} from './characters.js';
 import {restoreCardCycle,persistCardCycles} from './card-cycle.js';
+import {drawGamblerHand,settleGamblerHand} from './gambler.js';
 import {initializeNumberHistories,recordSelfModification,applyPreCollisionSwap,applyPreCollisionSteal,finalizeNumbers,attachCollisionGroups,attachValidity,assignVampireThralls,validateNumberMutationState} from './number-mutation.js';
 import {applyOwnedEffects} from './effects.js';
 import {relicPool} from './relics.js';
