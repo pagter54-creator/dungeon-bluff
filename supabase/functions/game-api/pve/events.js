@@ -107,6 +107,10 @@ export function resolveEventTurn(run){
   const soloLowest=valid.filter(card=>card.finalNumber===lowest).length===1;
   for(const card of cards){
     const player=playerFor(run,card.playerId);
+    if(player.characterId==='martial_artist'&&card.invalidReason==='COLLISION'){
+      player.score=(Number(player.score)||0)-1;
+      resolution.rewards[player.playerId].push({type:'ADD_SCORE',amount:-1});
+    }
     if(player.characterId==='rogue'&&card.valid&&card.finalNumber===lowest&&soloLowest){
       player.score=(Number(player.score)||0)+5;player.runGold+=2;
       resolution.rewards[player.playerId].push({type:'ADD_SCORE',amount:5},{type:'ADD_RUN_GOLD',amount:2});
