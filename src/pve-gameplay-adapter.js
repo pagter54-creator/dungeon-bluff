@@ -100,7 +100,7 @@ export function pveGameplayBundle(bundle,run,{scope='combat'}={}){
 export function pveStageModel(run){
   const roomType=run.combat?.roomType||run.roomState?.type||run.map?.nodes?.find(n=>n.id===run.currentRoomNodeId)?.type||'EVENT';
   const monster=run.combat?.monster;
-  const shapeByMonster={f1_armored_boar:'boar',f1_coward_hunter:'hunter',f1_echo_bat:'bat',f2_cursed_prophet:'seer',f2_hungry_slime:'slime',f2_chaos_goblin:'goblin'};
+  const shapeByMonster={f1_armored_boar:'boar',f1_coward_hunter:'hunter',f1_echo_bat:'bat',f2_cursed_prophet:'seer',f2_hungry_slime:'slime',f2_chaos_goblin:'goblin',f3_greed_mimic:'mimic',f3_execution_golem:'golem'};
   return {
     category:roomType==='BOSS'?'boss':roomType.includes('COMBAT')?'monster':'event',
     roomType,
