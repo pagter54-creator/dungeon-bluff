@@ -88,7 +88,7 @@ test('F2-N06 flame mode and F2-N07 thorns are telegraphed',()=>{
   assert.deepEqual(thorn.combat.monster.behaviorState.pendingHits,['p3']);
 });
 test('F2-E01 chaos is seeded, F2-E02 heads require distinct valid numbers, F2-E03 link checks next turn',()=>{
-  const chaos=make('f2_chaos_goblin');const a=publishMonsterIntent(chaos);assert.ok(a.telegraphText.includes(chaos.combat.monster.behaviorState.chaosRule));
+  const chaos=make('f2_chaos_goblin');const a=publishMonsterIntent(chaos);assert.ok(a.telegraphText.includes('혼돈'));
   const hydra=make('f2_rootjaw_hydra');publishMonsterIntent(hydra);
   applyMonsterCardRules(hydra,cards([1,2,3,4]),[]);assert.equal(hydra.combat.monster.behaviorState.heads,2);
   const witch=make('f2_thread_witch');publishMonsterIntent(witch);

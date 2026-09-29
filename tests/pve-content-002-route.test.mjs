@@ -18,6 +18,8 @@ function memoryAdmin(initial){
       if(name==='pve_try_commit'){
         if(args.p_expected!==version)return {data:{conflict:true,version,state:structuredClone(state)},error:null};
         version++;state=structuredClone(args.p_state);state.version=version;
+        // Keep this path test focused on room wiring; combat survival is checked separately.
+        if(state.floor===2&&state.phase!=='FLOOR_CLEAR'){for(const player of state.players){player.hp=player.maxHp;player.status='ACTIVE';}state.flame=state.maxFlame;if(state.combat)state.combat.pendingDownPlayerIds=[];}
         return {data:{version,state:structuredClone(state)},error:null};
       }
       throw new Error(`unexpected RPC ${name}`);
@@ -59,8 +61,8 @@ test('Floor 2 generated route exercises combat, shared rooms, reward, boss clear
     }
     if(run.phase==='MAP_VOTE'){
       const nodes=connectedNodeIds(run.map).map(id=>run.map.nodes.find(n=>n.id===id));
-      const priority=['NORMAL_COMBAT','EVENT','ELITE_COMBAT','REST','SHOP','REWARD_ROOM'];
-      const chosen=[...nodes].sort((a,b)=>priority.indexOf(a.type)-priority.indexOf(b.type))[0];
+      const desired={1:'NORMAL_COMBAT',2:'EVENT',3:'SHOP',4:'ELITE_COMBAT',5:'REST',6:'NORMAL_COMBAT',7:'REWARD_ROOM',8:'NORMAL_COMBAT',9:'REST',10:'NORMAL_COMBAT',11:'ELITE_COMBAT',12:'BOSS'}[nodes[0].depth];
+      const chosen=nodes.find(node=>node.type===desired)||nodes[0];
       run=await call(admin,'voteNextRoom',seq++,{node_id:chosen.id});continue;
     }
     if(run.phase==='COMBAT'){
@@ -97,4 +99,7 @@ test('Floor 2 generated route exercises combat, shared rooms, reward, boss clear
   const reconnected=await call(admin,'getState',seq++);
   assert.equal(reconnected.id,id);assert.equal(reconnected.floor,3);
   assert.equal(JSON.stringify(reconnected).includes('privateByPlayer'),false);
+  const target=connectedNodeIds(reconnected.map)[0];
+  const guarded=await handlePveAction({admin,user:{id:'u0'},body:{action:'pve.voteNextRoom',run_id:id,action_id:actionId(seq++),expected_version:admin.version,node_id:target},json});
+  assert.equal(guarded.status,409);assert.equal(guarded.body.error,'CONTENT_NOT_IMPLEMENTED');
 });

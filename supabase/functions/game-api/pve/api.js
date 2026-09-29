@@ -76,8 +76,8 @@ function captureRoomPresentationBaseline(run,id,type){
   };
 }
 function enterNode(run,id){
-  if(run.floor>=3){const error=new Error('Floor 3 전투 콘텐츠는 CONTENT-003에서 열립니다.');error.code='CONTENT_NOT_IMPLEMENTED';throw error;}
-  const type=nodeType(run,id);captureRoomPresentationBaseline(run,id,type);run.currentRoomNodeId=id;run.phase='ROOM_ENTER';
+  const type=nodeType(run,id);
+  if(run.floor>=3&&['NORMAL_COMBAT','ELITE_COMBAT','BOSS'].includes(type)){const error=new Error('Floor 3 전투 콘텐츠는 CONTENT-003에서 열립니다.');error.code='CONTENT_NOT_IMPLEMENTED';throw error;}captureRoomPresentationBaseline(run,id,type);run.currentRoomNodeId=id;run.phase='ROOM_ENTER';
   if(type==='NORMAL_COMBAT'||type==='ELITE_COMBAT'||type==='BOSS'){
     const monster=run.floor===2?selectF2Monster(run,type):selectF1Monster(run,type);markF1MonsterUsed(run,monster);
     run.phase='COMBAT';run.combat=newCombatState(run.players,monster.baseHp,type,monster);
@@ -198,7 +198,7 @@ export async function handlePveAction({admin,user,body,json}){
 
   if(action==='pve.voteNextRoom'){
     if(run.phase!=='MAP_VOTE')return fail(json,'현재는 다음 방 투표 단계가 아닙니다.');
-    if(run.floor>=3)return json({error:'CONTENT_NOT_IMPLEMENTED',message:'Floor 3 방은 CONTENT-003에서 열립니다.',run:projectRun(run,me.playerId)},409);
+    if(run.floor>=3&&body.node_id&&['NORMAL_COMBAT','ELITE_COMBAT','BOSS'].includes(nodeType(run,body.node_id)))return json({error:'CONTENT_NOT_IMPLEMENTED',message:'Floor 3 전투는 CONTENT-003에서 열립니다.',run:projectRun(run,me.playerId)},409);
     if(me.memberType!=='human')return fail(json,'AI는 맵 투표를 하지 않습니다.',403);
     const candidates=connectedNodeIds(run.map);
     const timedOut=run.map.voteDeadline&&Date.now()>=Date.parse(run.map.voteDeadline);
