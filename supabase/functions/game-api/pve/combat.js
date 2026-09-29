@@ -8,6 +8,8 @@ import {
 import {publishMonsterIntent,executeMonsterIntent} from './monster.js';
 import {applyMonsterCardRules,recordMonsterDamageBatch} from './monster-behavior.js';
 import {advanceCompletedFloor} from './floor-transition.js';
+import {resolveF2AfterDamage} from './monster-behavior-f2.js';
+import {applyMonsterDamage} from './monster.js';
 import {beginAugmentChoices} from './augments.js';
 import {applyOwnedEffects} from './effects.js';
 import {initCombatTelemetry,recordCombatTurnTelemetry,finalizeCombatTelemetry} from './telemetry.js';
@@ -282,6 +284,7 @@ export function resolveBasicTurn(run){
     p.hp-=1;
     events.push({type:'FULL_BURST_MISFIRE',playerId:p.playerId,amount:1,hp:p.hp});
   }
+  resolveF2AfterDamage(run,events,applyMonsterDamage);
   c.phase='KILL_CHECK';phaseTrace.push(c.phase);
   if(c.monster.hp<=0){
     onMonsterKilledCharacter(run,cards,packets,events);
