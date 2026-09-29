@@ -1,5 +1,5 @@
 import {choose,drawIndex} from './rng.js';
-import {selfModifyCard,collisionImmunity,isCardSelectableForCharacter,onCycleStartCharacter,onTurnStartCharacter,onTurnEndCharacter,initializeCombatCharacter,baseDamageForCharacter} from './characters.js';
+import {selfModifyCard,collisionImmunity,isCardSelectableForCharacter,validateCharacterSkillIntent,onCycleStartCharacter,onTurnStartCharacter,onTurnEndCharacter,initializeCombatCharacter,baseDamageForCharacter} from './characters.js';
 import {restoreCardCycle,persistCardCycles} from './card-cycle.js';
 import {initializeNumberHistories,recordSelfModification,applyPreCollisionSwap,applyPreCollisionSteal,finalizeNumbers,attachCollisionGroups,attachValidity,assignVampireThralls,validateNumberMutationState} from './number-mutation.js';
 import {applyOwnedEffects} from './effects.js';
@@ -174,8 +174,8 @@ export function submitRewardCard(run,playerId,cardInstanceId,skillIntent=false,s
   const p=playerFor(run,playerId),room=run.roomState,st=room.privateByPlayer[playerId];if(!p||p.status==='DOWNED')throw new Error('카드를 제출할 수 없습니다.');
   if(room.turnSubmissions[playerId])throw new Error('이미 제출했습니다.');
   if(!rewardSelectable(run,p,cardInstanceId))throw new Error('사용 가능한 카드가 아닙니다.');
-  if(p.characterId==='twins'&&skillIntent)throw new Error('곡예는 카드 제출 전에 별도로 사용해야 합니다.');
-  if(p.characterId==='gunner'&&skillIntent&&!p.publicResources.fullBurstReady)throw new Error('전탄발사가 아직 재충전되지 않았습니다.');
+  if(skillIntent&&!['warrior','mage','vampire','gunner'].includes(p.characterId))throw new Error('이 스킬은 보상방 카드 판정에 사용할 수 없습니다.');
+  validateCharacterSkillIntent(p,st,Boolean(skillIntent),cardFor(p,cardInstanceId),skillData);
   room.turnSubmissions[playerId]={playerId,cardInstanceId,skillIntent:Boolean(skillIntent),...(skillData?{skillData:structuredClone(skillData)}:{})};st.selectedCardId=cardInstanceId;st.skillIntent=Boolean(skillIntent);
 }
 function tieOrdered(run,cards){
