@@ -281,10 +281,11 @@ test('PVE-014 internal API playtest: four humans can traverse every F1 room fami
     assert.equal(JSON.stringify(reconnect).includes('privateByPlayer'),false);
     assert.equal(JSON.stringify(reconnect).includes('behaviorState'),false);
   }
-  const beforeGuard=admin.state;
-  const rejected=await handlePveAction({admin,user:{id:'u0'},body:{action:'pve.voteNextRoom',run_id:run.id,action_id:actionId(seq++),expected_version:admin.version,node_id:connectedNodeIds(run.map)[0]},json});
-  assert.equal(rejected.status,409);assert.equal(rejected.body.error,'CONTENT_NOT_IMPLEMENTED');
-  assert.deepEqual(admin.state,beforeGuard);assert.equal(admin.version,committedVersion);
+  const selected=connectedNodeIds(run.map)[0];
+  const accepted=await handlePveAction({admin,user:{id:'u0'},body:{action:'pve.voteNextRoom',run_id:run.id,action_id:actionId(seq++),expected_version:admin.version,node_id:selected},json});
+  assert.equal(accepted.status,200);
+  assert.equal(admin.state.map.votes[committed.players[0].playerId],selected);
+  assert.equal(admin.version,committedVersion+1);
   console.log('[PVE-014 F1 playtest]',JSON.stringify({
     route:visited,
     combats:combatLogs.map(x=>({room:x.room_type,monster:x.monster_id,turns:x.turn_count,damage:x.party_damage_total,flameSpent:x.flame_spent})),
