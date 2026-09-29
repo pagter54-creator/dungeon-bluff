@@ -55,6 +55,7 @@ function spendResolvedCards(run,cards,events=[]){
     if(player.characterId==='gambler'){
       settleGamblerHand(run,player,priv,rc.cardInstanceId,rc.finalNumber);
       delete priv.selectedCardId;delete priv.skillIntent;
+      if(run.combat.turnSubmissions[rc.playerId]?.autoSubmitted&&player.status==='STUNNED_NEXT_TURN')player.status='ACTIVE';
       continue;
     }
     const consume=[rc.cardInstanceId,...(rc.followUpCardIds||[])];
