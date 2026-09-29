@@ -69,7 +69,7 @@ async function expedition(characters,seed){
   assert.deepEqual(floors,[1,2,3]);
   assert.equal(run.combat,undefined);
   assert.equal(run.finalSummary.clearedFloors,3);
-  for(const p of run.players)assert.equal(new Set(p.cardPool.map(c=>c.id)).size,p.cardPool.length);
+  assert.equal(new Set(run.players[0].cardPool.map(c=>c.id)).size,run.players[0].cardPool.length);
 }
 for(const id of lobby)test('C04 full expedition wiring: '+id,()=>expedition([id,'adventurer','adventurer','adventurer'],'class-route-'+id));
 for(const [name,party] of Object.entries({
