@@ -31,7 +31,7 @@ function initial(){
     {id:'p2',member_type:'ai',character_id:'adventurer',seat_index:2},
     {id:'p3',member_type:'ai',character_id:'adventurer',seat_index:3}
   ];
-  const run={id:'f2-route-run',roomId:'room',seed:'f2-full-route',rngCounter:0,version:0,phase:'MAP_VOTE',floor:2,depth:0,flame:50,maxFlame:50,players:members.map(newPlayerRunState),usedMonsterIds:[],chosenBossIds:{2:'f2_rottenheart_ancient'},cardCycles:{}};
+  const run={id:'20000000-0000-4000-8000-000000000002',roomId:'20000000-0000-4000-8000-000000000001',seed:'f2-full-route',rngCounter:0,version:0,phase:'MAP_VOTE',floor:2,depth:0,flame:50,maxFlame:50,players:members.map(newPlayerRunState),usedMonsterIds:[],chosenBossIds:{2:'f2_rottenheart_ancient'},cardCycles:{}};
   installRelicCatalog(run,F1_RELIC_DEFINITIONS);
   run.map=generateFloorMap(run,12);
   return run;
