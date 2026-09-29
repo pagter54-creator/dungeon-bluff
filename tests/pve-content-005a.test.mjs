@@ -95,3 +95,12 @@ test('CONTENT-005A effect priority and turn-scoped once counters are determinist
   assert.equal(applyEffectDefinitions(run,player,defs,'AUDIT_TRIGGER').length,2);
   assert.equal(player.publicResources.audit,3);
 });
+
+test('CONTENT-005A private augment counters never enter another player projection',()=>{
+  const run=makeRun();run.effectCounters={'p0:aug-091-mana-cap:combat:secret':1};
+  run.combat={id:'secret',effectCounters:{private:'counter'},privateByPlayer:{p0:{playerId:'p0',remainingCardIds:[],spentCardIds:[]}},turnSubmissions:{}};
+  const view=projectRun(run,'p0');
+  assert.equal(view.effectCounters,undefined);
+  assert.equal(view.combat.effectCounters,undefined);
+  assert.equal(JSON.stringify(view).includes('combat:secret'),false);
+});
