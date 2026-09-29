@@ -224,6 +224,10 @@ export function resolveRewardAttempt(run){
   for(const group of groups.values())if(group.length>1)for(const card of group)if(!card.collisionImmune){card.valid=false;card.invalidReason='COLLISION';}
   assignVampireThralls(run,cards,groups,[]);
   attachValidity(cards);
+  for(const card of cards)if(card.invalidReason==='COLLISION'){
+    const player=playerFor(run,card.playerId);
+    if(player.characterId==='martial_artist')player.score=(Number(player.score)||0)-1;
+  }
   validateNumberMutationState(run,cards,mutationEvents);
   const counts=Object.fromEntries([...groups].map(([number,group])=>[number,group.length]));
   for(const c of cards)applyOwnedEffects(run,'CARD_VALIDATED',{player:playerFor(run,c.playerId),resolved:c,privateState:room.privateByPlayer[c.playerId],events:[]});
