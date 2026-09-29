@@ -49,13 +49,13 @@ test('COOP_PVE kill switch requires explicit enable and returns the canonical st
  assert.match(source,/get_public_config/);
 });
 
-test('room character adapter maps competitive IDs explicitly and rejects unsupported gambler',()=>{
+test('room character adapter maps all thirteen competitive IDs',()=>{
  assert.equal(pveCharacterIdForRoom('seer'),'prophet');
  assert.equal(pveCharacterIdForRoom('fighter'),'martial_artist');
  assert.equal(pveCharacterIdForRoom('demonsword'),'demon_swordsman');
- assert.equal(pveCharacterIdForRoom('gambler'),null);
+ assert.equal(pveCharacterIdForRoom('gambler'),'gambler');
  assert.deepEqual(unsupportedPveRoomCharacters(members()),[]);
- assert.deepEqual(unsupportedPveRoomCharacters([...members().slice(0,3),{...members()[3],character_id:'gambler'}]),['gambler']);
+ assert.deepEqual(unsupportedPveRoomCharacters([...members().slice(0,3),{...members()[3],character_id:'gambler'}]),[]);
 });
 test('MODE-08 initial COOP run reuses actual PVE map/model and preserves lobby character identity',()=>{
  const bundle={room:{id:'11111111-1111-4111-8111-111111111111',game_mode:'COOP_PVE'},members:members()};

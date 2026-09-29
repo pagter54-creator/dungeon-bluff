@@ -48,7 +48,7 @@ test('EVENT E1-E7: shared primitives and data-driven effects resolve highest, su
       {when:'SUCCESS',target:'COLLIDED',effects:[{type:'DAMAGE_HP',amount:1}]}
     ]
   },cards,run.roomState.privateByPlayer);
-  assert.equal(ranked.outcome,'SUCCESS');assert.equal(run.players[0].runGold,3);
+  assert.equal(ranked.outcome,'SUCCESS');assert.equal(run.players[0].runGold,4);
   assert.equal(run.players[1].growthExp,2);assert.equal(run.players[2].hp,2);
   const retry=resolveEventDefinition(run,{allCollide:{outcome:'RETRY',rules:[{target:'PARTY',effects:[{type:'SPEND_FLAME',amount:1}]}]}},[card('p0',2,false,2),card('p1',2,false,2)],run.roomState.privateByPlayer);
   assert.equal(retry.outcome,'RETRY');assert.equal(run.flame,2);

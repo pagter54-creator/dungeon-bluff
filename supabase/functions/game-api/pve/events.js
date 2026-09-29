@@ -1,20 +1,24 @@
 import {choose} from './rng.js';
 import {selectF1Event,F1_EVENT_DEFINITIONS} from './content-f1.js';
 import {restoreCardCycle,persistCardCycles} from './card-cycle.js';
+import {drawGamblerHand,settleGamblerHand} from './gambler.js';
 import {selfModifyCard,collisionImmunity,isCardSelectableForCharacter,validateCharacterSkillIntent,onTurnStartCharacter,onTurnEndCharacter,onCycleStartCharacter} from './characters.js';
 import {initializeNumberHistories,recordSelfModification,applyPreCollisionSwap,applyPreCollisionSteal,finalizeNumbers,attachCollisionGroups,attachValidity,assignVampireThralls,validateNumberMutationState} from './number-mutation.js';
 import {resolveEventDefinition} from './event-resolution.js';
 import {queueTelemetry} from './telemetry.js';
+import {clearCombatResourcesForPlayers} from './resources.js';
 
 const playerFor=(run,id)=>run.players.find(p=>p.playerId===id);
 const eventById=id=>F1_EVENT_DEFINITIONS.find(x=>x.id===id)||null;
 function finishEvent(run){
+  clearCombatResourcesForPlayers(run.players);
   run.phase='ROOM_RESULT';
   run.roomResult={roomNodeId:run.currentRoomNodeId,readyPlayerIds:run.players.filter(p=>p.memberType==='ai').map(p=>p.playerId)};
 }
 function availableCards(run,player){
   const state=run.roomState.privateByPlayer[player.playerId];
-  if(!state.remainingCardIds.length){
+  if(player.characterId==='gambler')drawGamblerHand(run,player,state);
+  if(player.characterId!=='gambler'&&!state.remainingCardIds.length){
     state.cycleIndex+=1;state.spentCardIds=[];state.remainingCardIds=player.cardPool.map(card=>card.id);
     onCycleStartCharacter(player,state);
   }
@@ -86,6 +90,12 @@ export function resolveEventTurn(run){
   validateNumberMutationState(run,cards,mutationEvents);
   for(const card of cards){
     const state=room.privateByPlayer[card.playerId];
+    const owner=playerFor(run,card.playerId);
+    if(owner.characterId==='gambler'){
+      settleGamblerHand(run,owner,state,card.cardInstanceId,card.finalNumber);
+      delete state.selectedCardId;delete state.skillIntent;
+      continue;
+    }
     state.remainingCardIds=state.remainingCardIds.filter(id=>id!==card.cardInstanceId);
     if(!state.spentCardIds.includes(card.cardInstanceId))state.spentCardIds.push(card.cardInstanceId);
     delete state.selectedCardId;delete state.skillIntent;
@@ -99,6 +109,10 @@ export function resolveEventTurn(run){
   const soloLowest=valid.filter(card=>card.finalNumber===lowest).length===1;
   for(const card of cards){
     const player=playerFor(run,card.playerId);
+    if(player.characterId==='martial_artist'&&card.invalidReason==='COLLISION'){
+      player.score=(Number(player.score)||0)-1;
+      resolution.rewards[player.playerId].push({type:'ADD_SCORE',amount:-1});
+    }
     if(player.characterId==='rogue'&&card.valid&&card.finalNumber===lowest&&soloLowest){
       player.score=(Number(player.score)||0)+5;player.runGold+=2;
       resolution.rewards[player.playerId].push({type:'ADD_SCORE',amount:5},{type:'ADD_RUN_GOLD',amount:2});

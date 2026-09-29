@@ -2,7 +2,7 @@ import {PVE_CHARACTER_TO_LOBBY} from './game-mode.js';
 
 const skillByCharacter=Object.freeze({
   adventurer:'gold_bonus',warrior:'toughness',rogue:'low_card_gold',mage:'amplify',
-  berserker:'blood_heat',prophet:'revelation',imp:'number_steal',gunner:'full_burst',
+  berserker:'blood_heat',prophet:'revelation',imp:'number_steal',gambler:'random_hand',gunner:'full_burst',
   martial_artist:'combo',vampire:'blood_command',demon_swordsman:'soul_slash',twins:'acrobatics'
 });
 const lobbyId=player=>player?.lobbyCharacterId||PVE_CHARACTER_TO_LOBBY[player?.characterId]||player?.characterId;
@@ -14,7 +14,11 @@ function publicCycle(run,player,scope='combat'){
   const publicState=state?.publicCardCycles?.[player.playerId];
   if(publicState)return publicState;
   const own=scope==='room'||scope==='event'?run.privateRoomState:run.privateCombat;
-  if(own?.playerId!==player.playerId)return {cycleIndex:1,cards:(player.cardPool||[]).map(c=>({baseNumber:c.baseNumber,used:false}))};
+  if(own?.playerId!==player.playerId){
+    if(player.characterId==='gambler')return {cycleIndex:0,cards:Array.from({length:player.gamblerDeck?.handCount??2},()=>({baseNumber:null,used:false}))};
+    return {cycleIndex:1,cards:(player.cardPool||[]).map(c=>({baseNumber:c.baseNumber,used:false}))};
+  }
+  if(player.characterId==='gambler')return {cycleIndex:0,cards:(own.remainingCardIds||[]).map(id=>player.cardPool.find(c=>c.id===id)).filter(Boolean).map(c=>({id:c.id,baseNumber:c.baseNumber,used:false}))};
   const remaining=new Set(own.remainingCardIds||[]);
   return {cycleIndex:own.cycleIndex||1,cards:(player.cardPool||[]).map(c=>({baseNumber:c.baseNumber,used:c.id?!remaining.has(c.id):false}))};
 }
@@ -40,9 +44,9 @@ function runtimeState(player){
     reverseMath,
     toughnessCharges:r.toughnessCharges||0,
     revelationStacks:r.revelationStacks??r.revelation??0,
-    predation:r.predation||0,
-    comboStacks:r.comboStacks||0,
-    comboPrevious:r.comboPrevious??null,
+    predation:r.predation??r.devour??0,
+    comboStacks:r.comboStacks??r.combo??0,
+    comboPrevious:r.comboPrevious??r.lastSubmittedNumber??null,
     parity:r.parity??0,
     thrallId:r.thrallPlayerId||null
   };
@@ -61,17 +65,18 @@ export function pveGameplayPlayers(bundle,run,{scope='combat'}={}){
       character,
       loadout:member?.loadout,
       hp:p.hp,maxHp:p.maxHp,
-      score:Number(p.growthExp)||0,
+      score:(Number(p.growthExp)||0)+(Number(p.score)||0),
       gold:Number(p.runGold)||0,
       knockedOut:p.status==='DOWNED',
       cycleIndex:cycle.cycleIndex||1,
       cycleCards:(cycle.cards||[]).map((card,index)=>({
-        id:physical[index]?.id||`pve-public:${p.playerId}:${cycle.cycleIndex||1}:${index}`,
+        id:card.id||physical[index]?.id||`pve-public:${p.playerId}:${cycle.cycleIndex||1}:${index}`,
         slot:index,value:card.baseNumber,used:Boolean(card.used)
       })),
       skillId:rewardSkillSupported?rawSkillId:'',
       skillType:rewardSkillSupported?(character?.definition?.skill?.type||'passive'):'passive',
       characterRuntimeState:runtimeState(p),
+      ...(p.characterId==='gambler'&&p.gamblerDeck?{gamblerDeck:p.gamblerDeck}:{}),
       activeSkillState:{available:rewardSkillSupported&&activeSkillAvailable(p)}
     };
   }

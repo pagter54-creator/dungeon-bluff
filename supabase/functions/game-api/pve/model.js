@@ -1,4 +1,5 @@
 import {pveCharacterDef,initializeCombatCharacter} from './characters.js';
+import {freshGamblerState} from './gambler.js';
 import {createMonsterBehaviorState} from './monster-behavior.js';
 export const PVE_STATUS_LABELS=Object.freeze({ACTIVE:'정상',STUNNED_NEXT_TURN:'기절',DOWNED:'쓰러짐'});
 export const RUN_PHASES=['CREATED','MAP_VOTE','ROOM_ENTER','COMBAT','EVENT','REST','SHOP','REWARD_ROOM','AUGMENT_CHOICE','ROOM_RESULT','FLOOR_CLEAR','FLOOR_TRANSITION','RUN_CLEAR','RUN_FAILED','ABANDONED'];
@@ -11,6 +12,7 @@ export function newPlayerRunState(member){
   return {playerId:member.id,userId:member.user_id||undefined,seat:member.seat_index,memberType:member.member_type,characterId,hp:3,maxHp:3,runGold:0,growthExp:0,score:0,augments:[],relics:[],engravings:{},cardPool:baseCards(member.id,characterId),publicResources:{},persistentCharacterState:{},status:'ACTIVE'};
 }
 export function newPrivateCombatState(player){
+  if(player.characterId==='gambler')return freshGamblerState(player);
   return {playerId:player.playerId,cycleIndex:1,spentCardIds:[],remainingCardIds:player.cardPool.map(c=>c.id)};
 }
 export function newCombatState(players,hp=90,roomType='NORMAL_COMBAT',monsterDef=null){

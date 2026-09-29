@@ -1,4 +1,5 @@
 import {choose} from './rng.js';
+import {GAMBLER_BASE_DECK} from './gambler.js';
 import {clearCombatResources,clearResourcesByScope,resourceMax} from './resources.js';
 import {executableAugmentRuntime} from './augment-runtime.js';
 
@@ -12,6 +13,7 @@ export const PVE_CHARACTER_DEFS={
   imp:{deck:[1,2,3,4,5],skillId:'steal'},
   prophet:{deck:[1,2,3,4,5],skillId:'revelation'},
   gunner:{deck:[1,2,3],skillId:'full_burst'},
+  gambler:{deck:[...GAMBLER_BASE_DECK],skillId:'random_hand'},
   martial_artist:{deck:[1,2,3,4,5],skillId:'one_hit_kill'},
   demon_swordsman:{deck:[1,2,3,4,4],skillId:'ghost_slash'},
   twins:{deck:[1,2,3,4],skillId:'acrobatics'},
@@ -572,6 +574,8 @@ export function resolvePostCollisionCharacter(run,resolved,submission,events=[])
       }
     }else if(resolved.invalidReason==='COLLISION'){
       if(!player.augments.includes('aug-291'))player.publicResources.combo=0;
+      player.score=(Number(player.score)||0)-1;
+      events.push({type:'MARTIAL_COLLISION_SCORE_LOST',playerId:player.playerId,amount:1,score:player.score});
     }else if(resolved.valid){
       if(previous!=null&&resolved.finalNumber>previous)player.publicResources.combo=Math.min(resourceMax(player,'combo',3),before+1);
       resolved.martialComboBonus=Math.max(0,Number(player.publicResources.combo)||0);

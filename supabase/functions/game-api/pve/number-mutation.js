@@ -84,36 +84,25 @@ export function applyPreCollisionSwap(run,cards,events,state=run.combat){
   for(const card of cards)card.numberHistory.postSwapNumber=card.workingNumber;
 }
 export function applyPreCollisionSteal(run,cards,events){
-  const imps=run.players.filter(p=>p.characterId==='imp'&&p.status!=='DOWNED'&&cardByPlayer(cards,p.playerId)).sort((a,b)=>a.seat-b.seat);
-  if(imps.length>1)throw new Error('MULTI_IMP_STEAL_UNDEFINED');
-  if(!imps.length){for(const card of cards)card.numberHistory.postStealNumber=card.workingNumber;return;}
-  const imp=imps[0],actor=cardByPlayer(cards,imp.playerId);
-  const actorStart=actor.workingNumber;
-  const targets=cards
-    .filter(card=>card.playerId!==imp.playerId&&playerById(run,card.playerId)?.characterId!=='imp'&&card.workingNumber===actorStart)
-    .sort((a,b)=>seatOf(run,a.playerId)-seatOf(run,b.playerId)||a.playerId.localeCompare(b.playerId));
-  let total=0;
-  actor.stealTargets=[];
-  for(const target of targets){
-    const before=target.workingNumber;
-    const stolen=Math.min(1,Math.max(0,before));
-    if(stolen<=0)continue;
-    target.workingNumber=before-stolen;total+=stolen;
-    actor.stealTargets.push(target.playerId);
-    events.push({
-      phase:'PRE_COLLISION_STEAL',effectId:'imp-steal',actorId:imp.playerId,targetId:target.playerId,
-      before,after:target.workingNumber,stolen
-    });
+  const snapshot=new Map(cards.map(card=>[card.playerId,card.workingNumber]));
+  const imps=run.players.filter(p=>p.characterId==='imp'&&p.status!=='DOWNED'&&cardByPlayer(cards,p.playerId)).sort((a,b)=>a.seat-b.seat||a.playerId.localeCompare(b.playerId));
+  for(const imp of imps){
+    const actor=cardByPlayer(cards,imp.playerId),actorStart=snapshot.get(imp.playerId);
+    const targets=cards
+      .filter(card=>card.playerId!==imp.playerId&&playerById(run,card.playerId)?.characterId!=='imp'&&snapshot.get(card.playerId)===actorStart)
+      .sort((a,b)=>seatOf(run,a.playerId)-seatOf(run,b.playerId)||a.playerId.localeCompare(b.playerId));
+    let total=0;actor.stealTargets=[];
+    for(const target of targets){
+      const before=target.workingNumber,stolen=Math.min(1,Math.max(0,before));
+      if(stolen<=0)continue;
+      target.workingNumber=before-stolen;total+=stolen;actor.stealTargets.push(target.playerId);
+      events.push({phase:'PRE_COLLISION_STEAL',effectId:'imp-steal',actorId:imp.playerId,targetId:target.playerId,before,after:target.workingNumber,stolen});
+    }
+    actor.workingNumber=actorStart+total;
+    actor.stealTotal=total;actor.stealTargetCount=actor.stealTargets.length;actor.greedGained=total;
+    imp.publicResources.greed=total;
+    if(total>0)events.push({phase:'PRE_COLLISION_STEAL',effectId:'imp-steal-summary',actorId:imp.playerId,before:actorStart,after:actor.workingNumber,totalActuallyStolen:total,targetIds:[...actor.stealTargets]});
   }
-  actor.workingNumber=actorStart+total;
-  actor.stealTotal=total;
-  actor.stealTargetCount=actor.stealTargets.length;
-  actor.greedGained=total;
-  imp.publicResources.greed=total;
-  if(total>0)events.push({
-    phase:'PRE_COLLISION_STEAL',effectId:'imp-steal-summary',actorId:imp.playerId,
-    before:actorStart,after:actor.workingNumber,totalActuallyStolen:total,targetIds:[...actor.stealTargets]
-  });
   for(const card of cards)card.numberHistory.postStealNumber=card.workingNumber;
 }
 export function finalizeNumbers(cards){
@@ -174,10 +163,10 @@ export function validateNumberMutationState(run,cards,events,{minimum=0,packets=
   }
   const stealEvents=(events||[]).filter(e=>e.phase==='PRE_COLLISION_STEAL'&&e.effectId==='imp-steal');
   const summaries=(events||[]).filter(e=>e.phase==='PRE_COLLISION_STEAL'&&e.effectId==='imp-steal-summary');
-  if(summaries.length>1)throw new Error('NUMBER_07_STEAL_REENTERED');
-  if(summaries.length){
-    const stolen=stealEvents.reduce((sum,e)=>sum+(Number(e.stolen)||0),0);
-    if(stolen!==summaries[0].totalActuallyStolen)throw new Error('NUMBER_05_STEAL_CONSERVATION');
+  if(new Set(summaries.map(e=>e.actorId)).size!==summaries.length)throw new Error('NUMBER_07_STEAL_REENTERED');
+  for(const summary of summaries){
+    const stolen=stealEvents.filter(e=>e.actorId===summary.actorId).reduce((sum,e)=>sum+(Number(e.stolen)||0),0);
+    if(stolen!==summary.totalActuallyStolen)throw new Error('NUMBER_05_STEAL_CONSERVATION');
   }
   const uniqueMutationKeys=new Set();
   for(const event of events||[]){
