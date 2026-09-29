@@ -104,3 +104,19 @@ test('CONTENT-005A private augment counters never enter another player projectio
   assert.equal(view.combat.effectCounters,undefined);
   assert.equal(JSON.stringify(view).includes('combat:secret'),false);
 });
+
+test('CONTENT-005A every class candidate pool excludes data-only and missing slots',()=>{
+  for(const classId of classes){
+    const run=makeRun(classId),player=run.players[0];player.growthExp=800;
+    const due=dueAugmentTiers(player);
+    assert.deepEqual(due,classId==='gambler'?[]:[1],classId);
+    const began=beginAugmentChoices(run,'ROOM_RESULT');
+    if(classId==='gambler'){assert.equal(began,false);continue;}
+    assert.equal(began,true,classId);
+    const offer=run.augmentChoice.offersByPlayer.p0;
+    assert.ok(offer.length>=1&&offer.length<=3,classId);
+    assert.equal(new Set(offer).size,offer.length,classId);
+    assert.ok(offer.every(id=>AUGMENT_DEFINITIONS.find(def=>def.id===id)?.executable===true),classId);
+    assert.deepEqual(projectRun(structuredClone(run),'p0').privateAugmentOffer.augmentIds,offer,classId);
+  }
+});
