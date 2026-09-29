@@ -26,7 +26,8 @@ function adminFor(initial){
 function initial(){
  const members=Array.from({length:4},(_,i)=>({id:'p'+i,user_id:i===0?'u0':undefined,member_type:i===0?'human':'ai',character_id:'adventurer',seat_index:i,display_name:'Player '+i}));
  const r=buildInitialPveRun({room:{id:'20000000-0000-4000-8000-000000000001'},members},{seed:'f3-full-expedition',depthCount:8});
- r.players[0].score=7;r.players[0].engravings['2']=1;r.players[0].runGold=5;return r;
+ r.players[0].score=7;r.players[0].engravings['2']=1;r.players[0].runGold=5;
+ r.players[0].relics.push('f1_guard_charm');r.players[0].augments.push('aug-001');r.players[0].persistentCharacterState.augmentTiers=[1];return r;
 }
 async function call(admin,action,n,extra={}){
  const body={action:'pve.'+action,run_id:admin.state.id,...(action==='getState'?{}:{action_id:aid(n),expected_version:admin.version}),...extra};
@@ -44,6 +45,7 @@ test('full generated Floor 1→2→3 route reaches RUN_CLEAR and settles Gold ex
  for(let guard=0;guard<700&&!['RUN_CLEAR','RUN_FAILED'].includes(r.phase);guard++){
   if(r.phase==='MAP_VOTE'){
    if(!floors.includes(r.floor))floors.push(r.floor);
+   if(r.floor>1){assert.equal(r.combat,undefined);assert.equal(r.players[0].relics.includes('f1_guard_charm'),true);assert.equal(r.players[0].augments.includes('aug-001'),true);}
    const nodes=connectedNodeIds(r.map).map(id=>r.map.nodes.find(x=>x.id===id));
    const desired=r.floor===3?['NORMAL_COMBAT','EVENT','NORMAL_COMBAT','ELITE_COMBAT','REST','SHOP','NORMAL_COMBAT','REWARD_ROOM','ELITE_COMBAT','BOSS'][nodes[0].depth-1]:null;
    r=(await call(admin,'voteNextRoom',n++,{node_id:(nodes.find(x=>x.type===desired)||nodes[0]).id})).run;continue;
@@ -65,7 +67,7 @@ test('full generated Floor 1→2→3 route reaches RUN_CLEAR and settles Gold ex
  assert.equal(r.phase,'RUN_CLEAR');assert.deepEqual(floors,[1,2,3]);assert.equal(r.id,id);
  assert.deepEqual(f3Types,['NORMAL_COMBAT','EVENT','NORMAL_COMBAT','ELITE_COMBAT','REST','SHOP','NORMAL_COMBAT','REWARD_ROOM','ELITE_COMBAT','BOSS']);
  assert.equal(species.size,6);assert.equal(sawPrivate,true);assert.equal(r.combat,undefined);assert.equal(r.finalSummary.clearedFloors,3);
- assert.ok(r.players[0].runGold>=5);assert.ok(r.players[0].score>=7);assert.equal(r.players[0].engravings['2'],1);
+ assert.ok(r.players[0].runGold>=5);assert.ok(r.players[0].score>=7);assert.equal(r.players[0].engravings['2'],1);assert.equal(r.players[0].relics.includes('f1_guard_charm'),true);assert.equal(r.players[0].augments.includes('aug-001'),true);assert.ok(r.players[0].cardPool.length>0);assert.ok(r.players[0].hp>0);
  assert.equal(admin.paid,admin.state.players[0].runGold);const once=admin.paid;
  const back=(await call(admin,'getState',n++,{runGold:99999,rp_delta:99999})).run;
  assert.equal(back.phase,'RUN_CLEAR');assert.equal(admin.paid,once);assert.ok(admin.settles>=2);assert.equal(back.id,id);
