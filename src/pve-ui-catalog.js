@@ -217,6 +217,84 @@ export const PVE_AUGMENT_NAMES=Object.freeze({
   "aug-089": "공중 암살",
   "aug-090": "흔적 없는 자"
 });
+export const PVE_EXECUTABLE_AUGMENT_UI=Object.freeze({
+  "aug-001": {
+    "build": "노련한 탐험가",
+    "description": "유효한 카드로 숙련을 쌓습니다. 숙련이 2 이상이면 공격 피해가 1 증가합니다."
+  },
+  "aug-031": {
+    "build": "불굴의 기사",
+    "description": "전투 중 강인함 최대치가 3이 됩니다. 충돌을 돌파하면 다음 직접 피해를 줄이는 방어 상태를 얻습니다."
+  },
+  "aug-041": {
+    "build": "수호벽",
+    "description": "아군을 지정해 대신 피해를 받는 수호 능력을 얻습니다."
+  },
+  "aug-051": {
+    "build": "압살 기사",
+    "description": "충돌로 제거한 카드 수에 따라 추가 피해를 줍니다. 추가 피해는 최대 2입니다."
+  },
+  "aug-061": {
+    "build": "비열한 일격",
+    "description": "단독 최저 유효 카드 성공을 이어 가면 추가 공격 피해를 얻습니다."
+  },
+  "aug-091": {
+    "build": "대마도 증폭",
+    "description": "전투 중 마나 최대치가 6으로 증가합니다."
+  },
+  "aug-101": {
+    "build": "백마도사",
+    "description": "유효 공격 시 아군을 회복합니다. 한 턴에 최대 한 명이며 자신은 제외됩니다."
+  },
+  "aug-111": {
+    "build": "역산술",
+    "description": "마나를 사용해 카드 숫자를 올리거나 내릴 수 있습니다."
+  },
+  "aug-121": {
+    "build": "피의 광전",
+    "description": "실제 HP를 소모한 유효 공격의 피해가 2 증가합니다."
+  },
+  "aug-131": {
+    "build": "불사 투사",
+    "description": "충돌 회복 상한이 최대 HP로 늘고, 복수 조건의 추가 피해를 얻습니다."
+  },
+  "aug-161": {
+    "build": "운명 조작자",
+    "description": "아군의 사용한 기본 카드를 같은 실물 카드 ID로 한 장 회수합니다."
+  },
+  "aug-181": {
+    "build": "대담한 슬쩍",
+    "description": "숫자를 두 명 이상에게서 훔쳤다면 공격 피해가 2 증가합니다."
+  },
+  "aug-241": {
+    "build": "전탄 난사",
+    "description": "총잡이 카드 구성이 1·2·2·3으로 확장됩니다."
+  },
+  "aug-291": {
+    "build": "일격필살",
+    "description": "연계 수치마다 추가 피해를 얻는 필살 공격을 주기당 한 번 사용할 수 있습니다."
+  },
+  "aug-301": {
+    "build": "완전한 권속",
+    "description": "피의 명령이 유효하면 지배 수치를 축적해 이후 공격 피해에 사용합니다."
+  },
+  "aug-321": {
+    "build": "수혈",
+    "description": "유효 공격으로 피를 모으고, 피 4를 소모해 턴당 한 번 회복합니다."
+  },
+  "aug-331": {
+    "build": "포식 귀참",
+    "description": "유효한 귀참 사용 시 포식을 추가로 1 얻습니다."
+  },
+  "aug-351": {
+    "build": "해방된 귀검",
+    "description": "포식 조건을 채우면 임시 카드 구성으로 변신하고, 사용 후 원래 카드로 돌아옵니다."
+  },
+  "aug-381": {
+    "build": "공중 곡예",
+    "description": "곡예를 유효 공격 3회 후 재충전하며, 곡예 후 첫 유효 공격 피해가 2 증가합니다."
+  }
+});
 export const PVE_RELIC_UI=Object.freeze({
   "f1_worn_whetstone": {
     "name": "닳은 숫돌",
@@ -251,5 +329,5 @@ export const PVE_RELIC_UI=Object.freeze({
     "text": "몬스터 처치 시 추가 Run Gold를 얻습니다."
   }
 });
-export function augmentUi(id,tier){return {id,name:PVE_AUGMENT_NAMES[id]||id,tier:Number(tier)||0,description:'세부 효과는 현재 서버의 증강 규칙을 따릅니다.'};}
+export function augmentUi(id,tier){const detail=PVE_EXECUTABLE_AUGMENT_UI[id];return {id,name:PVE_AUGMENT_NAMES[id]||id,tier:Number(tier)||0,build:detail?.build||null,description:detail?.description||'현재 선택할 수 없는 증강입니다.'};}
 export function relicUi(id){return PVE_RELIC_UI[id]||{name:id,text:'유물 효과는 서버 규칙을 따릅니다.'};}
