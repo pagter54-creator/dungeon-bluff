@@ -41,9 +41,9 @@ function runtimeState(player){
     reverseMath,
     toughnessCharges:r.toughnessCharges||0,
     revelationStacks:r.revelationStacks??r.revelation??0,
-    predation:r.predation||0,
-    comboStacks:r.comboStacks||0,
-    comboPrevious:r.comboPrevious??null,
+    predation:r.predation??r.devour??0,
+    comboStacks:r.comboStacks??r.combo??0,
+    comboPrevious:r.comboPrevious??r.lastSubmittedNumber??null,
     parity:r.parity??0,
     thrallId:r.thrallPlayerId||null
   };
