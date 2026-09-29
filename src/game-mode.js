@@ -23,7 +23,7 @@ export function gameModeBadge(mode){
   return '<span class="game-mode-badge '+(meta.beta?'coop':'competitive')+'">'+meta.label+(meta.beta?' <b>BETA</b>':'')+'</span>';
 }
 export const PVE_SUPPORTED_LOBBY_CHARACTER_IDS=Object.freeze(new Set([
-  'adventurer','warrior','rogue','mage','berserker','seer','imp','gunner','fighter','vampire','demonsword','twins'
+  'adventurer','warrior','rogue','mage','berserker','seer','imp','gambler','gunner','fighter','vampire','demonsword','twins'
 ]));
 export const PVE_CHARACTER_TO_LOBBY=Object.freeze({
   prophet:'seer',martial_artist:'fighter',demon_swordsman:'demonsword'
