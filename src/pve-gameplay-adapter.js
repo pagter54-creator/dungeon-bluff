@@ -107,7 +107,7 @@ export function pveStageModel(run){
     name:monster?.name||roomType,
     subtitle:`FLOOR ${run.floor} · DEPTH ${run.depth}`,
     color:roomType==='BOSS'?'#c76578':roomType==='ELITE_COMBAT'?'#9b77c8':'#7f9a91',
-    shape:shapeByMonster[monster?.id]||null,
+    shape:shapeByMonster[monster?.id]||monster?.id||null,
     contentId:monster?.id||roomType
   };
 }
