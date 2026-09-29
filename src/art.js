@@ -21,7 +21,8 @@ export function dungeonArt() {
   <g fill="#d7b67e" opacity=".6"><circle cx="354" cy="422" r="2"/><circle cx="552" cy="464" r="2"/><circle cx="394" cy="297" r="2"/><circle cx="480" cy="513" r="1.5"/><circle cx="264" cy="214" r="2"/><circle cx="610" cy="356" r="2"/></g></svg>`;
 }
 export function creatureArt(shape = 'seer') {
-  return '<img class="creature monster-illustration" src="'+(MONSTER_IMAGES[shape]||MONSTER_IMAGES.seer)+'" alt="" draggable="false" decoding="async">';
+  const src=MONSTER_IMAGES[shape];
+  return src?'<img class="creature monster-illustration" src="'+src+'" alt="" draggable="false" decoding="async">':'';
 }
 export function eventArt(category, eventId) {
   const image = EVENT_IMAGES[eventId];

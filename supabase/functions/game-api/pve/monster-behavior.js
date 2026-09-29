@@ -1,6 +1,7 @@
 import {trackPlayerNumber,changeMonsterStack,checkPartyDamage,advanceMonsterPhase,tickMonsterCountdown} from './monster-primitives.js';
 import {choose} from './rng.js';
 import {createF2State,f2Presentation,prepareF2Turn,applyF2CardRules,recordF2DamageBatch,prepareF2Action} from './monster-behavior-f2.js';
+import {createF3State,f3Presentation,prepareF3Turn,applyF3CardRules,recordF3DamageBatch,prepareF3Action} from './monster-behavior-f3.js';
 
 const living=run=>run.players.filter(player=>player.status!=='DOWNED');
 const bySeat=(a,b)=>a.seat-b.seat||a.playerId.localeCompare(b.playerId);
@@ -9,6 +10,7 @@ const playerFor=(run,id)=>run.players.find(player=>player.playerId===id);
 export function createMonsterBehaviorState(mechanic){
   if(!mechanic)return {};
   if(mechanic.type.startsWith('F2_'))return createF2State(mechanic);
+  if(mechanic.type.startsWith('F3_'))return createF3State(mechanic);
   const state={stacks:{},validCount:0,collisionCount:0};
   if(mechanic.type==='ARMOR_VALID_HITS')state.armor=mechanic.initial;
   if(mechanic.type==='DOMINION')state.meter=mechanic.initial;
@@ -23,6 +25,7 @@ export function monsterPresentation(run){
   const monster=run.combat?.monster,mechanic=monster?.mechanic,state=monster?.behaviorState||{};
   if(!monster||!mechanic)return null;
   if(mechanic.type.startsWith('F2_'))return f2Presentation(run);
+  if(mechanic.type.startsWith('F3_'))return f3Presentation(run);
   const publicState={ruleSummary:mechanic.ruleSummary||monster.ruleSummary||'',validCount:state.validCount||0,collisionCount:state.collisionCount||0};
   if(Number.isInteger(state.armor))publicState.armor=state.armor;
   if(Number.isInteger(state.countdown))publicState.countdown=state.countdown;
@@ -54,6 +57,7 @@ export function prepareMonsterTurn(run,intent){
   const monster=run.combat?.monster,mechanic=monster?.mechanic,state=monster?.behaviorState;
   if(!mechanic||!state)return intent;
   if(mechanic.type.startsWith('F2_'))return prepareF2Turn(run,intent);
+  if(mechanic.type.startsWith('F3_'))return prepareF3Turn(run,intent);
   if(mechanic.type==='FORBIDDEN_NUMBER')state.forbiddenNumber=mechanic.numbers[(run.combat.turn-1)%mechanic.numbers.length];
   if(mechanic.type==='LAST_HIGHEST_TARGET'||mechanic.type==='HUNT'){
     if(mechanic.type==='HUNT'&&(!state.targetPlayerId||playerFor(run,state.targetPlayerId)?.status==='DOWNED')){
@@ -77,6 +81,7 @@ export function applyMonsterCardRules(run,cards,events=[]){
   const monster=run.combat?.monster,mechanic=monster?.mechanic,state=monster?.behaviorState;
   if(!mechanic||!state)return;
   if(mechanic.type.startsWith('F2_'))return applyF2CardRules(run,cards,events);
+  if(mechanic.type.startsWith('F3_'))return applyF3CardRules(run,cards,events);
   const valid=cards.filter(card=>card.valid);
   state.validCount=valid.length;
   const collisionGroups=new Set(cards.filter(card=>card.invalidReason==='COLLISION').map(card=>card.finalNumber));
@@ -118,6 +123,7 @@ export function applyMonsterCardRules(run,cards,events=[]){
 export function recordMonsterDamageBatch(run,totalDamage){
   const monster=run.combat?.monster,mechanic=monster?.mechanic,state=monster?.behaviorState;
   if(mechanic?.type?.startsWith('F2_'))return recordF2DamageBatch(run,totalDamage);
+  if(mechanic?.type?.startsWith('F3_'))return recordF3DamageBatch(run,totalDamage);
   if(mechanic?.type!=='DPS_WINDOW'||!state)return;
   state.progress+=totalDamage;
   const tick=tickMonsterCountdown(state);
@@ -133,6 +139,7 @@ export function prepareMonsterAction(run,intent){
   if(!mechanic||!state)return intent;
   const action=structuredClone(intent);
   if(mechanic.type.startsWith('F2_'))return prepareF2Action(run,action);
+  if(mechanic.type.startsWith('F3_'))return prepareF3Action(run,action);
   if(['HUNT','COUNTDOWN_STRIKE','PARTY_ORDER'].includes(mechanic.type)&&state.attackBlocked&&action.type!=='CHARGE'){
     action.type='CHARGE';action.telegraphText='유효 카드 협동으로 공격을 저지했다';action.payload={};
   }
