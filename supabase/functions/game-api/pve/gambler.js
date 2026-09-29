@@ -28,11 +28,11 @@ export function drawGamblerHand(run,player,state){
   }
 }
 
-function registered(player,value){
-  return player.cardPool.filter(card=>card.baseNumber===value).length;
+function registered(player,state,value){
+  return player.cardPool.filter(card=>card.baseNumber===value&&!state.vanishedCardIds.includes(card.id)).length;
 }
 function unlock(run,player,state,value){
-  if(registered(player,value)>=2)return;
+  if(registered(player,state,value)>=2)return;
   const id=`${player.playerId}:gambler:unlock:${value}:${++state.unlockSerial}`;
   player.cardPool.push({id,baseNumber:value,source:'GAMBLER_UNLOCK'});
   state.discardPileIds.push(id);
@@ -48,7 +48,7 @@ export function settleGamblerHand(run,player,state,selectedId,finalNumber){
   state.remainingCardIds=[];state.spentCardIds=[];
   if(Number.isInteger(finalNumber)&&finalNumber>=1&&finalNumber<=5){
     for(const [value,key,needed] of [[6,'sixProgress',3],[7,'sevenProgress',5]]){
-      if(registered(player,value)>=2){state[key]=[];continue;}
+      if(registered(player,state,value)>=2){state[key]=[];continue;}
       if(!state[key].includes(finalNumber))state[key].push(finalNumber);
       if(state[key].length>=needed){state[key]=[];unlock(run,player,state,value);}
     }
