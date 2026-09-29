@@ -5,6 +5,7 @@ const files = {
   f1_armored_boar: 'iron_boar.png', f1_coward_hunter: 'cowardly_hunter.png',
   f1_echo_bat: 'echo_bat.png', f2_cursed_prophet: 'Cursed_Prophet.png',
   f2_hungry_slime: 'Starving_Slime.png', f2_chaos_goblin: 'Chaos_Goblin.png',
+  f3_greed_mimic: 'Mimic_of_Greed.png', f3_execution_golem: 'Executioner_Golem.png',
   f1_rusty_ballista: 'f1_rusty_ballista.png',
   f1_gate_guard_dog: 'f1_gate_guard_dog.png',
   f1_sewer_rat_swarm: 'f1_sewer_rat_swarm.png',
