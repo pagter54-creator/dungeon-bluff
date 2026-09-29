@@ -2,7 +2,7 @@ import {PVE_CHARACTER_TO_LOBBY} from './game-mode.js';
 
 const skillByCharacter=Object.freeze({
   adventurer:'gold_bonus',warrior:'toughness',rogue:'low_card_gold',mage:'amplify',
-  berserker:'blood_heat',prophet:'revelation',imp:'number_steal',gunner:'full_burst',
+  berserker:'blood_heat',prophet:'revelation',imp:'number_steal',gambler:'random_hand',gunner:'full_burst',
   martial_artist:'combo',vampire:'blood_command',demon_swordsman:'soul_slash',twins:'acrobatics'
 });
 const lobbyId=player=>player?.lobbyCharacterId||PVE_CHARACTER_TO_LOBBY[player?.characterId]||player?.characterId;
@@ -15,6 +15,7 @@ function publicCycle(run,player,scope='combat'){
   if(publicState)return publicState;
   const own=scope==='room'||scope==='event'?run.privateRoomState:run.privateCombat;
   if(own?.playerId!==player.playerId)return {cycleIndex:1,cards:(player.cardPool||[]).map(c=>({baseNumber:c.baseNumber,used:false}))};
+  if(player.characterId==='gambler')return {cycleIndex:0,cards:(own.remainingCardIds||[]).map(id=>player.cardPool.find(c=>c.id===id)).filter(Boolean).map(c=>({id:c.id,baseNumber:c.baseNumber,used:false}))};
   const remaining=new Set(own.remainingCardIds||[]);
   return {cycleIndex:own.cycleIndex||1,cards:(player.cardPool||[]).map(c=>({baseNumber:c.baseNumber,used:c.id?!remaining.has(c.id):false}))};
 }
@@ -66,7 +67,7 @@ export function pveGameplayPlayers(bundle,run,{scope='combat'}={}){
       knockedOut:p.status==='DOWNED',
       cycleIndex:cycle.cycleIndex||1,
       cycleCards:(cycle.cards||[]).map((card,index)=>({
-        id:physical[index]?.id||`pve-public:${p.playerId}:${cycle.cycleIndex||1}:${index}`,
+        id:card.id||physical[index]?.id||`pve-public:${p.playerId}:${cycle.cycleIndex||1}:${index}`,
         slot:index,value:card.baseNumber,used:Boolean(card.used)
       })),
       skillId:rewardSkillSupported?rawSkillId:'',
