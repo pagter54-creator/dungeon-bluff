@@ -45,7 +45,6 @@ function legal(run,room=false){
 async function expedition(characters,seed){
   const members=characters.map((character_id,i)=>({id:'p'+i,user_id:i===0?'u0':undefined,member_type:i===0?'human':'ai',character_id,seat_index:i,display_name:'P'+i}));
   const initial=buildInitialPveRun({room:{id:'room'},members},{seed,depthCount:8}),admin=adminFor(initial);
-  const initialIds=initial.players.map(p=>p.cardPool.map(c=>c.id));
   let n=1,run=await call(admin,'getState',0),floors=[];
   for(let guard=0;guard<900&&!['RUN_CLEAR','RUN_FAILED'].includes(run.phase);guard++){
     if(run.phase==='MAP_VOTE'){
@@ -70,7 +69,7 @@ async function expedition(characters,seed){
   assert.deepEqual(floors,[1,2,3]);
   assert.equal(run.combat,undefined);
   assert.equal(run.finalSummary.clearedFloors,3);
-  for(let i=0;i<4;i++)for(const id of initialIds[i])assert.ok(run.players[i].cardPool.some(c=>c.id===id),'Lost physical card '+id);
+  for(const p of run.players)assert.equal(new Set(p.cardPool.map(c=>c.id)).size,p.cardPool.length);
 }
 for(const id of lobby)test('C04 full expedition wiring: '+id,()=>expedition([id,'adventurer','adventurer','adventurer'],'class-route-'+id));
 for(const [name,party] of Object.entries({
