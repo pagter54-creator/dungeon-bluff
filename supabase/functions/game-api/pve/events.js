@@ -1,6 +1,7 @@
 import {choose} from './rng.js';
 import {selectF1Event,F1_EVENT_DEFINITIONS} from './content-f1.js';
 import {restoreCardCycle,persistCardCycles} from './card-cycle.js';
+import {drawGamblerHand,settleGamblerHand} from './gambler.js';
 import {selfModifyCard,collisionImmunity,isCardSelectableForCharacter,validateCharacterSkillIntent,onTurnStartCharacter,onTurnEndCharacter,onCycleStartCharacter} from './characters.js';
 import {initializeNumberHistories,recordSelfModification,applyPreCollisionSwap,applyPreCollisionSteal,finalizeNumbers,attachCollisionGroups,attachValidity,assignVampireThralls,validateNumberMutationState} from './number-mutation.js';
 import {resolveEventDefinition} from './event-resolution.js';
@@ -14,7 +15,8 @@ function finishEvent(run){
 }
 function availableCards(run,player){
   const state=run.roomState.privateByPlayer[player.playerId];
-  if(!state.remainingCardIds.length){
+  if(player.characterId==='gambler')drawGamblerHand(run,player,state);
+  if(player.characterId!=='gambler'&&!state.remainingCardIds.length){
     state.cycleIndex+=1;state.spentCardIds=[];state.remainingCardIds=player.cardPool.map(card=>card.id);
     onCycleStartCharacter(player,state);
   }
@@ -86,6 +88,12 @@ export function resolveEventTurn(run){
   validateNumberMutationState(run,cards,mutationEvents);
   for(const card of cards){
     const state=room.privateByPlayer[card.playerId];
+    const owner=playerFor(run,card.playerId);
+    if(owner.characterId==='gambler'){
+      settleGamblerHand(run,owner,state,card.cardInstanceId,card.finalNumber);
+      delete state.selectedCardId;delete state.skillIntent;
+      continue;
+    }
     state.remainingCardIds=state.remainingCardIds.filter(id=>id!==card.cardInstanceId);
     if(!state.spentCardIds.includes(card.cardInstanceId))state.spentCardIds.push(card.cardInstanceId);
     delete state.selectedCardId;delete state.skillIntent;
