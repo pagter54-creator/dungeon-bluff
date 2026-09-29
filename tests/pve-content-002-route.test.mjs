@@ -92,7 +92,13 @@ test('Floor 2 generated route exercises combat, shared rooms, reward, boss clear
     }
     if(run.phase==='ROOM_RESULT'){run=await call(admin,'roomReady',seq++);continue;}
     if(run.phase==='AUGMENT_CHOICE'){
-      if(run.augmentChoice?.resumePhase==='FLOOR_CLEAR')sawBossAugment=true;
+      if(run.augmentChoice?.resumePhase==='FLOOR_CLEAR'){
+        const rewardReconnect=await call(admin,'getState',seq++);
+        assert.equal(rewardReconnect.id,id);assert.equal(rewardReconnect.floor,2);
+        assert.equal(rewardReconnect.augmentChoice.resumePhase,'FLOOR_CLEAR');
+        assert.equal(rewardReconnect.combat.monster.behaviorState,undefined);
+        sawBossAugment=true;
+      }
       if(run.privateAugmentOffer?.augmentIds?.length)run=await call(admin,'chooseAugment',seq++,{augment_id:run.privateAugmentOffer.augmentIds[0]});
       else assert.fail('augment offer missing');
       continue;
