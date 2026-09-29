@@ -930,7 +930,7 @@ test('MODE-01..08 room mode is authoritative, legacy defaults competitive, and C
   await rawApi(peer,'leave_room',{room_id:coop.room.id});await rawApi(host,'leave_room',{room_id:coop.room.id});
 });
 
-test('COOP_PVE start rejects unsupported lobby characters instead of silently falling back',async()=>{
+test('COOP_PVE start accepts Gambler as a supported lobby character',async()=>{
   const host=await newAccount('UnsupportedPve');
   let coop=await rawApi(host,'create_room',{room_title:'Unsupported PVE',gameMode:'COOP_PVE'});
   for(let i=0;i<3;i++)coop=await rawApi(host,'add_ai',{room_id:coop.room.id,ai_type:'balanced'});
@@ -938,9 +938,8 @@ test('COOP_PVE start rejects unsupported lobby characters instead of silently fa
   await rawApi(host,'set_character',{room_id:coop.room.id,member_id:member.id,character_id:'gambler'});
   await rawApi(host,'set_ready',{room_id:coop.room.id,ready:true});
   const start=await rawApi(host,'start_game',{room_id:coop.room.id});
-  assert.equal(start.status,400);assert.match(start.error,/지원하지 않는 캐릭터/);
-  assert.equal(Number((await db.query('select count(*) as n from public.pve_runs where room_id=$1',[coop.room.id])).rows[0].n),0);
-  assert.equal((await db.query('select status from public.rooms where id=$1',[coop.room.id])).rows[0].status,'waiting');
+  assert.equal(start.status,200,start.error);assert.equal(start.run.players.find(p=>p.playerId===member.id).characterId,'gambler');
+  assert.equal(Number((await db.query('select count(*) as n from public.pve_runs where room_id=$1',[coop.room.id])).rows[0].n),1);
   await rawApi(host,'leave_room',{room_id:coop.room.id});
 });
 
