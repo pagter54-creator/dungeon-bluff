@@ -1,5 +1,5 @@
 import {choose} from './rng.js';
-import {trackPlayerNumber,changeMonsterStack,checkPartyDamage,advanceMonsterPhase} from './monster-primitives.js';
+import {trackPlayerNumber,changeMonsterStack,checkPartyDamage} from './monster-primitives.js';
 
 const living=run=>run.players.filter(p=>p.status!=='DOWNED').sort((a,b)=>a.seat-b.seat||a.playerId.localeCompare(b.playerId));
 const stateOf=run=>run.combat?.monster?.behaviorState;
@@ -14,9 +14,11 @@ function addCounter(state,key,id,threshold,events,label){
 export function createF2State(mechanic){
   const state={stacks:{},pendingHits:[],validCount:0,collisionCount:0};
   if(mechanic.type==='F2_GROWTH')state.stacks.growth=0;
+  if(mechanic.type==='F2_PROPHECY')state.curseByPlayer={};
+  if(mechanic.type==='F2_SPORE')state.sporeByPlayer={};
   if(mechanic.type==='F2_HYDRA')state.heads=mechanic.heads;
   if(mechanic.type==='F2_MOON')state.phase='MIN';
-  if(mechanic.type==='F2_CORRUPTION')state.lastNumberByPlayer={};
+  if(mechanic.type==='F2_CORRUPTION'){state.lastNumberByPlayer={};state.corruptionByPlayer={};}
   return state;
 }
 export function f2Presentation(run){
@@ -35,22 +37,24 @@ export function f2Presentation(run){
   if(p.copiedNumber!=null)parts.push(`복제 숫자 ${p.copiedNumber}`);
   if(p.flameMode)parts.push(`늪불 ${p.flameMode==='LOW'?'낮음 · 4~6 위험':'높음 · 1~3 위험'}`);
   if(p.thornsActive!=null)parts.push(`가시 ${p.thornsActive?'활성 · 단독 최고 유효 숫자 반격':'비활성'}`);
-  if(p.chaosRule)parts.push(`혼돈 ${p.chaosRule}`);
+  if(p.chaosRule)parts.push(`혼돈 ${p.chaosRule==='ODD'?'짝수 카드 피해 -1':p.chaosRule==='LOW'?'4~6 카드 피해 -1':'유효 숫자 합 10 미만이면 표적 피해 1'}`);
   if(p.heads!=null)parts.push(`머리 ${p.heads} · 서로 다른 유효 숫자 3종이면 -1`);
   if(p.growth!=null)parts.push(`성장 ${p.growth} · 피해 8 이상이면 방지`);
-  if(p.targetPlayerId)parts.push(`표적 ${p.targetPlayerId}`);
-  if(p.linkedPlayerIds)parts.push(`실타래 ${p.linkedPlayerIds.join(' / ')} · 서로 다른 숫자로 끊기`);
+  if(p.targetPlayerId){const target=run.players.find(player=>player.playerId===p.targetPlayerId);parts.push(`표적 ${target?`${target.seat+1}번 자리`:p.targetPlayerId}`);}
+  if(p.linkedPlayerIds)parts.push(`실타래 ${p.linkedPlayerIds.map(id=>{const player=run.players.find(p=>p.playerId===id);return player?`${player.seat+1}번 자리`:id}).join(' / ')} · ${s.linkReady?'이번 턴 서로 다른 숫자로 끊기':'다음 턴 서로 다른 숫자로 끊기'}`);
   if(p.phase)parts.push(`${p.phase==='MIN'?'만월 · 최소':'신월 · 최대'} ${p.threshold} · 현재 ${p.partyDamage||0}`);
-  if(p.corruptionByPlayer)parts.push('오염 3중첩 시 피해 1');
-  if(p.sporeByPlayer)parts.push('포자 2중첩 시 피해 1');
-  if(p.curseByPlayer)parts.push('저주 2중첩 시 피해 1');
+  for(const player of run.players){const n=player.seat+1;
+    if(p.corruptionByPlayer||p.lastValidNumberByPlayer)parts.push(`${n}번 직전 ${p.lastValidNumberByPlayer?.[player.playerId]??'없음'} · 오염 ${p.corruptionByPlayer?.[player.playerId]||0}/3`);
+    if(p.sporeByPlayer)parts.push(`${n}번 포자 ${p.sporeByPlayer[player.playerId]||0}/2`);
+    if(p.curseByPlayer)parts.push(`${n}번 저주 ${p.curseByPlayer[player.playerId]||0}/2`);
+  }
   p.statusText=parts.join(' · ');
   return p;
 }
 export function prepareF2Turn(run,intent){
   const m=run.combat.monster,s=stateOf(run),k=mechOf(run),type=k?.type;
   if(!type?.startsWith('F2_'))return intent;
-  s.pendingHits=[];
+  s.pendingHits=[];s.chaosFailure=false;
   if(type==='F2_PROPHECY'){
     s.currentDangerNumber=s.nextDangerNumber??null;
     s.nextDangerNumber=pick(run,[1,2,3,4,5,6],'prophecy-number');
@@ -130,7 +134,8 @@ export function prepareF2Action(run,action){
 }
 export function resolveF2AfterDamage(run,events,applyDamage){
   const m=run.combat.monster,s=stateOf(run),k=mechOf(run),type=k?.type;
-  if(!type?.startsWith('F2_')||m.hp<=0)return;
+  if(!type?.startsWith('F2_')||m.hp<=0||s.resolvedPenaltyTurn===run.combat.turn)return;
+  s.resolvedPenaltyTurn=run.combat.turn;
   if(type==='F2_LEECH'&&!s.targetBlocked){
     const target=run.players.find(p=>p.playerId===s.targetPlayerId);
     events.push(...applyDamage(run,target,1,'DIRECT'));
