@@ -65,7 +65,7 @@ export function pveGameplayPlayers(bundle,run,{scope='combat'}={}){
       character,
       loadout:member?.loadout,
       hp:p.hp,maxHp:p.maxHp,
-      score:Number(p.growthExp)||0,
+      score:(Number(p.growthExp)||0)+(Number(p.score)||0),
       gold:Number(p.runGold)||0,
       knockedOut:p.status==='DOWNED',
       cycleIndex:cycle.cycleIndex||1,
