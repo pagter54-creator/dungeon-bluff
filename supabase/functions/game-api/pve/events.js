@@ -6,10 +6,12 @@ import {selfModifyCard,collisionImmunity,isCardSelectableForCharacter,validateCh
 import {initializeNumberHistories,recordSelfModification,applyPreCollisionSwap,applyPreCollisionSteal,finalizeNumbers,attachCollisionGroups,attachValidity,assignVampireThralls,validateNumberMutationState} from './number-mutation.js';
 import {resolveEventDefinition} from './event-resolution.js';
 import {queueTelemetry} from './telemetry.js';
+import {clearCombatResourcesForPlayers} from './resources.js';
 
 const playerFor=(run,id)=>run.players.find(p=>p.playerId===id);
 const eventById=id=>F1_EVENT_DEFINITIONS.find(x=>x.id===id)||null;
 function finishEvent(run){
+  clearCombatResourcesForPlayers(run.players);
   run.phase='ROOM_RESULT';
   run.roomResult={roomNodeId:run.currentRoomNodeId,readyPlayerIds:run.players.filter(p=>p.memberType==='ai').map(p=>p.playerId)};
 }
