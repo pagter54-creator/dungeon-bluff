@@ -30,5 +30,6 @@ test('C04 Mage → Vampire → Imp → Knight uses final numbers for collision',
   assert.deepEqual(result.cards[3].collisionGroup,['p0','p2','p3']);
   assert.equal(result.cards[3].collisionImmune,true);
   assert.equal(a.players[3].publicResources.toughnessCharges,0);
-  assert.equal(a.players[0].publicResources.mana,0);
+  assert.equal(result.cards[0].resourceSpent,2);
+  assert.equal(a.players[0].publicResources.mana,1);
 });
