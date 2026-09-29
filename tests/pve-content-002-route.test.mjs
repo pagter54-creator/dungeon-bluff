@@ -13,6 +13,7 @@ function memoryAdmin(initial){
   let state=structuredClone(initial),version=0;
   return {
     get state(){return structuredClone(state);},get version(){return version;},
+    seedBossAugment(){state.players[0].growthExp=50;},
     async rpc(name,args){
       if(name==='pve_read')return {data:{version,state:structuredClone(state),action_result:null},error:null};
       if(name==='pve_try_commit'){
@@ -53,6 +54,7 @@ function legal(run,{room=false}={}){
 test('Floor 2 generated route exercises combat, shared rooms, reward, boss clear, and Floor 3 reconnect',async()=>{
   const admin=memoryAdmin(initial()),id=admin.state.id;let run=await call(admin,'getState',0),seq=1;
   const visited=[],seen=new Set(),combatSpecies=new Set();
+  let bossSeeded=false,sawBossReconnect=false,sawBossAugment=false;
   for(let guard=0;guard<1600&&run.floor===2&&run.phase!=='RUN_FAILED';guard++){
     if(run.currentRoomNodeId&&!seen.has(run.currentRoomNodeId)){
       seen.add(run.currentRoomNodeId);
@@ -66,6 +68,12 @@ test('Floor 2 generated route exercises combat, shared rooms, reward, boss clear
       run=await call(admin,'voteNextRoom',seq++,{node_id:chosen.id});continue;
     }
     if(run.phase==='COMBAT'){
+      if(run.combat.roomType==='BOSS'&&!bossSeeded){admin.seedBossAugment();bossSeeded=true;run=await call(admin,'getState',seq++);}
+      const reconnect=await call(admin,'getState',seq++);
+      assert.equal(reconnect.combat.monster.id,run.combat.monster.id);
+      assert.equal(reconnect.combat.monster.behaviorState,undefined);
+      assert.ok(reconnect.privateCombat?.remainingCardIds);
+      if(run.combat.roomType==='BOSS')sawBossReconnect=true;
       const turn=run.combat.turn;
       run=await call(admin,'submitCard',seq++,{card_instance_id:legal(run)});
       assert.ok(run.phase!=='COMBAT'||run.combat.turn>turn);continue;
@@ -84,6 +92,7 @@ test('Floor 2 generated route exercises combat, shared rooms, reward, boss clear
     }
     if(run.phase==='ROOM_RESULT'){run=await call(admin,'roomReady',seq++);continue;}
     if(run.phase==='AUGMENT_CHOICE'){
+      if(run.augmentChoice?.resumePhase==='FLOOR_CLEAR')sawBossAugment=true;
       if(run.privateAugmentOffer?.augmentIds?.length)run=await call(admin,'chooseAugment',seq++,{augment_id:run.privateAugmentOffer.augmentIds[0]});
       else assert.fail('augment offer missing');
       continue;
@@ -93,6 +102,7 @@ test('Floor 2 generated route exercises combat, shared rooms, reward, boss clear
   assert.equal(run.floor,3,JSON.stringify({phase:run.phase,visited}));
   assert.equal(run.phase,'MAP_VOTE');assert.equal(run.id,id);
   assert.equal(run.combat,undefined);assert.ok(run.map.nodes.some(node=>node.type==='BOSS'));
+  assert.equal(sawBossReconnect,true);assert.equal(sawBossAugment,true);
   assert.ok(visited.includes('NORMAL_COMBAT')&&visited.includes('ELITE_COMBAT')&&visited.includes('BOSS'));
   assert.ok(visited.includes('EVENT')&&visited.includes('REST')&&visited.includes('SHOP')&&visited.includes('REWARD_ROOM'));
   assert.equal(combatSpecies.size,[...combatSpecies].length);

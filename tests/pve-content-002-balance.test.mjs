@@ -28,7 +28,7 @@ test('Floor 2 deterministic encounter balance telemetry is recorded without chan
     const totalTurns=sum(group.map(record=>record.turn_count));
     const valid=sum(group.map(record=>sum(Object.values(record.valid_attack_count))));
     const collisions=sum(group.map(record=>sum(Object.values(record.collision_count))));
-    report[tier]={samples:group.length,averageTurns:turns,clearRate,averagePartyDamagePerTurn:totalTurns?totalDamage/totalTurns:0,collisionRate:valid+collisions?collisions/(valid+collisions):0,downCount:sum(group.map(record=>sum(Object.values(record.down_count)))),flameConsumption:sum(group.map(record=>record.flame_spent)),warning:Math.abs(turns-target)>target*0.3?'BALANCE_WARNING_F2':null};
+    report[tier]={samples:group.length,averageTurns:turns,clearRate,averagePartyDamagePerTurn:totalTurns?totalDamage/totalTurns:0,collisionRate:valid+collisions?collisions/(valid+collisions):0,downCount:sum(group.map(record=>sum(Object.values(record.down_count)))),flameConsumption:sum(group.map(record=>record.flame_spent)),warning:Math.abs(turns-target)>target*0.3||clearRate<0.5?'BALANCE_WARNING_F2':null};
   }
   console.log('[F2 BALANCE TELEMETRY]',JSON.stringify(report));
 });

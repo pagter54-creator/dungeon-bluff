@@ -35,6 +35,12 @@ test('Floor 2 roster and runtime selection are complete and deterministic',()=>{
     const projected=projectRun(a,'p0');
     assert.equal(projected.combat.monster.behaviorState,undefined,def.id);
     assert.ok(projected.combat.monster.presentation,def.id);
+    const ac=cards([1,2,3,4]),bc=cards([1,2,3,4]),ae=[],be=[];
+    applyMonsterCardRules(a,ac,ae);applyMonsterCardRules(b,bc,be);
+    recordMonsterDamageBatch(a,8);recordMonsterDamageBatch(b,8);
+    assert.deepEqual(a.combat.monster.behaviorState,b.combat.monster.behaviorState,def.id);
+    assert.deepEqual(a.combat.monster.presentation,b.combat.monster.presentation,def.id);
+    delete a.combat;assert.equal(a.combat,undefined,def.id);
   }
   const run=make('f2_cursed_prophet');run.usedMonsterIds=[];
   const selected=[];
@@ -123,11 +129,16 @@ for(const [phase,values,expected] of [['MIN',[9,10,11],[false,true,true]],['MAX'
 });
 test('Floor 2 boss clear advances same run to guarded Floor 3 map once',()=>{
   const run=make('f2_moon_eating_witch');const id=run.id;run.combat.monster.hp=1;
+  run.players[0].hp=1;run.players[0].runGold=7;run.players[0].growthExp=12;run.players[0].score=9;run.players[0].engravings={'4':1};run.players[0].publicResources.devour=2;run.players[0].publicResources.mana=2;
   beginTurn(run);
   for(let i=0;i<4;i++)submitCard(run,`p${i}`,run.players[i].cardPool.find(c=>c.baseNumber===i+1).id);
   resolveBasicTurn(run);
   assert.equal(run.floor,3);assert.equal(run.phase,'MAP_VOTE');assert.equal(run.id,id);
   assert.equal(run.combat,undefined);assert.equal(run.flame,5);
+  assert.equal(run.players[0].hp,2);
+  assert.deepEqual([run.players[0].runGold,run.players[0].growthExp,run.players[0].score],[10,12,9]);
+  assert.equal(run.players[0].engravings['4'],1);assert.equal(run.players[0].publicResources.devour,2);
+  assert.equal(run.players[0].publicResources.mana,undefined);
   assert.equal(advanceCompletedFloor(run),false);
 });
 
