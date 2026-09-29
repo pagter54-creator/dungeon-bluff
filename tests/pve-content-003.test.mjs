@@ -68,3 +68,39 @@ test('final Boss victory clears combat, while simultaneous full wipe fails',()=>
 test('only existing Floor 3 artwork is shown; missing art has no generic monster',()=>{
  for(const d of Object.values(F3_MONSTER_DEFINITIONS)){const stage=pveStageModel({floor:3,depth:1,combat:{roomType:d.tier==='BOSS'?'BOSS':d.tier==='ELITE'?'ELITE_COMBAT':'NORMAL_COMBAT',monster:d}});const art=creatureArt(stage.shape);if(['f3_greed_mimic','f3_execution_golem'].includes(d.id))assert.ok(art.includes('<img'));else assert.equal(art,'');}
 });
+
+test('Abyss King damage-band learning, modified final values, collision filtering, and reconnect',()=>{
+ let r=setup('f3_abyss_king');
+ turn(r,[1,2,3,5],{damage:10});r.combat.turn++;
+ turn(r,[1,2,4,6],{flags:[true,true,true,false],damage:11});
+ assert.equal(r.combat.monster.behaviorState.adaptation.kind,'BAND');
+ r.combat.turn++;turn(r,[1,2,3,4],{damage:12});assert.equal(hits(r).length,1);
+ r=setup('f3_abyss_king');turn(r,[1,2,3,6],{flags:[true,true,true,false]});r.combat.turn++;turn(r,[1,2,3,6],{flags:[true,true,true,false]});
+ assert.equal(r.combat.monster.behaviorState.adaptation.value,3);
+ const saved=structuredClone(r);assert.equal(saved.combat.monster.behaviorState.adaptation.value,3);
+ r=setup('f3_abyss_king');turn(r,[1,2,3,6]);r.combat.turn++;turn(r,[1,2,3,6]);r.combat.turn++;
+ const modified=cards([1,2,3,6]);modified[3].baseNumber=1;
+ prepareF3Turn(r,{type:'CHARGE',telegraphText:'예고',payload:{}});applyF3CardRules(r,modified,[]);
+ assert.equal(modified[3].monsterDamagePenalty,1);
+});
+test('all four Queen masks apply only their current rule',()=>{
+ const r=setup('f3_masked_queen'),s=r.combat.monster.behaviorState;
+ r.combat.turn=1;prepareF3Turn(r,{type:'CHARGE',telegraphText:'예고',payload:{}});r.combat.turnSubmissions={p0:{playerId:'p0',skillIntent:true}};
+ applyF3CardRules(r,cards([1,2,3,4]),[]);assert.deepEqual(s.pendingHits,['p0']);
+ r.combat.turn=2;prepareF3Turn(r,{type:'CHARGE',telegraphText:'예고',payload:{}});
+ r.combat.turn=3;prepareF3Turn(r,{type:'CHARGE',telegraphText:'예고',payload:{}});r.combat.turnSubmissions={p0:{playerId:'p0',skillIntent:true}};
+ applyF3CardRules(r,cards([1,2,3,4]),[]);assert.deepEqual(s.pendingHits,['p3']);
+ r.combat.turn=4;prepareF3Turn(r,{type:'CHARGE',telegraphText:'예고',payload:{}});
+ r.combat.turn=5;prepareF3Turn(r,{type:'CHARGE',telegraphText:'예고',payload:{}});const humility=cards([1,2,3,4]);applyF3CardRules(r,humility,[]);
+ assert.equal(humility[3].monsterDamagePenalty,1);assert.equal(s.pendingHits.length,0);
+ r.combat.turn=6;prepareF3Turn(r,{type:'CHARGE',telegraphText:'예고',payload:{}});
+ r.combat.turn=7;prepareF3Turn(r,{type:'CHARGE',telegraphText:'예고',payload:{}});r.combat.turnSubmissions={p0:{playerId:'p0',skillIntent:true}};
+ applyF3CardRules(r,cards([1,1,3,4],[false,false,true,true]),[]);
+ assert.equal(r.combat.monster.defense,1);assert.equal(s.pendingHits.length,0);
+});
+test('Queen death on a mask transition still reaches RUN_CLEAR',()=>{
+ const r=setup('f3_masked_queen');r.map={depthCount:10};r.cardCycles={};r.combat.turn=3;r.combat.monster.behaviorState.maskTurns=2;r.combat.monster.hp=1;
+ beginTurn(r);assert.equal(r.combat.monster.behaviorState.mask,'GREED');
+ for(const p of r.players)submitCard(r,p.playerId,p.cardPool.find(c=>c.baseNumber===p.seat+1).id);
+ resolveBasicTurn(r);assert.equal(r.phase,'RUN_CLEAR');assert.equal(r.combat,undefined);
+});
