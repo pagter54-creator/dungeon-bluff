@@ -1,5 +1,6 @@
 import {choose} from './rng.js';
 import {persistCardCycles} from './card-cycle.js';
+import {drawGamblerHand,settleGamblerHand} from './gambler.js';
 import {
   onTurnStartCharacter,onCycleStartCharacter,onTurnEndCharacter,selfModifyCard,collisionImmunity,onValidAttack,
   isCardSelectableForCharacter,validateCharacterSkillIntent,resolvePostCollisionCharacter,resolvePostCollisionEffects,resolveGuardianWallCollisions,
@@ -32,6 +33,7 @@ function selectableIds(run,player){
 function resetCycleIfNeeded(run,player,events=[],meta={}){
   const priv=run.combat.privateByPlayer[player.playerId];
   if(priv.remainingCardIds.length)return false;
+  if(player.characterId==='gambler'){drawGamblerHand(run,player,priv);return true;}
   if(handleCycleExhaustedCharacter(player,priv,run))return true;
   const previousCycleId=priv.cycleIndex||1,remainingBefore=[...(priv.remainingCardIds||[])],spentBefore=[...(priv.spentCardIds||[])],parityBefore=player.publicResources.parity??null;
   applyOwnedEffects(run,'CYCLE_END',{player,privateState:priv,events});
@@ -49,13 +51,18 @@ function resetCycleIfNeeded(run,player,events=[],meta={}){
 function spendResolvedCards(run,cards,events=[]){
   for(const rc of cards){
     const priv=run.combat.privateByPlayer[rc.playerId];
+    const player=playerFor(run,rc.playerId);
+    if(player.characterId==='gambler'){
+      settleGamblerHand(run,player,priv,rc.cardInstanceId,rc.finalNumber);
+      delete priv.selectedCardId;delete priv.skillIntent;
+      continue;
+    }
     const consume=[rc.cardInstanceId,...(rc.followUpCardIds||[])];
     for(const id of consume){
       priv.remainingCardIds=priv.remainingCardIds.filter(x=>x!==id);
       if(!priv.spentCardIds.includes(id))priv.spentCardIds.push(id);
     }
     delete priv.selectedCardId;delete priv.skillIntent;
-    const player=playerFor(run,rc.playerId);
     if(run.combat.turnSubmissions[rc.playerId]?.autoSubmitted&&player.status==='STUNNED_NEXT_TURN')player.status='ACTIVE';
     const rootActionId=`action:${run.combat.id}:${run.combat.turn}:${rc.playerId}:${rc.cardInstanceId}`;
     resetCycleIfNeeded(run,player,events,{reason:(rc.followUpCardIds||[]).length?'FULL_BURST':'NATURAL_EXHAUSTION',rootActionId,recoveryChainId:`recovery:${rootActionId}`,parentEventId:null,chainDepth:1,sourceEffectId:(rc.followUpCardIds||[]).length?'FULL_BURST':'CYCLE_EXHAUSTION'});
@@ -155,6 +162,7 @@ export function beginTurn(run){
   if(!c.combatStartEffectsApplied){for(const p of run.players)applyOwnedEffects(run,'COMBAT_START',{player:p,events:[]});c.combatStartEffectsApplied=true;}
   c.phase='TURN_START';
   for(const p of run.players){onTurnStartCharacter(p,run);applyOwnedEffects(run,'TURN_START',{player:p,events:[]});}
+  for(const p of run.players)if(p.characterId==='gambler')drawGamblerHand(run,p,c.privateByPlayer[p.playerId]);
   c.phase='INTENT_PUBLISH';publishMonsterIntent(run);
   c.phase='SELECTION_OPEN';autoSubmitStunned(run);autoSubmitAi(run);
   const active=run.players.filter(p=>p.status!=='DOWNED').map(p=>p.playerId);
