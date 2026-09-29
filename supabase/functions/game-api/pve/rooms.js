@@ -17,6 +17,7 @@ function finishRoom(run){
 }
 function resetRoomCycle(run,player,state){
   if(state.remainingCardIds.length)return false;
+  if(player.characterId==='gambler'){drawGamblerHand(run,player,state);return true;}
   applyOwnedEffects(run,'CYCLE_END',{player,privateState:state,events:[]});
   state.cycleIndex=(state.cycleIndex||1)+1;
   state.spentCardIds=[];
@@ -28,6 +29,11 @@ function spendRoomCards(run,resolved){
   const room=run.roomState;
   for(const rc of resolved){
     const state=room.privateByPlayer[rc.playerId],player=playerFor(run,rc.playerId);
+    if(player.characterId==='gambler'){
+      settleGamblerHand(run,player,state,rc.cardInstanceId,rc.finalNumber);
+      delete state.selectedCardId;delete state.skillIntent;
+      continue;
+    }
     const ids=[rc.cardInstanceId,...(rc.followUpCardIds||[])];
     for(const id of ids){state.remainingCardIds=state.remainingCardIds.filter(x=>x!==id);if(!state.spentCardIds.includes(id))state.spentCardIds.push(id);}
     delete state.selectedCardId;delete state.skillIntent;
@@ -147,7 +153,7 @@ export function enterRewardRoom(run){
   const offered=pickUniqueRelics(run,general,4,`reward:${run.currentRoomNodeId}`).map(x=>x.id);
   run.phase='REWARD_ROOM';
   run.roomState={type:'REWARD_ROOM',attempt:1,relicIds:offered,catalogIncomplete:offered.length<4,privateByPlayer:Object.fromEntries(run.players.map(p=>[p.playerId,restoreCardCycle(run,p)])),turnSubmissions:{},pickOrder:[],picks:{},autoAssigned:{},resolved:false};
-  for(const p of run.players)onTurnStartCharacter(p,run);
+  for(const p of run.players){onTurnStartCharacter(p,run);if(p.characterId==='gambler')drawGamblerHand(run,p,run.roomState.privateByPlayer[p.playerId]);}
   fillRewardAiSubmissions(run);
   if(run.players.filter(p=>p.status!=='DOWNED').every(p=>run.roomState.turnSubmissions[p.playerId]))resolveRewardAttempt(run);
 }
