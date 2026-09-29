@@ -1,4 +1,5 @@
 import {choose} from './rng.js';
+import {GAMBLER_BASE_DECK} from './gambler.js';
 import {clearCombatResources,clearResourcesByScope,resourceMax} from './resources.js';
 import {executableAugmentRuntime} from './augment-runtime.js';
 
@@ -12,6 +13,7 @@ export const PVE_CHARACTER_DEFS={
   imp:{deck:[1,2,3,4,5],skillId:'steal'},
   prophet:{deck:[1,2,3,4,5],skillId:'revelation'},
   gunner:{deck:[1,2,3],skillId:'full_burst'},
+  gambler:{deck:[...GAMBLER_BASE_DECK],skillId:'random_hand'},
   martial_artist:{deck:[1,2,3,4,5],skillId:'one_hit_kill'},
   demon_swordsman:{deck:[1,2,3,4,4],skillId:'ghost_slash'},
   twins:{deck:[1,2,3,4],skillId:'acrobatics'},
