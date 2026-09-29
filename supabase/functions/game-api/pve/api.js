@@ -20,7 +20,7 @@ import {selectF3Monster} from './content-f3.js';
 const uuid=v=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 export const PVE_ROOM_CHARACTER_MAP=Object.freeze({
   adventurer:'adventurer',warrior:'warrior',rogue:'rogue',mage:'mage',berserker:'berserker',
-  vampire:'vampire',imp:'imp',seer:'prophet',gunner:'gunner',fighter:'martial_artist',
+  vampire:'vampire',imp:'imp',gambler:'gambler',seer:'prophet',gunner:'gunner',fighter:'martial_artist',
   demonsword:'demon_swordsman',twins:'twins'
 });
 export function pveCharacterIdForRoom(characterId){return PVE_ROOM_CHARACTER_MAP[characterId]||null;}
