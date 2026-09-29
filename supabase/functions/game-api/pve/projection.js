@@ -1,6 +1,8 @@
 export function projectRun(run,viewerPlayerId){
   const out=structuredClone(run);
   delete out.effectCatalog;
+  delete out.effectCounters;
+  if(out.combat)delete out.combat.effectCounters;
   delete out.relicCatalog;
   delete out._telemetryPending;
   delete out.cardCycles;
