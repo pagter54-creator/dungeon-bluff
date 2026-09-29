@@ -14,7 +14,10 @@ function publicCycle(run,player,scope='combat'){
   const publicState=state?.publicCardCycles?.[player.playerId];
   if(publicState)return publicState;
   const own=scope==='room'||scope==='event'?run.privateRoomState:run.privateCombat;
-  if(own?.playerId!==player.playerId)return {cycleIndex:1,cards:(player.cardPool||[]).map(c=>({baseNumber:c.baseNumber,used:false}))};
+  if(own?.playerId!==player.playerId){
+    if(player.characterId==='gambler')return {cycleIndex:0,cards:Array.from({length:player.gamblerDeck?.handCount??2},()=>({baseNumber:null,used:false}))};
+    return {cycleIndex:1,cards:(player.cardPool||[]).map(c=>({baseNumber:c.baseNumber,used:false}))};
+  }
   if(player.characterId==='gambler')return {cycleIndex:0,cards:(own.remainingCardIds||[]).map(id=>player.cardPool.find(c=>c.id===id)).filter(Boolean).map(c=>({id:c.id,baseNumber:c.baseNumber,used:false}))};
   const remaining=new Set(own.remainingCardIds||[]);
   return {cycleIndex:own.cycleIndex||1,cards:(player.cardPool||[]).map(c=>({baseNumber:c.baseNumber,used:c.id?!remaining.has(c.id):false}))};
@@ -73,6 +76,7 @@ export function pveGameplayPlayers(bundle,run,{scope='combat'}={}){
       skillId:rewardSkillSupported?rawSkillId:'',
       skillType:rewardSkillSupported?(character?.definition?.skill?.type||'passive'):'passive',
       characterRuntimeState:runtimeState(p),
+      ...(p.characterId==='gambler'&&p.gamblerDeck?{gamblerDeck:p.gamblerDeck}:{}),
       activeSkillState:{available:rewardSkillSupported&&activeSkillAvailable(p)}
     };
   }
