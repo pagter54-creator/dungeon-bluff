@@ -51,7 +51,7 @@ function legal(run,{room=false}={}){
   cards.sort((a,b)=>b.baseNumber-a.baseNumber||a.id.localeCompare(b.id));
   return cards[0]?.id;
 }
-test('Floor 2 generated route exercises combat, shared rooms, reward, boss clear, and Floor 3 reconnect',async()=>{
+test('Floor 2 generated route exercises combat, shared rooms, reward, boss clear, and Floor 3 entry',async()=>{
   const admin=memoryAdmin(initial()),id=admin.state.id;let run=await call(admin,'getState',0),seq=1;
   const visited=[],seen=new Set(),combatSpecies=new Set();
   let bossSeeded=false,sawBossReconnect=false,sawBossAugment=false;
@@ -116,6 +116,7 @@ test('Floor 2 generated route exercises combat, shared rooms, reward, boss clear
   assert.equal(reconnected.id,id);assert.equal(reconnected.floor,3);
   assert.equal(JSON.stringify(reconnected).includes('privateByPlayer'),false);
   const target=connectedNodeIds(reconnected.map)[0];
-  const guarded=await handlePveAction({admin,user:{id:'u0'},body:{action:'pve.voteNextRoom',run_id:id,action_id:actionId(seq++),expected_version:admin.version,node_id:target},json});
-  assert.equal(guarded.status,409);assert.equal(guarded.body.error,'CONTENT_NOT_IMPLEMENTED');
+  const entered=await handlePveAction({admin,user:{id:'u0'},body:{action:'pve.voteNextRoom',run_id:id,action_id:actionId(seq++),expected_version:admin.version,node_id:target},json});
+  assert.equal(entered.status,200);assert.equal(entered.body.run.floor,3);
+  assert.equal(entered.body.run.phase,'COMBAT');assert.ok(entered.body.run.combat.monster.id.startsWith('f3_'));
 });
