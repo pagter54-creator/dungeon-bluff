@@ -5,6 +5,7 @@ import {drawGamblerHand,settleGamblerHand} from './gambler.js';
 import {initializeNumberHistories,recordSelfModification,applyPreCollisionSwap,applyPreCollisionSteal,finalizeNumbers,attachCollisionGroups,attachValidity,assignVampireThralls,validateNumberMutationState} from './number-mutation.js';
 import {applyOwnedEffects} from './effects.js';
 import {relicPool} from './relics.js';
+import {clearCombatResourcesForPlayers} from './resources.js';
 
 const CARD_RESERVATION_MS=20_000;
 const playerFor=(run,id)=>run.players.find(p=>p.playerId===id);
@@ -13,6 +14,7 @@ const humanIds=run=>run.players.filter(p=>p.memberType==='human').map(p=>p.playe
 const allIds=run=>run.players.map(p=>p.playerId);
 
 function finishRoom(run){
+  clearCombatResourcesForPlayers(run.players);
   run.phase='ROOM_RESULT';
   run.roomResult={roomNodeId:run.currentRoomNodeId,readyPlayerIds:run.players.filter(p=>p.memberType==='ai').map(p=>p.playerId)};
 }
