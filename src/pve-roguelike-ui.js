@@ -92,7 +92,7 @@ export function pveRewardPromptMarkup(run,me){
 }
 export function pveAugmentPopupMarkup(run){
   const offer=run.privateAugmentOffer;
-  const cards=offer?(offer.augmentIds||[]).map(id=>{const item=augmentUi(id,offer.tier);return '<button data-action="pve-augment" data-augment-id="'+esc(id)+'"><i aria-hidden="true">◇</i><small>TIER '+item.tier+'</small><b>'+esc(item.name)+'</b><p>'+esc(item.description)+'</p></button>';}).join(''):'';
+  const cards=offer?(offer.augmentIds||[]).map(id=>{const item=augmentUi(id,offer.tier);return '<button data-action="pve-augment" data-augment-id="'+esc(id)+'"><i aria-hidden="true">◇</i><small>TIER '+item.tier+' · '+esc(item.build||'증강')+'</small><b>'+esc(item.name)+'</b><p>'+esc(item.description)+'</p></button>';}).join(''):'';
   return '<div class="pve-modal-layer"><section class="pve-choice-popup augment-popup"><div class="eyebrow">AUGMENT CHOICE</div><h2>증강을 선택하세요.</h2>'+(offer?'<div class="pve-choice-cards">'+cards+'</div>':'<p>다른 플레이어의 선택을 기다리는 중입니다.</p>')+'</section></div>';
 }
 export function pveRoomResultOverlayMarkup(bundle,run,{interactive=true,playerId=null}={}){
