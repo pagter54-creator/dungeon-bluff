@@ -1,5 +1,6 @@
 import {choose} from './rng.js';
 import {F1_MAP_LAYOUT,F1_MONSTER_DEFINITIONS} from './content-f1.js';
+import {F2_MONSTER_DEFINITIONS} from './content-f2.js';
 
 export function generateFloorMap(run,depthCount=8){
   const nodes=[]; const edges={};
@@ -20,10 +21,11 @@ export function generateFloorMap(run,depthCount=8){
       edges[from[i].id]=to.map(node=>node.id);
     }
   }
+  const f2Boss=F2_MONSTER_DEFINITIONS[run.chosenBossIds?.[2]]||F2_MONSTER_DEFINITIONS.f2_rottenheart_ancient;
   return {
     depthCount,nodes,edges,currentNodeId:null,visitedNodeIds:[],votes:{},voteRound:0,voteDeadline:null,
-    bossId:run.floor===1?(run.chosenBossIds?.[1]||F1_MONSTER_DEFINITIONS.f1_fallen_lord.id):null,
-    bossName:run.floor===1?(F1_MONSTER_DEFINITIONS[run.chosenBossIds?.[1]]||F1_MONSTER_DEFINITIONS.f1_fallen_lord).name:'2층 보스 · CONTENT-002 준비 중'
+    bossId:run.floor===1?(run.chosenBossIds?.[1]||F1_MONSTER_DEFINITIONS.f1_fallen_lord.id):run.floor===2?f2Boss.id:null,
+    bossName:run.floor===1?(F1_MONSTER_DEFINITIONS[run.chosenBossIds?.[1]]||F1_MONSTER_DEFINITIONS.f1_fallen_lord).name:run.floor===2?f2Boss.name:'3층 보스 · CONTENT-003 준비 중'
   };
 }
 export function startingNodeIds(map){return map.nodes.filter(n=>n.depth===1).map(n=>n.id);}

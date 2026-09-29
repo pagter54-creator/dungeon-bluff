@@ -14,6 +14,7 @@ import {F1_RELIC_DEFINITIONS,F1_MONSTER_DEFINITIONS,selectF1Monster,markF1Monste
 import {installRelicCatalog} from './relics.js';
 import {choose} from './rng.js';
 import {advanceCompletedFloor} from './floor-transition.js';
+import {F2_MONSTER_DEFINITIONS,selectF2Monster} from './content-f2.js';
 
 const uuid=v=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 export const PVE_ROOM_CHARACTER_MAP=Object.freeze({
@@ -75,10 +76,10 @@ function captureRoomPresentationBaseline(run,id,type){
   };
 }
 function enterNode(run,id){
-  if(run.floor>=2){const error=new Error('Floor 2 전투 콘텐츠는 CONTENT-002에서 열립니다.');error.code='CONTENT_NOT_IMPLEMENTED';throw error;}
-  const type=nodeType(run,id);captureRoomPresentationBaseline(run,id,type);run.currentRoomNodeId=id;run.phase='ROOM_ENTER';
+  const type=nodeType(run,id);
+  if(run.floor>=3&&['NORMAL_COMBAT','ELITE_COMBAT','BOSS'].includes(type)){const error=new Error('Floor 3 전투 콘텐츠는 CONTENT-003에서 열립니다.');error.code='CONTENT_NOT_IMPLEMENTED';throw error;}captureRoomPresentationBaseline(run,id,type);run.currentRoomNodeId=id;run.phase='ROOM_ENTER';
   if(type==='NORMAL_COMBAT'||type==='ELITE_COMBAT'||type==='BOSS'){
-    const monster=selectF1Monster(run,type);markF1MonsterUsed(run,monster);
+    const monster=run.floor===2?selectF2Monster(run,type):selectF1Monster(run,type);markF1MonsterUsed(run,monster);
     run.phase='COMBAT';run.combat=newCombatState(run.players,monster.baseHp,type,monster);
     run.combat.privateByPlayer=Object.fromEntries(run.players.map(player=>[player.playerId,restoreCardCycle(run,player)]));
     beginTurn(run);
@@ -89,7 +90,7 @@ function enterNode(run,id){
   else if(type==='EVENT')enterEventRoom(run);
 }
 function enterForcedNode(run){
-  if(run.phase!=='MAP_VOTE'||run.floor>=2||connectedNodeIds(run.map).length!==1)return false;
+  if(run.phase!=='MAP_VOTE'||run.floor>=3||connectedNodeIds(run.map).length!==1)return false;
   enterNode(run,resolveVote(run,[]));
   return true;
 }
@@ -107,7 +108,7 @@ async function maintainForRead(admin,run){
   if(run.entryLoading)return run;
   let changed=enterForcedNode(run);
   if(run.phase==='SHOP')changed=expireShopReservations(run)||changed;
-  if(run.floor===1&&run.phase==='MAP_VOTE'&&run.map?.voteDeadline&&Date.now()>=Date.parse(run.map.voteDeadline)){
+  if(run.floor<=2&&run.phase==='MAP_VOTE'&&run.map?.voteDeadline&&Date.now()>=Date.parse(run.map.voteDeadline)){
     const humans=run.players.filter(p=>p.memberType==='human').map(p=>p.playerId);
     const chosen=resolveVote(run,humans);
     enterNode(run,chosen);
@@ -197,7 +198,7 @@ export async function handlePveAction({admin,user,body,json}){
 
   if(action==='pve.voteNextRoom'){
     if(run.phase!=='MAP_VOTE')return fail(json,'현재는 다음 방 투표 단계가 아닙니다.');
-    if(run.floor>=2)return json({error:'CONTENT_NOT_IMPLEMENTED',message:'Floor 2 방은 CONTENT-002에서 열립니다.',run:projectRun(run,me.playerId)},409);
+    if(run.floor>=3&&body.node_id&&['NORMAL_COMBAT','ELITE_COMBAT','BOSS'].includes(nodeType(run,body.node_id)))return json({error:'CONTENT_NOT_IMPLEMENTED',message:'Floor 3 전투는 CONTENT-003에서 열립니다.',run:projectRun(run,me.playerId)},409);
     if(me.memberType!=='human')return fail(json,'AI는 맵 투표를 하지 않습니다.',403);
     const candidates=connectedNodeIds(run.map);
     const timedOut=run.map.voteDeadline&&Date.now()>=Date.parse(run.map.voteDeadline);
@@ -208,7 +209,7 @@ export async function handlePveAction({admin,user,body,json}){
     const majority=Object.values(counts).some(n=>n>humans.length/2);
     if(!enterForcedNode(run)&&(majority||timedOut)){const chosen=resolveVote(run,humans);enterNode(run,chosen);}
   } else if(action==='pve.continueFloor'){
-    if(run.phase!=='FLOOR_CLEAR'||run.floor!==1)return fail(json,'지금은 다음 층으로 이동할 수 없습니다.');
+    if(run.phase!=='FLOOR_CLEAR'||![1,2].includes(run.floor))return fail(json,'지금은 다음 층으로 이동할 수 없습니다.');
     advanceCompletedFloor(run);
   } else if(action==='pve.activateSkill'){
     if(run.phase!=='COMBAT')return fail(json,'현재 전투 중이 아닙니다.');
