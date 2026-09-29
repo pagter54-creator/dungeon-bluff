@@ -56,6 +56,9 @@ test('C08 Gambler hand is owner-only through reconnect projection and determinis
   assert.equal(handA.length,2);
   const owner=projectRun(a,'p0'),other=projectRun(a,'p1');
   assert.deepEqual(owner.privateCombat.remainingCardIds,handA);
+  assert.equal(owner.players[0].gamblerDeck.handCount,2);
+  assert.equal(other.players[0].gamblerDeck.handCount,2);
+  assert.equal(other.players[0].gamblerDeck.drawComposition.reduce((a,b)=>a+b,0),9);
   assert.equal(other.privateCombat.playerId,'p1');
   assert.equal(JSON.stringify(other).includes('"drawPileIds"'),false);
   assert.equal(JSON.stringify(other).includes('"discardPileIds"'),false);
