@@ -54,9 +54,9 @@ All standard physical card IDs persist across normal cycle resets and card recov
 - Two Knights: each activated Knight card can pass collision; other same-number cards still follow the existing collision result. This matches the competitive Toughness handler.
 - Lobby selection has no uniqueness restriction.
 
-## Remaining contract conflict
+## Resolved contract difference
 
-`AMB-CLASS-BERSERKER-HEAL-CAP`: CONTENT-004 says collision heal may reach the class base maximum HP. The existing base engine caps a non-augmented Berserker at HP 2, and changing that cap altered the immutable T02 golden fingerprint. The change was reverted. The project needs an explicit canonical decision before this class can be called COMPLETE under CONTENT-004. The `aug-131` exception still heals up to max HP.
+`AMB-CLASS-BERSERKER-HEAL-CAP`: CONTENT-004 originally requested collision healing up to class max HP. The existing base engine caps a non-augmented Berserker at HP 2, and raising that cap altered the immutable T02 golden fingerprint. The user explicitly chose to retain the existing fixed rule. Base Berserker healing therefore remains capped at HP 2; the `aug-131` exception still heals up to max HP.
 
 ## Verification scope
 
