@@ -411,7 +411,7 @@ export function resolvePostCollisionEffects(run,cards,groups,events=[],mutationE
       const player=run.players.find(p=>p.playerId===resolved.playerId);
       if(player?.characterId!=='berserker'||player.status==='DOWNED')continue;
       const immortal=player.augments.includes('aug-131');
-      const healCap=immortal?player.maxHp:Math.min(player.maxHp,2);
+      const healCap=player.maxHp;
       const before=player.hp,after=Math.min(healCap,before+1);
       const healed=Math.max(0,after-before);
       player.hp=after;
@@ -574,6 +574,8 @@ export function resolvePostCollisionCharacter(run,resolved,submission,events=[])
       }
     }else if(resolved.invalidReason==='COLLISION'){
       if(!player.augments.includes('aug-291'))player.publicResources.combo=0;
+      player.score=(Number(player.score)||0)-1;
+      events.push({type:'MARTIAL_COLLISION_SCORE_LOST',playerId:player.playerId,amount:1,score:player.score});
     }else if(resolved.valid){
       if(previous!=null&&resolved.finalNumber>previous)player.publicResources.combo=Math.min(resourceMax(player,'combo',3),before+1);
       resolved.martialComboBonus=Math.max(0,Number(player.publicResources.combo)||0);
