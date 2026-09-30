@@ -34,12 +34,13 @@ test('005Q automatic entries quote a real BETA row without changing it',()=>{
   }
 });
 
-test('005Q leaves every user choice open and every atom with one category',()=>{
+test('005Q records user choices and gives every atom one category',()=>{
   assert.equal(queue.entries.length,queue.questionCount);
   assert.equal(queue.decisionCategories.length,16);
   const allCategories=new Set(queue.decisionCategories);
   for(const q of queue.entries){
-    assert.equal(q.selectedOption,null);
+    const choices={Q01:'A',Q02:'A',Q03:'A',Q04:'A',Q05:'A',Q06:'A',Q07:'B',Q08:'B',Q09:'B',Q10:'A'};
+    assert.equal(q.selectedOption,choices[q.decisionId]||null);
     assert.ok(q.options.length>=2);
     assert.ok(q.question&&q.affectedAugments.length);
     assert.equal(new Set(q.atomicDecisionIds).size,q.atomicDecisionIds.length);
@@ -107,4 +108,42 @@ test('005Q question batches and per-batch counts match affected card classes',()
     assert.deepEqual(q.affectedCardsByBatch,counts,q.decisionId);
     assert.deepEqual(q.affectedBatches,Object.keys(counts).sort(),q.decisionId);
   }
+});
+
+test('005Q keeps direction-only cards unresolved and applies six operational policy atoms',()=>{
+  assert.equal(queue.originalAtomicDecisionCount,213);
+  assert.equal(queue.entries.length,23);
+  assert.equal(queue.userSelectionsApplied,10);
+  assert.equal(queue.userResolvedAtomicDecisionCount,6);
+  assert.equal(queue.userDirectionOnlyAtomicDecisionCount,22);
+  assert.equal(queue.remainingAtomicDecisionCount,169);
+  const byId=new Map(contracts.map(row=>[row.augmentId,row]));
+  const direction=queue.entries.slice(0,4);
+  for(const q of direction){
+    assert.equal(q.selectedOption,'A');
+    assert.equal(q.selectionScope,'DIRECTION_ONLY_PENDING_BETA_V0_2');
+    for(const id of q.affectedAugments){
+      const row=byId.get(id);
+      assert.equal(row.status,'SPEC_AMBIGUOUS');
+      assert.equal(row.effect.text,row.sourceBetaValue);
+      assert.equal(row.effect.executable,false);
+      assert.equal(row.effect.executionStatus,'PROVENANCE_ONLY_PENDING_BETA_V0_2');
+      assert.equal(row.decisionOverlay[q.decisionId].selectedOption,'A');
+      assert.ok(row.ambiguities.length);
+    }
+  }
+  const resolved=['aug-030','aug-211','aug-390','aug-201','aug-301'];
+  for(const id of resolved){
+    const row=byId.get(id);
+    assert.equal(row.status,'SPEC_COMPLETE',id);
+    assert.deepEqual(row.ambiguities,[],id);
+    assert.ok(row.userDecisionPolicy,id);
+  }
+  assert.equal(byId.get('aug-030').userDecisionPolicy.relicDuplicatePolicy,'NO_DUPLICATE_GRANT');
+  assert.equal(byId.get('aug-030').userDecisionPolicy.relicFullInventoryPolicy,'GRANT_FAIL_NO_REPLACE_NO_DEFER');
+  assert.equal(byId.get('aug-211').userDecisionPolicy.luckChoiceTiming,'AFTER_REWARD_PRESENTATION_BEFORE_FINAL_CONFIRMATION');
+  assert.equal(byId.get('aug-390').userDecisionPolicy.recoveryTargetSelection,'MOST_RECENT_SPENT_RECOVERABLE_PHYSICAL_CARD');
+  assert.equal(byId.get('aug-201').userDecisionPolicy.downResolveOrder,'AFTER_SAME_RESOLVE_DEFENSE_HEAL_PROTECTION');
+  assert.equal(byId.get('aug-301').userDecisionPolicy.dominanceConsumeGainOrder,'CONSUME_PREEXISTING_THEN_GAIN_NEW_IN_RESOLUTION');
+  assert.deepEqual(queue.statusAfterUserSelections,{SPEC_COMPLETE:27,SPEC_PARTIAL:195,SPEC_AMBIGUOUS:168});
 });
