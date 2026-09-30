@@ -104,7 +104,9 @@
         }
       },
       "visibility": "PUBLIC",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "OVERRIDE_BASE_RULE"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -116,11 +118,10 @@
       "highRiskGuard": null,
       "highRiskTest": null,
       "ambiguities": [
-        "AMB-AUG-aug-272-CONDITION",
-        "AMB-AUG-aug-272-PRIMITIVE"
+        "AMB-AUG-aug-272-CONDITION"
       ],
-      "completionScore": 0.82,
-      "resolvedFields": 9,
+      "completionScore": 0.91,
+      "resolvedFields": 10,
       "status": "SPEC_AMBIGUOUS",
       "reviewStatus": "AUTO_CLASSIFIED"
     },
@@ -604,7 +605,9 @@
         }
       },
       "visibility": "PUBLIC",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "OVERRIDE_BASE_RULE"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -616,11 +619,10 @@
       "highRiskGuard": null,
       "highRiskTest": null,
       "ambiguities": [
-        "AMB-AUG-aug-280-TRIGGER",
-        "AMB-AUG-aug-280-PRIMITIVE"
+        "AMB-AUG-aug-280-TRIGGER"
       ],
-      "completionScore": 0.82,
-      "resolvedFields": 9,
+      "completionScore": 0.91,
+      "resolvedFields": 10,
       "status": "SPEC_PARTIAL",
       "reviewStatus": "AUTO_CLASSIFIED"
     },
@@ -1367,7 +1369,9 @@
         }
       },
       "visibility": "PUBLIC",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "MODIFY_RESOURCE_CAP"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -1380,11 +1384,10 @@
       "highRiskTest": null,
       "ambiguities": [
         "AMB-AUG-aug-292-TRIGGER",
-        "AMB-AUG-aug-292-CONDITION",
-        "AMB-AUG-aug-292-PRIMITIVE"
+        "AMB-AUG-aug-292-CONDITION"
       ],
-      "completionScore": 0.73,
-      "resolvedFields": 8,
+      "completionScore": 0.82,
+      "resolvedFields": 9,
       "status": "SPEC_AMBIGUOUS",
       "reviewStatus": "AUTO_CLASSIFIED"
     },
@@ -1429,7 +1432,9 @@
         }
       },
       "visibility": "PUBLIC",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "OVERRIDE_BASE_RULE"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -1440,11 +1445,9 @@
       "highRisk": false,
       "highRiskGuard": null,
       "highRiskTest": null,
-      "ambiguities": [
-        "AMB-AUG-aug-293-PRIMITIVE"
-      ],
-      "completionScore": 0.91,
-      "resolvedFields": 10,
+      "ambiguities": [],
+      "completionScore": 1,
+      "resolvedFields": 11,
       "status": "SPEC_PARTIAL",
       "reviewStatus": "AUTO_CLASSIFIED"
     },
@@ -1796,7 +1799,9 @@
         }
       },
       "visibility": "PUBLIC",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "OVERRIDE_BASE_RULE"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -1807,11 +1812,9 @@
       "highRisk": false,
       "highRiskGuard": null,
       "highRiskTest": null,
-      "ambiguities": [
-        "AMB-AUG-aug-299-PRIMITIVE"
-      ],
-      "completionScore": 0.91,
-      "resolvedFields": 10,
+      "ambiguities": [],
+      "completionScore": 1,
+      "resolvedFields": 11,
       "status": "SPEC_PARTIAL",
       "reviewStatus": "AUTO_CLASSIFIED"
     },
@@ -2052,7 +2055,9 @@
         }
       },
       "visibility": "SERVER_ONLY",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "MODIFY_COOLDOWN"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -2063,11 +2068,9 @@
       "highRisk": false,
       "highRiskGuard": null,
       "highRiskTest": null,
-      "ambiguities": [
-        "AMB-AUG-aug-303-PRIMITIVE"
-      ],
-      "completionScore": 0.91,
-      "resolvedFields": 10,
+      "ambiguities": [],
+      "completionScore": 1,
+      "resolvedFields": 11,
       "status": "SPEC_PARTIAL",
       "reviewStatus": "AUTO_CLASSIFIED"
     },
@@ -2617,7 +2620,9 @@
         }
       },
       "visibility": "SERVER_ONLY",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "GAIN_RESOURCE"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -2628,11 +2633,9 @@
       "highRisk": false,
       "highRiskGuard": null,
       "highRiskTest": null,
-      "ambiguities": [
-        "AMB-AUG-aug-312-PRIMITIVE"
-      ],
-      "completionScore": 0.91,
-      "resolvedFields": 10,
+      "ambiguities": [],
+      "completionScore": 1,
+      "resolvedFields": 11,
       "status": "SPEC_PARTIAL",
       "reviewStatus": "AUTO_CLASSIFIED"
     },
@@ -2990,7 +2993,9 @@
         }
       },
       "visibility": "SERVER_ONLY",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "OVERRIDE_BASE_RULE"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -3001,11 +3006,9 @@
       "highRisk": false,
       "highRiskGuard": null,
       "highRiskTest": null,
-      "ambiguities": [
-        "AMB-AUG-aug-318-PRIMITIVE"
-      ],
-      "completionScore": 0.91,
-      "resolvedFields": 10,
+      "ambiguities": [],
+      "completionScore": 1,
+      "resolvedFields": 11,
       "status": "SPEC_PARTIAL",
       "reviewStatus": "AUTO_CLASSIFIED"
     },
@@ -3366,7 +3369,9 @@
         }
       },
       "visibility": "PUBLIC",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "MODIFY_RESOURCE_CAP"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -3379,11 +3384,10 @@
       "highRiskTest": null,
       "ambiguities": [
         "AMB-AUG-aug-324-TRIGGER",
-        "AMB-AUG-aug-324-CONDITION",
-        "AMB-AUG-aug-324-PRIMITIVE"
+        "AMB-AUG-aug-324-CONDITION"
       ],
-      "completionScore": 0.73,
-      "resolvedFields": 8,
+      "completionScore": 0.82,
+      "resolvedFields": 9,
       "status": "SPEC_AMBIGUOUS",
       "reviewStatus": "AUTO_CLASSIFIED"
     },
@@ -3615,7 +3619,10 @@
         }
       },
       "visibility": "PUBLIC",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "MODIFY_RESOURCE_CAP",
+        "MODIFY_RESOURCE_COST"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -3628,11 +3635,10 @@
       "highRiskTest": null,
       "ambiguities": [
         "AMB-AUG-aug-328-TRIGGER",
-        "AMB-AUG-aug-328-CONDITION",
-        "AMB-AUG-aug-328-PRIMITIVE"
+        "AMB-AUG-aug-328-CONDITION"
       ],
-      "completionScore": 0.73,
-      "resolvedFields": 8,
+      "completionScore": 0.82,
+      "resolvedFields": 9,
       "status": "SPEC_AMBIGUOUS",
       "reviewStatus": "AUTO_CLASSIFIED"
     },
@@ -5622,8 +5628,7 @@
       "visibility": "PUBLIC",
       "requiredPrimitive": [
         "ADD_DAMAGE",
-        "MODIFY_DEVOUR",
-        "DELAY_EFFECT"
+        "MODIFY_DEVOUR"
       ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
@@ -5680,7 +5685,9 @@
         }
       },
       "visibility": "SERVER_ONLY",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "ADD_DAMAGE"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -5692,11 +5699,10 @@
       "highRiskGuard": null,
       "highRiskTest": null,
       "ambiguities": [
-        "AMB-AUG-aug-361-CONDITION",
-        "AMB-AUG-aug-361-PRIMITIVE"
+        "AMB-AUG-aug-361-CONDITION"
       ],
-      "completionScore": 0.82,
-      "resolvedFields": 9,
+      "completionScore": 0.91,
+      "resolvedFields": 10,
       "status": "SPEC_AMBIGUOUS",
       "reviewStatus": "AUTO_CLASSIFIED"
     },
@@ -5802,7 +5808,9 @@
         }
       },
       "visibility": "SERVER_ONLY",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "OVERRIDE_BASE_RULE"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -5814,11 +5822,10 @@
       "highRiskGuard": null,
       "highRiskTest": null,
       "ambiguities": [
-        "AMB-AUG-aug-363-CONDITION",
-        "AMB-AUG-aug-363-PRIMITIVE"
+        "AMB-AUG-aug-363-CONDITION"
       ],
-      "completionScore": 0.82,
-      "resolvedFields": 9,
+      "completionScore": 0.91,
+      "resolvedFields": 10,
       "status": "SPEC_AMBIGUOUS",
       "reviewStatus": "AUTO_CLASSIFIED",
       "roomComponentNote": "Only shared number/collision/card-recovery component applies in Event and Reward; monster damage remains Combat-only."
