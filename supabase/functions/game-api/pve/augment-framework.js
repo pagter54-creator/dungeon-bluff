@@ -9,7 +9,7 @@ export const DEFAULT_STACK_CAP=3;
 const alias={PRE_COLLISION_SELF_MODIFY:'PRE_COLLISION',CARD_VALIDATED:'ON_VALID',BEFORE_DAMAGE:'PRE_DAMAGE',AFTER_DAMAGE:'POST_DAMAGE',BEFORE_PLAYER_DAMAGE:'ON_DAMAGE_TAKEN',PLAYER_DOWNED:'ON_DOWN',MONSTER_KILLED:'ON_KILL',CYCLE_END:'ON_CYCLE_RESET'};
 const unsupported=()=>{const error=new Error('UNSUPPORTED_AUGMENT_EFFECT');error.code='UNSUPPORTED_AUGMENT_EFFECT';throw error;};
 const integer=(x)=>Number.isSafeInteger(Number(x))&&Number(x)>=0?Number(x):null;
-const state=run=>(run.augmentFramework||={once:{},statuses:[],delayed:[],grants:{},acquired:{},temporary:[],telemetry:[],sequence:0});
+const state=run=>(run.augmentFramework||={once:{},statuses:[],delayed:[],grants:{},acquired:{},temporary:[],telemetry:[],recoveryCounts:{},sequence:0});
 const roomType=run=>run.phase==='COMBAT'?'COMBAT':run.phase==='REWARD_ROOM'?'REWARD':run.phase==='EVENT'?'EVENT':run.phase==='SHOP'?'SHOP':run.phase==='REST'?'REST':run.roomState?.type==='REWARD_ROOM'?'REWARD':null;
 const roomId=run=>run.currentRoomNodeId||run.combat?.id||run.roomState?.id||null;
 const cycleId=(run,player,ctx)=>ctx.privateState?.cycleIndex??run.combat?.privateByPlayer?.[player.playerId]?.cycleIndex??run.roomState?.privateByPlayer?.[player.playerId]?.cycleIndex??run.cardCycles?.[player.playerId]?.cycleIndex??null;
@@ -64,9 +64,12 @@ function applyStatus(run,player,op){
 export function recoverPhysicalCard(run,player,cardInstanceId,ctx={}){
   const priv=ctx.privateState||run.combat?.privateByPlayer?.[player.playerId]||run.roomState?.privateByPlayer?.[player.playerId];
   if(!priv||!player.cardPool?.some(card=>card.id===cardInstanceId)||!priv.spentCardIds?.includes(cardInstanceId)||priv.remainingCardIds?.includes(cardInstanceId)||priv.selectedCardId===cardInstanceId||run.combat?.turnSubmissions?.[player.playerId]?.cardInstanceId===cardInstanceId||run.roomState?.turnSubmissions?.[player.playerId]?.cardInstanceId===cardInstanceId)return {applied:false,reason:'CARD_NOT_RECOVERABLE'};
-  const depth=integer(ctx.chainDepth??0),ceiling=integer(ctx.recoveryCeiling??8);
+  const depth=integer(ctx.chainDepth??0),ceiling=integer(ctx.recoveryCeiling??4);
   if(depth==null||ceiling==null||depth>=ceiling)return {applied:false,reason:'RECOVERY_CHAIN_CEILING',telemetry:{chainDepth:depth}};
   const envelope=ctx.envelope||makeAugmentEnvelope(run,player,'ON_RECOVER_CARD',ctx);
+  const counts=state(run).recoveryCounts||={};
+  if((counts[envelope.rootActionId]||0)>=24)return {applied:false,reason:'ACTION_CHAIN_CEILING',telemetry:{rootActionId:envelope.rootActionId}};
+  counts[envelope.rootActionId]=(counts[envelope.rootActionId]||0)+1;
   priv.spentCardIds=priv.spentCardIds.filter(id=>id!==cardInstanceId);priv.remainingCardIds.push(cardInstanceId);
   return {applied:true,cardInstanceId,rootActionId:envelope.rootActionId,recoveryChainId:ctx.recoveryChainId||envelope.rootActionId+':recovery',parentEventId:envelope.eventId,chainDepth:depth+1};
 }
