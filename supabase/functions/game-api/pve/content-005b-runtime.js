@@ -1,7 +1,6 @@
 import {resourceMax} from './resources.js';
 import {grantAugmentExp,upsertAugmentStatus} from './augment-framework.js';
 
-const IDS=new Set(['aug-002','aug-003','aug-004','aug-015','aug-016','aug-062','aug-084','aug-088','aug-095','aug-122','aug-125','aug-133','aug-142']);
 const category=n=>n<=2?'LOW':n===3?'UTILITY':'WEAPON';
 const framework=run=>run.augmentFramework||={once:{},statuses:[],delayed:[],grants:{},acquired:{},temporary:[],telemetry:[],recoveryCounts:{},sequence:0};
 function cardState(run,player,id){
@@ -114,4 +113,3 @@ export function applyContent005B(run,trigger,ctx={}){
   for(const id of candidates)if(owned.has(id)&&runRule(run,id,trigger,ctx))fired.push({augmentId:id,trigger});
   return fired;
 }
-export function content005BImplemented(id){return IDS.has(id);}
