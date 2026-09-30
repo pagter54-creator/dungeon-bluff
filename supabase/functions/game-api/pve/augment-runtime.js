@@ -32,6 +32,9 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
       }
     ]
   },
+  'aug-002':{executable:true,source:'BETA_v0.1',tooltip:'최대 HP가 1 증가하고 획득 시 HP를 1 회복합니다.',specialHandlers:['CONTENT_005B'],effects:[]},
+  'aug-003':{executable:true,source:'BETA_v0.2',tooltip:"전투에서 유효 공격을 2회 연속 성공한 뒤, 3번째부터 연속 성공 공격의 피해가 1 증가합니다. 자신의 공격이 무효가 되면 기록이 초기화됩니다.",specialHandlers:['CONTENT_005B'],effects:[]},
+  'aug-004':{executable:true,source:'BETA_v0.2',tooltip:"전투에서 첫 충돌 후 다음 유효 공격에 성공하면 성장 EXP 1을 추가로 얻습니다. 전투당 1회입니다.",specialHandlers:['CONTENT_005B'],effects:[]},
   'aug-031':{
     executable:true,
     source:'BETA_v0.1',
