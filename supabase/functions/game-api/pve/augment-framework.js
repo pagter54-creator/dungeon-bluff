@@ -6,7 +6,7 @@ export const RESET_SCOPES=Object.freeze(['TURN','CYCLE','COMBAT','ROOM','FLOOR',
 export const VISIBILITIES=Object.freeze(['PUBLIC','OWNER_PRIVATE','SERVER_ONLY']);
 export const ROOM_TYPES=Object.freeze(['COMBAT','EVENT','REWARD','SHOP','REST']);
 export const DEFAULT_STACK_CAP=3;
-const alias={PRE_COLLISION_SELF_MODIFY:'PRE_COLLISION',CARD_VALIDATED:'ON_VALID',BEFORE_DAMAGE:'PRE_DAMAGE',AFTER_DAMAGE:'POST_DAMAGE',BEFORE_PLAYER_DAMAGE:'ON_DAMAGE_TAKEN',PLAYER_DOWNED:'ON_DOWN',MONSTER_KILLED:'ON_KILL',CYCLE_END:'ON_CYCLE_RESET'};
+const alias={PRE_COLLISION_SELF_MODIFY:'PRE_COLLISION',CARD_VALIDATED:'ON_VALID',BEFORE_DAMAGE:'PRE_DAMAGE',AFTER_DAMAGE:'POST_DAMAGE',PLAYER_DAMAGED:'ON_DAMAGE_TAKEN',PLAYER_DOWNED:'ON_DOWN',MONSTER_KILLED:'ON_KILL',CYCLE_END:'ON_CYCLE_RESET'};
 const unsupported=()=>{const error=new Error('UNSUPPORTED_AUGMENT_EFFECT');error.code='UNSUPPORTED_AUGMENT_EFFECT';throw error;};
 const integer=(x)=>Number.isSafeInteger(Number(x))&&Number(x)>=0?Number(x):null;
 const state=run=>(run.augmentFramework||={once:{},statuses:[],delayed:[],grants:{},acquired:{},temporary:[],telemetry:[],recoveryCounts:{},sequence:0});
@@ -140,6 +140,11 @@ export function getEffectiveRule(base,modifiers=[],key){
   }return value;
 }
 export const CLASS_ADAPTERS=Object.freeze({gambler:['DRAW_CARD','MOVE_CARD_ZONE','VANISH_CARD','RETURN_TO_DECK','SHUFFLE_DETERMINISTIC'],gunner:['magazine','fullBurst','overheat','cooldown'],demon_swordsman:['devour','ghostSlash','transformation'],vampire:['thrall','blood','transfusion'],imp:['PRE_COLLISION_STEAL','mischief'],twins:['parity','acrobatics','recharge'],martial_artist:['combo','finisher']});
+export function resolveClassAugmentHook(run,player,hook,base){
+  if(!CLASS_ADAPTERS[player.characterId]?.includes(hook))unsupported();
+  const modifiers=(state(run).temporary||[]).filter(mod=>mod.ownerId===player.playerId);
+  return getEffectiveRule(base,modifiers,hook);
+}
 function grant(run,player,op,envelope){
   const s=state(run),id=op.applicationId||envelope.rootActionId+':'+op.type+':'+(op.sourceAugmentId||'fixture');
   if(s.grants[id])return {applied:false,reason:'DUPLICATE_GRANT'};
@@ -163,7 +168,12 @@ function operate(run,player,op,ctx,envelope){
   if(['MOVE_CARD_ZONE','VANISH_CARD','RETURN_TO_DECK'].includes(op.type))return movePhysicalCard(player,op.cardInstanceId,op.from,op.to,ctx);
   if(op.type==='SHUFFLE_DETERMINISTIC'){const z=zones(player,ctx)?.[op.zone];if(!z)unsupported();for(let i=z.length-1;i>0;i--){const j=choose(run,Array.from({length:i+1},(_,n)=>n),'augment-shuffle:'+player.playerId+':'+i);[z[i],z[j]]=[z[j],z[i]];}return {applied:true};}
   if(['ADD_DAMAGE','SET_DAMAGE','MULTIPLY_DAMAGE','EXTRA_DAMAGE_COMPONENT'].includes(op.type))return applyDamageOperation(ctx.damage,op,roomType(run));
-  if(op.type==='HEAL'||op.type==='SELF_DAMAGE')return applyVitalOperation(op.targetId?run.players.find(p=>p.playerId===op.targetId):player,op);
+  if(op.type==='HEAL'||op.type==='SELF_DAMAGE'){
+    const target=op.targetId?run.players.find(p=>p.playerId===op.targetId):player;if(!target)unsupported();
+    const result=applyVitalOperation(target,op);
+    if(result.actualAmount>0)dispatchAugmentTrigger(run,op.type==='HEAL'?'ON_HEAL':'ON_DAMAGE_TAKEN',{player:target,rootActionId:envelope.rootActionId,parentEventId:envelope.eventId,amount:result.actualAmount,damageType:op.damageType||'SELF'});
+    return result;
+  }
   if(op.type==='SCHEDULE_EFFECT')return {applied:true,delayed:scheduleDelayed(run,op,envelope)};
   if(op.type==='RULE_MODIFIER'){state(run).temporary.push({...op,ownerId:player.playerId,augmentId:envelope.sourceId});return {applied:true};}
   if(['ADD_RUN_GOLD','ADD_EXP','GRANT_RELIC'].includes(op.type))return grant(run,player,op,envelope);
