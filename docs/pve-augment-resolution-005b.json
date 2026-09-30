@@ -1878,16 +1878,31 @@
       "highRisk": true,
       "highRiskGuard": "Persist once-run relic opportunity key; defer duplicate/full inventory choice",
       "highRiskTest": "Three discoveries then boss victory, replay, inventory and duplicate relic outcomes",
-      "ambiguities": [
-        "AMB-AUG-aug-030-RELIC_DUPLICATE_POLICY",
-        "AMB-AUG-aug-030-RELIC_FULL_INVENTORY"
-      ],
+      "ambiguities": [],
       "completionScore": 1,
       "resolvedFields": 11,
-      "status": "SPEC_AMBIGUOUS",
+      "status": "SPEC_COMPLETE",
       "manualReviewed": true,
       "roomComponentNote": "Boss-clear condition occurs at combat end; additional relic opportunity resolves through reward grant.",
-      "reviewStatus": "MANUAL_REVIEWED"
+      "reviewStatus": "MANUAL_REVIEWED",
+      "decisionOverlay": {
+        "Q05": {
+          "selectedOption": "A",
+          "meaning": "동일 relic 중복 지급 금지.",
+          "scope": "OPERATIONAL_POLICY",
+          "source": "USER_005Q_SELECTION"
+        },
+        "Q06": {
+          "selectedOption": "A",
+          "meaning": "relic inventory limit에 걸리면 지급 실패. 교체·이월 없음.",
+          "scope": "OPERATIONAL_POLICY",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "userDecisionPolicy": {
+        "relicDuplicatePolicy": "NO_DUPLICATE_GRANT",
+        "relicFullInventoryPolicy": "GRANT_FAIL_NO_REPLACE_NO_DEFER"
+      }
     },
     {
       "augmentId": "aug-031",
@@ -3010,7 +3025,10 @@
       },
       "effect": {
         "sourceField": "betaValue",
-        "text": "조건 달성 시 추가 피해 +3."
+        "text": "조건 달성 시 추가 피해 +3.",
+        "executionStatus": "PROVENANCE_ONLY_PENDING_BETA_V0_2",
+        "executable": false,
+        "pendingRevision": "BETA_V0_2"
       },
       "limit": "턴당 1회; 누적형은 최대 3스택.",
       "cap": {
@@ -3062,7 +3080,16 @@
       "completionScore": 1,
       "resolvedFields": 11,
       "status": "SPEC_AMBIGUOUS",
-      "reviewStatus": "AUTO_CLASSIFIED"
+      "reviewStatus": "AUTO_CLASSIFIED",
+      "decisionOverlay": {
+        "Q02": {
+          "selectedOption": "A",
+          "meaning": "원본의 보호 표식·정밀 조준 손실 완화 의미 유지. 충돌하는 BETA 수치는 대체 효과로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+          "scope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "designDirection": "PRESERVE_CANONICAL_DESCRIPTION"
     },
     {
       "augmentId": "aug-050",
@@ -3201,7 +3228,10 @@
       },
       "effect": {
         "sourceField": "betaValue",
-        "text": "다음 직접 피해 1 감소."
+        "text": "다음 직접 피해 1 감소.",
+        "executionStatus": "PROVENANCE_ONLY_PENDING_BETA_V0_2",
+        "executable": false,
+        "pendingRevision": "BETA_V0_2"
       },
       "limit": "중첩 불가; 큰 보호 효과는 전투당 1회.",
       "cap": null,
@@ -3251,7 +3281,16 @@
       "completionScore": 1,
       "resolvedFields": 11,
       "status": "SPEC_AMBIGUOUS",
-      "reviewStatus": "AUTO_CLASSIFIED"
+      "reviewStatus": "AUTO_CLASSIFIED",
+      "decisionOverlay": {
+        "Q01": {
+          "selectedOption": "A",
+          "meaning": "원본의 적 방어 관통/약화 의미 유지. 충돌하는 BETA 자기 피해 감소 수치는 대체 효과로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+          "scope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "designDirection": "PRESERVE_CANONICAL_DESCRIPTION"
     },
     {
       "augmentId": "aug-053",
@@ -6486,7 +6525,10 @@
       },
       "effect": {
         "sourceField": "betaValue",
-        "text": "해당 회복 효과는 HP 1 회복."
+        "text": "해당 회복 효과는 HP 1 회복.",
+        "executionStatus": "PROVENANCE_ONLY_PENDING_BETA_V0_2",
+        "executable": false,
+        "pendingRevision": "BETA_V0_2"
       },
       "limit": "전투당 기본 1회; 전용 힐러 계통만 카드 설명의 별도 제한 적용.",
       "cap": {
@@ -6538,7 +6580,16 @@
       "completionScore": 1,
       "resolvedFields": 11,
       "status": "SPEC_AMBIGUOUS",
-      "reviewStatus": "AUTO_CLASSIFIED"
+      "reviewStatus": "AUTO_CLASSIFIED",
+      "decisionOverlay": {
+        "Q03": {
+          "selectedOption": "A",
+          "meaning": "원본의 회복 연계 효과 의미 유지. 충돌하는 BETA HP 1 회복은 효과 대체안으로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+          "scope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "designDirection": "PRESERVE_CANONICAL_DESCRIPTION"
     },
     {
       "augmentId": "aug-105",
@@ -7236,7 +7287,10 @@
       },
       "effect": {
         "sourceField": "betaValue",
-        "text": "해당 회복 효과는 HP 1 회복."
+        "text": "해당 회복 효과는 HP 1 회복.",
+        "executionStatus": "PROVENANCE_ONLY_PENDING_BETA_V0_2",
+        "executable": false,
+        "pendingRevision": "BETA_V0_2"
       },
       "limit": "전투당 기본 1회; 전용 힐러 계통만 카드 설명의 별도 제한 적용.",
       "cap": {
@@ -7288,7 +7342,16 @@
       "completionScore": 1,
       "resolvedFields": 11,
       "status": "SPEC_AMBIGUOUS",
-      "reviewStatus": "AUTO_CLASSIFIED"
+      "reviewStatus": "AUTO_CLASSIFIED",
+      "decisionOverlay": {
+        "Q03": {
+          "selectedOption": "A",
+          "meaning": "원본의 회복 연계 효과 의미 유지. 충돌하는 BETA HP 1 회복은 효과 대체안으로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+          "scope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "designDirection": "PRESERVE_CANONICAL_DESCRIPTION"
     },
     {
       "augmentId": "aug-117",
@@ -7741,7 +7804,10 @@
       },
       "effect": {
         "sourceField": "betaValue",
-        "text": "해당 회복 효과는 HP 1 회복."
+        "text": "해당 회복 효과는 HP 1 회복.",
+        "executionStatus": "PROVENANCE_ONLY_PENDING_BETA_V0_2",
+        "executable": false,
+        "pendingRevision": "BETA_V0_2"
       },
       "limit": "전투당 기본 1회; 전용 힐러 계통만 카드 설명의 별도 제한 적용.",
       "cap": {
@@ -7793,7 +7859,16 @@
       "completionScore": 1,
       "resolvedFields": 11,
       "status": "SPEC_AMBIGUOUS",
-      "reviewStatus": "AUTO_CLASSIFIED"
+      "reviewStatus": "AUTO_CLASSIFIED",
+      "decisionOverlay": {
+        "Q03": {
+          "selectedOption": "A",
+          "meaning": "원본의 회복 연계 효과 의미 유지. 충돌하는 BETA HP 1 회복은 효과 대체안으로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+          "scope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "designDirection": "PRESERVE_CANONICAL_DESCRIPTION"
     },
     {
       "augmentId": "aug-125",
@@ -8055,7 +8130,10 @@
       "condition": null,
       "effect": {
         "sourceField": "betaValue",
-        "text": "해당 회복 효과는 HP 1 회복."
+        "text": "해당 회복 효과는 HP 1 회복.",
+        "executionStatus": "PROVENANCE_ONLY_PENDING_BETA_V0_2",
+        "executable": false,
+        "pendingRevision": "BETA_V0_2"
       },
       "limit": "전투당 기본 1회; 전용 힐러 계통만 카드 설명의 별도 제한 적용.",
       "cap": {
@@ -8108,7 +8186,16 @@
       "completionScore": 0.91,
       "resolvedFields": 10,
       "status": "SPEC_AMBIGUOUS",
-      "reviewStatus": "AUTO_CLASSIFIED"
+      "reviewStatus": "AUTO_CLASSIFIED",
+      "decisionOverlay": {
+        "Q03": {
+          "selectedOption": "A",
+          "meaning": "원본의 회복 연계 효과 의미 유지. 충돌하는 BETA HP 1 회복은 효과 대체안으로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+          "scope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "designDirection": "PRESERVE_CANONICAL_DESCRIPTION"
     },
     {
       "augmentId": "aug-130",
@@ -8685,7 +8772,10 @@
       },
       "effect": {
         "sourceField": "betaValue",
-        "text": "해당 회복 효과는 HP 1 회복."
+        "text": "해당 회복 효과는 HP 1 회복.",
+        "executionStatus": "PROVENANCE_ONLY_PENDING_BETA_V0_2",
+        "executable": false,
+        "pendingRevision": "BETA_V0_2"
       },
       "limit": "전투당 기본 1회; 전용 힐러 계통만 카드 설명의 별도 제한 적용.",
       "cap": {
@@ -8737,7 +8827,16 @@
       "completionScore": 1,
       "resolvedFields": 11,
       "status": "SPEC_AMBIGUOUS",
-      "reviewStatus": "AUTO_CLASSIFIED"
+      "reviewStatus": "AUTO_CLASSIFIED",
+      "decisionOverlay": {
+        "Q03": {
+          "selectedOption": "A",
+          "meaning": "원본의 회복 연계 효과 의미 유지. 충돌하는 BETA HP 1 회복은 효과 대체안으로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+          "scope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "designDirection": "PRESERVE_CANONICAL_DESCRIPTION"
     },
     {
       "augmentId": "aug-140",
@@ -9125,7 +9224,10 @@
       "condition": null,
       "effect": {
         "sourceField": "betaValue",
-        "text": "해당 회복 효과는 HP 1 회복."
+        "text": "해당 회복 효과는 HP 1 회복.",
+        "executionStatus": "PROVENANCE_ONLY_PENDING_BETA_V0_2",
+        "executable": false,
+        "pendingRevision": "BETA_V0_2"
       },
       "limit": "전투당 기본 1회; 전용 힐러 계통만 카드 설명의 별도 제한 적용.",
       "cap": {
@@ -9178,7 +9280,16 @@
       "completionScore": 0.91,
       "resolvedFields": 10,
       "status": "SPEC_AMBIGUOUS",
-      "reviewStatus": "AUTO_CLASSIFIED"
+      "reviewStatus": "AUTO_CLASSIFIED",
+      "decisionOverlay": {
+        "Q03": {
+          "selectedOption": "A",
+          "meaning": "원본의 회복 연계 효과 의미 유지. 충돌하는 BETA HP 1 회복은 효과 대체안으로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+          "scope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "designDirection": "PRESERVE_CANONICAL_DESCRIPTION"
     },
     {
       "augmentId": "aug-147",
