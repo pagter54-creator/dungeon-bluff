@@ -4,6 +4,7 @@ import {restoreCardCycle,persistCardCycles} from './card-cycle.js';
 import {drawGamblerHand,settleGamblerHand} from './gambler.js';
 import {initializeNumberHistories,recordSelfModification,applyPreCollisionSwap,applyPreCollisionSteal,finalizeNumbers,attachCollisionGroups,attachValidity,assignVampireThralls,validateNumberMutationState} from './number-mutation.js';
 import {applyOwnedEffects} from './effects.js';
+import {cleanupAugmentScope} from './augment-framework.js';
 import {relicPool} from './relics.js';
 import {clearCombatResourcesForPlayers} from './resources.js';
 
@@ -14,6 +15,8 @@ const humanIds=run=>run.players.filter(p=>p.memberType==='human').map(p=>p.playe
 const allIds=run=>run.players.map(p=>p.playerId);
 
 function finishRoom(run){
+  for(const player of run.players)applyOwnedEffects(run,'ROOM_END',{player});
+  cleanupAugmentScope(run,'ROOM');
   clearCombatResourcesForPlayers(run.players);
   run.phase='ROOM_RESULT';
   run.roomResult={roomNodeId:run.currentRoomNodeId,readyPlayerIds:run.players.filter(p=>p.memberType==='ai').map(p=>p.playerId)};
@@ -22,6 +25,7 @@ function resetRoomCycle(run,player,state){
   if(state.remainingCardIds.length)return false;
   if(player.characterId==='gambler'){drawGamblerHand(run,player,state);return true;}
   applyOwnedEffects(run,'CYCLE_END',{player,privateState:state,events:[]});
+  cleanupAugmentScope(run,'CYCLE');
   state.cycleIndex=(state.cycleIndex||1)+1;
   state.spentCardIds=[];
   state.remainingCardIds=player.cardPool.map(c=>c.id);
