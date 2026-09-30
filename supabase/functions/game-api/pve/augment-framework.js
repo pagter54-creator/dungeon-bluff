@@ -41,7 +41,7 @@ export function roomAllowed(def,room){
   return value===true||value?.value===true||(!def.roomApplicability&&room==='COMBAT');
 }
 export function validateFrameworkEffect(def){
-  if(!def||!def.augmentId||!AUGMENT_TRIGGERS.includes(def.trigger)||!ONCE_SCOPES.includes(def.onceScope||'NONE')||!RESET_SCOPES.includes(def.resetScope||'RUN')||!VISIBILITIES.includes(def.visibility||'SERVER_ONLY')||!Array.isArray(def.operations))unsupported();
+  if(!def||!def.augmentId||!AUGMENT_TRIGGERS.includes(def.trigger)||!ONCE_SCOPES.includes(def.onceScope||'NONE')||!RESET_SCOPES.includes(def.resetScope||'RUN')||!VISIBILITIES.includes(def.visibility||'SERVER_ONLY')||!Array.isArray(def.operations)||typeof def.condition==='function')unsupported();
   if(def.contractStatus==='SPEC_AMBIGUOUS'||def.status==='SPEC_AMBIGUOUS'||def.executable===false)unsupported();
   for(const op of def.operations)if(!SUPPORTED_OPERATIONS.has(op.type))unsupported();
   return def;
@@ -49,9 +49,9 @@ export function validateFrameworkEffect(def){
 const SUPPORTED_OPERATIONS=new Set(['APPLY_STATUS','ADD_STACK','SET_STACK','CONSUME_STACK','REMOVE_STATUS','RECOVER_CARD','DRAW_CARD','MOVE_CARD_ZONE','VANISH_CARD','RETURN_TO_DECK','SHUFFLE_DETERMINISTIC','ADD_DAMAGE','SET_DAMAGE','MULTIPLY_DAMAGE','EXTRA_DAMAGE_COMPONENT','HEAL','SELF_DAMAGE','SCHEDULE_EFFECT','RULE_MODIFIER','ADD_RUN_GOLD','ADD_EXP','GRANT_RELIC']);
 function status(run,op,player){return state(run).statuses.find(x=>x.statusId===op.statusId&&x.targetId===(op.targetId||player.playerId));}
 function applyStatus(run,player,op){
-  const s=state(run),targetId=op.targetId||player.playerId,existing=status(run,op,player),cap=op.cap??(op.useDefaultCap?DEFAULT_STACK_CAP:null);
-  if(cap==null||integer(cap)==null||!RESET_SCOPES.includes(op.resetScope||'COMBAT'))unsupported();
+  const s=state(run),targetId=op.targetId||player.playerId,existing=status(run,op,player),cap=op.cap??existing?.cap??(op.useDefaultCap?DEFAULT_STACK_CAP:null);
   if(op.type==='REMOVE_STATUS'){s.statuses=s.statuses.filter(x=>x!==existing);return {stackDelta:existing? -existing.stacks:0};}
+  if(cap==null||integer(cap)==null||!RESET_SCOPES.includes(op.resetScope||'COMBAT'))unsupported();
   if(op.type==='CONSUME_STACK'&&!existing)return {stackDelta:0};
   const before=existing?.stacks||0;
   const requested=integer(op.stacks??1);if(requested==null)unsupported();
@@ -111,7 +111,7 @@ export function applyVitalOperation(player,op){
   const requested=integer(op.amount);if(requested==null)unsupported();
   const before=player.hp;
   if(op.type==='HEAL'){const cap=op.capMode==='CUSTOM_CAP'?integer(op.cap):player.maxHp;if(cap==null)unsupported();player.hp=Math.min(cap,player.hp+requested);}
-  else if(op.type==='SELF_DAMAGE')player.hp=Math.max(op.canDown===false?integer(op.minimumHp??1):0,player.hp-requested);
+  else if(op.type==='SELF_DAMAGE')player.hp=Math.max(op.canDown===false?Math.min(before,integer(op.minimumHp??1)??0):0,player.hp-requested);
   else unsupported();
   return {applied:true,requestedAmount:requested,actualAmount:Math.abs(player.hp-before),preventedByCap:Math.max(0,requested-Math.abs(player.hp-before)),downResult:player.hp===0};
 }
@@ -147,17 +147,19 @@ function grant(run,player,op,envelope){
   if(op.type==='ADD_RUN_GOLD')player.runGold+=amount;
   else if(op.type==='ADD_EXP')player.growthExp+=amount;
   else if(op.type==='GRANT_RELIC'){
-    if(!op.relicId)unsupported();
-    if(player.relics.includes(op.relicId)&&op.duplicatePolicy!=='ALLOW')return {applied:false,reason:'DUPLICATE_RELIC'};
-    player.relics.push(op.relicId);
+    const candidates=(op.candidateIds||[]).filter(relicId=>op.duplicatePolicy==='ALLOW'||!player.relics.includes(relicId));
+    const relicId=op.relicId|| (candidates.length?choose(run,candidates,'augment-relic:'+id):null);
+    if(!relicId)return {applied:false,reason:'NO_RELIC_CANDIDATE'};
+    if(player.relics.includes(relicId)&&op.duplicatePolicy!=='ALLOW')return {applied:false,reason:'DUPLICATE_RELIC'};
+    player.relics.push(relicId);
   }
   s.grants[id]={rootActionId:envelope.rootActionId,sourceAugmentId:op.sourceAugmentId||null};
   return {applied:true,resourceDelta:op.type==='GRANT_RELIC'?0:amount};
 }
 function operate(run,player,op,ctx,envelope){
   if(['APPLY_STATUS','ADD_STACK','SET_STACK','CONSUME_STACK','REMOVE_STATUS'].includes(op.type))return {applied:true,...applyStatus(run,player,op)};
-  if(op.type==='RECOVER_CARD')return recoverPhysicalCard(run,player,op.cardInstanceId,ctx);
-  if(op.type==='DRAW_CARD')return drawPhysicalCard(run,player,ctx);
+  if(op.type==='RECOVER_CARD'){const result=recoverPhysicalCard(run,player,op.cardInstanceId,ctx);if(result.applied)dispatchAugmentTrigger(run,'ON_RECOVER_CARD',{player,privateState:ctx.privateState,rootActionId:result.rootActionId,parentEventId:result.parentEventId,recoveryChainId:result.recoveryChainId,chainDepth:result.chainDepth});return result;}
+  if(op.type==='DRAW_CARD'){const result=drawPhysicalCard(run,player,ctx);if(result.applied)dispatchAugmentTrigger(run,'ON_DRAW',{player,privateState:ctx.privateState,rootActionId:envelope.rootActionId,parentEventId:envelope.eventId});return result;}
   if(['MOVE_CARD_ZONE','VANISH_CARD','RETURN_TO_DECK'].includes(op.type))return movePhysicalCard(player,op.cardInstanceId,op.from,op.to,ctx);
   if(op.type==='SHUFFLE_DETERMINISTIC'){const z=zones(player,ctx)?.[op.zone];if(!z)unsupported();for(let i=z.length-1;i>0;i--){const j=choose(run,Array.from({length:i+1},(_,n)=>n),'augment-shuffle:'+player.playerId+':'+i);[z[i],z[j]]=[z[j],z[i]];}return {applied:true};}
   if(['ADD_DAMAGE','SET_DAMAGE','MULTIPLY_DAMAGE','EXTRA_DAMAGE_COMPONENT'].includes(op.type))return applyDamageOperation(ctx.damage,op,roomType(run));
@@ -166,6 +168,18 @@ function operate(run,player,op,ctx,envelope){
   if(op.type==='RULE_MODIFIER'){state(run).temporary.push({...op,ownerId:player.playerId,augmentId:envelope.sourceId});return {applied:true};}
   if(['ADD_RUN_GOLD','ADD_EXP','GRANT_RELIC'].includes(op.type))return grant(run,player,op,envelope);
   unsupported();
+}
+function conditionMatches(condition,ctx){
+  if(condition.all)return condition.all.every(item=>conditionMatches(item,ctx));
+  if(condition.any)return condition.any.some(item=>conditionMatches(item,ctx));
+  if(condition.not)return !conditionMatches(condition.not,ctx);
+  const actual=String(condition.path||'').split('.').filter(Boolean).reduce((value,key)=>value?.[key],ctx);
+  if(Object.hasOwn(condition,'eq'))return actual===condition.eq;
+  if(Object.hasOwn(condition,'gte'))return Number(actual)>=Number(condition.gte);
+  if(Object.hasOwn(condition,'gt'))return Number(actual)>Number(condition.gt);
+  if(Object.hasOwn(condition,'lte'))return Number(actual)<=Number(condition.lte);
+  if(Object.hasOwn(condition,'lt'))return Number(actual)<Number(condition.lt);
+  return Boolean(actual);
 }
 export function dispatchAugmentTrigger(run,trigger,ctx={}){
   const canonical=trigger==='CARD_VALIDATED'&&ctx.resolved?.valid===false?'ON_INVALID':alias[trigger]||trigger;if(!AUGMENT_TRIGGERS.includes(canonical))return [];
@@ -180,7 +194,7 @@ export function dispatchAugmentTrigger(run,trigger,ctx={}){
       if(canonical!=='ON_ACQUIRE'&&!roomAllowed(def,roomType(run))){base.skipped=true;base.reason='ROOM_NOT_APPLICABLE';results.push(base);continue;}
       const key=onceKey(run,player,def.augmentId,def.onceScope||'NONE',{...ctx,envelope});
       if(key&&state(run).once[key]){base.skipped=true;base.reason='ONCE_SCOPE_USED';results.push(base);continue;}
-      if(typeof def.condition==='function'&&!def.condition({run,player,...ctx})){base.skipped=true;base.reason='CONDITION_FALSE';results.push(base);continue;}
+      if(def.condition&&!conditionMatches(def.condition,{run,player,...ctx})){base.skipped=true;base.reason='CONDITION_FALSE';results.push(base);continue;}
       for(const op of def.operations){const change=operate(run,player,op,{...ctx,envelope},envelope);base.stateChanges.push(change);if(change.applied)base.applied=true;}
       if(base.applied&&key)state(run).once[key]={augmentId:def.augmentId,playerId:player.playerId,scope:def.onceScope,scopeId:scopeId(run,player,def.onceScope,{...ctx,envelope})};
       base.skipped=!base.applied;base.reason=base.applied?null:(base.stateChanges[0]?.reason||'NO_CHANGE');
