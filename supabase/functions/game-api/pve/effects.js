@@ -1,6 +1,7 @@
 import {recordEffectTelemetry} from './telemetry.js';
 import {AUGMENT_BY_ID} from './augment-catalog.js';
 import {resourceMax} from './resources.js';
+import {dispatchAugmentTrigger} from './augment-framework.js';
 
 const VALID_OPERATIONS=new Set([
   'MODIFY_NUMBER','MODIFY_DAMAGE','SET_DAMAGE','ADD_STATUS','REMOVE_STATUS','HEAL','DAMAGE_SELF',
@@ -87,14 +88,16 @@ function applyOperation(run,player,op,ctx,metrics){
 }
 function definitionsFor(run,player){
   const catalog=run.effectCatalog||{};
-  return [...(player.augments||[]),...(player.relics||[])].flatMap(id=>(catalog[id]||AUGMENT_BY_ID[id])?.effects||[]);
+  return [...(player.augments||[]),...(player.relics||[])].flatMap(id=>((catalog[id]||AUGMENT_BY_ID[id])?.effects||[]).map(effect=>({...effect,augmentId:id})));
+
 }
 export function applyOwnedEffects(run,trigger,ctx={}){
   const players=ctx.player?[ctx.player]:run.players;
   const fired=[];
   for(const player of players){
-    const defs=definitionsFor(run,player).filter(e=>e.trigger===trigger&&(!ctx.followUp||(e.tags||[]).includes('MULTI_HIT'))).sort((a,b)=>(a.priority||0)-(b.priority||0)||String(a.id).localeCompare(String(b.id)));
+    const defs=definitionsFor(run,player).filter(e=>e.trigger===trigger&&(!ctx.followUp||(e.tags||[]).includes('MULTI_HIT'))).sort((a,b)=>(a.priority||0)-(b.priority||0)||String(a.augmentId).localeCompare(String(b.augmentId))||String(a.id).localeCompare(String(b.id)));
     for(const effect of defs){
+      if(['EVENT','REWARD_ROOM'].includes(run.phase)&&['CARD_VALIDATED','BEFORE_DAMAGE','AFTER_DAMAGE'].includes(trigger)&&String(effect.augmentId).startsWith('aug-'))continue;
       const local={...ctx,run,player,privateState:ctx.privateState||privateState(run,player)};
       if(!conditionMatches(effect.condition,local)){recordEffectTelemetry(run,effect,player.playerId,false);continue;}
       const c=counter(run,player,effect,local);
@@ -106,6 +109,7 @@ export function applyOwnedEffects(run,trigger,ctx={}){
       fired.push({playerId:player.playerId,effectId:effect.id,trigger});
     }
   }
+  fired.push(...dispatchAugmentTrigger(run,trigger,ctx));
   return fired;
 }
 export function applyEffectDefinitions(run,player,definitions,trigger,ctx={}){

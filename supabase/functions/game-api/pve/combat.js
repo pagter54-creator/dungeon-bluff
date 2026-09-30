@@ -14,6 +14,7 @@ import {resolveF3AfterDamage} from './monster-behavior-f3.js';
 import {applyMonsterDamage} from './monster.js';
 import {beginAugmentChoices} from './augments.js';
 import {applyOwnedEffects} from './effects.js';
+import {cleanupAugmentScope,resolveDelayed} from './augment-framework.js';
 import {initCombatTelemetry,recordCombatTurnTelemetry,finalizeCombatTelemetry} from './telemetry.js';
 import {
   initializeNumberHistories,recordSelfModification,applyPreCollisionSwap,applyPreCollisionSteal,
@@ -37,6 +38,7 @@ function resetCycleIfNeeded(run,player,events=[],meta={}){
   if(handleCycleExhaustedCharacter(player,priv,run))return true;
   const previousCycleId=priv.cycleIndex||1,remainingBefore=[...(priv.remainingCardIds||[])],spentBefore=[...(priv.spentCardIds||[])],parityBefore=player.publicResources.parity??null;
   applyOwnedEffects(run,'CYCLE_END',{player,privateState:priv,events});
+  cleanupAugmentScope(run,'CYCLE',{playerId:player.playerId});
   priv.cycleIndex=previousCycleId+1;
   priv.spentCardIds=[];
   priv.remainingCardIds=player.cardPool.map(c=>c.id);
@@ -165,7 +167,7 @@ export function beginTurn(run){
   for(const p of run.players){onTurnStartCharacter(p,run);applyOwnedEffects(run,'TURN_START',{player:p,events:[]});}
   for(const p of run.players)if(p.characterId==='gambler')drawGamblerHand(run,p,c.privateByPlayer[p.playerId]);
   c.phase='INTENT_PUBLISH';publishMonsterIntent(run);
-  c.phase='SELECTION_OPEN';autoSubmitStunned(run);autoSubmitAi(run);
+  c.phase='SELECTION_OPEN';for(const p of run.players)applyOwnedEffects(run,'PRE_SELECT',{player:p,privateState:c.privateByPlayer[p.playerId]});autoSubmitStunned(run);autoSubmitAi(run);
   const active=run.players.filter(p=>p.status!=='DOWNED').map(p=>p.playerId);
   if(active.length&&active.every(pid=>c.turnSubmissions[pid]?.autoSubmitted))return resolveBasicTurn(run);
 }
@@ -179,6 +181,7 @@ export function submitCard(run,playerId,cardInstanceId,skillIntent=false,skillDa
   validateCharacterSkillIntent(p,priv,Boolean(skillIntent),card,skillData);
   c.turnSubmissions[playerId]={playerId,cardInstanceId,skillIntent:Boolean(skillIntent),skillData:skillData==null?null:structuredClone(skillData),submittedAt:new Date().toISOString()};
   priv.selectedCardId=cardInstanceId;priv.skillIntent=Boolean(skillIntent);
+  applyOwnedEffects(run,'ON_SUBMIT',{player:p,privateState:priv,cardInstanceId});
 }
 export function resolveBasicTurn(run){
   const c=run.combat;if(!c||c.phase!=='SELECTION_OPEN')throw new Error('Combat is not accepting cards.');
@@ -193,11 +196,11 @@ export function resolveBasicTurn(run){
   const mutationEvents=[],events=[...(c.pendingSkillEvents||[])];c.pendingSkillEvents=[];
   initializeNumberHistories(cards);
   c.phase='PRE_COLLISION_SELF_MODIFY';phaseTrace.push(c.phase);
-  for(const rc of cards){const p=playerFor(run,rc.playerId);selfModifyCard(p,rc,c.turnSubmissions[rc.playerId]);applyOwnedEffects(run,'PRE_COLLISION_SELF_MODIFY',{player:p,resolved:rc,events});}
+  for(const rc of cards){const p=playerFor(run,rc.playerId),submission=c.turnSubmissions[rc.playerId];if(submission.skillIntent)applyOwnedEffects(run,'ON_SKILL_USE',{player:p,resolved:rc,submission,events});selfModifyCard(p,rc,submission);applyOwnedEffects(run,'PRE_COLLISION_SELF_MODIFY',{player:p,resolved:rc,events});}
   recordSelfModification(cards,mutationEvents);
-  c.phase='PRE_COLLISION_SWAP';phaseTrace.push(c.phase);applyPreCollisionSwap(run,cards,mutationEvents);
+  c.phase='PRE_COLLISION_SWAP';phaseTrace.push(c.phase);for(const rc of cards)applyOwnedEffects(run,'PRE_COLLISION',{player:playerFor(run,rc.playerId),resolved:rc,events});applyPreCollisionSwap(run,cards,mutationEvents);
   c.phase='PRE_COLLISION_STEAL';phaseTrace.push(c.phase);applyPreCollisionSteal(run,cards,mutationEvents);
-  c.phase='FINAL_NUMBER_REVEAL';phaseTrace.push(c.phase);finalizeNumbers(cards);
+  c.phase='FINAL_NUMBER_REVEAL';phaseTrace.push(c.phase);finalizeNumbers(cards);for(const rc of cards)applyOwnedEffects(run,'POST_REVEAL',{player:playerFor(run,rc.playerId),resolved:rc,events});
   c.phase='COLLISION_RESOLVE';phaseTrace.push(c.phase);
   for(const rc of cards)rc.collisionImmune=collisionImmunity(playerFor(run,rc.playerId),c.turnSubmissions[rc.playerId]);
   const groups=new Map();for(const rc of cards){const a=groups.get(rc.finalNumber)||[];a.push(rc);groups.set(rc.finalNumber,a);}
@@ -209,7 +212,7 @@ export function resolveBasicTurn(run){
   assignVampireThralls(run,cards,groups,events);
   c.phase='POST_COLLISION_EFFECTS';phaseTrace.push(c.phase);
   const processedCollisionEventIds=new Set();
-  const collisionGroups=resolvePostCollisionEffects(run,cards,groups,events,mutationEvents,processedCollisionEventIds);
+  const collisionGroups=resolvePostCollisionEffects(run,cards,groups,events,mutationEvents,processedCollisionEventIds);for(const rc of cards)applyOwnedEffects(run,'POST_COLLISION',{player:playerFor(run,rc.playerId),resolved:rc,events});
   c.phase='VALIDITY_DERIVE';phaseTrace.push(c.phase);
   const validCards=cards.filter(x=>x.valid),lowestNumber=validCards.length?Math.min(...validCards.map(x=>x.finalNumber)):null;
   const lowestCards=validCards.filter(x=>x.finalNumber===lowestNumber);
@@ -304,7 +307,8 @@ export function resolveBasicTurn(run){
     if(run.phase==='RUN_FAILED'){
       // RULE-01: Flame 0 + boss kill + full-party DOWNED resolves as RUN_FAILED before any boss-clear revival.
       c.phase='COMBAT_END';phaseTrace.push(c.phase);
-      for(const p of run.players)onCombatEndCharacter(p,run);
+      for(const p of run.players){applyOwnedEffects(run,'COMBAT_END',{player:p,roomTypeOverride:'COMBAT'});applyOwnedEffects(run,'ROOM_END',{player:p,roomTypeOverride:'COMBAT'});applyOwnedEffects(run,'RUN_END',{player:p,roomTypeOverride:'COMBAT'});onCombatEndCharacter(p,run);}
+      cleanupAugmentScope(run,'COMBAT');cleanupAugmentScope(run,'ROOM');cleanupAugmentScope(run,'RUN');resolveDelayed(run,Number.MAX_SAFE_INTEGER);
       c.publicTurnResult=buildTurnResult();
       recordCombatTurnTelemetry(run,c.publicTurnResult);finalizeCombatTelemetry(run,'RUN_FAILED');
       return c.publicTurnResult;
@@ -322,8 +326,9 @@ export function resolveBasicTurn(run){
     for(const p of run.players)if(rewardEligible.has(p.playerId))grantRunGold(p,completionGold);
     for(const p of run.players)applyOwnedEffects(run,'MONSTER_KILLED',{player:p,events});
     if(c.roomType==='BOSS')for(const p of run.players)applyOwnedEffects(run,'BOSS_CLEAR',{player:p,events});
-    for(const p of run.players)applyOwnedEffects(run,'COMBAT_END',{player:p,events});
+    for(const p of run.players){applyOwnedEffects(run,'COMBAT_END',{player:p,events});applyOwnedEffects(run,'ROOM_END',{player:p,events});if(c.roomType==='BOSS')applyOwnedEffects(run,'FLOOR_END',{player:p,events});if(c.roomType==='BOSS'&&run.floor===3)applyOwnedEffects(run,'RUN_END',{player:p,events});}
     for(const p of run.players)onCombatEndCharacter(p,run);
+    cleanupAugmentScope(run,'COMBAT');cleanupAugmentScope(run,'ROOM');resolveDelayed(run,Number.MAX_SAFE_INTEGER);
     if(c.roomType==='BOSS'){
       run.phase='FLOOR_CLEAR';
       run.floorClear={floor:run.floor,bossId:c.monster.id,bossName:c.monster.name};
@@ -347,12 +352,14 @@ export function resolveBasicTurn(run){
   spendResolvedCards(run,cards,events);c.turnSubmissions={};
   if(run.phase==='RUN_FAILED'){
     c.phase='COMBAT_END';phaseTrace.push(c.phase);
-    for(const p of run.players)onCombatEndCharacter(p,run);
+    for(const p of run.players){applyOwnedEffects(run,'COMBAT_END',{player:p,roomTypeOverride:'COMBAT'});applyOwnedEffects(run,'ROOM_END',{player:p,roomTypeOverride:'COMBAT'});applyOwnedEffects(run,'RUN_END',{player:p,roomTypeOverride:'COMBAT'});onCombatEndCharacter(p,run);}
+    cleanupAugmentScope(run,'COMBAT');cleanupAugmentScope(run,'ROOM');cleanupAugmentScope(run,'RUN');resolveDelayed(run,Number.MAX_SAFE_INTEGER);
     c.publicTurnResult=buildTurnResult();
     recordCombatTurnTelemetry(run,c.publicTurnResult);finalizeCombatTelemetry(run,'RUN_FAILED');
     return c.publicTurnResult;
   }
   for(const p of run.players){onTurnEndCharacter(p,run,events);applyOwnedEffects(run,'TURN_END',{player:p,events});}
+  cleanupAugmentScope(run,'TURN');
   c.phase='TURN_END';phaseTrace.push(c.phase);
   c.publicTurnResult=buildTurnResult();
   recordCombatTurnTelemetry(run,c.publicTurnResult);

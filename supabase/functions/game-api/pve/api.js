@@ -8,6 +8,7 @@ import {projectRun} from './projection.js';
 import {submitCard,resolveBasicTurn,beginTurn} from './combat.js';
 import {activateImmediateCharacterSkill} from './characters.js';
 import {chooseAugment} from './augments.js';
+import {applyOwnedEffects} from './effects.js';
 import {enterRestRoom,applyRestChoice,enterShopRoom,reserveShopCard,cancelShopCardReservation,confirmShopCard,buyShopRelic,finishShop,enterRewardRoom,activateRewardSkill,submitRewardCard,resolveRewardAttempt,chooseRewardRelic,roomReady,expireShopReservations} from './rooms.js';
 import {enterEventRoom,chooseEventOption,submitEventCard} from './events.js';
 import {F1_RELIC_DEFINITIONS,F1_MONSTER_DEFINITIONS,selectF1Monster,markF1MonsterUsed} from './content-f1.js';
@@ -214,6 +215,7 @@ export async function handlePveAction({admin,user,body,json}){
   } else if(action==='pve.activateSkill'){
     if(run.phase!=='COMBAT')return fail(json,'현재 전투 중이 아닙니다.');
     activateImmediateCharacterSkill(run,me,body.skill_data??null);
+    applyOwnedEffects(run,'ON_SKILL_USE',{player:me,skillData:body.skill_data??null});
   } else if(action==='pve.submitCard'){
     if(run.phase!=='COMBAT')return fail(json,'현재 전투 중이 아닙니다.');
     if(typeof body.card_instance_id!=='string')return fail(json,'card_instance_id가 필요합니다.');
@@ -247,6 +249,7 @@ export async function handlePveAction({admin,user,body,json}){
     finishShop(run,me.playerId);
   } else if(action==='pve.rewardActivateSkill'){
     activateRewardSkill(run,me.playerId);
+    applyOwnedEffects(run,'ON_SKILL_USE',{player:me});
   } else if(action==='pve.rewardSubmitCard'){
     if(typeof body.card_instance_id!=='string')return fail(json,'card_instance_id가 필요합니다.');
     submitRewardCard(run,me.playerId,body.card_instance_id,body.skill_intent===true,body.skill_data??null);
