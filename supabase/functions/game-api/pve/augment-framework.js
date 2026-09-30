@@ -61,6 +61,27 @@ function applyStatus(run,player,op){
   else s.statuses.push({statusId:op.statusId,sourceType:op.sourceType||'AUGMENT',sourceId:op.sourceId||null,ownerId:player.playerId,targetId,stacks:next,cap,payload:structuredClone(op.payload||{}),appliedAt:op.appliedAt||null,resetScope:op.resetScope||'COMBAT',visibility:op.visibility||'PUBLIC'});
   return {stackDelta:next-before};
 }
+export function upsertAugmentStatus(run,owner,{statusId,targetId,sourceId,resetScope='COMBAT',payload={}}){
+  const s=state(run);
+  s.statuses=s.statuses.filter(item=>item.statusId!==statusId||item.ownerId!==owner.playerId);
+  const item={statusId,sourceType:'AUGMENT',sourceId,ownerId:owner.playerId,targetId,stacks:1,cap:1,payload:structuredClone(payload),appliedAt:s.sequence,resetScope,visibility:'PUBLIC'};
+  s.statuses.push(item);
+  return item;
+}
+export function clearAugmentStatusesForOwner(run,statusId,ownerId){
+  const s=state(run),before=s.statuses.length;
+  s.statuses=s.statuses.filter(item=>item.statusId!==statusId||item.ownerId!==ownerId);
+  return before-s.statuses.length;
+}
+export function findAugmentStatus(run,statusId,targetId){
+  return state(run).statuses.find(item=>item.statusId===statusId&&item.targetId===targetId)||null;
+}
+export function consumeAugmentStatus(run,item){
+  const s=state(run),index=s.statuses.indexOf(item);
+  if(index<0)return false;
+  s.statuses.splice(index,1);
+  return true;
+}
 export function recoverPhysicalCard(run,player,cardInstanceId,ctx={}){
   const priv=ctx.privateState||run.combat?.privateByPlayer?.[player.playerId]||run.roomState?.privateByPlayer?.[player.playerId];
   if(!priv||!player.cardPool?.some(card=>card.id===cardInstanceId)||!priv.spentCardIds?.includes(cardInstanceId)||priv.remainingCardIds?.includes(cardInstanceId)||priv.selectedCardId===cardInstanceId||run.combat?.turnSubmissions?.[player.playerId]?.cardInstanceId===cardInstanceId||run.roomState?.turnSubmissions?.[player.playerId]?.cardInstanceId===cardInstanceId)return {applied:false,reason:'CARD_NOT_RECOVERABLE'};
