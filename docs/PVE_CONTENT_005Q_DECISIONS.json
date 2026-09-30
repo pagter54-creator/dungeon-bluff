@@ -3807,5 +3807,768 @@
     "SPEC_PARTIAL": 207,
     "SPEC_AMBIGUOUS": 161,
     "SPEC_COMPLETE": 22
-  }
+  },
+  "originalBundleAudit": [
+    {
+      "decisionId": "DEC-005R-01",
+      "affectedAugments": [
+        "aug-052",
+        "aug-257",
+        "aug-283",
+        "aug-296"
+      ],
+      "cardCount": 4,
+      "atomicCount": 4,
+      "commonAmbiguity": "SOURCE_CONFLICT",
+      "classes": [
+        "warrior",
+        "gunner",
+        "martial_artist"
+      ],
+      "archetypes": [
+        "압살 기사",
+        "정밀 사수",
+        "방어 분쇄",
+        "일격필살"
+      ],
+      "stages": [
+        2,
+        3
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "MODIFY_INCOMING_DAMAGE",
+        "DELAY_EFFECT"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-02",
+      "affectedAugments": [
+        "aug-049",
+        "aug-253"
+      ],
+      "cardCount": 2,
+      "atomicCount": 2,
+      "commonAmbiguity": "SOURCE_CONFLICT",
+      "classes": [
+        "warrior",
+        "gunner"
+      ],
+      "archetypes": [
+        "수호벽",
+        "정밀 사수"
+      ],
+      "stages": [
+        4,
+        2
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "MODIFY_INCOMING_DAMAGE",
+        "DELAY_EFFECT"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-03",
+      "affectedAugments": [
+        "aug-104",
+        "aug-116",
+        "aug-124",
+        "aug-129",
+        "aug-139",
+        "aug-146",
+        "aug-237"
+      ],
+      "cardCount": 7,
+      "atomicCount": 9,
+      "commonAmbiguity": "SOURCE_CONFLICT",
+      "classes": [
+        "mage",
+        "berserker",
+        "gambler"
+      ],
+      "archetypes": [
+        "백마도사",
+        "역산술",
+        "피의 광전",
+        "불사 투사",
+        "최후의 격노",
+        "올인"
+      ],
+      "stages": [
+        2,
+        3,
+        4
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "HEAL"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-04",
+      "affectedAugments": [
+        "aug-153",
+        "aug-160",
+        "aug-162",
+        "aug-164",
+        "aug-166",
+        "aug-167"
+      ],
+      "cardCount": 6,
+      "atomicCount": 7,
+      "commonAmbiguity": "SOURCE_CONFLICT",
+      "classes": [
+        "prophet"
+      ],
+      "archetypes": [
+        "완전한 계시",
+        "운명 조작자"
+      ],
+      "stages": [
+        2,
+        4,
+        3
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "RECOVER_CARD"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-05",
+      "affectedAugments": [
+        "aug-030",
+        "aug-211",
+        "aug-390"
+      ],
+      "cardCount": 3,
+      "atomicCount": 4,
+      "commonAmbiguity": "HIGH_RISK_TARGET",
+      "classes": [
+        "adventurer",
+        "gambler",
+        "twins"
+      ],
+      "archetypes": [
+        "기적의 탐험가",
+        "운명의 승부사",
+        "공중 곡예"
+      ],
+      "stages": [
+        4,
+        1
+      ],
+      "highRiskCards": [
+        "aug-030",
+        "aug-211",
+        "aug-390"
+      ],
+      "runtimePrimitives": [
+        "GRANT_RELIC_OPPORTUNITY",
+        "ADD_DAMAGE",
+        "GAIN_RESOURCE",
+        "SPEND_RESOURCE",
+        "RECOVER_CARD",
+        "MODIFY_PARITY"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-06",
+      "affectedAugments": [
+        "aug-201",
+        "aug-301"
+      ],
+      "cardCount": 2,
+      "atomicCount": 2,
+      "commonAmbiguity": "HIGH_RISK_ORDER",
+      "classes": [
+        "imp",
+        "vampire"
+      ],
+      "archetypes": [
+        "장난의 연쇄",
+        "완전한 권속"
+      ],
+      "stages": [
+        1
+      ],
+      "highRiskCards": [
+        "aug-201",
+        "aug-301"
+      ],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "APPLY_STATUS",
+        "DELAY_EFFECT",
+        "DAMAGE_ALLY",
+        "GAIN_RESOURCE",
+        "SPEND_RESOURCE"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-07",
+      "affectedAugments": [
+        "aug-001",
+        "aug-003",
+        "aug-009",
+        "aug-012",
+        "aug-013",
+        "aug-014",
+        "aug-017",
+        "aug-019",
+        "aug-022"
+      ],
+      "cardCount": 9,
+      "atomicCount": 9,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "adventurer"
+      ],
+      "archetypes": [
+        "노련한 탐험가",
+        "만능 장비꾼",
+        "기적의 탐험가"
+      ],
+      "stages": [
+        1,
+        2,
+        4,
+        3
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "MODIFY_EXP"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-08",
+      "affectedAugments": [
+        "aug-031",
+        "aug-033",
+        "aug-035",
+        "aug-037",
+        "aug-038",
+        "aug-040",
+        "aug-044",
+        "aug-045",
+        "aug-053",
+        "aug-054",
+        "aug-055",
+        "aug-057",
+        "aug-058",
+        "aug-059",
+        "aug-060"
+      ],
+      "cardCount": 15,
+      "atomicCount": 17,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "warrior"
+      ],
+      "archetypes": [
+        "불굴의 기사",
+        "수호벽",
+        "압살 기사"
+      ],
+      "stages": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "MODIFY_INCOMING_DAMAGE",
+        "APPLY_STATUS",
+        "DELAY_EFFECT",
+        "GAIN_RESOURCE",
+        "SPEND_RESOURCE",
+        "RECOVER_CARD",
+        "ADD_DAMAGE",
+        "REMOVE_STATUS",
+        "ADD_STACK"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-09",
+      "affectedAugments": [
+        "aug-063",
+        "aug-066",
+        "aug-068",
+        "aug-070",
+        "aug-073",
+        "aug-079",
+        "aug-080",
+        "aug-082",
+        "aug-086"
+      ],
+      "cardCount": 9,
+      "atomicCount": 10,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "rogue"
+      ],
+      "archetypes": [
+        "비열한 일격",
+        "독 묻은 칼날",
+        "그림자 도약"
+      ],
+      "stages": [
+        2,
+        3,
+        4
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "RECOVER_CARD",
+        "APPLY_STATUS",
+        "ADD_STACK",
+        "MODIFY_STREAK_RESET"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-10",
+      "affectedAugments": [
+        "aug-097",
+        "aug-102",
+        "aug-103",
+        "aug-107",
+        "aug-109",
+        "aug-110",
+        "aug-112",
+        "aug-114",
+        "aug-119",
+        "aug-120"
+      ],
+      "cardCount": 10,
+      "atomicCount": 11,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "mage"
+      ],
+      "archetypes": [
+        "대마도 증폭",
+        "백마도사",
+        "역산술"
+      ],
+      "stages": [
+        3,
+        2,
+        4
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "SPEND_RESOURCE",
+        "HEAL",
+        "GAIN_RESOURCE",
+        "REMOVE_STATUS",
+        "MODIFY_INCOMING_DAMAGE",
+        "DELAY_EFFECT",
+        "ADD_STACK"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-11",
+      "affectedAugments": [
+        "aug-126",
+        "aug-128",
+        "aug-130",
+        "aug-136",
+        "aug-137",
+        "aug-140",
+        "aug-143",
+        "aug-145",
+        "aug-147",
+        "aug-148",
+        "aug-149"
+      ],
+      "cardCount": 11,
+      "atomicCount": 11,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "berserker"
+      ],
+      "archetypes": [
+        "피의 광전",
+        "불사 투사",
+        "최후의 격노"
+      ],
+      "stages": [
+        3,
+        4,
+        2
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "ADD_STACK",
+        "GAIN_RESOURCE",
+        "HEAL"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-12",
+      "affectedAugments": [
+        "aug-157",
+        "aug-159",
+        "aug-163",
+        "aug-173",
+        "aug-174",
+        "aug-175",
+        "aug-176",
+        "aug-177",
+        "aug-179"
+      ],
+      "cardCount": 9,
+      "atomicCount": 9,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "prophet"
+      ],
+      "archetypes": [
+        "완전한 계시",
+        "운명 조작자",
+        "불길한 예언"
+      ],
+      "stages": [
+        3,
+        4,
+        2
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "RECOVER_CARD",
+        "ADD_STACK",
+        "GAIN_RESOURCE",
+        "MODIFY_RESOURCE_CAP",
+        "REVEAL_PRIVATE_INFO",
+        "DELAY_EFFECT"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-13",
+      "affectedAugments": [
+        "aug-182",
+        "aug-185",
+        "aug-186",
+        "aug-188",
+        "aug-189",
+        "aug-190",
+        "aug-192",
+        "aug-193",
+        "aug-195",
+        "aug-197",
+        "aug-199",
+        "aug-203",
+        "aug-204",
+        "aug-205",
+        "aug-208"
+      ],
+      "cardCount": 15,
+      "atomicCount": 17,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "imp"
+      ],
+      "archetypes": [
+        "대담한 슬쩍",
+        "소매치기 악동",
+        "장난의 연쇄"
+      ],
+      "stages": [
+        2,
+        3,
+        4
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "DELAY_EFFECT",
+        "ADD_STACK",
+        "MODIFY_NUMBER",
+        "MODIFY_RESOURCE_CAP",
+        "SPEND_RESOURCE",
+        "MODIFY_INCOMING_DAMAGE",
+        "APPLY_STATUS"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-14",
+      "affectedAugments": [
+        "aug-212",
+        "aug-213",
+        "aug-216",
+        "aug-217",
+        "aug-218",
+        "aug-219",
+        "aug-222",
+        "aug-226",
+        "aug-228",
+        "aug-229",
+        "aug-230",
+        "aug-232",
+        "aug-234",
+        "aug-238"
+      ],
+      "cardCount": 14,
+      "atomicCount": 15,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "gambler"
+      ],
+      "archetypes": [
+        "운명의 승부사",
+        "카드 카운터",
+        "올인"
+      ],
+      "stages": [
+        2,
+        3,
+        4
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "GAIN_RESOURCE",
+        "MODIFY_NUMBER",
+        "DRAW_CARD",
+        "MODIFY_DECK",
+        "SPEND_RESOURCE"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-15",
+      "affectedAugments": [
+        "aug-242",
+        "aug-244",
+        "aug-245",
+        "aug-247",
+        "aug-249",
+        "aug-254",
+        "aug-255",
+        "aug-258",
+        "aug-259",
+        "aug-264",
+        "aug-265",
+        "aug-266",
+        "aug-267",
+        "aug-268"
+      ],
+      "cardCount": 14,
+      "atomicCount": 14,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "gunner"
+      ],
+      "archetypes": [
+        "전탄 난사",
+        "정밀 사수",
+        "과열 기관"
+      ],
+      "stages": [
+        2,
+        3,
+        4
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "MODIFY_FULL_BURST",
+        "OVERRIDE_BASE_RULE",
+        "ADD_STACK",
+        "SET_RESOURCE"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-16",
+      "affectedAugments": [
+        "aug-271",
+        "aug-272",
+        "aug-273",
+        "aug-276",
+        "aug-277",
+        "aug-279",
+        "aug-280",
+        "aug-281",
+        "aug-285",
+        "aug-286",
+        "aug-287",
+        "aug-288",
+        "aug-289",
+        "aug-290",
+        "aug-292",
+        "aug-294",
+        "aug-298"
+      ],
+      "cardCount": 17,
+      "atomicCount": 21,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "martial_artist"
+      ],
+      "archetypes": [
+        "무한 연격",
+        "방어 분쇄",
+        "일격필살"
+      ],
+      "stages": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "OVERRIDE_BASE_RULE",
+        "ADD_STACK",
+        "SPEND_RESOURCE",
+        "APPLY_STATUS",
+        "GAIN_RESOURCE",
+        "MODIFY_RESOURCE_CAP"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-17",
+      "affectedAugments": [
+        "aug-302",
+        "aug-304",
+        "aug-308",
+        "aug-309",
+        "aug-310",
+        "aug-313",
+        "aug-317",
+        "aug-319",
+        "aug-322",
+        "aug-324",
+        "aug-325",
+        "aug-326",
+        "aug-327",
+        "aug-328",
+        "aug-329"
+      ],
+      "cardCount": 15,
+      "atomicCount": 19,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "vampire"
+      ],
+      "archetypes": [
+        "완전한 권속",
+        "피의 맹약",
+        "수혈"
+      ],
+      "stages": [
+        2,
+        4,
+        3
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "SPEND_RESOURCE",
+        "ADD_DAMAGE",
+        "ADD_STACK",
+        "MODIFY_RESOURCE_CAP",
+        "DELAY_EFFECT",
+        "HEAL",
+        "MODIFY_RESOURCE_COST",
+        "MODIFY_INCOMING_DAMAGE"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-18",
+      "affectedAugments": [
+        "aug-332",
+        "aug-335",
+        "aug-336",
+        "aug-337",
+        "aug-338",
+        "aug-340",
+        "aug-344",
+        "aug-345",
+        "aug-347",
+        "aug-348",
+        "aug-349",
+        "aug-352",
+        "aug-353",
+        "aug-354",
+        "aug-355",
+        "aug-356",
+        "aug-357",
+        "aug-359"
+      ],
+      "cardCount": 18,
+      "atomicCount": 20,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "demon_swordsman"
+      ],
+      "archetypes": [
+        "포식 귀참",
+        "굶주린 마검",
+        "해방된 귀검"
+      ],
+      "stages": [
+        2,
+        3,
+        4
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "MODIFY_DEVOUR",
+        "ADD_DAMAGE",
+        "GAIN_RESOURCE",
+        "MODIFY_DECK",
+        "OVERRIDE_BASE_RULE"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-19",
+      "affectedAugments": [
+        "aug-361",
+        "aug-362",
+        "aug-363",
+        "aug-373",
+        "aug-374",
+        "aug-376",
+        "aug-377",
+        "aug-379",
+        "aug-384",
+        "aug-385",
+        "aug-387"
+      ],
+      "cardCount": 11,
+      "atomicCount": 12,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "twins"
+      ],
+      "archetypes": [
+        "완벽한 교대",
+        "태양과 달",
+        "공중 곡예"
+      ],
+      "stages": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "OVERRIDE_BASE_RULE",
+        "APPLY_STATUS",
+        "MODIFY_PARITY",
+        "ADD_STACK",
+        "GAIN_RESOURCE"
+      ]
+    }
+  ]
 }
