@@ -1,6 +1,6 @@
 # PVE CONTENT-005B 실행 명세 보완 목록
 
-이 문서는 005B 구현 중 확인한 계약 부족분의 작업 목록이다. 완료 판정이나 실행 가능한 런타임을 뜻하지 않는다.
+이 문서는 DESIGN-B 브랜치 기준 계약 부족분의 작업 목록이다. 완료 판정이나 실행 가능한 런타임을 뜻하지 않는다. 임시 문구 11장의 보완 명세는 [PVE_CONTENT_005B_PLACEHOLDER_RESOLUTION.md](./PVE_CONTENT_005B_PLACEHOLDER_RESOLUTION.md)에 별도로 기록했다.
 
 - 대상: aug-001~aug-150, 150장
 - DESIGN-B v0.2 카드: 52장
