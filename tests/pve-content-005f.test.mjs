@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {dispatchAugmentTrigger,makeAugmentEnvelope,onceKey,cleanupAugmentScope,projectAugmentFramework,recoverPhysicalCard,drawPhysicalCard,movePhysicalCard,applyDamageOperation,applyVitalOperation,scheduleDelayed,resolveDelayed,getEffectiveRule,acquireAugmentOnce,CLASS_ADAPTERS} from '../supabase/functions/game-api/pve/augment-framework.js';
+import {dispatchAugmentTrigger,makeAugmentEnvelope,onceKey,cleanupAugmentScope,projectAugmentFramework,recoverPhysicalCard,drawPhysicalCard,movePhysicalCard,applyDamageOperation,applyVitalOperation,scheduleDelayed,resolveDelayed,getEffectiveRule,acquireAugmentOnce,CLASS_ADAPTERS,resolveClassAugmentHook} from '../supabase/functions/game-api/pve/augment-framework.js';
 
 const fixture=()=>{
   const player={playerId:'p1',characterId:'adventurer',augments:['aug-test'],relics:[],cardPool:[1,2,3].map(n=>({id:'c'+n,baseNumber:n})),hp:2,maxHp:3,runGold:0,growthExp:0};
@@ -71,7 +71,7 @@ test(label+' economy idempotency',()=>{
   assert.equal(type==='GRANT_RELIC'?player.relics.filter(x=>x==='relic-test').length:player[field],1);
 });
 test('P25 effective rule modifiers do not mutate base',()=>{const base=4;assert.equal(getEffectiveRule(base,[{key:'mana',operation:'CAP_CHANGE',value:6,augmentId:'aug-test'}],'mana'),6);assert.equal(base,4);});
-test('P26 class adapter contracts are available',()=>{assert.deepEqual(Object.keys(CLASS_ADAPTERS),['gambler','gunner','demon_swordsman','vampire','imp','twins','martial_artist']);});
+test('P26 class adapter hooks resolve without mutating base',()=>{const {run,player}=fixture();player.characterId='gunner';run.augmentFramework={temporary:[{ownerId:'p1',key:'magazine',operation:'ADD',value:1,augmentId:'aug-test'}]};assert.equal(resolveClassAugmentHook(run,player,'magazine',4),5);assert.deepEqual(Object.keys(CLASS_ADAPTERS),['gambler','gunner','demon_swordsman','vampire','imp','twins','martial_artist']);});
 test('unsupported or ambiguous effects fail closed',()=>{const {run,add}=fixture();add([op('UNKNOWN')]);assert.throws(()=>dispatchAugmentTrigger(run,'TURN_START'),/UNSUPPORTED_AUGMENT_EFFECT/);});
 test('room context rejects out-of-room effects',()=>{const {run,player,add}=fixture();add([op('ADD_RUN_GOLD',{amount:1})]);run.phase='REWARD_ROOM';assert.equal(dispatchAugmentTrigger(run,'TURN_START')[0].reason,'ROOM_NOT_APPLICABLE');assert.equal(player.runGold,0);});
 test('physical zone move preserves ID',()=>{const {player,priv}=fixture();player.characterId='gambler';priv.drawPileIds=[];priv.discardPileIds=[];priv.vanishedCardIds=[];assert.equal(movePhysicalCard(player,'c2','HAND','DISCARD',{privateState:priv}).applied,true);assert.ok(priv.discardPileIds.includes('c2'));});
