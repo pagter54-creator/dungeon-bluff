@@ -1,0 +1,503 @@
+{
+  "schemaVersion": "005Q-v1",
+  "count": 38,
+  "sourceClassifications": {
+    "BETA_V0_1_EXPLICIT_TEXT": 38
+  },
+  "entries": [
+    {
+      "atomicDecisionId": "AMB-AUG-aug-001-CONDITION",
+      "augmentId": "aug-001",
+      "field": "condition",
+      "resolvedValue": "연속 유효 공격 2회째부터 해당 공격에 추가 피해 +1. 충돌 시 연속 기록 0.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 2
+      },
+      "previousDecisionId": "DEC-005R-07"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-031-CONDITION",
+      "augmentId": "aug-031",
+      "field": "condition",
+      "resolvedValue": "강인함 최대 3. 강인함으로 실제 중복을 관통하면 '불굴': 다음 직접 피해 1 감소.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 32
+      },
+      "previousDecisionId": "DEC-005R-08"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-033-CONDITION",
+      "augmentId": "aug-033",
+      "field": "condition",
+      "resolvedValue": "강인함 사용 턴에 받는 첫 직접 피해 1 감소.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 34
+      },
+      "previousDecisionId": "DEC-005R-08"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-035-CONDITION",
+      "augmentId": "aug-035",
+      "field": "condition",
+      "resolvedValue": "강인함을 사용했으나 실제 중복이 없었다면 강인함 1 환급.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 36
+      },
+      "previousDecisionId": "DEC-005R-08"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-058-CONDITION",
+      "augmentId": "aug-058",
+      "field": "condition",
+      "resolvedValue": "압살로 무효화된 다른 카드 1장당 추가 피해 +2.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 59
+      },
+      "previousDecisionId": "DEC-005R-08"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-059-CONDITION",
+      "augmentId": "aug-059",
+      "field": "condition",
+      "resolvedValue": "압살로 다른 카드 2장 이상을 무효화한 유효 공격은 적의 방어 버프 1개 제거.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 60
+      },
+      "previousDecisionId": "DEC-005R-08"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-079-CONDITION",
+      "augmentId": "aug-079",
+      "field": "condition",
+      "resolvedValue": "맹독 2중첩 이상 유지 중에는 모든 아군 유효 공격 추가 피해 +1.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 80
+      },
+      "previousDecisionId": "DEC-005R-09"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-097-CONDITION",
+      "augmentId": "aug-097",
+      "field": "condition",
+      "resolvedValue": "6마나 이상을 한 번에 소비한 유효 공격 추가 피해 +4.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 98
+      },
+      "previousDecisionId": "DEC-005R-10"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-107-CONDITION",
+      "augmentId": "aug-107",
+      "field": "condition",
+      "resolvedValue": "백마법 회복 대상의 몬스터 유래 해로운 상태 1개 제거.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 108
+      },
+      "previousDecisionId": "DEC-005R-10"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-109-CONDITION",
+      "augmentId": "aug-109",
+      "field": "condition",
+      "resolvedValue": "백마법 대상이 받는 다음 직접 피해를 1 감소.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 110
+      },
+      "previousDecisionId": "DEC-005R-10"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-110-CONDITION",
+      "augmentId": "aug-110",
+      "field": "condition",
+      "resolvedValue": "백마법 대상의 다음 유효 공격 +2 피해. 그 공격 성공 시 마법사 마나 +1.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 111
+      },
+      "previousDecisionId": "DEC-005R-10"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-190-CONDITION",
+      "augmentId": "aug-190",
+      "field": "condition",
+      "resolvedValue": "한 턴에 총 2 이상 훔치면 추가 피해 = 최종 숫자의 절반(내림), 최대 +3.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 191
+      },
+      "previousDecisionId": "DEC-005R-13"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-192-CONDITION",
+      "augmentId": "aug-192",
+      "field": "condition",
+      "resolvedValue": "훔친 숫자 최대 저장량 3→5.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 193
+      },
+      "previousDecisionId": "DEC-005R-13"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-193-CONDITION",
+      "augmentId": "aug-193",
+      "field": "condition",
+      "resolvedValue": "한 턴 소비 상한 2→저장량 전부. 1씩 나누어 소비 가능.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 194
+      },
+      "previousDecisionId": "DEC-005R-13"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-212-CONDITION",
+      "augmentId": "aug-212",
+      "field": "condition",
+      "resolvedValue": "숫자 6 유효 공격 추가 피해 +2, 특수 카드 충전 진행 +1.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 213
+      },
+      "previousDecisionId": "DEC-005R-14"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-213-CONDITION",
+      "augmentId": "aug-213",
+      "field": "condition",
+      "resolvedValue": "숫자 7 유효 공격 추가 피해 +4.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 214
+      },
+      "previousDecisionId": "DEC-005R-14"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-219-CONDITION",
+      "augmentId": "aug-219",
+      "field": "condition",
+      "resolvedValue": "숫자 7 유효 공격 추가 피해 +7.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 220
+      },
+      "previousDecisionId": "DEC-005R-14"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-232-CONDITION",
+      "augmentId": "aug-232",
+      "field": "condition",
+      "resolvedValue": "올인 두 카드 합이 8 이상이면 추가 피해 +2, 10 이상이면 +4.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 233
+      },
+      "previousDecisionId": "DEC-005R-14"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-242-CONDITION",
+      "augmentId": "aug-242",
+      "field": "condition",
+      "resolvedValue": "전탄발사로 추가 사용되는 잔탄 각각의 피해 +1.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 243
+      },
+      "previousDecisionId": "DEC-005R-15"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-258-CONDITION",
+      "augmentId": "aug-258",
+      "field": "condition",
+      "resolvedValue": "사이클 마지막 카드 정밀 조준 추가 피해를 기본 +3 대신 +6으로 변경.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 259
+      },
+      "previousDecisionId": "DEC-005R-15"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-271-CONDITION",
+      "augmentId": "aug-271",
+      "field": "condition",
+      "resolvedValue": "연격 최대 4. 연격 4에서 상승 유효 공격을 다시 성공하면 몰아치기: 추가 피해 +1.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 272
+      },
+      "previousDecisionId": "DEC-005R-16"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-272-CONDITION",
+      "augmentId": "aug-272",
+      "field": "condition",
+      "resolvedValue": "사이클당 1회, 직전 카드와 같은 숫자로 유효 성공해도 연격 기록을 유지. 연격은 증가하지 않음.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 273
+      },
+      "previousDecisionId": "DEC-005R-16"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-281-CONDITION",
+      "augmentId": "aug-281",
+      "field": "condition",
+      "resolvedValue": "연격 자체의 개인 추가 피해 제거. 상승 유효 공격 성공 시 파쇄 1(최대 3). 다른 아군의 유효 공격이 파쇄 1을 소비해 추가 피해 +1.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 282
+      },
+      "previousDecisionId": "DEC-005R-16"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-292-CONDITION",
+      "augmentId": "aug-292",
+      "field": "condition",
+      "resolvedValue": "일격필살 계통 연격 최대 3→5.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 293
+      },
+      "previousDecisionId": "DEC-005R-16"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-302-CONDITION",
+      "augmentId": "aug-302",
+      "field": "condition",
+      "resolvedValue": "권속 표식은 피의 명령으로 소비되기 전까지 같은 대상에 유지되며 새 권속 표식으로 덮어쓰지 않음.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 303
+      },
+      "previousDecisionId": "DEC-005R-17"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-324-CONDITION",
+      "augmentId": "aug-324",
+      "field": "condition",
+      "resolvedValue": "혈액 최대 저장량 6→8.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 325
+      },
+      "previousDecisionId": "DEC-005R-17"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-325-CONDITION",
+      "augmentId": "aug-325",
+      "field": "condition",
+      "resolvedValue": "수혈받은 아군의 다음 유효 공격 추가 피해 +2.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 326
+      },
+      "previousDecisionId": "DEC-005R-17"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-327-CONDITION",
+      "augmentId": "aug-327",
+      "field": "condition",
+      "resolvedValue": "아군이 HP1이 되는 순간 혈액4 이상이면 자동으로 혈액4 소비, HP1 회복.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 328
+      },
+      "previousDecisionId": "DEC-005R-17"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-329-CONDITION",
+      "augmentId": "aug-329",
+      "field": "condition",
+      "resolvedValue": "수혈 대상 HP1 회복 + 다음 유효 공격 +2 피해 + 다음 직접 피해 1 감소.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 330
+      },
+      "previousDecisionId": "DEC-005R-17"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-332-CONDITION",
+      "augmentId": "aug-332",
+      "field": "condition",
+      "resolvedValue": "일반 유효 공격 포식 획득 +1 추가.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 333
+      },
+      "previousDecisionId": "DEC-005R-18"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-348-CONDITION",
+      "augmentId": "aug-348",
+      "field": "condition",
+      "resolvedValue": "귀참 레벨업 요구 포식 5→4. 귀참 레벨 3 이상에서는 포식 미획득 1턴마다 굶주림 1, 굶주림 2면 레벨 -1.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 349
+      },
+      "previousDecisionId": "DEC-005R-18"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-352-CONDITION",
+      "augmentId": "aug-352",
+      "field": "condition",
+      "resolvedValue": "해방된 귀검의 포식 획득량 +1(유효 공격당 총 2).",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 353
+      },
+      "previousDecisionId": "DEC-005R-18"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-355-CONDITION",
+      "augmentId": "aug-355",
+      "field": "condition",
+      "resolvedValue": "귀화 카드풀에 3 카드 1장을 추가해 5장(2/3/4/5/6)으로 변경.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 356
+      },
+      "previousDecisionId": "DEC-005R-18"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-361-CONDITION",
+      "augmentId": "aug-361",
+      "field": "condition",
+      "resolvedValue": "기본 유효 공격 +2 피해 유지. 직전 턴도 유효 성공이었다면 이번 보너스 +3으로 증가.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 362
+      },
+      "previousDecisionId": "DEC-005R-19"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-363-CONDITION",
+      "augmentId": "aug-363",
+      "field": "condition",
+      "resolvedValue": "사이클당 첫 충돌 1회는 연속 유효 기록을 끊지 않음.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 364
+      },
+      "previousDecisionId": "DEC-005R-19"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-373-CONDITION",
+      "augmentId": "aug-373",
+      "field": "condition",
+      "resolvedValue": "월식 성공 추가 피해 +4→+6.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 374
+      },
+      "previousDecisionId": "DEC-005R-19"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-379-CONDITION",
+      "augmentId": "aug-379",
+      "field": "condition",
+      "resolvedValue": "월식 성공 추가 피해 +8. 해당 공격이 5 이상 카드면 추가 타격 3.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 380
+      },
+      "previousDecisionId": "DEC-005R-19"
+    },
+    {
+      "atomicDecisionId": "AMB-AUG-aug-385-CONDITION",
+      "augmentId": "aug-385",
+      "field": "condition",
+      "resolvedValue": "곡예 재충전 요구 유효 공격 3→2.",
+      "reason": "BETA v0.1에 발동 조건 또는 상시 적용 변경이 명시되어 있으며 수치·효과는 수정하지 않는다. 이 항목의 자동 해소는 원문 조건의 구조화에만 한정된다.",
+      "sourcePolicy": "BETA_V0_1_EXPLICIT_TEXT",
+      "sourceReference": {
+        "sheet": "전체 증강",
+        "row": 386
+      },
+      "previousDecisionId": "DEC-005R-19"
+    }
+  ]
+}
