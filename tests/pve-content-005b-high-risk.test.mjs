@@ -4,6 +4,7 @@ import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/p
 import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-api/pve/combat.js';
 import {applyMonsterDamage} from '../supabase/functions/game-api/pve/monster.js';
 import {resolveGuardianWallCollisions} from '../supabase/functions/game-api/pve/characters.js';
+import {applyOwnedEffects} from '../supabase/functions/game-api/pve/effects.js';
 
 function runWithKnight(augments){
   const ids=['warrior','adventurer','adventurer','adventurer'];
@@ -74,4 +75,20 @@ for(const phase of ['EVENT','REWARD_ROOM'])test('aug-041 Guardian Wall rescues a
   assert.equal(resolveGuardianWallCollisions(run,cards,groups,[]),1);
   assert.equal(cards[1].valid,true);
   assert.equal(run.players[0].publicResources.guardianTargetPlayerId,undefined);
+});
+
+test('aug-061 increments to cap two, consumes the prior stack, and stays out of Reward ranking',()=>{
+  const run=runWithKnight(['aug-061']);
+  run.players[0].characterId='rogue';
+  run.players[0].publicResources.sneakyStack=2;
+  const result=turn(run,[2,3,4,5],false);
+  const packet=result.damagePackets.find(p=>p.playerId==='p0');
+  assert.equal(result.cards.find(c=>c.playerId==='p0').sneakyBonus,2);
+  assert.equal(packet.amount,7);
+  assert.equal(run.players[0].publicResources.sneakyStack,0);
+  run.phase='REWARD_ROOM';
+  const resolved={valid:true,soloLowest:true,sneakyBonus:2},damage={amount:5};
+  applyOwnedEffects(run,'CARD_VALIDATED',{player:run.players[0],resolved});
+  applyOwnedEffects(run,'BEFORE_DAMAGE',{player:run.players[0],resolved,damage});
+  assert.equal(damage.amount,5);
 });
