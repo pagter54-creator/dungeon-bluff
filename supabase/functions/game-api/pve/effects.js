@@ -2,6 +2,7 @@ import {recordEffectTelemetry} from './telemetry.js';
 import {AUGMENT_BY_ID} from './augment-catalog.js';
 import {resourceMax} from './resources.js';
 import {dispatchAugmentTrigger} from './augment-framework.js';
+import {applyContent005B} from './content-005b-runtime.js';
 
 const VALID_OPERATIONS=new Set([
   'MODIFY_NUMBER','MODIFY_DAMAGE','SET_DAMAGE','ADD_STATUS','REMOVE_STATUS','HEAL','DAMAGE_SELF',
@@ -110,6 +111,7 @@ export function applyOwnedEffects(run,trigger,ctx={}){
     }
   }
   fired.push(...dispatchAugmentTrigger(run,trigger,ctx));
+  fired.push(...applyContent005B(run,trigger,ctx));
   return fired;
 }
 export function applyEffectDefinitions(run,player,definitions,trigger,ctx={}){
