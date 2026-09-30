@@ -2319,5 +2319,7 @@
       "classId": "berserker",
       "stage": 4
     }
-  ]
+  ],
+  "placeholderResolutionDocument": "docs/PVE_CONTENT_005B_PLACEHOLDER_RESOLUTION.json",
+  "placeholderResolutionCount": 11
 }
