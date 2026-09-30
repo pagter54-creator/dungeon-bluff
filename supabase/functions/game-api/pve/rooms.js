@@ -160,7 +160,7 @@ export function enterRewardRoom(run){
   const offered=pickUniqueRelics(run,general,4,`reward:${run.currentRoomNodeId}`).map(x=>x.id);
   run.phase='REWARD_ROOM';
   run.roomState={type:'REWARD_ROOM',attempt:1,relicIds:offered,catalogIncomplete:offered.length<4,privateByPlayer:Object.fromEntries(run.players.map(p=>[p.playerId,restoreCardCycle(run,p)])),turnSubmissions:{},pickOrder:[],picks:{},autoAssigned:{},resolved:false};
-  for(const p of run.players){onTurnStartCharacter(p,run);if(p.characterId==='gambler')drawGamblerHand(run,p,run.roomState.privateByPlayer[p.playerId]);}
+  for(const p of run.players){onTurnStartCharacter(p,run);applyOwnedEffects(run,'TURN_START',{player:p,privateState:run.roomState.privateByPlayer[p.playerId]});if(p.characterId==='gambler')drawGamblerHand(run,p,run.roomState.privateByPlayer[p.playerId]);applyOwnedEffects(run,'PRE_SELECT',{player:p,privateState:run.roomState.privateByPlayer[p.playerId]});}
   fillRewardAiSubmissions(run);
   if(run.players.filter(p=>p.status!=='DOWNED').every(p=>run.roomState.turnSubmissions[p.playerId]))resolveRewardAttempt(run);
 }
@@ -267,7 +267,7 @@ export function resolveRewardAttempt(run){
   };
   if(!valid.length){
     if(room.attempt>=3){autoAssignRemaining(run,run.players.map(p=>p.playerId));return {cards,autoOpened:true};}
-    room.attempt+=1;for(const p of run.players)onTurnStartCharacter(p,run);fillRewardAiSubmissions(run);if(run.players.filter(p=>p.status!=='DOWNED').every(p=>room.turnSubmissions[p.playerId]))return resolveRewardAttempt(run);return {cards,retry:true};
+    room.attempt+=1;for(const p of run.players){onTurnStartCharacter(p,run);applyOwnedEffects(run,'TURN_START',{player:p,privateState:room.privateByPlayer[p.playerId]});applyOwnedEffects(run,'PRE_SELECT',{player:p,privateState:room.privateByPlayer[p.playerId]});}fillRewardAiSubmissions(run);if(run.players.filter(p=>p.status!=='DOWNED').every(p=>room.turnSubmissions[p.playerId]))return resolveRewardAttempt(run);return {cards,retry:true};
   }
   if(room.catalogIncomplete){autoAssignRemaining(run,run.players.map(p=>p.playerId));return {cards,catalogIncomplete:true};}
   room.invalidPlayerIds=run.players.filter(p=>!valid.some(c=>c.playerId===p.playerId)).map(p=>p.playerId);
