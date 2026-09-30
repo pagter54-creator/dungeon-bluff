@@ -39,7 +39,7 @@ test('005Q records user choices and gives every atom one category',()=>{
   assert.equal(queue.decisionCategories.length,16);
   const allCategories=new Set(queue.decisionCategories);
   for(const q of queue.entries){
-    const choices={Q01:'A',Q02:'A',Q03:'A',Q04:'A',Q05:'A',Q06:'A',Q07:'B',Q08:'B',Q09:'B',Q10:'A'};
+    const choices={Q01:'A',Q02:'A',Q03:'A',Q04:'A',Q05:'A',Q06:'A',Q07:'B',Q08:'B',Q09:'B',Q10:'A',Q11:'A',Q12:'A',Q13:'A',Q14:'A',Q15:'A'};
     assert.equal(q.selectedOption,choices[q.decisionId]||null);
     assert.ok(q.options.length>=2);
     assert.ok(q.question&&q.affectedAugments.length);
@@ -115,21 +115,27 @@ test('005Q keeps direction-only cards unresolved and applies six operational pol
   assert.equal(queue.entries.length,23);
   assert.equal(queue.userSelectionsApplied,10);
   assert.equal(queue.userResolvedAtomicDecisionCount,6);
-  assert.equal(queue.userDirectionOnlyAtomicDecisionCount,22);
-  assert.equal(queue.remainingAtomicDecisionCount,169);
+  assert.equal(queue.userDirectionOnlyAtomicDecisionCount,12);
+  assert.equal(queue.remainingAtomicDecisionCount,112);
   const byId=new Map(contracts.map(row=>[row.augmentId,row]));
+  const designed=new Set(read('PVE_CONTENT_005Q_DESIGN_B.json').targetIds);
   const direction=queue.entries.slice(0,4);
   for(const q of direction){
     assert.equal(q.selectedOption,'A');
     assert.equal(q.selectionScope,'DIRECTION_ONLY_PENDING_BETA_V0_2');
     for(const id of q.affectedAugments){
       const row=byId.get(id);
-      assert.equal(row.status,'SPEC_AMBIGUOUS');
-      assert.equal(row.effect.text,row.sourceBetaValue);
-      assert.equal(row.effect.executable,false);
-      assert.equal(row.effect.executionStatus,'PROVENANCE_ONLY_PENDING_BETA_V0_2');
+      if(designed.has(id)){
+        assert.equal(row.status,'SPEC_COMPLETE');
+        assert.equal(row.effect.sourceField,'BETA_V0_2_DESIGN');
+      }else{
+        assert.equal(row.status,'SPEC_AMBIGUOUS');
+        assert.equal(row.effect.text,row.sourceBetaValue);
+        assert.equal(row.effect.executable,false);
+        assert.equal(row.effect.executionStatus,'PROVENANCE_ONLY_PENDING_BETA_V0_2');
+      }
       assert.equal(row.decisionOverlay[q.decisionId].selectedOption,'A');
-      assert.ok(row.ambiguities.length);
+      if(!designed.has(id)) assert.ok(row.ambiguities.length);
     }
   }
   const resolved=['aug-030','aug-211','aug-390','aug-201','aug-301'];
