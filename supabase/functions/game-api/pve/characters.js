@@ -360,7 +360,7 @@ export function resolveGuardianWallCollisions(run,cards,groups,events=[]){
     if(group.length<2)continue;
     const guardians=[...group].filter(card=>{
       const player=run.players.find(p=>p.playerId===card.playerId);
-      const submission=run.combat?.turnSubmissions?.[card.playerId];
+      const submission=(run.combat||run.roomState)?.turnSubmissions?.[card.playerId];
       return player?.status!=='DOWNED'&&player?.characterId==='warrior'&&player.augments.includes('aug-041')&&submission?.skillIntent===true&&card.invalidReason==='COLLISION';
     }).sort((a,b)=>{
       const pa=run.players.find(p=>p.playerId===a.playerId),pb=run.players.find(p=>p.playerId===b.playerId);
@@ -371,7 +371,7 @@ export function resolveGuardianWallCollisions(run,cards,groups,events=[]){
       const candidates=[...group].filter(card=>{
         if(card.playerId===guardian.playerId||card.invalidReason!=='COLLISION'||card.valid)return false;
         const targetPlayer=run.players.find(p=>p.playerId===card.playerId);
-        const targetSubmission=run.combat?.turnSubmissions?.[card.playerId];
+        const targetSubmission=(run.combat||run.roomState)?.turnSubmissions?.[card.playerId];
         const sacrificingGuardian=targetPlayer?.characterId==='warrior'&&targetPlayer.augments.includes('aug-041')&&targetSubmission?.skillIntent===true;
         return targetPlayer?.status!=='DOWNED'&&!sacrificingGuardian;
       }).sort((a,b)=>{
@@ -381,7 +381,7 @@ export function resolveGuardianWallCollisions(run,cards,groups,events=[]){
       const target=candidates[0];if(!target)continue;
       target.valid=true;delete target.invalidReason;target.guardianRescued=true;target.guardianRescuedBy=guardian.playerId;
       guardian.valid=false;guardian.invalidReason='COLLISION';guardian.guardianSacrifice=true;guardian.guardianRescueTargetId=target.playerId;
-      guardianPlayer.publicResources.guardianTargetPlayerId=target.playerId;
+      if(run.phase==='COMBAT')guardianPlayer.publicResources.guardianTargetPlayerId=target.playerId;
       const guardEventId=`guard:${run.floor}:${run.depth}:${run.combat?.monster?.id||'combat'}:${run.combat?.turn||0}:${guardian.playerId}`;
       events.push({type:'GUARDIAN_WALL_RESCUE',phase:'COLLISION_RESOLVE',guardEventId,finalNumber:Number(finalNumber),playerId:guardian.playerId,targetId:target.playerId,redirectCount:1});
       rescueCount++;
