@@ -1,0 +1,149 @@
+{
+  "schemaVersion": "PVE_CONTENT_005R_DEPENDENCIES_V1",
+  "nodes": [
+    {
+      "id": "TRIGGER_PHASE_ALIAS",
+      "priority": 1,
+      "dependsOn": [],
+      "why": "Canonical triggers map to existing Combat/Event/Reward emitters; room gating prevents monster-damage effects in Reward ranking."
+    },
+    {
+      "id": "ON_ACQUIRE_IDEMPOTENCY",
+      "priority": 2,
+      "dependsOn": [
+        "TRIGGER_PHASE_ALIAS"
+      ],
+      "why": "Persist player+augment applied marker inside authoritative selection action."
+    },
+    {
+      "id": "SCOPE_COUNTERS",
+      "priority": 3,
+      "dependsOn": [
+        "TRIGGER_PHASE_ALIAS"
+      ],
+      "why": "TURN/CYCLE/COMBAT/ROOM/FLOOR/RUN and class-specific shuffle/use keys."
+    },
+    {
+      "id": "STATUS_LIFETIME",
+      "priority": 4,
+      "dependsOn": [
+        "SCOPE_COUNTERS"
+      ],
+      "why": "Owner, source, cap, appliedAt, expiry and cleanup."
+    },
+    {
+      "id": "CARD_IDENTITY_RECOVERY",
+      "priority": 5,
+      "dependsOn": [
+        "SCOPE_COUNTERS",
+        "TRIGGER_PHASE_ALIAS"
+      ],
+      "why": "Same physical card ID, SPENT to REMAINING, no auto-submit, finite chain."
+    },
+    {
+      "id": "DECK_ZONE_DRAW",
+      "priority": 6,
+      "dependsOn": [
+        "CARD_IDENTITY_RECOVERY"
+      ],
+      "why": "Gambler draw/hand/discard/vanished model differs from standard cycle."
+    },
+    {
+      "id": "DAMAGE_STACKING_AND_ROOM_GATING",
+      "priority": 7,
+      "dependsOn": [
+        "TRIGGER_PHASE_ALIAS",
+        "STATUS_LIFETIME"
+      ],
+      "why": "Preserve current pre-mitigated base packet and explicit generic BEFORE_DAMAGE order; separate Reward ranking."
+    },
+    {
+      "id": "HEAL_AND_DIRECT_DAMAGE",
+      "priority": 8,
+      "dependsOn": [
+        "DAMAGE_STACKING_AND_ROOM_GATING",
+        "STATUS_LIFETIME"
+      ],
+      "why": "HP cap, Berserker exception, DOWNED/Flame and ally self-damage semantics."
+    },
+    {
+      "id": "DELAYED_EFFECT_QUEUE",
+      "priority": 9,
+      "dependsOn": [
+        "SCOPE_COUNTERS",
+        "STATUS_LIFETIME"
+      ],
+      "why": "Persist schedule/resolve/cancel and reconnect behavior without invented defaults."
+    },
+    {
+      "id": "BASE_RULE_OVERRIDE",
+      "priority": 10,
+      "dependsOn": [
+        "TRIGGER_PHASE_ALIAS",
+        "SCOPE_COUNTERS"
+      ],
+      "why": "ADD/OVERRIDE/CAP_CHANGE/UNLOCK/REPLACE/MULTIPLY explicit precedence."
+    },
+    {
+      "id": "ECONOMY_RELIC_GRANTS",
+      "priority": 11,
+      "dependsOn": [
+        "ON_ACQUIRE_IDEMPOTENCY",
+        "SCOPE_COUNTERS"
+      ],
+      "why": "Server-authoritative EXP/Gold/relic opportunities with duplicate-action guard."
+    },
+    {
+      "id": "CLASS_ADAPTERS",
+      "priority": 12,
+      "dependsOn": [
+        "DECK_ZONE_DRAW",
+        "CARD_IDENTITY_RECOVERY",
+        "BASE_RULE_OVERRIDE",
+        "DAMAGE_STACKING_AND_ROOM_GATING"
+      ],
+      "why": "Gambler, Gunslinger, Ghost Swordsman, Vampire, Imp, Twins and Martial Artist hooks."
+    }
+  ],
+  "primitiveCandidateCounts": {
+    "ADD_DAMAGE": 186,
+    "HEAL": 23,
+    "MODIFY_EXP": 12,
+    "MODIFY_INCOMING_DAMAGE": 30,
+    "DELAY_EFFECT": 70,
+    "ADD_STACK": 31,
+    "OVERRIDE_EQUIPMENT_CHOICE": 1,
+    "MODIFY_GOLD": 3,
+    "MODIFY_RELIC_OFFER": 1,
+    "GRANT_RELIC_OPPORTUNITY": 1,
+    "APPLY_STATUS": 23,
+    "GAIN_RESOURCE": 44,
+    "SPEND_RESOURCE": 33,
+    "RECOVER_CARD": 18,
+    "OVERRIDE_COLLISION": 1,
+    "OVERRIDE_BASE_RULE": 17,
+    "REMOVE_STATUS": 2,
+    "MODIFY_STREAK_RESET": 1,
+    "MODIFY_NUMBER": 15,
+    "PREVENT_DOWN": 1,
+    "RECOVER_CARD_SELECTOR": 3,
+    "MODIFY_RESOURCE_CAP": 6,
+    "REVEAL_PRIVATE_INFO": 1,
+    "MODIFY_DAMAGE": 1,
+    "DAMAGE_ALLY": 1,
+    "MODIFY_DECK": 6,
+    "DRAW_CARD": 9,
+    "DAMAGE_SELF": 1,
+    "MODIFY_FULL_BURST": 11,
+    "SET_RESOURCE": 1,
+    "MODIFY_COOLDOWN": 1,
+    "MODIFY_RESOURCE_COST": 1,
+    "MODIFY_DEVOUR": 18,
+    "MODIFY_PARITY": 14
+  },
+  "readiness": {
+    "frameworkReady": true,
+    "cardBatchReady": false,
+    "reason": "Global trigger/scope/room and safety contracts are fixed; card-specific ambiguous source meanings remain blocked."
+  }
+}
