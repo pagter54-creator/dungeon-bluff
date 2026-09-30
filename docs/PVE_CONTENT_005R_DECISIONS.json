@@ -1,0 +1,1947 @@
+{
+  "schemaVersion": "PVE_CONTENT_005R_DECISION_QUEUE_V1",
+  "decisionGroups": 19,
+  "coveredAugmentIds": 207,
+  "unresolvedAtomicItems": 243,
+  "entries": [
+    {
+      "decisionId": "DEC-005R-01",
+      "type": "SOURCE_CONFLICT",
+      "augmentIds": [
+        "aug-052",
+        "aug-257",
+        "aug-283",
+        "aug-296"
+      ],
+      "question": "원문은 적 방어 관통/약화인데 BETA 수치안은 자신이 받는 다음 직접 피해 1 감소입니다. 어느 효과 의미를 확정할까요?",
+      "options": [
+        "원문 방어 관통/약화 의미를 유지하고 해당 카드의 BETA 수치를 다시 지정",
+        "BETA의 자기 피해 감소 효과로 변경한다고 명시"
+      ],
+      "perCard": [
+        {
+          "augmentId": "aug-052",
+          "name": "중갑 돌파",
+          "unresolved": [
+            "AMB-AUG-aug-052-SOURCE_CONFLICT"
+          ]
+        },
+        {
+          "augmentId": "aug-257",
+          "name": "관통탄",
+          "unresolved": [
+            "AMB-AUG-aug-257-SOURCE_CONFLICT"
+          ]
+        },
+        {
+          "augmentId": "aug-283",
+          "name": "깨진 자세",
+          "unresolved": [
+            "AMB-AUG-aug-283-SOURCE_CONFLICT"
+          ]
+        },
+        {
+          "augmentId": "aug-296",
+          "name": "파공권",
+          "unresolved": [
+            "AMB-AUG-aug-296-SOURCE_CONFLICT"
+          ]
+        }
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-02",
+      "type": "SOURCE_CONFLICT",
+      "augmentIds": [
+        "aug-049",
+        "aug-253"
+      ],
+      "question": "원문 보호 표식·정밀 조준 손실 완화와 BETA 피해 보너스/피해 감소가 다릅니다. 각 카드의 실제 효과를 어느 쪽으로 확정할까요?",
+      "options": [
+        "원문 효과 의미를 유지하고 카드별 BETA 수치를 보완",
+        "BETA 문구가 효과 변경임을 카드별로 승인"
+      ],
+      "perCard": [
+        {
+          "augmentId": "aug-049",
+          "name": "불침의 수호자",
+          "unresolved": [
+            "AMB-AUG-aug-049-SOURCE_CONFLICT"
+          ]
+        },
+        {
+          "augmentId": "aug-253",
+          "name": "침착한 호흡",
+          "unresolved": [
+            "AMB-AUG-aug-253-SOURCE_CONFLICT"
+          ]
+        }
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-03",
+      "type": "SOURCE_CONFLICT",
+      "augmentIds": [
+        "aug-104",
+        "aug-116",
+        "aug-124",
+        "aug-129",
+        "aug-139",
+        "aug-146",
+        "aug-237"
+      ],
+      "question": "원문은 회복을 계기로 다른 효과가 발동하지만 BETA에는 HP 1 회복만 적혔습니다. HP 1은 원문 효과의 수치인가요, 효과 자체의 교체인가요?",
+      "options": [
+        "원문 효과를 유지하고 누락된 발동·수치를 카드별로 보완",
+        "HP 1 회복으로 효과를 교체한다고 카드별로 승인"
+      ],
+      "perCard": [
+        {
+          "augmentId": "aug-104",
+          "name": "전투 축복",
+          "unresolved": [
+            "AMB-AUG-aug-104-SOURCE_CONFLICT"
+          ]
+        },
+        {
+          "augmentId": "aug-116",
+          "name": "보존 법칙",
+          "unresolved": [
+            "AMB-AUG-aug-116-SOURCE_CONFLICT"
+          ]
+        },
+        {
+          "augmentId": "aug-124",
+          "name": "전투의 식사",
+          "unresolved": [
+            "AMB-AUG-aug-124-SOURCE_CONFLICT"
+          ]
+        },
+        {
+          "augmentId": "aug-129",
+          "name": "붉은 기관",
+          "unresolved": [
+            "AMB-AUG-aug-129-CONDITION",
+            "AMB-AUG-aug-129-SOURCE_CONFLICT"
+          ]
+        },
+        {
+          "augmentId": "aug-139",
+          "name": "난전의 왕",
+          "unresolved": [
+            "AMB-AUG-aug-139-SOURCE_CONFLICT"
+          ]
+        },
+        {
+          "augmentId": "aug-146",
+          "name": "피 묻은 미소",
+          "unresolved": [
+            "AMB-AUG-aug-146-CONDITION",
+            "AMB-AUG-aug-146-SOURCE_CONFLICT"
+          ]
+        },
+        {
+          "augmentId": "aug-237",
+          "name": "승자의 배당",
+          "unresolved": [
+            "AMB-AUG-aug-237-SOURCE_CONFLICT"
+          ]
+        }
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-04",
+      "type": "SOURCE_CONFLICT",
+      "augmentIds": [
+        "aug-153",
+        "aug-160",
+        "aug-162",
+        "aug-164",
+        "aug-166",
+        "aug-167"
+      ],
+      "question": "원문은 복구 후보 조정·강화·버프인데 BETA에는 카드 1~2장 복구만 적혔습니다. 복구 수치가 원문 보조효과를 대체하나요?",
+      "options": [
+        "원문 보조효과를 유지하고 복구 수치/대상을 카드별로 명시",
+        "복구 효과로 교체한다고 카드별로 승인"
+      ],
+      "perCard": [
+        {
+          "augmentId": "aug-153",
+          "name": "되풀이되는 미래",
+          "unresolved": [
+            "AMB-AUG-aug-153-SOURCE_CONFLICT"
+          ]
+        },
+        {
+          "augmentId": "aug-160",
+          "name": "이미 본 결말",
+          "unresolved": [
+            "AMB-AUG-aug-160-CONDITION",
+            "AMB-AUG-aug-160-SOURCE_CONFLICT"
+          ]
+        },
+        {
+          "augmentId": "aug-162",
+          "name": "별빛 인도",
+          "unresolved": [
+            "AMB-AUG-aug-162-SOURCE_CONFLICT"
+          ]
+        },
+        {
+          "augmentId": "aug-164",
+          "name": "축복받은 패",
+          "unresolved": [
+            "AMB-AUG-aug-164-SOURCE_CONFLICT"
+          ]
+        },
+        {
+          "augmentId": "aug-166",
+          "name": "엇갈린 미래",
+          "unresolved": [
+            "AMB-AUG-aug-166-SOURCE_CONFLICT"
+          ]
+        },
+        {
+          "augmentId": "aug-167",
+          "name": "공동의 예지",
+          "unresolved": [
+            "AMB-AUG-aug-167-SOURCE_CONFLICT"
+          ]
+        }
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-05",
+      "type": "HIGH_RISK_TARGET",
+      "augmentIds": [
+        "aug-030",
+        "aug-211",
+        "aug-390"
+      ],
+      "question": "추가 유물의 중복/소지 한도, 행운 선택 시점, 곡예 복구 카드 선택자를 각각 확정해야 합니다.",
+      "options": [
+        "기존 유물 규칙 적용·행운 소비 시 선택·복구 카드 무작위로 확정",
+        "세 카드의 별도 선택/예외 규칙을 지정"
+      ],
+      "perCard": [
+        {
+          "augmentId": "aug-030",
+          "name": "전설의 발견",
+          "unresolved": [
+            "AMB-AUG-aug-030-RELIC_DUPLICATE_POLICY",
+            "AMB-AUG-aug-030-RELIC_FULL_INVENTORY"
+          ]
+        },
+        {
+          "augmentId": "aug-211",
+          "name": "운명의 승부사",
+          "unresolved": [
+            "AMB-AUG-aug-211-LUCK_CHOICE_TIMING"
+          ]
+        },
+        {
+          "augmentId": "aug-390",
+          "name": "하늘을 걷는 쌍둥이",
+          "unresolved": [
+            "AMB-AUG-aug-390-RECOVERY_TARGET_SELECTION"
+          ]
+        }
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-06",
+      "type": "HIGH_RISK_ORDER",
+      "augmentIds": [
+        "aug-201",
+        "aug-301"
+      ],
+      "question": "장난 재슬쩍 피해의 다운 처리와 지배의 기존 스택 소비/신규 획득 순서를 확정해야 합니다.",
+      "options": [
+        "일반 직접 피해 다운 규칙 적용·기존 지배 소비 후 새 지배 획득",
+        "각 카드의 별도 다운/지배 누적 순서를 지정"
+      ],
+      "perCard": [
+        {
+          "augmentId": "aug-201",
+          "name": "장난의 연쇄",
+          "unresolved": [
+            "AMB-AUG-aug-201-ALLY_DAMAGE_DOWN_SEMANTICS"
+          ]
+        },
+        {
+          "augmentId": "aug-301",
+          "name": "완전한 권속",
+          "unresolved": [
+            "AMB-AUG-aug-301-DOMINANCE_CONSUME_GAIN_ORDER"
+          ]
+        }
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-07",
+      "type": "CLASS_SPEC_GAPS",
+      "augmentIds": [
+        "aug-001",
+        "aug-003",
+        "aug-009",
+        "aug-012",
+        "aug-013",
+        "aug-014",
+        "aug-017",
+        "aug-019",
+        "aug-020",
+        "aug-022"
+      ],
+      "question": "adventurer의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "options": [
+        "카드별 미해결 규칙을 명시",
+        "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
+      ],
+      "perCard": [
+        {
+          "augmentId": "aug-001",
+          "name": "노련한 탐험가",
+          "unresolved": [
+            "AMB-AUG-aug-001-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-003",
+          "name": "노련한 검술",
+          "unresolved": [
+            "AMB-AUG-aug-003-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-009",
+          "name": "일당백",
+          "unresolved": [
+            "AMB-AUG-aug-009-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-012",
+          "name": "튼튼한 야영 장비",
+          "unresolved": [
+            "AMB-AUG-aug-012-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-013",
+          "name": "탐험가의 공구함",
+          "unresolved": [
+            "AMB-AUG-aug-013-TRIGGER"
+          ]
+        },
+        {
+          "augmentId": "aug-014",
+          "name": "잘 벼린 여행검",
+          "unresolved": [
+            "AMB-AUG-aug-014-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-017",
+          "name": "현장 개조",
+          "unresolved": [
+            "AMB-AUG-aug-017-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-019",
+          "name": "전설의 장비 세트",
+          "unresolved": [
+            "AMB-AUG-aug-019-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-020",
+          "name": "적재적소",
+          "unresolved": [
+            "AMB-AUG-aug-020-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-022",
+          "name": "공동 탐사 기록",
+          "unresolved": [
+            "AMB-AUG-aug-022-CONDITION"
+          ]
+        }
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-08",
+      "type": "CLASS_SPEC_GAPS",
+      "augmentIds": [
+        "aug-031",
+        "aug-033",
+        "aug-035",
+        "aug-037",
+        "aug-038",
+        "aug-040",
+        "aug-044",
+        "aug-045",
+        "aug-048",
+        "aug-053",
+        "aug-054",
+        "aug-055",
+        "aug-057",
+        "aug-058",
+        "aug-059",
+        "aug-060"
+      ],
+      "question": "warrior의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "options": [
+        "카드별 미해결 규칙을 명시",
+        "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
+      ],
+      "perCard": [
+        {
+          "augmentId": "aug-031",
+          "name": "불굴의 기사",
+          "unresolved": [
+            "AMB-AUG-aug-031-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-033",
+          "name": "무쇠 갑주",
+          "unresolved": [
+            "AMB-AUG-aug-033-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-035",
+          "name": "빈틈 없는 전진",
+          "unresolved": [
+            "AMB-AUG-aug-035-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-037",
+          "name": "마지막 보루",
+          "unresolved": [
+            "AMB-AUG-aug-037-TRIGGER",
+            "AMB-AUG-aug-037-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-038",
+          "name": "불퇴전",
+          "unresolved": [
+            "AMB-AUG-aug-038-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-040",
+          "name": "영원한 전열",
+          "unresolved": [
+            "AMB-AUG-aug-040-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-044",
+          "name": "헌신의 보답",
+          "unresolved": [
+            "AMB-AUG-aug-044-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-045",
+          "name": "전열 교대",
+          "unresolved": [
+            "AMB-AUG-aug-045-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-048",
+          "name": "철벽 진형",
+          "unresolved": [
+            "AMB-AUG-aug-048-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-053",
+          "name": "무게 싣기",
+          "unresolved": [
+            "AMB-AUG-aug-053-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-054",
+          "name": "전진 또 전진",
+          "unresolved": [
+            "AMB-AUG-aug-054-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-055",
+          "name": "다중 압살",
+          "unresolved": [
+            "AMB-AUG-aug-055-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-057",
+          "name": "힘을 비축하라",
+          "unresolved": [
+            "AMB-AUG-aug-057-TRIGGER",
+            "AMB-AUG-aug-057-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-058",
+          "name": "일기당천",
+          "unresolved": [
+            "AMB-AUG-aug-058-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-059",
+          "name": "성문 파쇄",
+          "unresolved": [
+            "AMB-AUG-aug-059-CONDITION",
+            "AMB-AUG-aug-059-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-060",
+          "name": "진격의 기사",
+          "unresolved": [
+            "AMB-AUG-aug-060-CONDITION"
+          ]
+        }
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-09",
+      "type": "CLASS_SPEC_GAPS",
+      "augmentIds": [
+        "aug-063",
+        "aug-066",
+        "aug-068",
+        "aug-070",
+        "aug-073",
+        "aug-079",
+        "aug-080",
+        "aug-082",
+        "aug-086"
+      ],
+      "question": "rogue의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "options": [
+        "카드별 미해결 규칙을 명시",
+        "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
+      ],
+      "perCard": [
+        {
+          "augmentId": "aug-063",
+          "name": "틈새 포착",
+          "unresolved": [
+            "AMB-AUG-aug-063-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-066",
+          "name": "밑장 빼기",
+          "unresolved": [
+            "AMB-AUG-aug-066-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-068",
+          "name": "목을 노려라",
+          "unresolved": [
+            "AMB-AUG-aug-068-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-070",
+          "name": "완전범죄",
+          "unresolved": [
+            "AMB-AUG-aug-070-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-073",
+          "name": "회수용 와이어",
+          "unresolved": [
+            "AMB-AUG-aug-073-TRIGGER"
+          ]
+        },
+        {
+          "augmentId": "aug-079",
+          "name": "부식성 맹독",
+          "unresolved": [
+            "AMB-AUG-aug-079-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-080",
+          "name": "끝없는 독니",
+          "unresolved": [
+            "AMB-AUG-aug-080-TRIGGER"
+          ]
+        },
+        {
+          "augmentId": "aug-082",
+          "name": "높은 곳으로",
+          "unresolved": [
+            "AMB-AUG-aug-082-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-086",
+          "name": "착지 없는 발걸음",
+          "unresolved": [
+            "AMB-AUG-aug-086-TRIGGER",
+            "AMB-AUG-aug-086-ROOM_APPLICABILITY",
+            "AMB-AUG-aug-086-PRIMITIVE"
+          ]
+        }
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-10",
+      "type": "CLASS_SPEC_GAPS",
+      "augmentIds": [
+        "aug-097",
+        "aug-102",
+        "aug-103",
+        "aug-107",
+        "aug-109",
+        "aug-110",
+        "aug-112",
+        "aug-114",
+        "aug-115",
+        "aug-119",
+        "aug-120"
+      ],
+      "question": "mage의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "options": [
+        "카드별 미해결 규칙을 명시",
+        "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
+      ],
+      "perCard": [
+        {
+          "augmentId": "aug-097",
+          "name": "금단의 공식",
+          "unresolved": [
+            "AMB-AUG-aug-097-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-102",
+          "name": "생명 공명",
+          "unresolved": [
+            "AMB-AUG-aug-102-TRIGGER"
+          ]
+        },
+        {
+          "augmentId": "aug-103",
+          "name": "마력 순환술",
+          "unresolved": [
+            "AMB-AUG-aug-103-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-107",
+          "name": "정화 공식",
+          "unresolved": [
+            "AMB-AUG-aug-107-TRIGGER",
+            "AMB-AUG-aug-107-CONDITION",
+            "AMB-AUG-aug-107-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-109",
+          "name": "수호천사",
+          "unresolved": [
+            "AMB-AUG-aug-109-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-110",
+          "name": "성전의 축복",
+          "unresolved": [
+            "AMB-AUG-aug-110-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-112",
+          "name": "잔차 회수",
+          "unresolved": [
+            "AMB-AUG-aug-112-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-114",
+          "name": "교대 공식",
+          "unresolved": [
+            "AMB-AUG-aug-114-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-115",
+          "name": "자동 보정",
+          "unresolved": [
+            "AMB-AUG-aug-115-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-119",
+          "name": "수식의 반전",
+          "unresolved": [
+            "AMB-AUG-aug-119-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-120",
+          "name": "무한 대칭식",
+          "unresolved": [
+            "AMB-AUG-aug-120-CONDITION"
+          ]
+        }
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-11",
+      "type": "CLASS_SPEC_GAPS",
+      "augmentIds": [
+        "aug-126",
+        "aug-128",
+        "aug-130",
+        "aug-136",
+        "aug-137",
+        "aug-138",
+        "aug-140",
+        "aug-143",
+        "aug-145",
+        "aug-147",
+        "aug-148",
+        "aug-149"
+      ],
+      "question": "berserker의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "options": [
+        "카드별 미해결 규칙을 명시",
+        "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
+      ],
+      "perCard": [
+        {
+          "augmentId": "aug-126",
+          "name": "붉은 추격",
+          "unresolved": [
+            "AMB-AUG-aug-126-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-128",
+          "name": "피의 폭풍",
+          "unresolved": [
+            "AMB-AUG-aug-128-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-130",
+          "name": "끝없는 광전",
+          "unresolved": [
+            "AMB-AUG-aug-130-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-136",
+          "name": "상처의 기억",
+          "unresolved": [
+            "AMB-AUG-aug-136-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-137",
+          "name": "피로 갚는다",
+          "unresolved": [
+            "AMB-AUG-aug-137-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-138",
+          "name": "불사신",
+          "unresolved": [
+            "AMB-AUG-aug-138-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-140",
+          "name": "광기의 반격",
+          "unresolved": [
+            "AMB-AUG-aug-140-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-143",
+          "name": "살육 본능",
+          "unresolved": [
+            "AMB-AUG-aug-143-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-145",
+          "name": "폭주",
+          "unresolved": [
+            "AMB-AUG-aug-145-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-147",
+          "name": "죽음과 춤을",
+          "unresolved": [
+            "AMB-AUG-aug-147-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-148",
+          "name": "살아있는 재앙",
+          "unresolved": [
+            "AMB-AUG-aug-148-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-149",
+          "name": "마지막 불꽃",
+          "unresolved": [
+            "AMB-AUG-aug-149-CONDITION"
+          ]
+        }
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-12",
+      "type": "CLASS_SPEC_GAPS",
+      "augmentIds": [
+        "aug-152",
+        "aug-155",
+        "aug-157",
+        "aug-158",
+        "aug-159",
+        "aug-163",
+        "aug-165",
+        "aug-169",
+        "aug-173",
+        "aug-174",
+        "aug-175",
+        "aug-176",
+        "aug-177",
+        "aug-179"
+      ],
+      "question": "prophet의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "options": [
+        "카드별 미해결 규칙을 명시",
+        "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
+      ],
+      "perCard": [
+        {
+          "augmentId": "aug-152",
+          "name": "선명한 환영",
+          "unresolved": [
+            "AMB-AUG-aug-152-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-155",
+          "name": "두 번째 계시",
+          "unresolved": [
+            "AMB-AUG-aug-155-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-157",
+          "name": "운명의 반복",
+          "unresolved": [
+            "AMB-AUG-aug-157-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-158",
+          "name": "천개의 미래",
+          "unresolved": [
+            "AMB-AUG-aug-158-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-159",
+          "name": "끝없는 계시",
+          "unresolved": [
+            "AMB-AUG-aug-159-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-163",
+          "name": "나누어진 운명",
+          "unresolved": [
+            "AMB-AUG-aug-163-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-165",
+          "name": "운명의 실",
+          "unresolved": [
+            "AMB-AUG-aug-165-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-169",
+          "name": "별들이 선택한 패",
+          "unresolved": [
+            "AMB-AUG-aug-169-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-173",
+          "name": "길조",
+          "unresolved": [
+            "AMB-AUG-aug-173-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-174",
+          "name": "숫자의 별자리",
+          "unresolved": [
+            "AMB-AUG-aug-174-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-175",
+          "name": "연속 적중",
+          "unresolved": [
+            "AMB-AUG-aug-175-TRIGGER"
+          ]
+        },
+        {
+          "augmentId": "aug-176",
+          "name": "불길한 확신",
+          "unresolved": [
+            "AMB-AUG-aug-176-CONDITION",
+            "AMB-AUG-aug-176-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-177",
+          "name": "자기충족적 예언",
+          "unresolved": [
+            "AMB-AUG-aug-177-TRIGGER",
+            "AMB-AUG-aug-177-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-179",
+          "name": "운명은 정해졌다",
+          "unresolved": [
+            "AMB-AUG-aug-179-CONDITION"
+          ]
+        }
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-13",
+      "type": "CLASS_SPEC_GAPS",
+      "augmentIds": [
+        "aug-182",
+        "aug-184",
+        "aug-185",
+        "aug-186",
+        "aug-188",
+        "aug-189",
+        "aug-190",
+        "aug-192",
+        "aug-193",
+        "aug-195",
+        "aug-197",
+        "aug-198",
+        "aug-199",
+        "aug-203",
+        "aug-204",
+        "aug-205",
+        "aug-208"
+      ],
+      "question": "imp의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "options": [
+        "카드별 미해결 규칙을 명시",
+        "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
+      ],
+      "perCard": [
+        {
+          "augmentId": "aug-182",
+          "name": "두 손 가득",
+          "unresolved": [
+            "AMB-AUG-aug-182-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-184",
+          "name": "잔돈까지",
+          "unresolved": [
+            "AMB-AUG-aug-184-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-185",
+          "name": "욕심쟁이",
+          "unresolved": [
+            "AMB-AUG-aug-185-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-186",
+          "name": "훔친 힘",
+          "unresolved": [
+            "AMB-AUG-aug-186-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-188",
+          "name": "싹쓸이",
+          "unresolved": [
+            "AMB-AUG-aug-188-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-189",
+          "name": "욕심은 끝이 없어",
+          "unresolved": [
+            "AMB-AUG-aug-189-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-190",
+          "name": "대도둑 임프",
+          "unresolved": [
+            "AMB-AUG-aug-190-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-192",
+          "name": "비밀 주머니",
+          "unresolved": [
+            "AMB-AUG-aug-192-CONDITION",
+            "AMB-AUG-aug-192-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-193",
+          "name": "조금만 쓸게",
+          "unresolved": [
+            "AMB-AUG-aug-193-TRIGGER",
+            "AMB-AUG-aug-193-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-195",
+          "name": "장물 거래",
+          "unresolved": [
+            "AMB-AUG-aug-195-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-197",
+          "name": "큰손",
+          "unresolved": [
+            "AMB-AUG-aug-197-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-198",
+          "name": "끝없는 주머니",
+          "unresolved": [
+            "AMB-AUG-aug-198-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-199",
+          "name": "암시장 큰손",
+          "unresolved": [
+            "AMB-AUG-aug-199-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-203",
+          "name": "안전장치",
+          "unresolved": [
+            "AMB-AUG-aug-203-TRIGGER",
+            "AMB-AUG-aug-203-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-204",
+          "name": "여럿이 놀자",
+          "unresolved": [
+            "AMB-AUG-aug-204-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-205",
+          "name": "기대감",
+          "unresolved": [
+            "AMB-AUG-aug-205-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-208",
+          "name": "대소동",
+          "unresolved": [
+            "AMB-AUG-aug-208-CONDITION"
+          ]
+        }
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-14",
+      "type": "CLASS_SPEC_GAPS",
+      "augmentIds": [
+        "aug-212",
+        "aug-213",
+        "aug-216",
+        "aug-217",
+        "aug-218",
+        "aug-219",
+        "aug-222",
+        "aug-226",
+        "aug-228",
+        "aug-229",
+        "aug-230",
+        "aug-232",
+        "aug-234",
+        "aug-238"
+      ],
+      "question": "gambler의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "options": [
+        "카드별 미해결 규칙을 명시",
+        "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
+      ],
+      "perCard": [
+        {
+          "augmentId": "aug-212",
+          "name": "행운의 숫자 6",
+          "unresolved": [
+            "AMB-AUG-aug-212-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-213",
+          "name": "대박의 숫자 7",
+          "unresolved": [
+            "AMB-AUG-aug-213-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-216",
+          "name": "두 번 오는 행운",
+          "unresolved": [
+            "AMB-AUG-aug-216-TRIGGER",
+            "AMB-AUG-aug-216-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-217",
+          "name": "운명의 연속",
+          "unresolved": [
+            "AMB-AUG-aug-217-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-218",
+          "name": "황금의 6",
+          "unresolved": [
+            "AMB-AUG-aug-218-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-219",
+          "name": "잭팟 7",
+          "unresolved": [
+            "AMB-AUG-aug-219-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-222",
+          "name": "남은 패 계산",
+          "unresolved": [
+            "AMB-AUG-aug-222-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-226",
+          "name": "풀하우스",
+          "unresolved": [
+            "AMB-AUG-aug-226-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-228",
+          "name": "완전 계산",
+          "unresolved": [
+            "AMB-AUG-aug-228-ROOM_APPLICABILITY"
+          ]
+        },
+        {
+          "augmentId": "aug-229",
+          "name": "카드 카운팅의 달인",
+          "unresolved": [
+            "AMB-AUG-aug-229-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-230",
+          "name": "필연의 패",
+          "unresolved": [
+            "AMB-AUG-aug-230-ROOM_APPLICABILITY"
+          ]
+        },
+        {
+          "augmentId": "aug-232",
+          "name": "판돈 올리기",
+          "unresolved": [
+            "AMB-AUG-aug-232-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-234",
+          "name": "낮은 패 블러핑",
+          "unresolved": [
+            "AMB-AUG-aug-234-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-238",
+          "name": "전 재산",
+          "unresolved": [
+            "AMB-AUG-aug-238-CONDITION"
+          ]
+        }
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-15",
+      "type": "CLASS_SPEC_GAPS",
+      "augmentIds": [
+        "aug-242",
+        "aug-244",
+        "aug-245",
+        "aug-247",
+        "aug-249",
+        "aug-254",
+        "aug-255",
+        "aug-258",
+        "aug-259",
+        "aug-264",
+        "aug-265",
+        "aug-266",
+        "aug-267",
+        "aug-268"
+      ],
+      "question": "gunner의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "options": [
+        "카드별 미해결 규칙을 명시",
+        "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
+      ],
+      "perCard": [
+        {
+          "augmentId": "aug-242",
+          "name": "대용량 탄창",
+          "unresolved": [
+            "AMB-AUG-aug-242-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-244",
+          "name": "화약 증량",
+          "unresolved": [
+            "AMB-AUG-aug-244-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-245",
+          "name": "탄띠 급탄",
+          "unresolved": [
+            "AMB-AUG-aug-245-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-247",
+          "name": "마지막 한 발까지",
+          "unresolved": [
+            "AMB-AUG-aug-247-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-249",
+          "name": "전쟁 기계",
+          "unresolved": [
+            "AMB-AUG-aug-249-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-254",
+          "name": "대구경 탄환",
+          "unresolved": [
+            "AMB-AUG-aug-254-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-255",
+          "name": "탄도 계산",
+          "unresolved": [
+            "AMB-AUG-aug-255-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-258",
+          "name": "데드아이",
+          "unresolved": [
+            "AMB-AUG-aug-258-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-259",
+          "name": "백발백중",
+          "unresolved": [
+            "AMB-AUG-aug-259-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-264",
+          "name": "붉은 배기관",
+          "unresolved": [
+            "AMB-AUG-aug-264-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-265",
+          "name": "임계 출력",
+          "unresolved": [
+            "AMB-AUG-aug-265-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-266",
+          "name": "폭주 실린더",
+          "unresolved": [
+            "AMB-AUG-aug-266-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-267",
+          "name": "비상 냉각",
+          "unresolved": [
+            "AMB-AUG-aug-267-TRIGGER",
+            "AMB-AUG-aug-267-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-268",
+          "name": "레드존",
+          "unresolved": [
+            "AMB-AUG-aug-268-CONDITION"
+          ]
+        }
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-16",
+      "type": "CLASS_SPEC_GAPS",
+      "augmentIds": [
+        "aug-271",
+        "aug-272",
+        "aug-273",
+        "aug-276",
+        "aug-277",
+        "aug-279",
+        "aug-280",
+        "aug-281",
+        "aug-285",
+        "aug-286",
+        "aug-287",
+        "aug-288",
+        "aug-289",
+        "aug-290",
+        "aug-292",
+        "aug-293",
+        "aug-294",
+        "aug-298",
+        "aug-299"
+      ],
+      "question": "martial_artist의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "options": [
+        "카드별 미해결 규칙을 명시",
+        "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
+      ],
+      "perCard": [
+        {
+          "augmentId": "aug-271",
+          "name": "무한 연격",
+          "unresolved": [
+            "AMB-AUG-aug-271-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-272",
+          "name": "끊임없는 발놀림",
+          "unresolved": [
+            "AMB-AUG-aug-272-CONDITION",
+            "AMB-AUG-aug-272-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-273",
+          "name": "가속 연타",
+          "unresolved": [
+            "AMB-AUG-aug-273-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-276",
+          "name": "흐르는 자세",
+          "unresolved": [
+            "AMB-AUG-aug-276-TRIGGER",
+            "AMB-AUG-aug-276-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-277",
+          "name": "상승 기류",
+          "unresolved": [
+            "AMB-AUG-aug-277-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-279",
+          "name": "천수연환",
+          "unresolved": [
+            "AMB-AUG-aug-279-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-280",
+          "name": "멈추지 않는 권격",
+          "unresolved": [
+            "AMB-AUG-aug-280-TRIGGER",
+            "AMB-AUG-aug-280-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-281",
+          "name": "방어 분쇄",
+          "unresolved": [
+            "AMB-AUG-aug-281-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-285",
+          "name": "연쇄 파쇄",
+          "unresolved": [
+            "AMB-AUG-aug-285-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-286",
+          "name": "균열 확대",
+          "unresolved": [
+            "AMB-AUG-aug-286-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-287",
+          "name": "빈틈 공유",
+          "unresolved": [
+            "AMB-AUG-aug-287-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-288",
+          "name": "완전 분쇄",
+          "unresolved": [
+            "AMB-AUG-aug-288-TRIGGER",
+            "AMB-AUG-aug-288-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-289",
+          "name": "천하무방",
+          "unresolved": [
+            "AMB-AUG-aug-289-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-290",
+          "name": "파쇄의 달인",
+          "unresolved": [
+            "AMB-AUG-aug-290-TRIGGER"
+          ]
+        },
+        {
+          "augmentId": "aug-292",
+          "name": "기 모으기",
+          "unresolved": [
+            "AMB-AUG-aug-292-TRIGGER",
+            "AMB-AUG-aug-292-CONDITION",
+            "AMB-AUG-aug-292-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-293",
+          "name": "호흡 가다듬기",
+          "unresolved": [
+            "AMB-AUG-aug-293-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-294",
+          "name": "정권 준비",
+          "unresolved": [
+            "AMB-AUG-aug-294-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-298",
+          "name": "일격필살",
+          "unresolved": [
+            "AMB-AUG-aug-298-TRIGGER",
+            "AMB-AUG-aug-298-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-299",
+          "name": "무념무상",
+          "unresolved": [
+            "AMB-AUG-aug-299-PRIMITIVE"
+          ]
+        }
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-17",
+      "type": "CLASS_SPEC_GAPS",
+      "augmentIds": [
+        "aug-302",
+        "aug-303",
+        "aug-304",
+        "aug-308",
+        "aug-309",
+        "aug-310",
+        "aug-312",
+        "aug-313",
+        "aug-317",
+        "aug-318",
+        "aug-319",
+        "aug-322",
+        "aug-324",
+        "aug-325",
+        "aug-326",
+        "aug-327",
+        "aug-328",
+        "aug-329"
+      ],
+      "question": "vampire의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "options": [
+        "카드별 미해결 규칙을 명시",
+        "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
+      ],
+      "perCard": [
+        {
+          "augmentId": "aug-302",
+          "name": "선명한 낙인",
+          "unresolved": [
+            "AMB-AUG-aug-302-TRIGGER",
+            "AMB-AUG-aug-302-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-303",
+          "name": "피의 명령권",
+          "unresolved": [
+            "AMB-AUG-aug-303-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-304",
+          "name": "귀족의 특권",
+          "unresolved": [
+            "AMB-AUG-aug-304-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-308",
+          "name": "절대 지배",
+          "unresolved": [
+            "AMB-AUG-aug-308-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-309",
+          "name": "핏빛 군주",
+          "unresolved": [
+            "AMB-AUG-aug-309-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-310",
+          "name": "완전한 종속",
+          "unresolved": [
+            "AMB-AUG-aug-310-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-312",
+          "name": "붉은 유대",
+          "unresolved": [
+            "AMB-AUG-aug-312-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-313",
+          "name": "서로 다른 피",
+          "unresolved": [
+            "AMB-AUG-aug-313-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-317",
+          "name": "맹약의 연쇄",
+          "unresolved": [
+            "AMB-AUG-aug-317-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-318",
+          "name": "영원한 맹약",
+          "unresolved": [
+            "AMB-AUG-aug-318-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-319",
+          "name": "붉은 쌍성",
+          "unresolved": [
+            "AMB-AUG-aug-319-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-322",
+          "name": "깊은 흡혈",
+          "unresolved": [
+            "AMB-AUG-aug-322-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-324",
+          "name": "혈액 보존병",
+          "unresolved": [
+            "AMB-AUG-aug-324-TRIGGER",
+            "AMB-AUG-aug-324-CONDITION",
+            "AMB-AUG-aug-324-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-325",
+          "name": "수혈 반응",
+          "unresolved": [
+            "AMB-AUG-aug-325-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-326",
+          "name": "과잉 채혈",
+          "unresolved": [
+            "AMB-AUG-aug-326-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-327",
+          "name": "응급 수혈",
+          "unresolved": [
+            "AMB-AUG-aug-327-TRIGGER",
+            "AMB-AUG-aug-327-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-328",
+          "name": "혈액은행",
+          "unresolved": [
+            "AMB-AUG-aug-328-TRIGGER",
+            "AMB-AUG-aug-328-CONDITION",
+            "AMB-AUG-aug-328-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-329",
+          "name": "붉은 성찬",
+          "unresolved": [
+            "AMB-AUG-aug-329-CONDITION"
+          ]
+        }
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-18",
+      "type": "CLASS_SPEC_GAPS",
+      "augmentIds": [
+        "aug-332",
+        "aug-335",
+        "aug-336",
+        "aug-337",
+        "aug-338",
+        "aug-340",
+        "aug-344",
+        "aug-345",
+        "aug-347",
+        "aug-348",
+        "aug-349",
+        "aug-352",
+        "aug-353",
+        "aug-354",
+        "aug-355",
+        "aug-356",
+        "aug-357",
+        "aug-359"
+      ],
+      "question": "demon_swordsman의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "options": [
+        "카드별 미해결 규칙을 명시",
+        "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
+      ],
+      "perCard": [
+        {
+          "augmentId": "aug-332",
+          "name": "탐식",
+          "unresolved": [
+            "AMB-AUG-aug-332-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-335",
+          "name": "끝없는 포식",
+          "unresolved": [
+            "AMB-AUG-aug-335-TRIGGER"
+          ]
+        },
+        {
+          "augmentId": "aug-336",
+          "name": "피 냄새",
+          "unresolved": [
+            "AMB-AUG-aug-336-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-337",
+          "name": "마검 숙련",
+          "unresolved": [
+            "AMB-AUG-aug-337-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-338",
+          "name": "끝없는 식욕",
+          "unresolved": [
+            "AMB-AUG-aug-338-TRIGGER"
+          ]
+        },
+        {
+          "augmentId": "aug-340",
+          "name": "마검의 주인",
+          "unresolved": [
+            "AMB-AUG-aug-340-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-344",
+          "name": "포악한 칼날",
+          "unresolved": [
+            "AMB-AUG-aug-344-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-345",
+          "name": "폭식",
+          "unresolved": [
+            "AMB-AUG-aug-345-TRIGGER"
+          ]
+        },
+        {
+          "augmentId": "aug-347",
+          "name": "마검의 요구",
+          "unresolved": [
+            "AMB-AUG-aug-347-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-348",
+          "name": "끝없는 허기",
+          "unresolved": [
+            "AMB-AUG-aug-348-TRIGGER",
+            "AMB-AUG-aug-348-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-349",
+          "name": "먹어치워라",
+          "unresolved": [
+            "AMB-AUG-aug-349-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-352",
+          "name": "귀기의 응축",
+          "unresolved": [
+            "AMB-AUG-aug-352-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-353",
+          "name": "핏빛 개안",
+          "unresolved": [
+            "AMB-AUG-aug-353-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-354",
+          "name": "억눌린 마검",
+          "unresolved": [
+            "AMB-AUG-aug-354-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-355",
+          "name": "귀화 연장",
+          "unresolved": [
+            "AMB-AUG-aug-355-TRIGGER",
+            "AMB-AUG-aug-355-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-356",
+          "name": "악귀의 검무",
+          "unresolved": [
+            "AMB-AUG-aug-356-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-357",
+          "name": "피의 문",
+          "unresolved": [
+            "AMB-AUG-aug-357-TRIGGER"
+          ]
+        },
+        {
+          "augmentId": "aug-359",
+          "name": "백귀야행",
+          "unresolved": [
+            "AMB-AUG-aug-359-CONDITION"
+          ]
+        }
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-19",
+      "type": "CLASS_SPEC_GAPS",
+      "augmentIds": [
+        "aug-361",
+        "aug-362",
+        "aug-363",
+        "aug-373",
+        "aug-374",
+        "aug-376",
+        "aug-377",
+        "aug-379",
+        "aug-384",
+        "aug-385",
+        "aug-387"
+      ],
+      "question": "twins의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "options": [
+        "카드별 미해결 규칙을 명시",
+        "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
+      ],
+      "perCard": [
+        {
+          "augmentId": "aug-361",
+          "name": "완벽한 교대",
+          "unresolved": [
+            "AMB-AUG-aug-361-CONDITION",
+            "AMB-AUG-aug-361-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-362",
+          "name": "쌍인 호흡",
+          "unresolved": [
+            "AMB-AUG-aug-362-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-363",
+          "name": "안전망",
+          "unresolved": [
+            "AMB-AUG-aug-363-CONDITION",
+            "AMB-AUG-aug-363-PRIMITIVE"
+          ]
+        },
+        {
+          "augmentId": "aug-373",
+          "name": "창백한 월광",
+          "unresolved": [
+            "AMB-AUG-aug-373-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-374",
+          "name": "천구의 관성",
+          "unresolved": [
+            "AMB-AUG-aug-374-TRIGGER"
+          ]
+        },
+        {
+          "augmentId": "aug-376",
+          "name": "월식의 잔흔",
+          "unresolved": [
+            "AMB-AUG-aug-376-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-377",
+          "name": "합삭과 망",
+          "unresolved": [
+            "AMB-AUG-aug-377-TRIGGER"
+          ]
+        },
+        {
+          "augmentId": "aug-379",
+          "name": "핏빛 월식",
+          "unresolved": [
+            "AMB-AUG-aug-379-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-384",
+          "name": "안전 착지",
+          "unresolved": [
+            "AMB-AUG-aug-384-CONDITION",
+            "AMB-AUG-aug-384-ROOM_APPLICABILITY"
+          ]
+        },
+        {
+          "augmentId": "aug-385",
+          "name": "트리플 악셀",
+          "unresolved": [
+            "AMB-AUG-aug-385-CONDITION"
+          ]
+        },
+        {
+          "augmentId": "aug-387",
+          "name": "공중 교대",
+          "unresolved": [
+            "AMB-AUG-aug-387-CONDITION"
+          ]
+        }
+      ]
+    }
+  ]
+}
