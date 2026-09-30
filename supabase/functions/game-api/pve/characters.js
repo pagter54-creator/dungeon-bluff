@@ -2,6 +2,7 @@ import {choose} from './rng.js';
 import {GAMBLER_BASE_DECK} from './gambler.js';
 import {clearCombatResources,clearResourcesByScope,resourceMax} from './resources.js';
 import {executableAugmentRuntime} from './augment-runtime.js';
+import {upsertAugmentStatus} from './augment-framework.js';
 
 export const PVE_CHARACTER_DEFS={
   adventurer:{deck:[1,2,3,4,5],skillId:'gold_bonus'},
@@ -381,7 +382,10 @@ export function resolveGuardianWallCollisions(run,cards,groups,events=[]){
       const target=candidates[0];if(!target)continue;
       target.valid=true;delete target.invalidReason;target.guardianRescued=true;target.guardianRescuedBy=guardian.playerId;
       guardian.valid=false;guardian.invalidReason='COLLISION';guardian.guardianSacrifice=true;guardian.guardianRescueTargetId=target.playerId;
-      if(run.phase==='COMBAT')guardianPlayer.publicResources.guardianTargetPlayerId=target.playerId;
+      if(run.phase==='COMBAT'){
+         guardianPlayer.publicResources.guardianTargetPlayerId=target.playerId;
+         if(guardianPlayer.augments.includes('aug-049'))upsertAugmentStatus(run,guardianPlayer,{statusId:'GUARDIAN_EXTRA_REDIRECT',targetId:target.playerId,sourceId:'aug-049',payload:{ready:false}});
+       }
       const guardEventId=`guard:${run.floor}:${run.depth}:${run.combat?.monster?.id||'combat'}:${run.combat?.turn||0}:${guardian.playerId}`;
       events.push({type:'GUARDIAN_WALL_RESCUE',phase:'COLLISION_RESOLVE',guardEventId,finalNumber:Number(finalNumber),playerId:guardian.playerId,targetId:target.playerId,redirectCount:1});
       rescueCount++;
