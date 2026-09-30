@@ -105,6 +105,7 @@ export function applyDamageOperation(packet,op,room){
   else if(op.type==='EXTRA_DAMAGE_COMPONENT'){packet.components||=[];packet.components.push({amount,sourceType:op.sourceType||'AUGMENT',sourceId:op.sourceId||null,playerId:op.playerId||null});}
   else unsupported();
   packet.amount=Math.max(0,packet.amount);
+  packet.modifiers||=[];packet.modifiers.push({operation:op.type,sourceType:op.sourceType||'AUGMENT',sourceId:op.sourceId||null,playerId:op.playerId||null,delta:packet.amount-before});
   return {applied:true,amount:packet.amount-before,actualDamage:packet.amount};
 }
 export function applyVitalOperation(player,op){
