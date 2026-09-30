@@ -5,7 +5,7 @@
   "originalAtomicDecisionCount": 213,
   "originalAffectedCardCount": 191,
   "autoResolvedCount": 38,
-  "remainingAtomicDecisionCount": 169,
+  "remainingAtomicDecisionCount": 112,
   "questionCount": 23,
   "decisionCategories": [
     "TRIGGER_TIMING",
@@ -26,7 +26,7 @@
     "CLASS_SPECIAL_OVERRIDE"
   ],
   "readyForUserAugmentDecisions": false,
-  "readyReason": "Q01~Q04는 원본 효과 방향만 확정되어 BETA v0.2 카드별 수치·조건이 미정이며, Q11~Q23도 카드별 규칙이 필요하다.",
+  "readyReason": "005B 카드별 설계는 완료됐지만 005C/005D의 Q01~Q04 및 Q16~Q23 카드별 명세는 남아 있다.",
   "entries": [
     {
       "decisionId": "Q01",
@@ -89,7 +89,10 @@
         "005D": 2
       },
       "selectionDetails": "원본의 적 방어 관통/약화 의미 유지. 충돌하는 BETA 자기 피해 감소 수치는 대체 효과로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
-      "selectionScope": "DIRECTION_ONLY_PENDING_BETA_V0_2"
+      "selectionScope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+      "designedAugments": [
+        "aug-052"
+      ]
     },
     {
       "decisionId": "Q02",
@@ -144,7 +147,10 @@
         "005C": 1
       },
       "selectionDetails": "원본의 보호 표식·정밀 조준 손실 완화 의미 유지. 충돌하는 BETA 수치는 대체 효과로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
-      "selectionScope": "DIRECTION_ONLY_PENDING_BETA_V0_2"
+      "selectionScope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+      "designedAugments": [
+        "aug-049"
+      ]
     },
     {
       "decisionId": "Q03",
@@ -218,7 +224,15 @@
         "005C": 1
       },
       "selectionDetails": "원본의 회복 연계 효과 의미 유지. 충돌하는 BETA HP 1 회복은 효과 대체안으로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
-      "selectionScope": "DIRECTION_ONLY_PENDING_BETA_V0_2"
+      "selectionScope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+      "designedAugments": [
+        "aug-104",
+        "aug-116",
+        "aug-124",
+        "aug-129",
+        "aug-139",
+        "aug-146"
+      ]
     },
     {
       "decisionId": "Q04",
@@ -660,13 +674,25 @@
       "dependencies": [],
       "risk": "MEDIUM",
       "highRiskCards": [],
-      "specsResolvedIfChosen": 0,
-      "resolvedBy": null,
-      "selectedOption": null,
+      "specsResolvedIfChosen": 8,
+      "resolvedBy": "005Q_DESIGN_B_V0_2",
+      "selectedOption": "A",
       "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
       "affectedCardsByBatch": {
         "005B": 8
-      }
+      },
+      "designedAugments": [
+        "aug-003",
+        "aug-009",
+        "aug-012",
+        "aug-013",
+        "aug-014",
+        "aug-017",
+        "aug-019",
+        "aug-022"
+      ],
+      "selectionDetails": "해당 005B 카드별 trigger/condition/value/cap/scope/room/tooltip을 BETA v0.2 실행 명세로 작성했다.",
+      "selectionScope": "CARD_SPEC_AUTHORED"
     },
     {
       "decisionId": "Q12",
@@ -739,13 +765,27 @@
       "dependencies": [],
       "risk": "MEDIUM",
       "highRiskCards": [],
-      "specsResolvedIfChosen": 0,
-      "resolvedBy": null,
-      "selectedOption": null,
+      "specsResolvedIfChosen": 10,
+      "resolvedBy": "005Q_DESIGN_B_V0_2",
+      "selectedOption": "A",
       "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
       "affectedCardsByBatch": {
         "005B": 10
-      }
+      },
+      "designedAugments": [
+        "aug-037",
+        "aug-038",
+        "aug-040",
+        "aug-044",
+        "aug-045",
+        "aug-053",
+        "aug-054",
+        "aug-055",
+        "aug-057",
+        "aug-060"
+      ],
+      "selectionDetails": "해당 005B 카드별 trigger/condition/value/cap/scope/room/tooltip을 BETA v0.2 실행 명세로 작성했다.",
+      "selectionScope": "CARD_SPEC_AUTHORED"
     },
     {
       "decisionId": "Q13",
@@ -810,13 +850,25 @@
       "dependencies": [],
       "risk": "MEDIUM",
       "highRiskCards": [],
-      "specsResolvedIfChosen": 0,
-      "resolvedBy": null,
-      "selectedOption": null,
+      "specsResolvedIfChosen": 8,
+      "resolvedBy": "005Q_DESIGN_B_V0_2",
+      "selectedOption": "A",
       "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
       "affectedCardsByBatch": {
         "005B": 8
-      }
+      },
+      "designedAugments": [
+        "aug-063",
+        "aug-066",
+        "aug-068",
+        "aug-070",
+        "aug-073",
+        "aug-080",
+        "aug-082",
+        "aug-086"
+      ],
+      "selectionDetails": "해당 005B 카드별 trigger/condition/value/cap/scope/room/tooltip을 BETA v0.2 실행 명세로 작성했다.",
+      "selectionScope": "CARD_SPEC_AUTHORED"
     },
     {
       "decisionId": "Q14",
@@ -876,13 +928,24 @@
       "dependencies": [],
       "risk": "MEDIUM",
       "highRiskCards": [],
-      "specsResolvedIfChosen": 0,
-      "resolvedBy": null,
-      "selectedOption": null,
+      "specsResolvedIfChosen": 7,
+      "resolvedBy": "005Q_DESIGN_B_V0_2",
+      "selectedOption": "A",
       "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
       "affectedCardsByBatch": {
         "005B": 7
-      }
+      },
+      "designedAugments": [
+        "aug-102",
+        "aug-103",
+        "aug-107",
+        "aug-112",
+        "aug-114",
+        "aug-119",
+        "aug-120"
+      ],
+      "selectionDetails": "해당 005B 카드별 trigger/condition/value/cap/scope/room/tooltip을 BETA v0.2 실행 명세로 작성했다.",
+      "selectionScope": "CARD_SPEC_AUTHORED"
     },
     {
       "decisionId": "Q15",
@@ -954,13 +1017,28 @@
       "dependencies": [],
       "risk": "MEDIUM",
       "highRiskCards": [],
-      "specsResolvedIfChosen": 0,
-      "resolvedBy": null,
-      "selectedOption": null,
+      "specsResolvedIfChosen": 11,
+      "resolvedBy": "005Q_DESIGN_B_V0_2",
+      "selectedOption": "A",
       "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
       "affectedCardsByBatch": {
         "005B": 11
-      }
+      },
+      "designedAugments": [
+        "aug-126",
+        "aug-128",
+        "aug-130",
+        "aug-136",
+        "aug-137",
+        "aug-140",
+        "aug-143",
+        "aug-145",
+        "aug-147",
+        "aug-148",
+        "aug-149"
+      ],
+      "selectionDetails": "해당 005B 카드별 trigger/condition/value/cap/scope/room/tooltip을 BETA v0.2 실행 명세로 작성했다.",
+      "selectionScope": "CARD_SPEC_AUTHORED"
     },
     {
       "decisionId": "Q16",
@@ -1630,10 +1708,8 @@
       },
       {
         "augmentId": "aug-003",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q11"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-004",
@@ -1662,10 +1738,8 @@
       },
       {
         "augmentId": "aug-009",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q11"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-010",
@@ -1679,24 +1753,18 @@
       },
       {
         "augmentId": "aug-012",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q11"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-013",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q11"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-014",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q11"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-015",
@@ -1710,10 +1778,8 @@
       },
       {
         "augmentId": "aug-017",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q11"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-018",
@@ -1722,10 +1788,8 @@
       },
       {
         "augmentId": "aug-019",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q11"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-020",
@@ -1739,10 +1803,8 @@
       },
       {
         "augmentId": "aug-022",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q11"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-023",
@@ -1816,17 +1878,13 @@
       },
       {
         "augmentId": "aug-037",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q12"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-038",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q12"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-039",
@@ -1835,10 +1893,8 @@
       },
       {
         "augmentId": "aug-040",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q12"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-041",
@@ -1857,17 +1913,13 @@
       },
       {
         "augmentId": "aug-044",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q12"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-045",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q12"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-046",
@@ -1886,10 +1938,8 @@
       },
       {
         "augmentId": "aug-049",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q02"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-050",
@@ -1903,31 +1953,23 @@
       },
       {
         "augmentId": "aug-052",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q01"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-053",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q12"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-054",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q12"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-055",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q12"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-056",
@@ -1936,10 +1978,8 @@
       },
       {
         "augmentId": "aug-057",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q12"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-058",
@@ -1953,10 +1993,8 @@
       },
       {
         "augmentId": "aug-060",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q12"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-061",
@@ -1970,10 +2008,8 @@
       },
       {
         "augmentId": "aug-063",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q13"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-064",
@@ -1987,10 +2023,8 @@
       },
       {
         "augmentId": "aug-066",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q13"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-067",
@@ -1999,10 +2033,8 @@
       },
       {
         "augmentId": "aug-068",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q13"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-069",
@@ -2011,10 +2043,8 @@
       },
       {
         "augmentId": "aug-070",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q13"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-071",
@@ -2028,10 +2058,8 @@
       },
       {
         "augmentId": "aug-073",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q13"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-074",
@@ -2065,10 +2093,8 @@
       },
       {
         "augmentId": "aug-080",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q13"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-081",
@@ -2077,10 +2103,8 @@
       },
       {
         "augmentId": "aug-082",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q13"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-083",
@@ -2099,10 +2123,8 @@
       },
       {
         "augmentId": "aug-086",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q13"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-087",
@@ -2181,24 +2203,18 @@
       },
       {
         "augmentId": "aug-102",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q14"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-103",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q14"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-104",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q03"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-105",
@@ -2212,10 +2228,8 @@
       },
       {
         "augmentId": "aug-107",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q14"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-108",
@@ -2239,10 +2253,8 @@
       },
       {
         "augmentId": "aug-112",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q14"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-113",
@@ -2251,10 +2263,8 @@
       },
       {
         "augmentId": "aug-114",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q14"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-115",
@@ -2263,10 +2273,8 @@
       },
       {
         "augmentId": "aug-116",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q03"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-117",
@@ -2280,17 +2288,13 @@
       },
       {
         "augmentId": "aug-119",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q14"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-120",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q14"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-121",
@@ -2309,10 +2313,8 @@
       },
       {
         "augmentId": "aug-124",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q03"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-125",
@@ -2321,10 +2323,8 @@
       },
       {
         "augmentId": "aug-126",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q15"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-127",
@@ -2333,24 +2333,18 @@
       },
       {
         "augmentId": "aug-128",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q15"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-129",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q03"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-130",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q15"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-131",
@@ -2379,17 +2373,13 @@
       },
       {
         "augmentId": "aug-136",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q15"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-137",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q15"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-138",
@@ -2398,17 +2388,13 @@
       },
       {
         "augmentId": "aug-139",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q03"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-140",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q15"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-141",
@@ -2422,10 +2408,8 @@
       },
       {
         "augmentId": "aug-143",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q15"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-144",
@@ -2434,38 +2418,28 @@
       },
       {
         "augmentId": "aug-145",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q15"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-146",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q03"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-147",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q15"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-148",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q15"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-149",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q15"
-        ]
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
       },
       {
         "augmentId": "aug-150",
@@ -4680,6 +4654,15 @@
     "SPEC_AMBIGUOUS": 156
   },
   "userResolvedAtomicDecisionCount": 6,
-  "userDirectionOnlyAtomicDecisionCount": 22,
-  "unselectedQuestionCount": 13
+  "userDirectionOnlyAtomicDecisionCount": 12,
+  "unselectedQuestionCount": 8,
+  "designBTargetCount": 52,
+  "designBResolvedAtomicDecisionCount": 58,
+  "prior005QAutoMaterializedIn005B": 10,
+  "statusAfterDesignB": {
+    "SPEC_COMPLETE": 79,
+    "SPEC_PARTIAL": 200,
+    "SPEC_AMBIGUOUS": 111
+  },
+  "designBNewAtomicDecisionCount": 57
 }
