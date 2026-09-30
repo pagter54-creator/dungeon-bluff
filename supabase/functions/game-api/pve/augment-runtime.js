@@ -85,7 +85,7 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
         condition:{all:[{path:'resolved.valid',eq:true},{path:'resolved.soloLowest',eq:true}]},
         operations:[
           {type:'CAPTURE_RESOURCE',resource:'sneakyStack',field:'sneakyBonus'},
-          {type:'SET_RESOURCE',resource:'sneakyStack',amount:1}
+          {type:'ADD_RESOURCE',resource:'sneakyStack',amount:1}
         ],
         maxTriggers:1,resetScope:'TURN',
         tags:['T00','REFERENCE']
@@ -104,7 +104,7 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
         trigger:'BEFORE_DAMAGE',
         priority:60,
         condition:{path:'resolved.sneakyBonus',gt:0},
-        operations:[{type:'MODIFY_DAMAGE',amountPath:'resolved.sneakyBonus'}],
+        operations:[{type:'MODIFY_DAMAGE',amountPath:'resolved.sneakyBonus'},{type:'SPEND_RESOURCE',resource:'sneakyStack',amountPath:'resolved.sneakyBonus'}],
         maxTriggers:1,resetScope:'TURN',
         tags:['T00','REFERENCE']
       }
