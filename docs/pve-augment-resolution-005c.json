@@ -142,7 +142,10 @@
       },
       "effect": {
         "sourceField": "betaValue",
-        "text": "사용 카드 1장 복구."
+        "text": "사용 카드 1장 복구.",
+        "executionStatus": "PROVENANCE_ONLY_PENDING_BETA_V0_2",
+        "executable": false,
+        "pendingRevision": "BETA_V0_2"
       },
       "limit": "기본 사이클당 1회; 특수/임시 카드는 복구 불가.",
       "cap": null,
@@ -191,7 +194,16 @@
       "completionScore": 1,
       "resolvedFields": 11,
       "status": "SPEC_AMBIGUOUS",
-      "reviewStatus": "AUTO_CLASSIFIED"
+      "reviewStatus": "AUTO_CLASSIFIED",
+      "decisionOverlay": {
+        "Q04": {
+          "selectedOption": "A",
+          "meaning": "원본의 복구 후보 조정·강화·버프 의미 유지. 충돌하는 BETA 카드 복구 수치는 효과 대체안으로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+          "scope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "designDirection": "PRESERVE_CANONICAL_DESCRIPTION"
     },
     {
       "augmentId": "aug-154",
@@ -578,7 +590,10 @@
       "condition": null,
       "effect": {
         "sourceField": "betaValue",
-        "text": "사용 카드 2장 복구."
+        "text": "사용 카드 2장 복구.",
+        "executionStatus": "PROVENANCE_ONLY_PENDING_BETA_V0_2",
+        "executable": false,
+        "pendingRevision": "BETA_V0_2"
       },
       "limit": "기본 사이클당 1회; 특수/임시 카드는 복구 불가.",
       "cap": null,
@@ -629,7 +644,16 @@
       "resolvedFields": 10,
       "status": "SPEC_AMBIGUOUS",
       "reviewStatus": "AUTO_CLASSIFIED",
-      "roomComponentNote": "Only shared number/collision/card-recovery component applies in Event and Reward; monster damage remains Combat-only."
+      "roomComponentNote": "Only shared number/collision/card-recovery component applies in Event and Reward; monster damage remains Combat-only.",
+      "decisionOverlay": {
+        "Q04": {
+          "selectedOption": "A",
+          "meaning": "원본의 복구 후보 조정·강화·버프 의미 유지. 충돌하는 BETA 카드 복구 수치는 효과 대체안으로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+          "scope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "designDirection": "PRESERVE_CANONICAL_DESCRIPTION"
     },
     {
       "augmentId": "aug-161",
@@ -713,7 +737,10 @@
       },
       "effect": {
         "sourceField": "betaValue",
-        "text": "사용 카드 1장 복구."
+        "text": "사용 카드 1장 복구.",
+        "executionStatus": "PROVENANCE_ONLY_PENDING_BETA_V0_2",
+        "executable": false,
+        "pendingRevision": "BETA_V0_2"
       },
       "limit": "기본 사이클당 1회; 특수/임시 카드는 복구 불가.",
       "cap": null,
@@ -762,7 +789,16 @@
       "completionScore": 1,
       "resolvedFields": 11,
       "status": "SPEC_AMBIGUOUS",
-      "reviewStatus": "AUTO_CLASSIFIED"
+      "reviewStatus": "AUTO_CLASSIFIED",
+      "decisionOverlay": {
+        "Q04": {
+          "selectedOption": "A",
+          "meaning": "원본의 복구 후보 조정·강화·버프 의미 유지. 충돌하는 BETA 카드 복구 수치는 효과 대체안으로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+          "scope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "designDirection": "PRESERVE_CANONICAL_DESCRIPTION"
     },
     {
       "augmentId": "aug-163",
@@ -834,7 +870,10 @@
       },
       "effect": {
         "sourceField": "betaValue",
-        "text": "사용 카드 1장 복구."
+        "text": "사용 카드 1장 복구.",
+        "executionStatus": "PROVENANCE_ONLY_PENDING_BETA_V0_2",
+        "executable": false,
+        "pendingRevision": "BETA_V0_2"
       },
       "limit": "기본 사이클당 1회; 특수/임시 카드는 복구 불가.",
       "cap": null,
@@ -884,7 +923,16 @@
       "resolvedFields": 11,
       "status": "SPEC_AMBIGUOUS",
       "reviewStatus": "AUTO_CLASSIFIED",
-      "roomComponentNote": "Only shared number/collision/card-recovery component applies in Event and Reward; monster damage remains Combat-only."
+      "roomComponentNote": "Only shared number/collision/card-recovery component applies in Event and Reward; monster damage remains Combat-only.",
+      "decisionOverlay": {
+        "Q04": {
+          "selectedOption": "A",
+          "meaning": "원본의 복구 후보 조정·강화·버프 의미 유지. 충돌하는 BETA 카드 복구 수치는 효과 대체안으로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+          "scope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "designDirection": "PRESERVE_CANONICAL_DESCRIPTION"
     },
     {
       "augmentId": "aug-165",
@@ -958,7 +1006,10 @@
       },
       "effect": {
         "sourceField": "betaValue",
-        "text": "사용 카드 1장 복구."
+        "text": "사용 카드 1장 복구.",
+        "executionStatus": "PROVENANCE_ONLY_PENDING_BETA_V0_2",
+        "executable": false,
+        "pendingRevision": "BETA_V0_2"
       },
       "limit": "기본 사이클당 1회; 특수/임시 카드는 복구 불가.",
       "cap": null,
@@ -1007,7 +1058,16 @@
       "completionScore": 1,
       "resolvedFields": 11,
       "status": "SPEC_AMBIGUOUS",
-      "reviewStatus": "AUTO_CLASSIFIED"
+      "reviewStatus": "AUTO_CLASSIFIED",
+      "decisionOverlay": {
+        "Q04": {
+          "selectedOption": "A",
+          "meaning": "원본의 복구 후보 조정·강화·버프 의미 유지. 충돌하는 BETA 카드 복구 수치는 효과 대체안으로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+          "scope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "designDirection": "PRESERVE_CANONICAL_DESCRIPTION"
     },
     {
       "augmentId": "aug-167",
@@ -1020,7 +1080,10 @@
       },
       "effect": {
         "sourceField": "betaValue",
-        "text": "사용 카드 1장 복구."
+        "text": "사용 카드 1장 복구.",
+        "executionStatus": "PROVENANCE_ONLY_PENDING_BETA_V0_2",
+        "executable": false,
+        "pendingRevision": "BETA_V0_2"
       },
       "limit": "기본 사이클당 1회; 특수/임시 카드는 복구 불가.",
       "cap": null,
@@ -1069,7 +1132,16 @@
       "completionScore": 1,
       "resolvedFields": 11,
       "status": "SPEC_AMBIGUOUS",
-      "reviewStatus": "AUTO_CLASSIFIED"
+      "reviewStatus": "AUTO_CLASSIFIED",
+      "decisionOverlay": {
+        "Q04": {
+          "selectedOption": "A",
+          "meaning": "원본의 복구 후보 조정·강화·버프 의미 유지. 충돌하는 BETA 카드 복구 수치는 효과 대체안으로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+          "scope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "designDirection": "PRESERVE_CANONICAL_DESCRIPTION"
     },
     {
       "augmentId": "aug-168",
@@ -3227,14 +3299,23 @@
       "highRisk": true,
       "highRiskGuard": "Apply one-turn Mischief with source owner; do not double-trigger on repeated steal",
       "highRiskTest": "Next-turn first valid attack, failed attack, repeat steal before resolution, down semantics",
-      "ambiguities": [
-        "AMB-AUG-aug-201-ALLY_DAMAGE_DOWN_SEMANTICS"
-      ],
+      "ambiguities": [],
       "completionScore": 1,
       "resolvedFields": 11,
-      "status": "SPEC_AMBIGUOUS",
+      "status": "SPEC_COMPLETE",
       "manualReviewed": true,
-      "reviewStatus": "MANUAL_REVIEWED"
+      "reviewStatus": "MANUAL_REVIEWED",
+      "decisionOverlay": {
+        "Q09": {
+          "selectedOption": "B",
+          "meaning": "same-resolve defense/heal/protection 적용 후 DOWN_RESOLVE.",
+          "scope": "OPERATIONAL_POLICY",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "userDecisionPolicy": {
+        "downResolveOrder": "AFTER_SAME_RESOLVE_DEFENSE_HEAL_PROTECTION"
+      }
     },
     {
       "augmentId": "aug-202",
@@ -3862,14 +3943,23 @@
       "highRisk": true,
       "highRiskGuard": "Cap Luck at one and keep Gambler deck zones private",
       "highRiskTest": "6/7 generation, next normal/special choice, stale choice and reconnect",
-      "ambiguities": [
-        "AMB-AUG-aug-211-LUCK_CHOICE_TIMING"
-      ],
+      "ambiguities": [],
       "completionScore": 1,
       "resolvedFields": 11,
-      "status": "SPEC_AMBIGUOUS",
+      "status": "SPEC_COMPLETE",
       "manualReviewed": true,
-      "reviewStatus": "MANUAL_REVIEWED"
+      "reviewStatus": "MANUAL_REVIEWED",
+      "decisionOverlay": {
+        "Q07": {
+          "selectedOption": "B",
+          "meaning": "reward presentation 후 final confirmation 전에 Luck 사용.",
+          "scope": "OPERATIONAL_POLICY",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "userDecisionPolicy": {
+        "luckChoiceTiming": "AFTER_REWARD_PRESENTATION_BEFORE_FINAL_CONFIRMATION"
+      }
     },
     {
       "augmentId": "aug-212",
@@ -5474,7 +5564,10 @@
       },
       "effect": {
         "sourceField": "betaValue",
-        "text": "해당 회복 효과는 HP 1 회복."
+        "text": "해당 회복 효과는 HP 1 회복.",
+        "executionStatus": "PROVENANCE_ONLY_PENDING_BETA_V0_2",
+        "executable": false,
+        "pendingRevision": "BETA_V0_2"
       },
       "limit": "전투당 기본 1회; 전용 힐러 계통만 카드 설명의 별도 제한 적용.",
       "cap": {
@@ -5526,7 +5619,16 @@
       "completionScore": 1,
       "resolvedFields": 11,
       "status": "SPEC_AMBIGUOUS",
-      "reviewStatus": "AUTO_CLASSIFIED"
+      "reviewStatus": "AUTO_CLASSIFIED",
+      "decisionOverlay": {
+        "Q03": {
+          "selectedOption": "A",
+          "meaning": "원본의 회복 연계 효과 의미 유지. 충돌하는 BETA HP 1 회복은 효과 대체안으로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+          "scope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "designDirection": "PRESERVE_CANONICAL_DESCRIPTION"
     },
     {
       "augmentId": "aug-238",
@@ -6503,7 +6605,10 @@
       },
       "effect": {
         "sourceField": "betaValue",
-        "text": "다음 직접 피해 1 감소."
+        "text": "다음 직접 피해 1 감소.",
+        "executionStatus": "PROVENANCE_ONLY_PENDING_BETA_V0_2",
+        "executable": false,
+        "pendingRevision": "BETA_V0_2"
       },
       "limit": "중첩 불가; 큰 보호 효과는 전투당 1회.",
       "cap": null,
@@ -6553,7 +6658,16 @@
       "completionScore": 1,
       "resolvedFields": 11,
       "status": "SPEC_AMBIGUOUS",
-      "reviewStatus": "AUTO_CLASSIFIED"
+      "reviewStatus": "AUTO_CLASSIFIED",
+      "decisionOverlay": {
+        "Q02": {
+          "selectedOption": "A",
+          "meaning": "원본의 보호 표식·정밀 조준 손실 완화 의미 유지. 충돌하는 BETA 수치는 대체 효과로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+          "scope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "designDirection": "PRESERVE_CANONICAL_DESCRIPTION"
     },
     {
       "augmentId": "aug-254",
@@ -6753,7 +6867,10 @@
       },
       "effect": {
         "sourceField": "betaValue",
-        "text": "다음 직접 피해 1 감소."
+        "text": "다음 직접 피해 1 감소.",
+        "executionStatus": "PROVENANCE_ONLY_PENDING_BETA_V0_2",
+        "executable": false,
+        "pendingRevision": "BETA_V0_2"
       },
       "limit": "중첩 불가; 큰 보호 효과는 전투당 1회.",
       "cap": null,
@@ -6803,7 +6920,16 @@
       "completionScore": 1,
       "resolvedFields": 11,
       "status": "SPEC_AMBIGUOUS",
-      "reviewStatus": "AUTO_CLASSIFIED"
+      "reviewStatus": "AUTO_CLASSIFIED",
+      "decisionOverlay": {
+        "Q01": {
+          "selectedOption": "A",
+          "meaning": "원본의 적 방어 관통/약화 의미 유지. 충돌하는 BETA 자기 피해 감소 수치는 대체 효과로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+          "scope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "designDirection": "PRESERVE_CANONICAL_DESCRIPTION"
     },
     {
       "augmentId": "aug-258",
