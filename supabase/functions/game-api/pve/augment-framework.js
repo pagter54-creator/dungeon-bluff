@@ -168,7 +168,7 @@ function operate(run,player,op,ctx,envelope){
   if(op.type==='DRAW_CARD'){const result=drawPhysicalCard(run,player,ctx);if(result.applied)dispatchAugmentTrigger(run,'ON_DRAW',{player,privateState:ctx.privateState,rootActionId:envelope.rootActionId,parentEventId:envelope.eventId,chainDepth:(ctx.chainDepth||0)+1});return result;}
   if(['MOVE_CARD_ZONE','VANISH_CARD','RETURN_TO_DECK'].includes(op.type))return movePhysicalCard(player,op.cardInstanceId,op.from,op.to,ctx);
   if(op.type==='SHUFFLE_DETERMINISTIC'){const z=zones(player,ctx)?.[op.zone];if(!z)unsupported();for(let i=z.length-1;i>0;i--){const j=choose(run,Array.from({length:i+1},(_,n)=>n),'augment-shuffle:'+player.playerId+':'+i);[z[i],z[j]]=[z[j],z[i]];}return {applied:true};}
-  if(['ADD_DAMAGE','SET_DAMAGE','MULTIPLY_DAMAGE','EXTRA_DAMAGE_COMPONENT'].includes(op.type))return applyDamageOperation(ctx.damage,op,roomType(run));
+  if(['ADD_DAMAGE','SET_DAMAGE','MULTIPLY_DAMAGE','EXTRA_DAMAGE_COMPONENT'].includes(op.type))return applyDamageOperation(ctx.damage,op,ctx.roomTypeOverride||roomType(run));
   if(op.type==='HEAL'||op.type==='SELF_DAMAGE'){
     const target=op.targetId?run.players.find(p=>p.playerId===op.targetId):player;if(!target)unsupported();
     const result=applyVitalOperation(target,op);
@@ -195,15 +195,15 @@ function conditionMatches(condition,ctx){
 export function dispatchAugmentTrigger(run,trigger,ctx={}){
   if((ctx.chainDepth||0)>=4){state(run).telemetry.push({trigger,applied:false,reason:'EFFECT_CHAIN_CEILING'});return [];}
   const canonical=trigger==='CARD_VALIDATED'&&ctx.resolved?.valid===false?'ON_INVALID':alias[trigger]||trigger;if(!AUGMENT_TRIGGERS.includes(canonical))return [];
-  const catalog=run.frameworkEffects||{},players=ctx.player?[ctx.player]:run.players||[],results=[];
+  const catalog=run.frameworkEffects||{},players=ctx.player?[ctx.player]:run.players||[],results=[],currentRoom=ctx.roomTypeOverride||roomType(run);
   for(const player of players){
     const owned=new Set(player.augments||[]);
     const defs=[...owned].flatMap(id=>catalog[id]||[]).filter(def=>def.trigger===canonical).sort((a,b)=>(a.priority||0)-(b.priority||0)||String(a.augmentId).localeCompare(String(b.augmentId))||String(a.id).localeCompare(String(b.id)));
     for(const def of defs){
       validateFrameworkEffect(def);
       const envelope=makeAugmentEnvelope(run,player,canonical,{...ctx,sourceId:def.augmentId});
-      const base={augmentId:def.augmentId,trigger:canonical,eventId:envelope.eventId,roomType:roomType(run),applied:false,skipped:false,reason:null,stateChanges:[],telemetry:{}};
-      if(canonical!=='ON_ACQUIRE'&&!roomAllowed(def,roomType(run))){base.skipped=true;base.reason='ROOM_NOT_APPLICABLE';results.push(base);continue;}
+      const base={augmentId:def.augmentId,trigger:canonical,eventId:envelope.eventId,roomType:currentRoom,applied:false,skipped:false,reason:null,stateChanges:[],telemetry:{}};
+      if(canonical!=='ON_ACQUIRE'&&!roomAllowed(def,currentRoom)){base.skipped=true;base.reason='ROOM_NOT_APPLICABLE';results.push(base);continue;}
       const key=onceKey(run,player,def.augmentId,def.onceScope||'NONE',{...ctx,envelope});
       if(key&&state(run).once[key]){base.skipped=true;base.reason='ONCE_SCOPE_USED';results.push(base);continue;}
       if(def.condition&&!conditionMatches(def.condition,{run,player,...ctx})){base.skipped=true;base.reason='CONDITION_FALSE';results.push(base);continue;}
