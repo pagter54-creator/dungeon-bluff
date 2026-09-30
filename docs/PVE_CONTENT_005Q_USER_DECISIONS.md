@@ -3,15 +3,20 @@
 ## 판정
 
 - 원본: 19묶음, 213개 원자 항목, 191장.
-- 자동 정리: 38개. 남은 항목: 175개. 사용자 질문: 23개.
+- 자동 정리: 38개. 사용자 선택으로 정책 해소: 6개 원자 항목. 남은 항목: 169개. 질문 수: 23개(선택 완료 10개, 미선택 13개).
 - **READY_FOR_USER_AUGMENT_DECISIONS = false.** 단순 A/B/C 선택으로 카드별 누락된 조건을 만들 수 없다. Q11–Q23은 정확한 규칙을 작성할지, 보류할지, BETA를 개정할지 고르는 질문이다.
-- 005R 계약은 수정하지 않았다. 아래 상태는 005Q 자동 정리를 반영한 예상치다.
+- 005R 계약 오버레이에는 Q01~Q04의 방향과 실행 차단 표식, Q05~Q10의 선택 정책을 기록했다. BETA 원본 행과 runtime은 수정하지 않았다.
 
 ## 상태
 
-| COMPLETE | PARTIAL | AMBIGUOUS |
-|---:|---:|---:|
-| 22 | 207 | 161 |
+| 기준 | COMPLETE | PARTIAL | AMBIGUOUS |
+|---|---:|---:|---:|
+| 현재 계약 오버레이 | 27 | 195 | 168 |
+| 38개 자동 정리까지 반영한 예상치 | 27 | 207 | 156 |
+
+Q01~Q04의 A는 원본 효과 의미만 확정한다. 관련 19장은 여전히 SPEC_AMBIGUOUS이며, 충돌하던 BETA 수치는 실행 효과로 사용하지 않는다. 카드별 BETA v0.2 수치와 조건이 필요하다.
+
+Q05~Q10은 5장의 정책 미결 6개 항목을 해소했다. 005R 계약의 SPEC_COMPLETE는 22장에서 27장으로 늘었다.
 
 ## 16개 의미 범주
 
@@ -19,14 +24,14 @@ TRIGGER_TIMING, CONSUMPTION_TIMING, ROOM_APPLICABILITY, ONCE_SCOPE, RESET_SCOPE,
 
 ## 원본 묶음 대조
 
-| 묶음 | 유형 | 카드 | 원자 | 남음 |
+| 묶음 | 유형 | 카드 | 원자 | 현재 미해결 |
 |---|---|---:|---:|---:|
 | DEC-005R-01 | SOURCE_CONFLICT | 4 | 4 | 4 |
 | DEC-005R-02 | SOURCE_CONFLICT | 2 | 2 | 2 |
 | DEC-005R-03 | SOURCE_CONFLICT | 7 | 9 | 9 |
 | DEC-005R-04 | SOURCE_CONFLICT | 6 | 7 | 7 |
-| DEC-005R-05 | HIGH_RISK_TARGET | 3 | 4 | 4 |
-| DEC-005R-06 | HIGH_RISK_ORDER | 2 | 2 | 2 |
+| DEC-005R-05 | HIGH_RISK_TARGET | 3 | 4 | 0 |
+| DEC-005R-06 | HIGH_RISK_ORDER | 2 | 2 | 0 |
 | DEC-005R-07 | CLASS_SPEC_GAPS | 9 | 9 | 8 |
 | DEC-005R-08 | CLASS_SPEC_GAPS | 15 | 17 | 12 |
 | DEC-005R-09 | CLASS_SPEC_GAPS | 9 | 10 | 9 |
@@ -73,6 +78,8 @@ TRIGGER_TIMING, CONSUMPTION_TIMING, ROOM_APPLICABILITY, ONCE_SCOPE, RESET_SCOPE,
 
 원문은 적 방어 관통/약화인데 BETA 수치안은 자신이 받는 다음 직접 피해 1 감소입니다. 어느 효과 의미를 확정할까요?
 
+**선택: A.** 원본의 적 방어 관통/약화 의미 유지. 충돌하는 BETA 자기 피해 감소 수치는 대체 효과로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기. 실행 명세는 미완이다.
+
 영향: 4장 / 4개 항목 / 005B, 005C, 005D. 대표: aug-052, aug-257, aug-283, aug-296. 위험: MEDIUM. 의존성: 없음.
 
 - **A.** 원문 방어 관통/약화 의미를 유지하고 해당 카드의 BETA 수치를 다시 지정. 엔진: 기존 훅 재사용 여부 검증 필요. UI: 추가 UI 불명.
@@ -84,6 +91,8 @@ TRIGGER_TIMING, CONSUMPTION_TIMING, ROOM_APPLICABILITY, ONCE_SCOPE, RESET_SCOPE,
 ### Q02 · DAMAGE_SEMANTICS
 
 원문 보호 표식·정밀 조준 손실 완화와 BETA 피해 보너스/피해 감소가 다릅니다. 각 카드의 실제 효과를 어느 쪽으로 확정할까요?
+
+**선택: A.** 원본의 보호 표식·정밀 조준 손실 완화 의미 유지. 충돌하는 BETA 수치는 대체 효과로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기. 실행 명세는 미완이다.
 
 영향: 2장 / 2개 항목 / 005B, 005C. 대표: aug-049, aug-253. 위험: MEDIUM. 의존성: 없음.
 
@@ -97,6 +106,8 @@ TRIGGER_TIMING, CONSUMPTION_TIMING, ROOM_APPLICABILITY, ONCE_SCOPE, RESET_SCOPE,
 
 원문은 회복을 계기로 다른 효과가 발동하지만 BETA에는 HP 1 회복만 적혔습니다. HP 1은 원문 효과의 수치인가요, 효과 자체의 교체인가요?
 
+**선택: A.** 원본의 회복 연계 효과 의미 유지. 충돌하는 BETA HP 1 회복은 효과 대체안으로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기. 실행 명세는 미완이다.
+
 영향: 7장 / 9개 항목 / 005B, 005C. 대표: aug-104, aug-116, aug-124, aug-129, aug-139. 위험: MEDIUM. 의존성: 없음.
 
 - **A.** 원문 효과를 유지하고 누락된 발동·수치를 카드별로 보완. 엔진: 기존 훅 재사용 여부 검증 필요. UI: 추가 UI 불명.
@@ -108,6 +119,8 @@ TRIGGER_TIMING, CONSUMPTION_TIMING, ROOM_APPLICABILITY, ONCE_SCOPE, RESET_SCOPE,
 ### Q04 · RECOVERY_SELECTION
 
 원문은 복구 후보 조정·강화·버프인데 BETA에는 카드 1~2장 복구만 적혔습니다. 복구 수치가 원문 보조효과를 대체하나요?
+
+**선택: A.** 원본의 복구 후보 조정·강화·버프 의미 유지. 충돌하는 BETA 카드 복구 수치는 효과 대체안으로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기. 실행 명세는 미완이다.
 
 영향: 6장 / 7개 항목 / 005C. 대표: aug-153, aug-160, aug-162, aug-164, aug-166. 위험: MEDIUM. 의존성: 없음.
 
@@ -121,6 +134,8 @@ TRIGGER_TIMING, CONSUMPTION_TIMING, ROOM_APPLICABILITY, ONCE_SCOPE, RESET_SCOPE,
 
 aug-030 RELIC_DUPLICATE_POLICY 규칙을 어느 방식으로 확정할까요?
 
+**선택: A.** 동일 relic 중복 지급 금지. 계약 정책에 반영했다.
+
 영향: 1장 / 1개 항목 / 005B. 대표: aug-030. 위험: HIGH. 의존성: 없음.
 
 - **A.** 중복 유물 지급 불가. 엔진: 기존 훅 재사용 여부 검증 필요. UI: 선택 UI 또는 상태 표시 검토.
@@ -132,6 +147,8 @@ aug-030 RELIC_DUPLICATE_POLICY 규칙을 어느 방식으로 확정할까요?
 ### Q06 · RELIC_GRANT
 
 aug-030 RELIC_FULL_INVENTORY 규칙을 어느 방식으로 확정할까요?
+
+**선택: A.** relic inventory limit에 걸리면 지급 실패. 교체·이월 없음. 계약 정책에 반영했다.
 
 영향: 1장 / 1개 항목 / 005B. 대표: aug-030. 위험: HIGH. 의존성: 없음.
 
@@ -145,6 +162,8 @@ aug-030 RELIC_FULL_INVENTORY 규칙을 어느 방식으로 확정할까요?
 
 aug-211 LUCK_CHOICE_TIMING 규칙을 어느 방식으로 확정할까요?
 
+**선택: B.** reward presentation 후 final confirmation 전에 Luck 사용. 계약 정책에 반영했다.
+
 영향: 1장 / 1개 항목 / 005C. 대표: aug-211. 위험: HIGH. 의존성: 없음.
 
 - **A.** 보상 생성 전 행운 선택. 엔진: 기존 훅 재사용 여부 검증 필요. UI: 선택 UI 또는 상태 표시 검토.
@@ -156,6 +175,8 @@ aug-211 LUCK_CHOICE_TIMING 규칙을 어느 방식으로 확정할까요?
 ### Q08 · RECOVERY_SELECTION
 
 aug-390 RECOVERY_TARGET_SELECTION 규칙을 어느 방식으로 확정할까요?
+
+**선택: B.** 가장 최근에 SPENT가 된 recoverable physical card를 deterministic하게 복구. 계약 정책에 반영했다.
 
 영향: 1장 / 1개 항목 / 005D. 대표: aug-390. 위험: HIGH. 의존성: 없음.
 
@@ -169,6 +190,8 @@ aug-390 RECOVERY_TARGET_SELECTION 규칙을 어느 방식으로 확정할까요?
 
 aug-201 ALLY_DAMAGE_DOWN_SEMANTICS 처리 순서를 어느 방식으로 확정할까요?
 
+**선택: B.** same-resolve defense/heal/protection 적용 후 DOWN_RESOLVE. 계약 정책에 반영했다.
+
 영향: 1장 / 1개 항목 / 005C. 대표: aug-201. 위험: HIGH. 의존성: 없음.
 
 - **A.** 피해 적용 뒤 다운 판정. 엔진: 기존 훅 재사용 여부 검증 필요. UI: 추가 UI 불명.
@@ -180,6 +203,8 @@ aug-201 ALLY_DAMAGE_DOWN_SEMANTICS 처리 순서를 어느 방식으로 확정�
 ### Q10 · STACK_BEHAVIOR
 
 aug-301 DOMINANCE_CONSUME_GAIN_ORDER 처리 순서를 어느 방식으로 확정할까요?
+
+**선택: A.** 기존 Dominance 소비 후 이번 resolution에서 신규 Dominance 획득. 계약 정책에 반영했다.
 
 영향: 1장 / 1개 항목 / 005D. 대표: aug-301. 위험: HIGH. 의존성: 없음.
 
@@ -532,14 +557,14 @@ aug-301 DOMINANCE_CONSUME_GAIN_ORDER 처리 순서를 어느 방식으로 확정
 
 배치는 카드 번호 구간이 아니라 직업으로 분류한다. 005B: 모험가·기사·도적·마법사·광전사(각 30장). 005C: 예언자·임프·도박사·총잡이(각 30장). 005D: 무투가·흡혈귀·귀검사·쌍둥이(각 30장).
 
-| 배치 | 전체 | READY_AFTER_AUTO | 차단 | 차단 질문별 카드 수 |
+| 배치 | 전체 | 원자 미결 없음 | 차단 | 차단 질문별 카드 수 |
 |---|---:|---:|---:|---|
-| 005B | 150 | 97 | 53 | Q01(1), Q02(1), Q03(6), Q05(1), Q06(1), Q11(8), Q12(10), Q13(8), Q14(7), Q15(11) |
-| 005C | 120 | 65 | 55 | Q01(1), Q02(1), Q03(1), Q04(6), Q07(1), Q09(1), Q16(9), Q17(13), Q18(10), Q19(12) |
-| 005D | 120 | 67 | 53 | Q01(2), Q08(1), Q10(1), Q20(14), Q21(13), Q22(16), Q23(6) |
+| 005B | 150 | 98 | 52 | Q01(1), Q02(1), Q03(6), Q11(8), Q12(10), Q13(8), Q14(7), Q15(11) |
+| 005C | 120 | 67 | 53 | Q01(1), Q02(1), Q03(1), Q04(6), Q16(9), Q17(13), Q18(10), Q19(12) |
+| 005D | 120 | 69 | 51 | Q01(2), Q20(14), Q21(13), Q22(16), Q23(6) |
 
 무투가의 모든 카드와 Q20은 005D에 속한다. 질문 하나가 여러 배치에 걸칠 수 있으므로 질문별 카드 수의 합은 해당 배치 차단 카드 수보다 클 수 있다.
-`READY_AFTER_AUTO`는 원자 미결 항목이 없다는 뜻이다. 구현 완료를 뜻하지 않는다. 작은 배치 구현 후보는 각 배치의 이 카드들이지만 이 작업에서는 runtime을 변경하지 않았다.
+`READY_AFTER_AUTO`와 `READY_AFTER_USER_DECISION`은 원자 미결 항목이 없다는 뜻이다. 구현 완료를 뜻하지 않는다. 작은 배치 구현 후보는 각 배치의 이 카드들이지만 이 작업에서는 runtime을 변경하지 않았다.
 
 ## 기존 불일치
 
