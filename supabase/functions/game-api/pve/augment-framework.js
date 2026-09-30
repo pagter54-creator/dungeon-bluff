@@ -165,7 +165,7 @@ function operate(run,player,op,ctx,envelope){
   unsupported();
 }
 export function dispatchAugmentTrigger(run,trigger,ctx={}){
-  const canonical=alias[trigger]||trigger;if(!AUGMENT_TRIGGERS.includes(canonical))return [];
+  const canonical=trigger==='CARD_VALIDATED'&&ctx.resolved?.valid===false?'ON_INVALID':alias[trigger]||trigger;if(!AUGMENT_TRIGGERS.includes(canonical))return [];
   const catalog=run.frameworkEffects||{},players=ctx.player?[ctx.player]:run.players||[],results=[];
   for(const player of players){
     const owned=new Set(player.augments||[]);
@@ -174,7 +174,7 @@ export function dispatchAugmentTrigger(run,trigger,ctx={}){
       validateFrameworkEffect(def);
       const envelope=makeAugmentEnvelope(run,player,canonical,{...ctx,sourceId:def.augmentId});
       const base={augmentId:def.augmentId,trigger:canonical,eventId:envelope.eventId,roomType:roomType(run),applied:false,skipped:false,reason:null,stateChanges:[],telemetry:{}};
-      if(!roomAllowed(def,roomType(run))){base.skipped=true;base.reason='ROOM_NOT_APPLICABLE';results.push(base);continue;}
+      if(canonical!=='ON_ACQUIRE'&&!roomAllowed(def,roomType(run))){base.skipped=true;base.reason='ROOM_NOT_APPLICABLE';results.push(base);continue;}
       const key=onceKey(run,player,def.augmentId,def.onceScope||'NONE',{...ctx,envelope});
       if(key&&state(run).once[key]){base.skipped=true;base.reason='ONCE_SCOPE_USED';results.push(base);continue;}
       if(typeof def.condition==='function'&&!def.condition({run,player,...ctx})){base.skipped=true;base.reason='CONDITION_FALSE';results.push(base);continue;}
