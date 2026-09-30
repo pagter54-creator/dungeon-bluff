@@ -1,0 +1,186 @@
+{
+  "schemaVersion": "PVE_CONTENT_005R_EXECUTABLE_AUDIT_V1",
+  "sourceBranch": "feat/pve-content-005s-beta-contract",
+  "summary": {
+    "total": 19,
+    "match": 12,
+    "mismatchValue": 2,
+    "mismatchTrigger": 1,
+    "mismatchRoom": 6
+  },
+  "entries": [
+    {
+      "augmentId": "aug-001",
+      "name": "노련한 탐험가",
+      "findings": [
+        "MISMATCH_ROOM"
+      ],
+      "evidence": "CARD_VALIDATED and BEFORE_DAMAGE are also emitted in Reward Room, so combat attack bonus can change ranking.",
+      "runtimeChange": "DEFER_TO_005F_OR_CLASS_BATCH"
+    },
+    {
+      "augmentId": "aug-031",
+      "name": "불굴의 기사",
+      "findings": [
+        "MATCH"
+      ],
+      "evidence": "Existing handler/config and named regression align with explicit BETA numeric rule; 005F must preserve room gating and source limit.",
+      "runtimeChange": "DEFER_TO_005F_OR_CLASS_BATCH"
+    },
+    {
+      "augmentId": "aug-041",
+      "name": "수호벽",
+      "findings": [
+        "MISMATCH_ROOM"
+      ],
+      "evidence": "Guardian Wall rescue handler runs in Combat; shared Reward collision resolution does not invoke it.",
+      "runtimeChange": "DEFER_TO_005F_OR_CLASS_BATCH"
+    },
+    {
+      "augmentId": "aug-051",
+      "name": "압살 기사",
+      "findings": [
+        "MATCH"
+      ],
+      "evidence": "Existing handler/config and named regression align with explicit BETA numeric rule; 005F must preserve room gating and source limit.",
+      "runtimeChange": "DEFER_TO_005F_OR_CLASS_BATCH"
+    },
+    {
+      "augmentId": "aug-061",
+      "name": "비열한 일격",
+      "findings": [
+        "MISMATCH_VALUE",
+        "MISMATCH_ROOM"
+      ],
+      "evidence": "Runtime sets Sneaky to 1 instead of incrementing to max 2; generic damage effect also runs in Reward ranking.",
+      "runtimeChange": "DEFER_TO_005F_OR_CLASS_BATCH"
+    },
+    {
+      "augmentId": "aug-091",
+      "name": "대마도 증폭",
+      "findings": [
+        "MATCH"
+      ],
+      "evidence": "Existing handler/config and named regression align with explicit BETA numeric rule; 005F must preserve room gating and source limit.",
+      "runtimeChange": "DEFER_TO_005F_OR_CLASS_BATCH"
+    },
+    {
+      "augmentId": "aug-101",
+      "name": "백마도사",
+      "findings": [
+        "MISMATCH_ROOM"
+      ],
+      "evidence": "White Mage collision heal handler runs in Combat; Reward shared collision has no heal handler.",
+      "runtimeChange": "DEFER_TO_005F_OR_CLASS_BATCH"
+    },
+    {
+      "augmentId": "aug-111",
+      "name": "역산술",
+      "findings": [
+        "MATCH"
+      ],
+      "evidence": "Existing handler/config and named regression align with explicit BETA numeric rule; 005F must preserve room gating and source limit.",
+      "runtimeChange": "DEFER_TO_005F_OR_CLASS_BATCH"
+    },
+    {
+      "augmentId": "aug-121",
+      "name": "피의 광전",
+      "findings": [
+        "MATCH"
+      ],
+      "evidence": "Existing handler/config and named regression align with explicit BETA numeric rule; 005F must preserve room gating and source limit.",
+      "runtimeChange": "DEFER_TO_005F_OR_CLASS_BATCH"
+    },
+    {
+      "augmentId": "aug-131",
+      "name": "불사 투사",
+      "findings": [
+        "MATCH"
+      ],
+      "evidence": "Existing handler/config and named regression align with explicit BETA numeric rule; 005F must preserve room gating and source limit.",
+      "runtimeChange": "DEFER_TO_005F_OR_CLASS_BATCH"
+    },
+    {
+      "augmentId": "aug-161",
+      "name": "운명 조작자",
+      "findings": [
+        "MATCH"
+      ],
+      "evidence": "Revelation immediate skill is Combat-only in the class action model; ally recovery follows that action and preserves physical card identity.",
+      "runtimeChange": "DEFER_TO_005F_OR_CLASS_BATCH"
+    },
+    {
+      "augmentId": "aug-181",
+      "name": "대담한 슬쩍",
+      "findings": [
+        "MISMATCH_ROOM"
+      ],
+      "evidence": "Generic BEFORE_DAMAGE bonus for two successful steals can affect Reward damage ranking.",
+      "runtimeChange": "DEFER_TO_005F_OR_CLASS_BATCH"
+    },
+    {
+      "augmentId": "aug-241",
+      "name": "전탄 난사",
+      "findings": [
+        "MATCH"
+      ],
+      "evidence": "Existing handler/config and named regression align with explicit BETA numeric rule; 005F must preserve room gating and source limit.",
+      "runtimeChange": "DEFER_TO_005F_OR_CLASS_BATCH"
+    },
+    {
+      "augmentId": "aug-291",
+      "name": "일격필살",
+      "findings": [
+        "MATCH"
+      ],
+      "evidence": "Existing handler/config and named regression align with explicit BETA numeric rule; 005F must preserve room gating and source limit.",
+      "runtimeChange": "DEFER_TO_005F_OR_CLASS_BATCH"
+    },
+    {
+      "augmentId": "aug-301",
+      "name": "완전한 권속",
+      "findings": [
+        "MISMATCH_VALUE",
+        "MISMATCH_ROOM"
+      ],
+      "evidence": "Runtime clears Dominance then adds 1, preventing stack 2; generic BEFORE_DAMAGE bonus also affects Reward ranking.",
+      "runtimeChange": "DEFER_TO_005F_OR_CLASS_BATCH"
+    },
+    {
+      "augmentId": "aug-321",
+      "name": "수혈",
+      "findings": [
+        "MISMATCH_TRIGGER"
+      ],
+      "evidence": "Original source says Blood 4 auto-transfusion; runtime requires an explicit pre-submit skill action.",
+      "runtimeChange": "DEFER_TO_005F_OR_CLASS_BATCH"
+    },
+    {
+      "augmentId": "aug-331",
+      "name": "포식 귀참",
+      "findings": [
+        "MATCH"
+      ],
+      "evidence": "Existing handler/config and named regression align with explicit BETA numeric rule; 005F must preserve room gating and source limit.",
+      "runtimeChange": "DEFER_TO_005F_OR_CLASS_BATCH"
+    },
+    {
+      "augmentId": "aug-351",
+      "name": "해방된 귀검",
+      "findings": [
+        "MATCH"
+      ],
+      "evidence": "Existing handler/config and named regression align with explicit BETA numeric rule; 005F must preserve room gating and source limit.",
+      "runtimeChange": "DEFER_TO_005F_OR_CLASS_BATCH"
+    },
+    {
+      "augmentId": "aug-381",
+      "name": "공중 곡예",
+      "findings": [
+        "MATCH"
+      ],
+      "evidence": "Existing handler/config and named regression align with explicit BETA numeric rule; 005F must preserve room gating and source limit.",
+      "runtimeChange": "DEFER_TO_005F_OR_CLASS_BATCH"
+    }
+  ]
+}
