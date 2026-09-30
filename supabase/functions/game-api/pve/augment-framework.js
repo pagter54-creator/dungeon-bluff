@@ -14,14 +14,14 @@ const roomType=run=>run.phase==='COMBAT'?'COMBAT':run.phase==='REWARD_ROOM'?'REW
 const roomId=run=>run.currentRoomNodeId||run.combat?.id||run.roomState?.id||null;
 const cycleId=(run,player,ctx)=>ctx.privateState?.cycleIndex??run.combat?.privateByPlayer?.[player.playerId]?.cycleIndex??run.roomState?.privateByPlayer?.[player.playerId]?.cycleIndex??run.cardCycles?.[player.playerId]?.cycleIndex??null;
 export function makeAugmentEnvelope(run,player,trigger,ctx={}){
-  const s=state(run),orderKey=++s.sequence,combatId=run.combat?.id||null,turnId=combatId?String(run.combat.turn):null;
+  const s=state(run),orderKey=++s.sequence,combatId=run.combat?.id||null,turnId=String(run.combat?.turn??run.roomState?.turn??run.roomState?.attempt??'1');
   const rootActionId=ctx.rootActionId||'run:'+run.id+':version:'+run.version+':order:'+orderKey;
   return {eventId:ctx.eventId||rootActionId+':'+trigger+':'+orderKey,rootActionId,parentEventId:ctx.parentEventId||null,sourceType:ctx.sourceType||'AUGMENT',sourceId:ctx.sourceId||null,playerId:player.playerId,roomId:roomId(run),combatId,turnId,cycleId:cycleId(run,player,ctx),timestamp:ctx.timestamp||null,orderKey};
 }
 function scopeId(run,player,scope,ctx){
   if(scope==='NONE')return null;
   const e=ctx.envelope||makeAugmentEnvelope(run,player,'SCOPE',ctx);
-  if(scope==='ONCE_PER_TURN')return e.combatId+':'+e.turnId;
+  if(scope==='ONCE_PER_TURN')return (e.combatId||e.roomId)+':'+e.turnId;
   if(scope==='ONCE_PER_CYCLE')return (e.combatId||e.roomId)+':'+e.cycleId;
   if(scope==='ONCE_PER_COMBAT')return e.combatId;
   if(scope==='ONCE_PER_ROOM')return e.roomId;
