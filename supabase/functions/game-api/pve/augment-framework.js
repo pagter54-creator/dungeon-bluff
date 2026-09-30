@@ -164,14 +164,14 @@ function grant(run,player,op,envelope){
 function operate(run,player,op,ctx,envelope){
   if(['APPLY_STATUS','ADD_STACK','SET_STACK','CONSUME_STACK','REMOVE_STATUS'].includes(op.type))return {applied:true,...applyStatus(run,player,op)};
   if(op.type==='RECOVER_CARD'){const result=recoverPhysicalCard(run,player,op.cardInstanceId,ctx);if(result.applied)dispatchAugmentTrigger(run,'ON_RECOVER_CARD',{player,privateState:ctx.privateState,rootActionId:result.rootActionId,parentEventId:result.parentEventId,recoveryChainId:result.recoveryChainId,chainDepth:result.chainDepth});return result;}
-  if(op.type==='DRAW_CARD'){const result=drawPhysicalCard(run,player,ctx);if(result.applied)dispatchAugmentTrigger(run,'ON_DRAW',{player,privateState:ctx.privateState,rootActionId:envelope.rootActionId,parentEventId:envelope.eventId});return result;}
+  if(op.type==='DRAW_CARD'){const result=drawPhysicalCard(run,player,ctx);if(result.applied)dispatchAugmentTrigger(run,'ON_DRAW',{player,privateState:ctx.privateState,rootActionId:envelope.rootActionId,parentEventId:envelope.eventId,chainDepth:(ctx.chainDepth||0)+1});return result;}
   if(['MOVE_CARD_ZONE','VANISH_CARD','RETURN_TO_DECK'].includes(op.type))return movePhysicalCard(player,op.cardInstanceId,op.from,op.to,ctx);
   if(op.type==='SHUFFLE_DETERMINISTIC'){const z=zones(player,ctx)?.[op.zone];if(!z)unsupported();for(let i=z.length-1;i>0;i--){const j=choose(run,Array.from({length:i+1},(_,n)=>n),'augment-shuffle:'+player.playerId+':'+i);[z[i],z[j]]=[z[j],z[i]];}return {applied:true};}
   if(['ADD_DAMAGE','SET_DAMAGE','MULTIPLY_DAMAGE','EXTRA_DAMAGE_COMPONENT'].includes(op.type))return applyDamageOperation(ctx.damage,op,roomType(run));
   if(op.type==='HEAL'||op.type==='SELF_DAMAGE'){
     const target=op.targetId?run.players.find(p=>p.playerId===op.targetId):player;if(!target)unsupported();
     const result=applyVitalOperation(target,op);
-    if(result.actualAmount>0)dispatchAugmentTrigger(run,op.type==='HEAL'?'ON_HEAL':'ON_DAMAGE_TAKEN',{player:target,rootActionId:envelope.rootActionId,parentEventId:envelope.eventId,amount:result.actualAmount,damageType:op.damageType||'SELF'});
+    if(result.actualAmount>0)dispatchAugmentTrigger(run,op.type==='HEAL'?'ON_HEAL':'ON_DAMAGE_TAKEN',{player:target,rootActionId:envelope.rootActionId,parentEventId:envelope.eventId,amount:result.actualAmount,damageType:op.damageType||'SELF',chainDepth:(ctx.chainDepth||0)+1});
     return result;
   }
   if(op.type==='SCHEDULE_EFFECT')return {applied:true,delayed:scheduleDelayed(run,op,envelope)};
@@ -192,6 +192,7 @@ function conditionMatches(condition,ctx){
   return Boolean(actual);
 }
 export function dispatchAugmentTrigger(run,trigger,ctx={}){
+  if((ctx.chainDepth||0)>=4){state(run).telemetry.push({trigger,applied:false,reason:'EFFECT_CHAIN_CEILING'});return [];}
   const canonical=trigger==='CARD_VALIDATED'&&ctx.resolved?.valid===false?'ON_INVALID':alias[trigger]||trigger;if(!AUGMENT_TRIGGERS.includes(canonical))return [];
   const catalog=run.frameworkEffects||{},players=ctx.player?[ctx.player]:run.players||[],results=[];
   for(const player of players){
