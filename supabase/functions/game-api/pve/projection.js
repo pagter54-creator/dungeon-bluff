@@ -1,5 +1,10 @@
+import {projectAugmentFramework} from './augment-framework.js';
 export function projectRun(run,viewerPlayerId){
   const out=structuredClone(run);
+  const publicFramework=projectAugmentFramework(run,viewerPlayerId);
+  delete out.augmentFramework;
+  delete out.frameworkEffects;
+  if(publicFramework)out.augmentStatuses=publicFramework.statuses;
   delete out.effectCatalog;
   delete out.effectCounters;
   if(out.combat)delete out.combat.effectCounters;
