@@ -1,5 +1,5 @@
 import {choose,drawIndex} from './rng.js';
-import {selfModifyCard,collisionImmunity,isCardSelectableForCharacter,validateCharacterSkillIntent,onCycleStartCharacter,onTurnStartCharacter,onTurnEndCharacter,initializeCombatCharacter,baseDamageForCharacter} from './characters.js';
+import {selfModifyCard,collisionImmunity,resolveGuardianWallCollisions,isCardSelectableForCharacter,validateCharacterSkillIntent,onCycleStartCharacter,onTurnStartCharacter,onTurnEndCharacter,initializeCombatCharacter,baseDamageForCharacter} from './characters.js';
 import {restoreCardCycle,persistCardCycles} from './card-cycle.js';
 import {drawGamblerHand,settleGamblerHand} from './gambler.js';
 import {initializeNumberHistories,recordSelfModification,applyPreCollisionSwap,applyPreCollisionSteal,finalizeNumbers,attachCollisionGroups,attachValidity,assignVampireThralls,validateNumberMutationState} from './number-mutation.js';
@@ -230,6 +230,7 @@ export function resolveRewardAttempt(run){
   const groups=new Map();for(const card of cards){const group=groups.get(card.finalNumber)||[];group.push(card);groups.set(card.finalNumber,group);}
   attachCollisionGroups(run,cards,groups);
   for(const group of groups.values())if(group.length>1)for(const card of group)if(!card.collisionImmune){card.valid=false;card.invalidReason='COLLISION';}
+  resolveGuardianWallCollisions(run,cards,groups,[]);
   assignVampireThralls(run,cards,groups,[]);
   for(const rc of cards)applyOwnedEffects(run,'POST_COLLISION',{player:playerFor(run,rc.playerId),resolved:rc,privateState:room.privateByPlayer[rc.playerId]});
   attachValidity(cards);
