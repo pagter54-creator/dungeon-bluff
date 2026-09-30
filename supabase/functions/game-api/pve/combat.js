@@ -247,7 +247,9 @@ export function resolveBasicTurn(run){
       ...(Number(rc.bloodFrenzyBonusDamage)>0?['AUG_121_BLOOD_FRENZY']:[]),
       ...(Number(rc.ghostSlashBonusDamage)>0?['GHOST_SLASH']:[])
     ];
-    let primary=burstPacket({sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,amount:Math.max(0,baseDamageForCharacter(player,rc)+engraving-defense-(rc.monsterDamagePenalty||0)),tags:['BASE_CARD'],followUp:false},
+    const armorPenetration=player.characterId==='warrior'&&player.augments.includes('aug-052')&&Number(rc.crushedCardCount)>0?Math.min(1,defense):0;
+    if(armorPenetration)modifierIds.push('AUG_052_ARMOR_PENETRATION');
+    let primary=burstPacket({sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,amount:Math.max(0,baseDamageForCharacter(player,rc)+engraving-Math.max(0,defense-armorPenetration)-(rc.monsterDamagePenalty||0)),armorPenetration,tags:['BASE_CARD'],followUp:false},
       {resolved:rc,player,baseNumber:rc.finalNumber,baseDamage:rc.finalNumber,classBonus,augmentBonus,modifierIds});
     const primaryDamage={amount:primary.amount},queued=[];
     applyOwnedEffects(run,'BEFORE_DAMAGE',{player,resolved:rc,damage:primaryDamage,followUps:queued,followUp:false,events:[]});
