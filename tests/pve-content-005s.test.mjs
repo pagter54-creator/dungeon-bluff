@@ -44,7 +44,7 @@ test('CONTENT-005S forecasts 130 conceptual candidate pools with three cards eac
 
 test('CONTENT-005S preserves selected hard BETA numbers and flags unresolved triggers',()=>{
   const byId=Object.fromEntries(entries.map(x=>[x.augmentId,x]));
-  for(const [n,fragment] of [[71,'최대 3'],[231,'두 카드 숫자 합'],[261,'0~3'],[291,'1당 추가 피해 +2'],[321,'혈액 4 소비'],[351,'포식 6 도달'],[381,'추가 피해 +2']]){
+  for(const [n,fragment] of [[71,'최대 3'],[231,'두 카드 숫자 합'],[261,'과열 3이면'],[291,'1당 추가 피해 +2'],[321,'혈액 4 소비'],[351,'포식 6 도달'],[381,'추가 피해 +2']]){
     assert.ok(byId[id(n)].betaValue.includes(fragment),id(n));
   }
   assert.ok(entries.every(x=>x.trigger===null&&x.unresolvedFields.includes('trigger')));
