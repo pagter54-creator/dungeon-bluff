@@ -249,6 +249,7 @@ export async function handlePveAction({admin,user,body,json}){
     finishShop(run,me.playerId);
   } else if(action==='pve.rewardActivateSkill'){
     activateRewardSkill(run,me.playerId);
+    applyOwnedEffects(run,'ON_SKILL_USE',{player:me});
   } else if(action==='pve.rewardSubmitCard'){
     if(typeof body.card_instance_id!=='string')return fail(json,'card_instance_id가 필요합니다.');
     submitRewardCard(run,me.playerId,body.card_instance_id,body.skill_intent===true,body.skill_data??null);
