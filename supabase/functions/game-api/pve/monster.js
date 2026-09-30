@@ -42,11 +42,11 @@ function guardianRedirect(run,originalPlayer,damageType,events,damageEventId,raw
   let guard=guards[0],source='aug-041';
   if(guard){
     delete guard.publicResources.guardianTargetPlayerId;
-    const mark=findAugmentStatus(run,'GUARDIAN_EXTRA_REDIRECT',originalPlayer.playerId);
-    if(mark?.ownerId===guard.playerId)mark.payload.ready=true;
+    const mark=findAugmentStatus(run,'GUARDIAN_EXTRA_REDIRECT',originalPlayer.playerId,{ownerId:guard.playerId});
+    if(mark)mark.payload.ready=true;
   }else{
-    const mark=findAugmentStatus(run,'GUARDIAN_EXTRA_REDIRECT',originalPlayer.playerId);
-    if(mark?.payload.ready){
+    const mark=findAugmentStatus(run,'GUARDIAN_EXTRA_REDIRECT',originalPlayer.playerId,{ready:true});
+    if(mark){
       consumeAugmentStatus(run,mark);
       guard=run.players.find(p=>p.playerId===mark.ownerId&&p.status!=='DOWNED'&&p.characterId==='warrior');
       source='aug-049';
