@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {newPlayerRunState} from '../supabase/functions/game-api/pve/model.js';
 import {applyContent005B} from '../supabase/functions/game-api/pve/content-005b-runtime.js';
+import {AUGMENT_BY_ID,augmentCandidates} from '../supabase/functions/game-api/pve/augment-catalog.js';
+import {beginAugmentChoices,chooseAugment} from '../supabase/functions/game-api/pve/augments.js';
 
 function fixture(id,characterId='adventurer'){
   const p=newPlayerRunState({id:'p0',user_id:'u0',character_id:characterId,member_type:'human',seat_index:0});
@@ -76,4 +78,35 @@ test('aug-142 checks authoritative HP 1',()=>{
   const {p,fire}=fixture('aug-142','berserker'),damage={amount:3};
   p.hp=1;fire('BEFORE_DAMAGE',{valid:true},damage);assert.equal(damage.amount,4);
   p.hp=2;const healthy={amount:3};fire('BEFORE_DAMAGE',{valid:true},healthy);assert.equal(healthy.amount,3);
+});
+
+test('Adventurer veteran Stage 2 offers exactly three executable IDs and acquisition survives reconnect',()=>{
+  const p=newPlayerRunState({id:'p0',user_id:'u0',character_id:'adventurer',member_type:'human',seat_index:0});
+  p.augments=['aug-001'];p.augmentBuild='노련한 탐험가';p.persistentCharacterState.augmentTiers=[1];p.growthExp=150;
+  const run={id:'veteran-offer',seed:'veteran-offer',rngCounter:0,version:0,phase:'ROOM_RESULT',floor:1,players:[p],map:{depthCount:8}};
+  assert.deepEqual(augmentCandidates('adventurer',2,'노련한 탐험가').map(x=>x.id),['aug-002','aug-003','aug-004']);
+  assert.ok(['aug-002','aug-003','aug-004'].every(id=>AUGMENT_BY_ID[id].executable));
+  assert.equal(beginAugmentChoices(run,'ROOM_RESULT'),true);
+  assert.deepEqual(run.augmentChoice.offersByPlayer.p0,['aug-002','aug-003','aug-004']);
+  const beforeHp=p.hp,beforeMax=p.maxHp;
+  chooseAugment(run,'p0','aug-002');
+  assert.equal(p.maxHp,beforeMax+1);
+  assert.equal(p.hp,beforeHp+1);
+  const saved=structuredClone(run);
+  assert.ok(saved.players[0].augments.includes('aug-002'));
+  assert.equal(saved.players[0].maxHp,beforeMax+1);
+  assert.equal(saved.augmentFramework.acquired['p0:aug-002'].augmentId,'aug-002');
+});
+test('aug-003 gives its bonus only on the third consecutive valid attack',()=>{
+  const {run,fire}=fixture('aug-003');
+  for(let turn=1;turn<=3;turn++){
+    run.combat.turn=turn;
+    const resolved={valid:true},damage={amount:3};
+    fire('CARD_VALIDATED',resolved);fire('BEFORE_DAMAGE',resolved,damage);
+    assert.equal(damage.amount,turn===3?4:3);
+  }
+  run.combat.turn=4;fire('CARD_VALIDATED',{valid:false,invalidReason:'COLLISION'});
+  run.combat.turn=5;const next={valid:true},damage={amount:3};
+  fire('CARD_VALIDATED',next);fire('BEFORE_DAMAGE',next,damage);
+  assert.equal(damage.amount,3);
 });
