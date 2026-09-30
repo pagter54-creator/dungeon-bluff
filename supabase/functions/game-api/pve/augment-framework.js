@@ -224,14 +224,14 @@ export function acquireAugmentOnce(run,player,augmentId,{actionId=null}={}){
   const effects=dispatchAugmentTrigger(run,'ON_ACQUIRE',{player,rootActionId:marker.appliedAtActionId});
   return {applied:true,marker,effects};
 }
-export function cleanupAugmentScope(run,scope){
+export function cleanupAugmentScope(run,scope,{playerId=null}={}){
   if(!RESET_SCOPES.includes(scope))unsupported();
-  const s=state(run);
-  s.statuses=s.statuses.filter(x=>x.resetScope!==scope);
-  s.delayed=s.delayed.filter(x=>x.resetScope!==scope);
-  s.temporary=s.temporary.filter(x=>x.resetScope!==scope);
+  const s=state(run),matches=item=>item.resetScope===scope&&(!playerId||item.ownerId===playerId);
+  s.statuses=s.statuses.filter(x=>!matches(x));
+  s.delayed=s.delayed.filter(x=>!matches(x));
+  s.temporary=s.temporary.filter(x=>!matches(x));
   const onceScope='ONCE_PER_'+scope;
-  for(const [key,value] of Object.entries(s.once))if(value.scope===onceScope)delete s.once[key];
+  for(const [key,value] of Object.entries(s.once))if(value.scope===onceScope&&(!playerId||value.playerId===playerId))delete s.once[key];
 }
 export function projectAugmentFramework(run,viewerPlayerId){
   const s=run.augmentFramework;if(!s)return null;
