@@ -110,7 +110,9 @@
         }
       },
       "visibility": "PUBLIC",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "RECOVER_CARD_SELECTOR"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -121,11 +123,9 @@
       "highRisk": false,
       "highRiskGuard": null,
       "highRiskTest": null,
-      "ambiguities": [
-        "AMB-AUG-aug-152-PRIMITIVE"
-      ],
-      "completionScore": 0.91,
-      "resolvedFields": 10,
+      "ambiguities": [],
+      "completionScore": 1,
+      "resolvedFields": 11,
       "status": "SPEC_PARTIAL",
       "reviewStatus": "AUTO_CLASSIFIED",
       "roomComponentNote": "Only shared number/collision/card-recovery component applies in Event and Reward; monster damage remains Combat-only."
@@ -297,7 +297,9 @@
         }
       },
       "visibility": "PUBLIC",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "GAIN_RESOURCE"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -308,11 +310,9 @@
       "highRisk": false,
       "highRiskGuard": null,
       "highRiskTest": null,
-      "ambiguities": [
-        "AMB-AUG-aug-155-PRIMITIVE"
-      ],
-      "completionScore": 0.91,
-      "resolvedFields": 10,
+      "ambiguities": [],
+      "completionScore": 1,
+      "resolvedFields": 11,
       "status": "SPEC_PARTIAL",
       "reviewStatus": "AUTO_CLASSIFIED",
       "roomComponentNote": "Only shared number/collision/card-recovery component applies in Event and Reward; monster damage remains Combat-only."
@@ -487,7 +487,9 @@
         }
       },
       "visibility": "PUBLIC",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "RECOVER_CARD_SELECTOR"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -498,11 +500,9 @@
       "highRisk": false,
       "highRiskGuard": null,
       "highRiskTest": null,
-      "ambiguities": [
-        "AMB-AUG-aug-158-PRIMITIVE"
-      ],
-      "completionScore": 0.91,
-      "resolvedFields": 10,
+      "ambiguities": [],
+      "completionScore": 1,
+      "resolvedFields": 11,
       "status": "SPEC_PARTIAL",
       "reviewStatus": "AUTO_CLASSIFIED",
       "roomComponentNote": "Only shared number/collision/card-recovery component applies in Event and Reward; monster damage remains Combat-only."
@@ -661,15 +661,15 @@
       "roomApplicability": {
         "COMBAT": {
           "value": true,
-          "basis": "GLOBAL_POLICY"
+          "basis": "CLASS_RULE"
         },
         "EVENT": {
-          "value": true,
-          "basis": "GLOBAL_POLICY"
+          "value": false,
+          "basis": "CLASS_RULE"
         },
         "REWARD": {
-          "value": true,
-          "basis": "GLOBAL_POLICY"
+          "value": false,
+          "basis": "CLASS_RULE"
         },
         "SHOP": {
           "value": false,
@@ -699,7 +699,7 @@
       "resolvedFields": 11,
       "status": "SPEC_COMPLETE",
       "manualReviewed": true,
-      "roomComponentNote": "Shared number/collision/recovery component applies in Event and Reward; monster damage and direct-damage redirect components remain Combat-only.",
+      "roomComponentNote": "Revelation immediate skill exists only in Combat class action; recovery is shared only when its source action exists.",
       "reviewStatus": "MANUAL_REVIEWED"
     },
     {
@@ -927,7 +927,9 @@
         }
       },
       "visibility": "PUBLIC",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "GAIN_RESOURCE"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -938,11 +940,9 @@
       "highRisk": false,
       "highRiskGuard": null,
       "highRiskTest": null,
-      "ambiguities": [
-        "AMB-AUG-aug-165-PRIMITIVE"
-      ],
-      "completionScore": 0.91,
-      "resolvedFields": 10,
+      "ambiguities": [],
+      "completionScore": 1,
+      "resolvedFields": 11,
       "status": "SPEC_PARTIAL",
       "reviewStatus": "AUTO_CLASSIFIED",
       "roomComponentNote": "Only shared number/collision/card-recovery component applies in Event and Reward; monster damage remains Combat-only."
@@ -1182,7 +1182,9 @@
         }
       },
       "visibility": "PUBLIC",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "RECOVER_CARD_SELECTOR"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -1193,11 +1195,9 @@
       "highRisk": false,
       "highRiskGuard": null,
       "highRiskTest": null,
-      "ambiguities": [
-        "AMB-AUG-aug-169-PRIMITIVE"
-      ],
-      "completionScore": 0.91,
-      "resolvedFields": 10,
+      "ambiguities": [],
+      "completionScore": 1,
+      "resolvedFields": 11,
       "status": "SPEC_PARTIAL",
       "reviewStatus": "AUTO_CLASSIFIED",
       "roomComponentNote": "Only shared number/collision/card-recovery component applies in Event and Reward; monster damage remains Combat-only."
@@ -1630,7 +1630,10 @@
         }
       },
       "visibility": "SERVER_ONLY",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "GAIN_RESOURCE",
+        "MODIFY_RESOURCE_CAP"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -1642,11 +1645,10 @@
       "highRiskGuard": null,
       "highRiskTest": null,
       "ambiguities": [
-        "AMB-AUG-aug-176-CONDITION",
-        "AMB-AUG-aug-176-PRIMITIVE"
+        "AMB-AUG-aug-176-CONDITION"
       ],
-      "completionScore": 0.82,
-      "resolvedFields": 9,
+      "completionScore": 0.91,
+      "resolvedFields": 10,
       "status": "SPEC_AMBIGUOUS",
       "reviewStatus": "AUTO_CLASSIFIED"
     },
@@ -1689,7 +1691,9 @@
         }
       },
       "visibility": "SERVER_ONLY",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "REVEAL_PRIVATE_INFO"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -1701,11 +1705,10 @@
       "highRiskGuard": null,
       "highRiskTest": null,
       "ambiguities": [
-        "AMB-AUG-aug-177-TRIGGER",
-        "AMB-AUG-aug-177-PRIMITIVE"
+        "AMB-AUG-aug-177-TRIGGER"
       ],
-      "completionScore": 0.82,
-      "resolvedFields": 9,
+      "completionScore": 0.91,
+      "resolvedFields": 10,
       "status": "SPEC_PARTIAL",
       "reviewStatus": "AUTO_CLASSIFIED"
     },
@@ -2129,7 +2132,9 @@
         }
       },
       "visibility": "SERVER_ONLY",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "MODIFY_DAMAGE"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -2140,11 +2145,9 @@
       "highRisk": false,
       "highRiskGuard": null,
       "highRiskTest": null,
-      "ambiguities": [
-        "AMB-AUG-aug-184-PRIMITIVE"
-      ],
-      "completionScore": 0.91,
-      "resolvedFields": 10,
+      "ambiguities": [],
+      "completionScore": 1,
+      "resolvedFields": 11,
       "status": "SPEC_PARTIAL",
       "reviewStatus": "AUTO_CLASSIFIED"
     },
@@ -2632,7 +2635,9 @@
         }
       },
       "visibility": "SERVER_ONLY",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "MODIFY_RESOURCE_CAP"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -2644,11 +2649,10 @@
       "highRiskGuard": null,
       "highRiskTest": null,
       "ambiguities": [
-        "AMB-AUG-aug-192-CONDITION",
-        "AMB-AUG-aug-192-PRIMITIVE"
+        "AMB-AUG-aug-192-CONDITION"
       ],
-      "completionScore": 0.82,
-      "resolvedFields": 9,
+      "completionScore": 0.91,
+      "resolvedFields": 10,
       "status": "SPEC_AMBIGUOUS",
       "reviewStatus": "AUTO_CLASSIFIED"
     },
@@ -3010,7 +3014,10 @@
         }
       },
       "visibility": "SERVER_ONLY",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "MODIFY_RESOURCE_CAP",
+        "GAIN_RESOURCE"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -3021,11 +3028,9 @@
       "highRisk": false,
       "highRiskGuard": null,
       "highRiskTest": null,
-      "ambiguities": [
-        "AMB-AUG-aug-198-PRIMITIVE"
-      ],
-      "completionScore": 0.91,
-      "resolvedFields": 10,
+      "ambiguities": [],
+      "completionScore": 1,
+      "resolvedFields": 11,
       "status": "SPEC_PARTIAL",
       "reviewStatus": "AUTO_CLASSIFIED"
     },
@@ -3209,8 +3214,8 @@
       "requiredPrimitive": [
         "ADD_DAMAGE",
         "APPLY_STATUS",
-        "DAMAGE_SELF",
-        "DELAY_EFFECT"
+        "DELAY_EFFECT",
+        "DAMAGE_ALLY"
       ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
@@ -5695,7 +5700,8 @@
       "requiredPrimitive": [
         "ADD_DAMAGE",
         "DRAW_CARD",
-        "DELAY_EFFECT"
+        "DELAY_EFFECT",
+        "DAMAGE_SELF"
       ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
@@ -7412,7 +7418,9 @@
         }
       },
       "visibility": "PUBLIC",
-      "requiredPrimitive": [],
+      "requiredPrimitive": [
+        "SET_RESOURCE"
+      ],
       "testRequirements": [
         "VERIFY_BETA_VALUE_AND_LIMIT",
         "VERIFY_TRIGGER_AND_SCOPE",
@@ -7424,11 +7432,10 @@
       "highRiskGuard": null,
       "highRiskTest": null,
       "ambiguities": [
-        "AMB-AUG-aug-267-TRIGGER",
-        "AMB-AUG-aug-267-PRIMITIVE"
+        "AMB-AUG-aug-267-TRIGGER"
       ],
-      "completionScore": 0.82,
-      "resolvedFields": 9,
+      "completionScore": 0.91,
+      "resolvedFields": 10,
       "status": "SPEC_PARTIAL",
       "reviewStatus": "AUTO_CLASSIFIED"
     },
