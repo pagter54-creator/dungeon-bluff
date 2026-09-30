@@ -1,7 +1,7 @@
 import {resourceMax} from './resources.js';
 import {grantAugmentExp,upsertAugmentStatus} from './augment-framework.js';
 
-const IDS=new Set(['aug-004','aug-015','aug-016','aug-062','aug-084','aug-088','aug-095','aug-122','aug-125','aug-133','aug-142']);
+const IDS=new Set(['aug-002','aug-003','aug-004','aug-015','aug-016','aug-062','aug-084','aug-088','aug-095','aug-122','aug-125','aug-133','aug-142']);
 const category=n=>n<=2?'LOW':n===3?'UTILITY':'WEAPON';
 const framework=run=>run.augmentFramework||={once:{},statuses:[],delayed:[],grants:{},acquired:{},temporary:[],telemetry:[],recoveryCounts:{},sequence:0};
 function cardState(run,player,id){
@@ -18,6 +18,14 @@ function runRule(run,id,trigger,ctx){
   const p=ctx.player,r=ctx.resolved;
   if(!p||!playerOwned(p,id))return false;
   const s=cardState(run,p,id),turn=run.combat?.turn||0;
+  if(id==='aug-002'&&trigger==='ON_ACQUIRE'){
+    p.maxHp+=1;p.hp=Math.min(p.maxHp,p.hp+1);
+    mark(run,id,trigger,true,{actualHeal:1});return true;
+  }
+  if(id==='aug-003'){
+    if(trigger==='CARD_VALIDATED'&&r){s.streak=r.valid?(s.streak||0)+1:0;return false;}
+    if(trigger==='BEFORE_DAMAGE'&&r?.valid&&s.streak>=3&&ctx.damage){ctx.damage.amount+=1;mark(run,id,trigger,true,{bonusDamage:1});return true;}
+  }
   if(id==='aug-004'){
     if(trigger==='POST_COLLISION'&&r?.invalidReason==='COLLISION'&&!s.collided){s.collided=true;mark(run,id,trigger,true);return true;}
     if(trigger==='CARD_VALIDATED'&&r?.valid&&s.collided&&!s.used){
@@ -91,13 +99,14 @@ function runRule(run,id,trigger,ctx){
   return false;
 }
 const TRIGGERS=Object.freeze({
+  ON_ACQUIRE:['aug-002'],
   POST_COLLISION:['aug-004'],
-  CARD_VALIDATED:['aug-004','aug-015','aug-016','aug-084','aug-088','aug-125'],
+  CARD_VALIDATED:['aug-003','aug-004','aug-015','aug-016','aug-084','aug-088','aug-125'],
   TURN_START:['aug-095'],
-  BEFORE_DAMAGE:['aug-015','aug-016','aug-062','aug-084','aug-088','aug-095','aug-122','aug-125','aug-133','aug-142']
+  BEFORE_DAMAGE:['aug-003','aug-015','aug-016','aug-062','aug-084','aug-088','aug-095','aug-122','aug-125','aug-133','aug-142']
 });
 export function applyContent005B(run,trigger,ctx={}){
-  if(run.phase!=='COMBAT'||ctx.followUp)return [];
+  if((run.phase!=='COMBAT'&&trigger!=='ON_ACQUIRE')||ctx.followUp)return [];
   const candidates=TRIGGERS[trigger]||[],p=ctx.player;
   if(!p)return [];
   const owned=new Set(p.augments||[]);
