@@ -41,6 +41,30 @@ TRIGGER_TIMING, CONSUMPTION_TIMING, ROOM_APPLICABILITY, ONCE_SCOPE, RESET_SCOPE,
 | DEC-005R-18 | CLASS_SPEC_GAPS | 18 | 20 | 16 |
 | DEC-005R-19 | CLASS_SPEC_GAPS | 11 | 12 | 7 |
 
+## 원본 묶음의 직업·단계·런타임 연결
+
+| 묶음 | 직업 | 아키타입 | 단계 | 고위험 카드 | 기능 |
+|---|---|---|---|---|---|
+| DEC-005R-01 | warrior, gunner, martial_artist | 압살 기사, 정밀 사수, 방어 분쇄, 일격필살 | 2, 3 | 없음 | MODIFY_INCOMING_DAMAGE, DELAY_EFFECT |
+| DEC-005R-02 | warrior, gunner | 수호벽, 정밀 사수 | 4, 2 | 없음 | ADD_DAMAGE, MODIFY_INCOMING_DAMAGE, DELAY_EFFECT |
+| DEC-005R-03 | mage, berserker, gambler | 백마도사, 역산술, 피의 광전, 불사 투사, 최후의 격노, 올인 | 2, 3, 4 | 없음 | HEAL |
+| DEC-005R-04 | prophet | 완전한 계시, 운명 조작자 | 2, 4, 3 | 없음 | RECOVER_CARD |
+| DEC-005R-05 | adventurer, gambler, twins | 기적의 탐험가, 운명의 승부사, 공중 곡예 | 4, 1 | aug-030, aug-211, aug-390 | GRANT_RELIC_OPPORTUNITY, ADD_DAMAGE, GAIN_RESOURCE, SPEND_RESOURCE, RECOVER_CARD, MODIFY_PARITY |
+| DEC-005R-06 | imp, vampire | 장난의 연쇄, 완전한 권속 | 1 | aug-201, aug-301 | ADD_DAMAGE, APPLY_STATUS, DELAY_EFFECT, DAMAGE_ALLY, GAIN_RESOURCE, SPEND_RESOURCE |
+| DEC-005R-07 | adventurer | 노련한 탐험가, 만능 장비꾼, 기적의 탐험가 | 1, 2, 4, 3 | 없음 | ADD_DAMAGE, MODIFY_EXP |
+| DEC-005R-08 | warrior | 불굴의 기사, 수호벽, 압살 기사 | 1, 2, 3, 4 | 없음 | MODIFY_INCOMING_DAMAGE, APPLY_STATUS, DELAY_EFFECT, GAIN_RESOURCE, SPEND_RESOURCE, RECOVER_CARD, ADD_DAMAGE, REMOVE_STATUS, ADD_STACK |
+| DEC-005R-09 | rogue | 비열한 일격, 독 묻은 칼날, 그림자 도약 | 2, 3, 4 | 없음 | ADD_DAMAGE, RECOVER_CARD, APPLY_STATUS, ADD_STACK, MODIFY_STREAK_RESET |
+| DEC-005R-10 | mage | 대마도 증폭, 백마도사, 역산술 | 3, 2, 4 | 없음 | ADD_DAMAGE, SPEND_RESOURCE, HEAL, GAIN_RESOURCE, REMOVE_STATUS, MODIFY_INCOMING_DAMAGE, DELAY_EFFECT, ADD_STACK |
+| DEC-005R-11 | berserker | 피의 광전, 불사 투사, 최후의 격노 | 3, 4, 2 | 없음 | ADD_DAMAGE, ADD_STACK, GAIN_RESOURCE, HEAL |
+| DEC-005R-12 | prophet | 완전한 계시, 운명 조작자, 불길한 예언 | 3, 4, 2 | 없음 | ADD_DAMAGE, RECOVER_CARD, ADD_STACK, GAIN_RESOURCE, MODIFY_RESOURCE_CAP, REVEAL_PRIVATE_INFO, DELAY_EFFECT |
+| DEC-005R-13 | imp | 대담한 슬쩍, 소매치기 악동, 장난의 연쇄 | 2, 3, 4 | 없음 | ADD_DAMAGE, DELAY_EFFECT, ADD_STACK, MODIFY_NUMBER, MODIFY_RESOURCE_CAP, SPEND_RESOURCE, MODIFY_INCOMING_DAMAGE, APPLY_STATUS |
+| DEC-005R-14 | gambler | 운명의 승부사, 카드 카운터, 올인 | 2, 3, 4 | 없음 | ADD_DAMAGE, GAIN_RESOURCE, MODIFY_NUMBER, DRAW_CARD, MODIFY_DECK, SPEND_RESOURCE |
+| DEC-005R-15 | gunner | 전탄 난사, 정밀 사수, 과열 기관 | 2, 3, 4 | 없음 | ADD_DAMAGE, MODIFY_FULL_BURST, OVERRIDE_BASE_RULE, ADD_STACK, SET_RESOURCE |
+| DEC-005R-16 | martial_artist | 무한 연격, 방어 분쇄, 일격필살 | 1, 2, 3, 4 | 없음 | ADD_DAMAGE, OVERRIDE_BASE_RULE, ADD_STACK, SPEND_RESOURCE, APPLY_STATUS, GAIN_RESOURCE, MODIFY_RESOURCE_CAP |
+| DEC-005R-17 | vampire | 완전한 권속, 피의 맹약, 수혈 | 2, 4, 3 | 없음 | SPEND_RESOURCE, ADD_DAMAGE, ADD_STACK, MODIFY_RESOURCE_CAP, DELAY_EFFECT, HEAL, MODIFY_RESOURCE_COST, MODIFY_INCOMING_DAMAGE |
+| DEC-005R-18 | demon_swordsman | 포식 귀참, 굶주린 마검, 해방된 귀검 | 2, 3, 4 | 없음 | MODIFY_DEVOUR, ADD_DAMAGE, GAIN_RESOURCE, MODIFY_DECK, OVERRIDE_BASE_RULE |
+| DEC-005R-19 | twins | 완벽한 교대, 태양과 달, 공중 곡예 | 1, 2, 3, 4 | 없음 | ADD_DAMAGE, OVERRIDE_BASE_RULE, APPLY_STATUS, MODIFY_PARITY, ADD_STACK, GAIN_RESOURCE |
+
 ## 사용자 질문
 
 어떤 옵션도 추천하지 않는다. 보류·개정 옵션은 현재 계약을 완료시키지 않는다.
