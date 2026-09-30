@@ -2,6 +2,7 @@ import {choose} from './rng.js';
 import {AUGMENT_BY_ID,augmentCandidates} from './augment-catalog.js';
 import {advanceCompletedFloor} from './floor-transition.js';
 import {acquireAugmentOnce} from './augment-framework.js';
+import {applyContent005B} from './content-005b-runtime.js';
 
 export const AUGMENT_THRESHOLDS=[50,150,350,750];
 
@@ -60,7 +61,8 @@ function applyChoice(run,playerId,augmentId){
   }
   if(player.augments.includes(augmentId))throw new Error('이미 획득한 증강입니다.');
   player.augments.push(augmentId);
-  acquireAugmentOnce(run,player,augmentId,{actionId:`augment-choice:${run.id}:${run.version}:${playerId}:${augmentId}`});
+  const acquisition=acquireAugmentOnce(run,player,augmentId,{actionId:`augment-choice:${run.id}:${run.version}:${playerId}:${augmentId}`});
+  if(acquisition.applied)applyContent005B(run,'ON_ACQUIRE',{player});
   completedTiers(player).push(tier);
   tiers.shift();
   refreshOffer(run,playerId);
