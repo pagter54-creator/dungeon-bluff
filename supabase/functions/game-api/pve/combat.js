@@ -307,8 +307,8 @@ export function resolveBasicTurn(run){
     if(run.phase==='RUN_FAILED'){
       // RULE-01: Flame 0 + boss kill + full-party DOWNED resolves as RUN_FAILED before any boss-clear revival.
       c.phase='COMBAT_END';phaseTrace.push(c.phase);
-      for(const p of run.players)onCombatEndCharacter(p,run);
-    cleanupAugmentScope(run,'COMBAT');resolveDelayed(run,Number.MAX_SAFE_INTEGER);
+      for(const p of run.players){applyOwnedEffects(run,'COMBAT_END',{player:p,roomTypeOverride:'COMBAT'});applyOwnedEffects(run,'ROOM_END',{player:p,roomTypeOverride:'COMBAT'});applyOwnedEffects(run,'RUN_END',{player:p,roomTypeOverride:'COMBAT'});onCombatEndCharacter(p,run);}
+      cleanupAugmentScope(run,'COMBAT');cleanupAugmentScope(run,'ROOM');cleanupAugmentScope(run,'RUN');resolveDelayed(run,Number.MAX_SAFE_INTEGER);
       c.publicTurnResult=buildTurnResult();
       recordCombatTurnTelemetry(run,c.publicTurnResult);finalizeCombatTelemetry(run,'RUN_FAILED');
       return c.publicTurnResult;
@@ -326,9 +326,9 @@ export function resolveBasicTurn(run){
     for(const p of run.players)if(rewardEligible.has(p.playerId))grantRunGold(p,completionGold);
     for(const p of run.players)applyOwnedEffects(run,'MONSTER_KILLED',{player:p,events});
     if(c.roomType==='BOSS')for(const p of run.players)applyOwnedEffects(run,'BOSS_CLEAR',{player:p,events});
-    for(const p of run.players)applyOwnedEffects(run,'COMBAT_END',{player:p,events});
+    for(const p of run.players){applyOwnedEffects(run,'COMBAT_END',{player:p,events});applyOwnedEffects(run,'ROOM_END',{player:p,events});if(c.roomType==='BOSS')applyOwnedEffects(run,'FLOOR_END',{player:p,events});if(c.roomType==='BOSS'&&run.floor===3)applyOwnedEffects(run,'RUN_END',{player:p,events});}
     for(const p of run.players)onCombatEndCharacter(p,run);
-    cleanupAugmentScope(run,'COMBAT');resolveDelayed(run,Number.MAX_SAFE_INTEGER);
+    cleanupAugmentScope(run,'COMBAT');cleanupAugmentScope(run,'ROOM');resolveDelayed(run,Number.MAX_SAFE_INTEGER);
     if(c.roomType==='BOSS'){
       run.phase='FLOOR_CLEAR';
       run.floorClear={floor:run.floor,bossId:c.monster.id,bossName:c.monster.name};
@@ -352,8 +352,8 @@ export function resolveBasicTurn(run){
   spendResolvedCards(run,cards,events);c.turnSubmissions={};
   if(run.phase==='RUN_FAILED'){
     c.phase='COMBAT_END';phaseTrace.push(c.phase);
-    for(const p of run.players)onCombatEndCharacter(p,run);
-    cleanupAugmentScope(run,'COMBAT');resolveDelayed(run,Number.MAX_SAFE_INTEGER);
+    for(const p of run.players){applyOwnedEffects(run,'COMBAT_END',{player:p,roomTypeOverride:'COMBAT'});applyOwnedEffects(run,'ROOM_END',{player:p,roomTypeOverride:'COMBAT'});applyOwnedEffects(run,'RUN_END',{player:p,roomTypeOverride:'COMBAT'});onCombatEndCharacter(p,run);}
+    cleanupAugmentScope(run,'COMBAT');cleanupAugmentScope(run,'ROOM');cleanupAugmentScope(run,'RUN');resolveDelayed(run,Number.MAX_SAFE_INTEGER);
     c.publicTurnResult=buildTurnResult();
     recordCombatTurnTelemetry(run,c.publicTurnResult);finalizeCombatTelemetry(run,'RUN_FAILED');
     return c.publicTurnResult;
