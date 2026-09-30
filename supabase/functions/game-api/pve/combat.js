@@ -38,7 +38,7 @@ function resetCycleIfNeeded(run,player,events=[],meta={}){
   if(handleCycleExhaustedCharacter(player,priv,run))return true;
   const previousCycleId=priv.cycleIndex||1,remainingBefore=[...(priv.remainingCardIds||[])],spentBefore=[...(priv.spentCardIds||[])],parityBefore=player.publicResources.parity??null;
   applyOwnedEffects(run,'CYCLE_END',{player,privateState:priv,events});
-  cleanupAugmentScope(run,'CYCLE');
+  cleanupAugmentScope(run,'CYCLE',{playerId:player.playerId});
   priv.cycleIndex=previousCycleId+1;
   priv.spentCardIds=[];
   priv.remainingCardIds=player.cardPool.map(c=>c.id);
