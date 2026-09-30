@@ -1,8 +1,8 @@
 {
   "schemaVersion": "PVE_CONTENT_005R_DECISION_QUEUE_V1",
   "decisionGroups": 19,
-  "coveredAugmentIds": 207,
-  "unresolvedAtomicItems": 243,
+  "coveredAugmentIds": 191,
+  "unresolvedAtomicItems": 213,
   "entries": [
     {
       "decisionId": "DEC-005R-01",
@@ -290,10 +290,9 @@
         "aug-014",
         "aug-017",
         "aug-019",
-        "aug-020",
         "aug-022"
       ],
-      "question": "adventurer의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "question": "adventurer의 아래 카드에서 표시된 조건·발동·적용 방을 원문만으로 확정할 수 없습니다. 카드별 미해결 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
       "options": [
         "카드별 미해결 규칙을 명시",
         "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
@@ -356,13 +355,6 @@
           ]
         },
         {
-          "augmentId": "aug-020",
-          "name": "적재적소",
-          "unresolved": [
-            "AMB-AUG-aug-020-PRIMITIVE"
-          ]
-        },
-        {
           "augmentId": "aug-022",
           "name": "공동 탐사 기록",
           "unresolved": [
@@ -383,7 +375,6 @@
         "aug-040",
         "aug-044",
         "aug-045",
-        "aug-048",
         "aug-053",
         "aug-054",
         "aug-055",
@@ -392,7 +383,7 @@
         "aug-059",
         "aug-060"
       ],
-      "question": "warrior의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "question": "warrior의 아래 카드에서 표시된 조건·발동·적용 방을 원문만으로 확정할 수 없습니다. 카드별 미해결 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
       "options": [
         "카드별 미해결 규칙을 명시",
         "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
@@ -456,13 +447,6 @@
           ]
         },
         {
-          "augmentId": "aug-048",
-          "name": "철벽 진형",
-          "unresolved": [
-            "AMB-AUG-aug-048-PRIMITIVE"
-          ]
-        },
-        {
           "augmentId": "aug-053",
           "name": "무게 싣기",
           "unresolved": [
@@ -502,8 +486,7 @@
           "augmentId": "aug-059",
           "name": "성문 파쇄",
           "unresolved": [
-            "AMB-AUG-aug-059-CONDITION",
-            "AMB-AUG-aug-059-PRIMITIVE"
+            "AMB-AUG-aug-059-CONDITION"
           ]
         },
         {
@@ -529,7 +512,7 @@
         "aug-082",
         "aug-086"
       ],
-      "question": "rogue의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "question": "rogue의 아래 카드에서 표시된 조건·발동·적용 방을 원문만으로 확정할 수 없습니다. 카드별 미해결 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
       "options": [
         "카드별 미해결 규칙을 명시",
         "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
@@ -596,8 +579,7 @@
           "name": "착지 없는 발걸음",
           "unresolved": [
             "AMB-AUG-aug-086-TRIGGER",
-            "AMB-AUG-aug-086-ROOM_APPLICABILITY",
-            "AMB-AUG-aug-086-PRIMITIVE"
+            "AMB-AUG-aug-086-ROOM_APPLICABILITY"
           ]
         }
       ]
@@ -614,11 +596,10 @@
         "aug-110",
         "aug-112",
         "aug-114",
-        "aug-115",
         "aug-119",
         "aug-120"
       ],
-      "question": "mage의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "question": "mage의 아래 카드에서 표시된 조건·발동·적용 방을 원문만으로 확정할 수 없습니다. 카드별 미해결 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
       "options": [
         "카드별 미해결 규칙을 명시",
         "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
@@ -650,8 +631,7 @@
           "name": "정화 공식",
           "unresolved": [
             "AMB-AUG-aug-107-TRIGGER",
-            "AMB-AUG-aug-107-CONDITION",
-            "AMB-AUG-aug-107-PRIMITIVE"
+            "AMB-AUG-aug-107-CONDITION"
           ]
         },
         {
@@ -683,13 +663,6 @@
           ]
         },
         {
-          "augmentId": "aug-115",
-          "name": "자동 보정",
-          "unresolved": [
-            "AMB-AUG-aug-115-PRIMITIVE"
-          ]
-        },
-        {
           "augmentId": "aug-119",
           "name": "수식의 반전",
           "unresolved": [
@@ -714,7 +687,6 @@
         "aug-130",
         "aug-136",
         "aug-137",
-        "aug-138",
         "aug-140",
         "aug-143",
         "aug-145",
@@ -722,7 +694,7 @@
         "aug-148",
         "aug-149"
       ],
-      "question": "berserker의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "question": "berserker의 아래 카드에서 표시된 조건·발동·적용 방을 원문만으로 확정할 수 없습니다. 카드별 미해결 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
       "options": [
         "카드별 미해결 규칙을 명시",
         "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
@@ -761,13 +733,6 @@
           "name": "피로 갚는다",
           "unresolved": [
             "AMB-AUG-aug-137-CONDITION"
-          ]
-        },
-        {
-          "augmentId": "aug-138",
-          "name": "불사신",
-          "unresolved": [
-            "AMB-AUG-aug-138-PRIMITIVE"
           ]
         },
         {
@@ -818,14 +783,9 @@
       "decisionId": "DEC-005R-12",
       "type": "CLASS_SPEC_GAPS",
       "augmentIds": [
-        "aug-152",
-        "aug-155",
         "aug-157",
-        "aug-158",
         "aug-159",
         "aug-163",
-        "aug-165",
-        "aug-169",
         "aug-173",
         "aug-174",
         "aug-175",
@@ -833,38 +793,17 @@
         "aug-177",
         "aug-179"
       ],
-      "question": "prophet의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "question": "prophet의 아래 카드에서 표시된 조건·발동·적용 방을 원문만으로 확정할 수 없습니다. 카드별 미해결 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
       "options": [
         "카드별 미해결 규칙을 명시",
         "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
       ],
       "perCard": [
         {
-          "augmentId": "aug-152",
-          "name": "선명한 환영",
-          "unresolved": [
-            "AMB-AUG-aug-152-PRIMITIVE"
-          ]
-        },
-        {
-          "augmentId": "aug-155",
-          "name": "두 번째 계시",
-          "unresolved": [
-            "AMB-AUG-aug-155-PRIMITIVE"
-          ]
-        },
-        {
           "augmentId": "aug-157",
           "name": "운명의 반복",
           "unresolved": [
             "AMB-AUG-aug-157-CONDITION"
-          ]
-        },
-        {
-          "augmentId": "aug-158",
-          "name": "천개의 미래",
-          "unresolved": [
-            "AMB-AUG-aug-158-PRIMITIVE"
           ]
         },
         {
@@ -879,20 +818,6 @@
           "name": "나누어진 운명",
           "unresolved": [
             "AMB-AUG-aug-163-CONDITION"
-          ]
-        },
-        {
-          "augmentId": "aug-165",
-          "name": "운명의 실",
-          "unresolved": [
-            "AMB-AUG-aug-165-PRIMITIVE"
-          ]
-        },
-        {
-          "augmentId": "aug-169",
-          "name": "별들이 선택한 패",
-          "unresolved": [
-            "AMB-AUG-aug-169-PRIMITIVE"
           ]
         },
         {
@@ -920,16 +845,14 @@
           "augmentId": "aug-176",
           "name": "불길한 확신",
           "unresolved": [
-            "AMB-AUG-aug-176-CONDITION",
-            "AMB-AUG-aug-176-PRIMITIVE"
+            "AMB-AUG-aug-176-CONDITION"
           ]
         },
         {
           "augmentId": "aug-177",
           "name": "자기충족적 예언",
           "unresolved": [
-            "AMB-AUG-aug-177-TRIGGER",
-            "AMB-AUG-aug-177-PRIMITIVE"
+            "AMB-AUG-aug-177-TRIGGER"
           ]
         },
         {
@@ -946,7 +869,6 @@
       "type": "CLASS_SPEC_GAPS",
       "augmentIds": [
         "aug-182",
-        "aug-184",
         "aug-185",
         "aug-186",
         "aug-188",
@@ -956,14 +878,13 @@
         "aug-193",
         "aug-195",
         "aug-197",
-        "aug-198",
         "aug-199",
         "aug-203",
         "aug-204",
         "aug-205",
         "aug-208"
       ],
-      "question": "imp의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "question": "imp의 아래 카드에서 표시된 조건·발동·적용 방을 원문만으로 확정할 수 없습니다. 카드별 미해결 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
       "options": [
         "카드별 미해결 규칙을 명시",
         "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
@@ -974,13 +895,6 @@
           "name": "두 손 가득",
           "unresolved": [
             "AMB-AUG-aug-182-CONDITION"
-          ]
-        },
-        {
-          "augmentId": "aug-184",
-          "name": "잔돈까지",
-          "unresolved": [
-            "AMB-AUG-aug-184-PRIMITIVE"
           ]
         },
         {
@@ -1022,8 +936,7 @@
           "augmentId": "aug-192",
           "name": "비밀 주머니",
           "unresolved": [
-            "AMB-AUG-aug-192-CONDITION",
-            "AMB-AUG-aug-192-PRIMITIVE"
+            "AMB-AUG-aug-192-CONDITION"
           ]
         },
         {
@@ -1046,13 +959,6 @@
           "name": "큰손",
           "unresolved": [
             "AMB-AUG-aug-197-CONDITION"
-          ]
-        },
-        {
-          "augmentId": "aug-198",
-          "name": "끝없는 주머니",
-          "unresolved": [
-            "AMB-AUG-aug-198-PRIMITIVE"
           ]
         },
         {
@@ -1112,7 +1018,7 @@
         "aug-234",
         "aug-238"
       ],
-      "question": "gambler의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "question": "gambler의 아래 카드에서 표시된 조건·발동·적용 방을 원문만으로 확정할 수 없습니다. 카드별 미해결 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
       "options": [
         "카드별 미해결 규칙을 명시",
         "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
@@ -1238,7 +1144,7 @@
         "aug-267",
         "aug-268"
       ],
-      "question": "gunner의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "question": "gunner의 아래 카드에서 표시된 조건·발동·적용 방을 원문만으로 확정할 수 없습니다. 카드별 미해결 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
       "options": [
         "카드별 미해결 규칙을 명시",
         "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
@@ -1332,8 +1238,7 @@
           "augmentId": "aug-267",
           "name": "비상 냉각",
           "unresolved": [
-            "AMB-AUG-aug-267-TRIGGER",
-            "AMB-AUG-aug-267-PRIMITIVE"
+            "AMB-AUG-aug-267-TRIGGER"
           ]
         },
         {
@@ -1364,12 +1269,10 @@
         "aug-289",
         "aug-290",
         "aug-292",
-        "aug-293",
         "aug-294",
-        "aug-298",
-        "aug-299"
+        "aug-298"
       ],
-      "question": "martial_artist의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "question": "martial_artist의 아래 카드에서 표시된 조건·발동·적용 방을 원문만으로 확정할 수 없습니다. 카드별 미해결 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
       "options": [
         "카드별 미해결 규칙을 명시",
         "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
@@ -1386,8 +1289,7 @@
           "augmentId": "aug-272",
           "name": "끊임없는 발놀림",
           "unresolved": [
-            "AMB-AUG-aug-272-CONDITION",
-            "AMB-AUG-aug-272-PRIMITIVE"
+            "AMB-AUG-aug-272-CONDITION"
           ]
         },
         {
@@ -1423,8 +1325,7 @@
           "augmentId": "aug-280",
           "name": "멈추지 않는 권격",
           "unresolved": [
-            "AMB-AUG-aug-280-TRIGGER",
-            "AMB-AUG-aug-280-PRIMITIVE"
+            "AMB-AUG-aug-280-TRIGGER"
           ]
         },
         {
@@ -1482,15 +1383,7 @@
           "name": "기 모으기",
           "unresolved": [
             "AMB-AUG-aug-292-TRIGGER",
-            "AMB-AUG-aug-292-CONDITION",
-            "AMB-AUG-aug-292-PRIMITIVE"
-          ]
-        },
-        {
-          "augmentId": "aug-293",
-          "name": "호흡 가다듬기",
-          "unresolved": [
-            "AMB-AUG-aug-293-PRIMITIVE"
+            "AMB-AUG-aug-292-CONDITION"
           ]
         },
         {
@@ -1507,13 +1400,6 @@
             "AMB-AUG-aug-298-TRIGGER",
             "AMB-AUG-aug-298-CONDITION"
           ]
-        },
-        {
-          "augmentId": "aug-299",
-          "name": "무념무상",
-          "unresolved": [
-            "AMB-AUG-aug-299-PRIMITIVE"
-          ]
         }
       ]
     },
@@ -1522,15 +1408,12 @@
       "type": "CLASS_SPEC_GAPS",
       "augmentIds": [
         "aug-302",
-        "aug-303",
         "aug-304",
         "aug-308",
         "aug-309",
         "aug-310",
-        "aug-312",
         "aug-313",
         "aug-317",
-        "aug-318",
         "aug-319",
         "aug-322",
         "aug-324",
@@ -1540,7 +1423,7 @@
         "aug-328",
         "aug-329"
       ],
-      "question": "vampire의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "question": "vampire의 아래 카드에서 표시된 조건·발동·적용 방을 원문만으로 확정할 수 없습니다. 카드별 미해결 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
       "options": [
         "카드별 미해결 규칙을 명시",
         "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
@@ -1552,13 +1435,6 @@
           "unresolved": [
             "AMB-AUG-aug-302-TRIGGER",
             "AMB-AUG-aug-302-CONDITION"
-          ]
-        },
-        {
-          "augmentId": "aug-303",
-          "name": "피의 명령권",
-          "unresolved": [
-            "AMB-AUG-aug-303-PRIMITIVE"
           ]
         },
         {
@@ -1590,13 +1466,6 @@
           ]
         },
         {
-          "augmentId": "aug-312",
-          "name": "붉은 유대",
-          "unresolved": [
-            "AMB-AUG-aug-312-PRIMITIVE"
-          ]
-        },
-        {
           "augmentId": "aug-313",
           "name": "서로 다른 피",
           "unresolved": [
@@ -1608,13 +1477,6 @@
           "name": "맹약의 연쇄",
           "unresolved": [
             "AMB-AUG-aug-317-CONDITION"
-          ]
-        },
-        {
-          "augmentId": "aug-318",
-          "name": "영원한 맹약",
-          "unresolved": [
-            "AMB-AUG-aug-318-PRIMITIVE"
           ]
         },
         {
@@ -1636,8 +1498,7 @@
           "name": "혈액 보존병",
           "unresolved": [
             "AMB-AUG-aug-324-TRIGGER",
-            "AMB-AUG-aug-324-CONDITION",
-            "AMB-AUG-aug-324-PRIMITIVE"
+            "AMB-AUG-aug-324-CONDITION"
           ]
         },
         {
@@ -1667,8 +1528,7 @@
           "name": "혈액은행",
           "unresolved": [
             "AMB-AUG-aug-328-TRIGGER",
-            "AMB-AUG-aug-328-CONDITION",
-            "AMB-AUG-aug-328-PRIMITIVE"
+            "AMB-AUG-aug-328-CONDITION"
           ]
         },
         {
@@ -1703,7 +1563,7 @@
         "aug-357",
         "aug-359"
       ],
-      "question": "demon_swordsman의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "question": "demon_swordsman의 아래 카드에서 표시된 조건·발동·적용 방을 원문만으로 확정할 수 없습니다. 카드별 미해결 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
       "options": [
         "카드별 미해결 규칙을 명시",
         "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
@@ -1855,7 +1715,7 @@
         "aug-385",
         "aug-387"
       ],
-      "question": "twins의 아래 카드에서 표시된 조건·발동·적용 방 또는 기능을 원문만으로 확정할 수 없습니다. 카드별 미해결 필드의 정확한 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
+      "question": "twins의 아래 카드에서 표시된 조건·발동·적용 방을 원문만으로 확정할 수 없습니다. 카드별 미해결 규칙을 제공할까요, 아니면 해당 카드 실행을 배치 결정 전까지 보류할까요?",
       "options": [
         "카드별 미해결 규칙을 명시",
         "해당 카드 실행을 보류하고 원문/ID 연결만 유지"
@@ -1865,8 +1725,7 @@
           "augmentId": "aug-361",
           "name": "완벽한 교대",
           "unresolved": [
-            "AMB-AUG-aug-361-CONDITION",
-            "AMB-AUG-aug-361-PRIMITIVE"
+            "AMB-AUG-aug-361-CONDITION"
           ]
         },
         {
@@ -1880,8 +1739,7 @@
           "augmentId": "aug-363",
           "name": "안전망",
           "unresolved": [
-            "AMB-AUG-aug-363-CONDITION",
-            "AMB-AUG-aug-363-PRIMITIVE"
+            "AMB-AUG-aug-363-CONDITION"
           ]
         },
         {
