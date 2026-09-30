@@ -5,7 +5,7 @@
   "originalAtomicDecisionCount": 213,
   "originalAffectedCardCount": 191,
   "autoResolvedCount": 38,
-  "remainingAtomicDecisionCount": 175,
+  "remainingAtomicDecisionCount": 169,
   "questionCount": 23,
   "decisionCategories": [
     "TRIGGER_TIMING",
@@ -26,7 +26,7 @@
     "CLASS_SPECIAL_OVERRIDE"
   ],
   "readyForUserAugmentDecisions": false,
-  "readyReason": "다수 BETA 행이 '조건 달성 시'라고만 쓰여 있어 A/B/C 전역 선택만으로 실제 발동 조건을 확정할 수 없다. Q10~Q22는 카드별 명세 작성 경로 결정이며 선택 후에도 세부 설계가 필요하다.",
+  "readyReason": "Q01~Q04는 원본 효과 방향만 확정되어 BETA v0.2 카드별 수치·조건이 미정이며, Q11~Q23도 카드별 규칙이 필요하다.",
   "entries": [
     {
       "decisionId": "Q01",
@@ -80,14 +80,16 @@
       "risk": "MEDIUM",
       "highRiskCards": [],
       "specsResolvedIfChosen": 0,
-      "resolvedBy": null,
-      "selectedOption": null,
+      "resolvedBy": "USER_DECISION_2026_10_01",
+      "selectedOption": "A",
       "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
       "affectedCardsByBatch": {
         "005B": 1,
         "005C": 1,
         "005D": 2
-      }
+      },
+      "selectionDetails": "원본의 적 방어 관통/약화 의미 유지. 충돌하는 BETA 자기 피해 감소 수치는 대체 효과로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+      "selectionScope": "DIRECTION_ONLY_PENDING_BETA_V0_2"
     },
     {
       "decisionId": "Q02",
@@ -134,13 +136,15 @@
       "risk": "MEDIUM",
       "highRiskCards": [],
       "specsResolvedIfChosen": 0,
-      "resolvedBy": null,
-      "selectedOption": null,
+      "resolvedBy": "USER_DECISION_2026_10_01",
+      "selectedOption": "A",
       "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
       "affectedCardsByBatch": {
         "005B": 1,
         "005C": 1
-      }
+      },
+      "selectionDetails": "원본의 보호 표식·정밀 조준 손실 완화 의미 유지. 충돌하는 BETA 수치는 대체 효과로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+      "selectionScope": "DIRECTION_ONLY_PENDING_BETA_V0_2"
     },
     {
       "decisionId": "Q03",
@@ -206,13 +210,15 @@
       "risk": "MEDIUM",
       "highRiskCards": [],
       "specsResolvedIfChosen": 0,
-      "resolvedBy": null,
-      "selectedOption": null,
+      "resolvedBy": "USER_DECISION_2026_10_01",
+      "selectedOption": "A",
       "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
       "affectedCardsByBatch": {
         "005B": 6,
         "005C": 1
-      }
+      },
+      "selectionDetails": "원본의 회복 연계 효과 의미 유지. 충돌하는 BETA HP 1 회복은 효과 대체안으로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+      "selectionScope": "DIRECTION_ONLY_PENDING_BETA_V0_2"
     },
     {
       "decisionId": "Q04",
@@ -272,12 +278,14 @@
       "risk": "MEDIUM",
       "highRiskCards": [],
       "specsResolvedIfChosen": 0,
-      "resolvedBy": null,
-      "selectedOption": null,
+      "resolvedBy": "USER_DECISION_2026_10_01",
+      "selectedOption": "A",
       "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
       "affectedCardsByBatch": {
         "005C": 6
-      }
+      },
+      "selectionDetails": "원본의 복구 후보 조정·강화·버프 의미 유지. 충돌하는 BETA 카드 복구 수치는 효과 대체안으로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+      "selectionScope": "DIRECTION_ONLY_PENDING_BETA_V0_2"
     },
     {
       "decisionId": "Q05",
@@ -322,12 +330,14 @@
         "aug-030"
       ],
       "specsResolvedIfChosen": 0,
-      "resolvedBy": null,
-      "selectedOption": null,
+      "resolvedBy": "USER_DECISION_2026_10_01",
+      "selectedOption": "A",
       "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
       "affectedCardsByBatch": {
         "005B": 1
-      }
+      },
+      "selectionDetails": "동일 relic 중복 지급 금지.",
+      "selectionScope": "OPERATIONAL_POLICY"
     },
     {
       "decisionId": "Q06",
@@ -371,13 +381,15 @@
       "highRiskCards": [
         "aug-030"
       ],
-      "specsResolvedIfChosen": 0,
-      "resolvedBy": null,
-      "selectedOption": null,
+      "specsResolvedIfChosen": 1,
+      "resolvedBy": "USER_DECISION_2026_10_01",
+      "selectedOption": "A",
       "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
       "affectedCardsByBatch": {
         "005B": 1
-      }
+      },
+      "selectionDetails": "relic inventory limit에 걸리면 지급 실패. 교체·이월 없음.",
+      "selectionScope": "OPERATIONAL_POLICY"
     },
     {
       "decisionId": "Q07",
@@ -421,13 +433,15 @@
       "highRiskCards": [
         "aug-211"
       ],
-      "specsResolvedIfChosen": 0,
-      "resolvedBy": null,
-      "selectedOption": null,
+      "specsResolvedIfChosen": 1,
+      "resolvedBy": "USER_DECISION_2026_10_01",
+      "selectedOption": "B",
       "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
       "affectedCardsByBatch": {
         "005C": 1
-      }
+      },
+      "selectionDetails": "reward presentation 후 final confirmation 전에 Luck 사용.",
+      "selectionScope": "OPERATIONAL_POLICY"
     },
     {
       "decisionId": "Q08",
@@ -471,13 +485,15 @@
       "highRiskCards": [
         "aug-390"
       ],
-      "specsResolvedIfChosen": 0,
-      "resolvedBy": null,
-      "selectedOption": null,
+      "specsResolvedIfChosen": 1,
+      "resolvedBy": "USER_DECISION_2026_10_01",
+      "selectedOption": "B",
       "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
       "affectedCardsByBatch": {
         "005D": 1
-      }
+      },
+      "selectionDetails": "가장 최근에 SPENT가 된 recoverable physical card를 deterministic하게 복구.",
+      "selectionScope": "OPERATIONAL_POLICY"
     },
     {
       "decisionId": "Q09",
@@ -521,13 +537,15 @@
       "highRiskCards": [
         "aug-201"
       ],
-      "specsResolvedIfChosen": 0,
-      "resolvedBy": null,
-      "selectedOption": null,
+      "specsResolvedIfChosen": 1,
+      "resolvedBy": "USER_DECISION_2026_10_01",
+      "selectedOption": "B",
       "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
       "affectedCardsByBatch": {
         "005C": 1
-      }
+      },
+      "selectionDetails": "same-resolve defense/heal/protection 적용 후 DOWN_RESOLVE.",
+      "selectionScope": "OPERATIONAL_POLICY"
     },
     {
       "decisionId": "Q10",
@@ -571,13 +589,15 @@
       "highRiskCards": [
         "aug-301"
       ],
-      "specsResolvedIfChosen": 0,
-      "resolvedBy": null,
-      "selectedOption": null,
+      "specsResolvedIfChosen": 1,
+      "resolvedBy": "USER_DECISION_2026_10_01",
+      "selectedOption": "A",
       "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
       "affectedCardsByBatch": {
         "005D": 1
-      }
+      },
+      "selectionDetails": "기존 Dominance 소비 후 이번 resolution에서 신규 Dominance 획득.",
+      "selectionScope": "OPERATIONAL_POLICY"
     },
     {
       "decisionId": "Q11",
@@ -1761,11 +1781,8 @@
       },
       {
         "augmentId": "aug-030",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q05",
-          "Q06"
-        ]
+        "state": "READY_AFTER_USER_DECISION",
+        "blockers": []
       },
       {
         "augmentId": "aug-031",
@@ -2757,10 +2774,8 @@
       },
       {
         "augmentId": "aug-201",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q09"
-        ]
+        "state": "READY_AFTER_USER_DECISION",
+        "blockers": []
       },
       {
         "augmentId": "aug-202",
@@ -2817,10 +2832,8 @@
       },
       {
         "augmentId": "aug-211",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q07"
-        ]
+        "state": "READY_AFTER_USER_DECISION",
+        "blockers": []
       },
       {
         "augmentId": "aug-212",
@@ -3353,10 +3366,8 @@
       },
       {
         "augmentId": "aug-301",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q10"
-        ]
+        "state": "READY_AFTER_USER_DECISION",
+        "blockers": []
       },
       {
         "augmentId": "aug-302",
@@ -3870,10 +3881,8 @@
       },
       {
         "augmentId": "aug-390",
-        "state": "BLOCKED_BY_Q",
-        "blockers": [
-          "Q08"
-        ]
+        "state": "READY_AFTER_USER_DECISION",
+        "blockers": []
       }
     ]
   },
@@ -4644,5 +4653,33 @@
         "GAIN_RESOURCE"
       ]
     }
-  ]
+  ],
+  "userSelectionsApplied": 10,
+  "directionOnlyQuestions": [
+    "Q01",
+    "Q02",
+    "Q03",
+    "Q04"
+  ],
+  "operationalPolicyQuestions": [
+    "Q05",
+    "Q06",
+    "Q07",
+    "Q08",
+    "Q09",
+    "Q10"
+  ],
+  "statusAfterUserSelections": {
+    "SPEC_COMPLETE": 27,
+    "SPEC_PARTIAL": 195,
+    "SPEC_AMBIGUOUS": 168
+  },
+  "statusAfterAutoAndUserSelections": {
+    "SPEC_COMPLETE": 27,
+    "SPEC_PARTIAL": 207,
+    "SPEC_AMBIGUOUS": 156
+  },
+  "userResolvedAtomicDecisionCount": 6,
+  "userDirectionOnlyAtomicDecisionCount": 22,
+  "unselectedQuestionCount": 13
 }
