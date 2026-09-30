@@ -4,6 +4,7 @@ import {F3_MONSTER_DEFINITIONS} from './content-f3.js';
 import {generateFloorMap} from './map.js';
 import {persistCardCycles,restoreCardCycle} from './card-cycle.js';
 import {clearCombatResourcesForPlayers} from './resources.js';
+import {cleanupAugmentScope} from './augment-framework.js';
 
 export function advanceCompletedFloor(run){
   if(![1,2].includes(run.floor)||run.phase!=='FLOOR_CLEAR')return false;
@@ -12,6 +13,7 @@ export function advanceCompletedFloor(run){
     const monster=run.combat.monster;
     run.floorTransitionResult={publicTurnResult:structuredClone(run.combat.publicTurnResult),monster:{id:monster.id,name:monster.name,hp:monster.hp,maxHp:monster.maxHp}};
   }
+  cleanupAugmentScope(run,'FLOOR');
   clearCombatResourcesForPlayers(run.players);
   persistCardCycles(run,Object.fromEntries(run.players.map(player=>[player.playerId,restoreCardCycle(run,player)])));
   delete run.combat;delete run.roomState;delete run.roomResult;delete run.roomPresentationBaseline;
@@ -32,5 +34,6 @@ export function finalizeExpeditionClear(run){
   run.floorClear={floor:3,bossId:monster.id,bossName:monster.name,completed:true};
   clearCombatResourcesForPlayers(run.players);
   delete run.combat;delete run.roomState;delete run.roomResult;delete run.roomPresentationBaseline;delete run.floorTransitionResult;
+  cleanupAugmentScope(run,'RUN');
   run.phase='RUN_CLEAR';return true;
 }
