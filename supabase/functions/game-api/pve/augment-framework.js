@@ -183,6 +183,22 @@ function grant(run,player,op,envelope){
   s.grants[id]={rootActionId:envelope.rootActionId,sourceAugmentId:op.sourceAugmentId||null};
   return {applied:true,resourceDelta:op.type==='GRANT_RELIC'?0:amount};
 }
+export function grantAugmentExp(run,player,amount,sourceAugmentId,applicationId){
+  const envelope=makeAugmentEnvelope(run,player,'ON_VALID',{sourceId:sourceAugmentId,rootActionId:applicationId});
+  return grant(run,player,{type:'ADD_EXP',amount,sourceAugmentId,applicationId},envelope);
+}
+export function consumeDirectDamageReduction(run,player,damage){
+  const s=state(run),items=s.statuses.filter(item=>item.targetId===player.playerId&&item.statusId.startsWith('NEXT_DIRECT_DAMAGE_REDUCTION:'))
+    .sort((a,b)=>(a.appliedAt||0)-(b.appliedAt||0)||String(a.sourceId).localeCompare(String(b.sourceId)));
+  let prevented=0;
+  for(const item of items){
+    const before=Math.max(0,Number(damage.amount)||0);
+    damage.amount=Math.max(0,before-Math.max(0,Number(item.payload?.amount)||0));
+    prevented+=before-damage.amount;
+    consumeAugmentStatus(run,item);
+  }
+  return prevented;
+}
 function operate(run,player,op,ctx,envelope){
   if(['APPLY_STATUS','ADD_STACK','SET_STACK','CONSUME_STACK','REMOVE_STATUS'].includes(op.type))return {applied:true,...applyStatus(run,player,op)};
   if(op.type==='RECOVER_CARD'){const result=recoverPhysicalCard(run,player,op.cardInstanceId,ctx);if(result.applied)dispatchAugmentTrigger(run,'ON_RECOVER_CARD',{player,privateState:ctx.privateState,rootActionId:result.rootActionId,parentEventId:result.parentEventId,recoveryChainId:result.recoveryChainId,chainDepth:result.chainDepth});return result;}
@@ -252,6 +268,7 @@ export function cleanupAugmentScope(run,scope,{playerId=null}={}){
   s.statuses=s.statuses.filter(x=>!matches(x));
   s.delayed=s.delayed.filter(x=>!matches(x));
   s.temporary=s.temporary.filter(x=>!matches(x));
+  for(const [key,value] of Object.entries(s.cardState||{}))if(value.resetScope===scope&&(!playerId||value.ownerId===playerId))delete s.cardState[key];
   const onceScope='ONCE_PER_'+scope;
   for(const [key,value] of Object.entries(s.once))if(value.scope===onceScope&&(!playerId||value.playerId===playerId))delete s.once[key];
 }
