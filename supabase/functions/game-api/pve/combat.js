@@ -14,7 +14,7 @@ import {resolveF3AfterDamage} from './monster-behavior-f3.js';
 import {applyMonsterDamage} from './monster.js';
 import {beginAugmentChoices} from './augments.js';
 import {applyOwnedEffects} from './effects.js';
-import {cleanupAugmentScope,resolveDelayed} from './augment-framework.js';
+import {cleanupAugmentScope,resolveDelayed,clearAugmentStatusesForOwner} from './augment-framework.js';
 import {initCombatTelemetry,recordCombatTurnTelemetry,finalizeCombatTelemetry} from './telemetry.js';
 import {
   initializeNumberHistories,recordSelfModification,applyPreCollisionSwap,applyPreCollisionSteal,
@@ -77,6 +77,7 @@ function resolveDowns(run){
   for(const p of run.players)if(p.hp<=0)pending.add(p.playerId);
   const newlyDown=run.players.filter(p=>p.status!=='DOWNED'&&p.hp<=0&&pending.has(p.playerId)).sort((a,b)=>a.seat-b.seat);
   for(const p of newlyDown){
+    clearAugmentStatusesForOwner(run,'GUARDIAN_EXTRA_REDIRECT',p.playerId);
     if(run.flame>0){
       run.flame-=1;p.hp=1;p.status='STUNNED_NEXT_TURN';
       events.push({type:'PLAYER_DOWNED',playerId:p.playerId,rescued:true,flame:run.flame,hp:1});applyOwnedEffects(run,'PLAYER_DOWNED',{player:p,events});
