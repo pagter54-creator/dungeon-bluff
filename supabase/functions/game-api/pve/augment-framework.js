@@ -73,8 +73,8 @@ export function clearAugmentStatusesForOwner(run,statusId,ownerId){
   s.statuses=s.statuses.filter(item=>item.statusId!==statusId||item.ownerId!==ownerId);
   return before-s.statuses.length;
 }
-export function findAugmentStatus(run,statusId,targetId){
-  return state(run).statuses.find(item=>item.statusId===statusId&&item.targetId===targetId)||null;
+export function findAugmentStatus(run,statusId,targetId,{ownerId=null,ready=null}={}){
+  return state(run).statuses.find(item=>item.statusId===statusId&&item.targetId===targetId&&(ownerId==null||item.ownerId===ownerId)&&(ready==null||item.payload?.ready===ready))||null;
 }
 export function consumeAugmentStatus(run,item){
   const s=state(run),index=s.statuses.indexOf(item);
