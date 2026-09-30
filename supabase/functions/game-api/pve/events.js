@@ -81,7 +81,7 @@ export function resolveEventTurn(run){
   });
   const mutationEvents=[],effects=[];
   initializeNumberHistories(cards);
-  for(const card of cards){const player=playerFor(run,card.playerId);selfModifyCard(player,card,room.turnSubmissions[card.playerId]);applyOwnedEffects(run,'PRE_COLLISION_SELF_MODIFY',{player,resolved:card,privateState:room.privateByPlayer[card.playerId]});}
+  for(const card of cards){const player=playerFor(run,card.playerId),submission=room.turnSubmissions[card.playerId];if(submission.skillIntent)applyOwnedEffects(run,'ON_SKILL_USE',{player,resolved:card,submission,privateState:room.privateByPlayer[card.playerId]});selfModifyCard(player,card,submission);applyOwnedEffects(run,'PRE_COLLISION_SELF_MODIFY',{player,resolved:card,privateState:room.privateByPlayer[card.playerId]});}
   recordSelfModification(cards,mutationEvents);
   for(const card of cards)applyOwnedEffects(run,'PRE_COLLISION',{player:playerFor(run,card.playerId),resolved:card,privateState:room.privateByPlayer[card.playerId]});
   applyPreCollisionSwap(run,cards,mutationEvents,room);
