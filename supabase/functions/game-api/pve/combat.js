@@ -328,6 +328,7 @@ export function resolveBasicTurn(run){
     if(c.roomType==='BOSS')for(const p of run.players)applyOwnedEffects(run,'BOSS_CLEAR',{player:p,events});
     for(const p of run.players)applyOwnedEffects(run,'COMBAT_END',{player:p,events});
     for(const p of run.players)onCombatEndCharacter(p,run);
+    cleanupAugmentScope(run,'COMBAT');resolveDelayed(run,Number.MAX_SAFE_INTEGER);
     if(c.roomType==='BOSS'){
       run.phase='FLOOR_CLEAR';
       run.floorClear={floor:run.floor,bossId:c.monster.id,bossName:c.monster.name};
@@ -352,6 +353,7 @@ export function resolveBasicTurn(run){
   if(run.phase==='RUN_FAILED'){
     c.phase='COMBAT_END';phaseTrace.push(c.phase);
     for(const p of run.players)onCombatEndCharacter(p,run);
+    cleanupAugmentScope(run,'COMBAT');resolveDelayed(run,Number.MAX_SAFE_INTEGER);
     c.publicTurnResult=buildTurnResult();
     recordCombatTurnTelemetry(run,c.publicTurnResult);finalizeCombatTelemetry(run,'RUN_FAILED');
     return c.publicTurnResult;
