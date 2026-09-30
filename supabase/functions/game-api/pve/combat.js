@@ -196,7 +196,7 @@ export function resolveBasicTurn(run){
   const mutationEvents=[],events=[...(c.pendingSkillEvents||[])];c.pendingSkillEvents=[];
   initializeNumberHistories(cards);
   c.phase='PRE_COLLISION_SELF_MODIFY';phaseTrace.push(c.phase);
-  for(const rc of cards){const p=playerFor(run,rc.playerId);selfModifyCard(p,rc,c.turnSubmissions[rc.playerId]);applyOwnedEffects(run,'PRE_COLLISION_SELF_MODIFY',{player:p,resolved:rc,events});}
+  for(const rc of cards){const p=playerFor(run,rc.playerId),submission=c.turnSubmissions[rc.playerId];if(submission.skillIntent)applyOwnedEffects(run,'ON_SKILL_USE',{player:p,resolved:rc,submission,events});selfModifyCard(p,rc,submission);applyOwnedEffects(run,'PRE_COLLISION_SELF_MODIFY',{player:p,resolved:rc,events});}
   recordSelfModification(cards,mutationEvents);
   c.phase='PRE_COLLISION_SWAP';phaseTrace.push(c.phase);for(const rc of cards)applyOwnedEffects(run,'PRE_COLLISION',{player:playerFor(run,rc.playerId),resolved:rc,events});applyPreCollisionSwap(run,cards,mutationEvents);
   c.phase='PRE_COLLISION_STEAL';phaseTrace.push(c.phase);applyPreCollisionSteal(run,cards,mutationEvents);
