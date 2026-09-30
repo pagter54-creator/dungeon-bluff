@@ -5,6 +5,7 @@ import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-
 import {applyMonsterDamage} from '../supabase/functions/game-api/pve/monster.js';
 import {resolveGuardianWallCollisions} from '../supabase/functions/game-api/pve/characters.js';
 import {applyOwnedEffects} from '../supabase/functions/game-api/pve/effects.js';
+import {enterEventRoom,submitEventCard} from '../supabase/functions/game-api/pve/events.js';
 
 function runWithKnight(augments){
   const ids=['warrior','adventurer','adventurer','adventurer'];
@@ -91,4 +92,32 @@ test('aug-061 increments to cap two, consumes the prior stack, and stays out of 
   applyOwnedEffects(run,'CARD_VALIDATED',{player:run.players[0],resolved});
   applyOwnedEffects(run,'BEFORE_DAMAGE',{player:run.players[0],resolved,damage});
   assert.equal(damage.amount,5);
+});
+
+test('aug-049 mark is removed when its Guardian goes down',()=>{
+  const run=runWithKnight(['aug-041','aug-049']);
+  turn(run,[3,3,1,2]);
+  run.players[0].hp=1;
+  const first=applyMonsterDamage(run,run.players[1],1,'DIRECT');
+  assert.equal(first.find(e=>e.type==='PLAYER_DAMAGED').playerId,'p0');
+  assert.equal(run.augmentFramework.statuses.some(s=>s.sourceId==='aug-049'),false);
+  const second=applyMonsterDamage(run,run.players[1],1,'DIRECT');
+  assert.equal(second.find(e=>e.type==='PLAYER_DAMAGED').playerId,'p1');
+});
+
+test('aug-041 rescue participates in a complete Event resolution',()=>{
+  const ids=['warrior','adventurer','adventurer','adventurer'];
+  const players=ids.map((character_id,i)=>newPlayerRunState({id:'p'+i,user_id:'u'+i,character_id,member_type:'human',seat_index:i}));
+  players[0].augments=['aug-041'];
+  const run={id:'005b-event',roomId:'room',seed:'005b-event',rngCounter:0,phase:'ROOM_ENTER',floor:1,depth:2,flame:3,maxFlame:5,currentRoomNodeId:'event-node',players,relicCatalog:[]};
+  enterEventRoom(run);
+  [3,3,1,2].forEach((number,seat)=>{
+    const p=players[seat],state=run.roomState.privateByPlayer[p.playerId];
+    const id=p.cardPool.find(c=>c.baseNumber===number&&state.remainingCardIds.includes(c.id))?.id;
+    assert.ok(id);
+    submitEventCard(run,p.playerId,id,seat===0);
+  });
+  const cards=run.roomState.publicTurnResult.cards;
+  assert.equal(cards.find(c=>c.playerId==='p1').valid,true);
+  assert.equal(cards.find(c=>c.playerId==='p0').valid,false);
 });
