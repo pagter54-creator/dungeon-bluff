@@ -25,7 +25,7 @@ function availableCards(run,player){
   if(player.characterId!=='gambler'&&!state.remainingCardIds.length){
     state.cycleIndex+=1;state.spentCardIds=[];state.remainingCardIds=player.cardPool.map(card=>card.id);
     onCycleStartCharacter(player,state);
-    applyOwnedEffects(run,'CYCLE_END',{player,privateState:state});cleanupAugmentScope(run,'CYCLE');
+    applyOwnedEffects(run,'CYCLE_END',{player,privateState:state});cleanupAugmentScope(run,'CYCLE',{playerId:player.playerId});
   }
   return state.remainingCardIds.map(id=>player.cardPool.find(card=>card.id===id)).filter(card=>card&&isCardSelectableForCharacter(player,card));
 }
