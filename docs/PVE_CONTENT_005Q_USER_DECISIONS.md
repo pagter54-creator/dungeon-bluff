@@ -3,20 +3,19 @@
 ## 판정
 
 - 원본: 19묶음, 213개 원자 항목, 191장.
-- 자동 정리: 38개. 사용자 선택으로 정책 해소: 6개 원자 항목. 남은 항목: 169개. 질문 수: 23개(선택 완료 10개, 미선택 13개).
-- **READY_FOR_USER_AUGMENT_DECISIONS = false.** 단순 A/B/C 선택으로 카드별 누락된 조건을 만들 수 없다. Q11–Q23은 정확한 규칙을 작성할지, 보류할지, BETA를 개정할지 고르는 질문이다.
-- 005R 계약 오버레이에는 Q01~Q04의 방향과 실행 차단 표식, Q05~Q10의 선택 정책을 기록했다. BETA 원본 행과 runtime은 수정하지 않았다.
+- 자동 정리: 38개. 사용자 선택으로 정책 해소: 6개 원자 항목. 005B v0.2 설계로 58개 원자 항목을 작성했다(기존 자동 정리와 1개 중복, 순증 57개). 남은 항목: 112개. 질문 수: 23개(선택 완료 15개, 미선택 8개).
+- **READY_FOR_USER_AUGMENT_DECISIONS = false.** 단순 A/B/C 선택으로 카드별 누락된 조건을 만들 수 없다. Q11–Q15는 카드별 규칙 작성(A)을 완료했다. Q16–Q23은 아직 미선택이다.
+- 005R 계약 오버레이에는 Q01~Q10 선택과 005B 52장 v0.2 설계를 기록했다. BETA v0.1 원본 행과 runtime은 수정하지 않았다.
 
 ## 상태
 
 | 기준 | COMPLETE | PARTIAL | AMBIGUOUS |
 |---|---:|---:|---:|
-| 현재 계약 오버레이 | 27 | 195 | 168 |
-| 38개 자동 정리까지 반영한 예상치 | 27 | 207 | 156 |
+| 현재 계약 오버레이 | 79 | 200 | 111 |
 
-Q01~Q04의 A는 원본 효과 의미만 확정한다. 관련 19장은 여전히 SPEC_AMBIGUOUS이며, 충돌하던 BETA 수치는 실행 효과로 사용하지 않는다. 카드별 BETA v0.2 수치와 조건이 필요하다.
+Q01~Q04의 A는 원본 효과 방향을 정했다. 005B에 속한 8장은 별도 BETA v0.2 실행 명세를 작성했고, 나머지는 카드별 수치·조건이 여전히 필요하다. 005B의 설계 대상 52장은 모두 SPEC_COMPLETE다.
 
-Q05~Q10은 5장의 정책 미결 6개 항목을 해소했다. 005R 계약의 SPEC_COMPLETE는 22장에서 27장으로 늘었다.
+005B의 다른 10장은 앞서 근거를 기록한 005Q 자동 정리를 오버레이에 반영했다. 새 효과 설계는 추가하지 않았으며, 이 카드들은 SPEC_PARTIAL이다.
 
 ## 16개 의미 범주
 
@@ -26,17 +25,17 @@ TRIGGER_TIMING, CONSUMPTION_TIMING, ROOM_APPLICABILITY, ONCE_SCOPE, RESET_SCOPE,
 
 | 묶음 | 유형 | 카드 | 원자 | 현재 미해결 |
 |---|---|---:|---:|---:|
-| DEC-005R-01 | SOURCE_CONFLICT | 4 | 4 | 4 |
-| DEC-005R-02 | SOURCE_CONFLICT | 2 | 2 | 2 |
-| DEC-005R-03 | SOURCE_CONFLICT | 7 | 9 | 9 |
+| DEC-005R-01 | SOURCE_CONFLICT | 4 | 4 | 3 |
+| DEC-005R-02 | SOURCE_CONFLICT | 2 | 2 | 1 |
+| DEC-005R-03 | SOURCE_CONFLICT | 7 | 9 | 1 |
 | DEC-005R-04 | SOURCE_CONFLICT | 6 | 7 | 7 |
 | DEC-005R-05 | HIGH_RISK_TARGET | 3 | 4 | 0 |
 | DEC-005R-06 | HIGH_RISK_ORDER | 2 | 2 | 0 |
-| DEC-005R-07 | CLASS_SPEC_GAPS | 9 | 9 | 8 |
-| DEC-005R-08 | CLASS_SPEC_GAPS | 15 | 17 | 12 |
-| DEC-005R-09 | CLASS_SPEC_GAPS | 9 | 10 | 9 |
-| DEC-005R-10 | CLASS_SPEC_GAPS | 10 | 11 | 7 |
-| DEC-005R-11 | CLASS_SPEC_GAPS | 11 | 11 | 11 |
+| DEC-005R-07 | CLASS_SPEC_GAPS | 9 | 9 | 0 |
+| DEC-005R-08 | CLASS_SPEC_GAPS | 15 | 17 | 0 |
+| DEC-005R-09 | CLASS_SPEC_GAPS | 9 | 10 | 0 |
+| DEC-005R-10 | CLASS_SPEC_GAPS | 10 | 11 | 0 |
+| DEC-005R-11 | CLASS_SPEC_GAPS | 11 | 11 | 0 |
 | DEC-005R-12 | CLASS_SPEC_GAPS | 9 | 9 | 9 |
 | DEC-005R-13 | CLASS_SPEC_GAPS | 15 | 17 | 14 |
 | DEC-005R-14 | CLASS_SPEC_GAPS | 14 | 15 | 11 |
@@ -218,6 +217,8 @@ aug-301 DOMINANCE_CONSUME_GAIN_ORDER 처리 순서를 어느 방식으로 확정
 
 모험가 카드의 남은 조건·트리거·적용 방을 어떻게 명시할까요?
 
+**선택: A.** 005B 카드별 BETA v0.2 실행 명세를 작성했다. 상세 수치·조건은 PVE_CONTENT_005Q_DESIGN_B.json을 따른다.
+
 영향: 8장 / 8개 항목 / 005B. 대표: aug-003, aug-009, aug-012, aug-013, aug-014. 위험: MEDIUM. 의존성: 없음.
 
 - **A.** 카드별 발동 조건과 순서를 별도 규칙표에 작성. 엔진: 기존 훅 재사용 여부 검증 필요. UI: 추가 UI 불명.
@@ -239,6 +240,8 @@ aug-301 DOMINANCE_CONSUME_GAIN_ORDER 처리 순서를 어느 방식으로 확정
 ### Q12 · TRIGGER_TIMING
 
 기사 카드의 남은 조건·트리거·적용 방을 어떻게 명시할까요?
+
+**선택: A.** 005B 카드별 BETA v0.2 실행 명세를 작성했다. 상세 수치·조건은 PVE_CONTENT_005Q_DESIGN_B.json을 따른다.
 
 영향: 10장 / 12개 항목 / 005B. 대표: aug-037, aug-038, aug-040, aug-044, aug-045. 위험: MEDIUM. 의존성: 없음.
 
@@ -266,6 +269,8 @@ aug-301 DOMINANCE_CONSUME_GAIN_ORDER 처리 순서를 어느 방식으로 확정
 
 도적 카드의 남은 조건·트리거·적용 방을 어떻게 명시할까요?
 
+**선택: A.** 005B 카드별 BETA v0.2 실행 명세를 작성했다. 상세 수치·조건은 PVE_CONTENT_005Q_DESIGN_B.json을 따른다.
+
 영향: 8장 / 9개 항목 / 005B. 대표: aug-063, aug-066, aug-068, aug-070, aug-073. 위험: MEDIUM. 의존성: 없음.
 
 - **A.** 카드별 발동 조건과 순서를 별도 규칙표에 작성. 엔진: 기존 훅 재사용 여부 검증 필요. UI: 추가 UI 불명.
@@ -289,6 +294,8 @@ aug-301 DOMINANCE_CONSUME_GAIN_ORDER 처리 순서를 어느 방식으로 확정
 
 마법사 카드의 남은 조건·트리거·적용 방을 어떻게 명시할까요?
 
+**선택: A.** 005B 카드별 BETA v0.2 실행 명세를 작성했다. 상세 수치·조건은 PVE_CONTENT_005Q_DESIGN_B.json을 따른다.
+
 영향: 7장 / 7개 항목 / 005B. 대표: aug-102, aug-103, aug-107, aug-112, aug-114. 위험: MEDIUM. 의존성: 없음.
 
 - **A.** 카드별 발동 조건과 순서를 별도 규칙표에 작성. 엔진: 기존 훅 재사용 여부 검증 필요. UI: 추가 UI 불명.
@@ -309,6 +316,8 @@ aug-301 DOMINANCE_CONSUME_GAIN_ORDER 처리 순서를 어느 방식으로 확정
 ### Q15 · DAMAGE_SEMANTICS
 
 광전사 카드의 남은 조건·트리거·적용 방을 어떻게 명시할까요?
+
+**선택: A.** 005B 카드별 BETA v0.2 실행 명세를 작성했다. 상세 수치·조건은 PVE_CONTENT_005Q_DESIGN_B.json을 따른다.
 
 영향: 11장 / 11개 항목 / 005B. 대표: aug-126, aug-128, aug-130, aug-136, aug-137. 위험: MEDIUM. 의존성: 없음.
 
@@ -559,12 +568,12 @@ aug-301 DOMINANCE_CONSUME_GAIN_ORDER 처리 순서를 어느 방식으로 확정
 
 | 배치 | 전체 | 원자 미결 없음 | 차단 | 차단 질문별 카드 수 |
 |---|---:|---:|---:|---|
-| 005B | 150 | 98 | 52 | Q01(1), Q02(1), Q03(6), Q11(8), Q12(10), Q13(8), Q14(7), Q15(11) |
+| 005B | 150 | 150 | 0 | 없음 |
 | 005C | 120 | 67 | 53 | Q01(1), Q02(1), Q03(1), Q04(6), Q16(9), Q17(13), Q18(10), Q19(12) |
 | 005D | 120 | 69 | 51 | Q01(2), Q20(14), Q21(13), Q22(16), Q23(6) |
 
 무투가의 모든 카드와 Q20은 005D에 속한다. 질문 하나가 여러 배치에 걸칠 수 있으므로 질문별 카드 수의 합은 해당 배치 차단 카드 수보다 클 수 있다.
-`READY_AFTER_AUTO`와 `READY_AFTER_USER_DECISION`은 원자 미결 항목이 없다는 뜻이다. 구현 완료를 뜻하지 않는다. 작은 배치 구현 후보는 각 배치의 이 카드들이지만 이 작업에서는 runtime을 변경하지 않았다.
+`READY_AFTER_AUTO`, `READY_AFTER_USER_DECISION`, `READY_AFTER_DESIGN_B`은 원자 미결 항목이 없다는 뜻이다. 구현 완료를 뜻하지 않는다. 작은 배치 구현 후보는 각 배치의 이 카드들이지만 이 작업에서는 runtime을 변경하지 않았다.
 
 ## 기존 불일치
 
