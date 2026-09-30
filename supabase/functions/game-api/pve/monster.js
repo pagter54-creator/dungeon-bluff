@@ -1,6 +1,6 @@
 import {choose} from './rng.js';
 import {applyOwnedEffects} from './effects.js';
-import {findAugmentStatus,consumeAugmentStatus,clearAugmentStatusesForOwner} from './augment-framework.js';
+import {findAugmentStatus,consumeAugmentStatus,clearAugmentStatusesForOwner,consumeDirectDamageReduction} from './augment-framework.js';
 import {f1MonsterById} from './content-f1.js';
 import {onMonsterPlayerDamagedCharacter} from './characters.js';
 import {prepareMonsterTurn,prepareMonsterAction,finishMonsterAction} from './monster-behavior.js';
@@ -75,6 +75,7 @@ export function applyMonsterDamage(run,originalPlayer,amount,damageType,{damageE
   if(!player||player.status==='DOWNED')return events;
   const incomingDamage={amount:rawDamage};
   const beforeEffects=incomingDamage.amount;
+  if(damageType==='DIRECT')consumeDirectDamageReduction(run,player,incomingDamage);
   applyOwnedEffects(run,'BEFORE_PLAYER_DAMAGE',{player,incomingDamage,damageType,damageEventId:id,events});
   const afterEffects=Math.max(0,Number(incomingDamage.amount)||0);
   const effectPrevented=Math.max(0,beforeEffects-afterEffects);
