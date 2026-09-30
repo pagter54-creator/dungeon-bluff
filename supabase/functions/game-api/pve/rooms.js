@@ -25,7 +25,7 @@ function resetRoomCycle(run,player,state){
   if(state.remainingCardIds.length)return false;
   if(player.characterId==='gambler'){drawGamblerHand(run,player,state);return true;}
   applyOwnedEffects(run,'CYCLE_END',{player,privateState:state,events:[]});
-  cleanupAugmentScope(run,'CYCLE');
+  cleanupAugmentScope(run,'CYCLE',{playerId:player.playerId});
   state.cycleIndex=(state.cycleIndex||1)+1;
   state.spentCardIds=[];
   state.remainingCardIds=player.cardPool.map(c=>c.id);
