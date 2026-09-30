@@ -8,6 +8,8 @@ const read=name=>JSON.parse(readFileSync(new URL('../docs/'+name,import.meta.url
 const conditionAudit=read('PVE_CONTENT_005R_CONDITION_AUDIT.json');
 const decisions=read('PVE_CONTENT_005R_DECISIONS.json');
 const qdecisions=read('PVE_CONTENT_005Q_DECISIONS.json');
+const designB=read('PVE_CONTENT_005Q_DESIGN_B.json');
+const auto=read('PVE_CONTENT_005Q_AUTO_RESOLVED.json');
 const executable=read('PVE_CONTENT_005R_EXECUTABLE_AUDIT.json');
 const graph=read('PVE_CONTENT_005R_DEPENDENCIES.json');
 
@@ -20,7 +22,8 @@ test('005R overlays preserve all BETA source IDs, text, values and limits',()=>{
     assert.equal(row.sourceBetaValue,source.betaValue);
     assert.equal(row.sourceLimit,source.limit);
     assert.equal(row.sourceDescription,source.canonicalDescription);
-    assert.equal(row.effect?.text,source.betaValue,row.augmentId);
+    if(designB.targetIds.includes(row.augmentId)) assert.equal(row.effect?.sourceField,'BETA_V0_2_DESIGN',row.augmentId);
+    else assert.equal(row.effect?.text,source.betaValue,row.augmentId);
     assert.equal(row.limit,source.limit,row.augmentId);
     assert.equal(row.sourceRecord,source);
     assert.ok(Array.isArray(row.trigger)||row.trigger===null,row.augmentId);
@@ -37,7 +40,7 @@ test('005R overlays preserve all BETA source IDs, text, values and limits',()=>{
 
 test('005R status and high-risk review remain explicit',()=>{
   const count=status=>contracts.filter(row=>row.status===status).length;
-  assert.deepEqual([count('SPEC_COMPLETE'),count('SPEC_PARTIAL'),count('SPEC_AMBIGUOUS')],[27,195,168]);
+  assert.deepEqual([count('SPEC_COMPLETE'),count('SPEC_PARTIAL'),count('SPEC_AMBIGUOUS')],[79,200,111]);
   const high=contracts.filter(row=>row.highRisk);
   assert.equal(high.length,27);
   assert.deepEqual(high.map(row=>row.status).reduce((a,x)=>(a[x]=(a[x]||0)+1,a),{}),
@@ -46,7 +49,7 @@ test('005R status and high-risk review remain explicit',()=>{
     assert.ok(row.highRiskGuard&&row.highRiskTest,row.augmentId);
     assert.ok(row.testRequirements.length>=3,row.augmentId);
   }
-  assert.ok(contracts.filter(row=>Object.values(row.roomApplicability).every(room=>room.value!==null)).length===386);
+  assert.ok(contracts.filter(row=>Object.values(row.roomApplicability).every(room=>room.value!==null)).length===387);
 });
 
 test('113 vague conditions are audited without silently deciding unknowns',()=>{
@@ -65,7 +68,8 @@ test('113 vague conditions are audited without silently deciding unknowns',()=>{
 
 test('every unresolved atomic question appears once in the user decision queue',()=>{
   const decided=qdecisions.entries.filter(row=>row.selectionScope==='OPERATIONAL_POLICY').flatMap(row=>row.atomicDecisionIds);
-  const expected=[...contracts.flatMap(row=>row.ambiguities||[]),...decided].sort();
+  const appliedAuto=auto.entries.filter(row=>designB.priorAutoAppliedIds.includes(row.augmentId)).map(row=>row.atomicDecisionId);
+  const expected=[...contracts.flatMap(row=>row.ambiguities||[]),...decided,...designB.originalAtomicDecisionIds,...appliedAuto].sort();
   const listed=decisions.entries.flatMap(group=>group.perCard.flatMap(card=>card.unresolved)).sort();
   assert.equal(decisions.decisionGroups,19);
   assert.equal(decisions.entries.length,19);
