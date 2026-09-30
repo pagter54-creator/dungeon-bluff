@@ -765,7 +765,10 @@
       },
       "effect": {
         "sourceField": "betaValue",
-        "text": "다음 직접 피해 1 감소."
+        "text": "다음 직접 피해 1 감소.",
+        "executionStatus": "PROVENANCE_ONLY_PENDING_BETA_V0_2",
+        "executable": false,
+        "pendingRevision": "BETA_V0_2"
       },
       "limit": "중첩 불가; 큰 보호 효과는 전투당 1회.",
       "cap": null,
@@ -815,7 +818,16 @@
       "completionScore": 1,
       "resolvedFields": 11,
       "status": "SPEC_AMBIGUOUS",
-      "reviewStatus": "AUTO_CLASSIFIED"
+      "reviewStatus": "AUTO_CLASSIFIED",
+      "decisionOverlay": {
+        "Q01": {
+          "selectedOption": "A",
+          "meaning": "원본의 적 방어 관통/약화 의미 유지. 충돌하는 BETA 자기 피해 감소 수치는 대체 효과로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+          "scope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "designDirection": "PRESERVE_CANONICAL_DESCRIPTION"
     },
     {
       "augmentId": "aug-284",
@@ -1588,7 +1600,10 @@
       },
       "effect": {
         "sourceField": "betaValue",
-        "text": "다음 직접 피해 1 감소."
+        "text": "다음 직접 피해 1 감소.",
+        "executionStatus": "PROVENANCE_ONLY_PENDING_BETA_V0_2",
+        "executable": false,
+        "pendingRevision": "BETA_V0_2"
       },
       "limit": "중첩 불가; 큰 보호 효과는 전투당 1회.",
       "cap": null,
@@ -1638,7 +1653,16 @@
       "completionScore": 1,
       "resolvedFields": 11,
       "status": "SPEC_AMBIGUOUS",
-      "reviewStatus": "AUTO_CLASSIFIED"
+      "reviewStatus": "AUTO_CLASSIFIED",
+      "decisionOverlay": {
+        "Q01": {
+          "selectedOption": "A",
+          "meaning": "원본의 적 방어 관통/약화 의미 유지. 충돌하는 BETA 자기 피해 감소 수치는 대체 효과로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+          "scope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "designDirection": "PRESERVE_CANONICAL_DESCRIPTION"
     },
     {
       "augmentId": "aug-297",
@@ -1944,15 +1968,24 @@
       "highRisk": true,
       "highRiskGuard": "Separate preexisting Dominance consumption from gain; cap two; prevent same event recursion",
       "highRiskTest": "Two successful commands, old/new Dominance ordering, damage bonus, reconnect",
-      "ambiguities": [
-        "AMB-AUG-aug-301-DOMINANCE_CONSUME_GAIN_ORDER"
-      ],
+      "ambiguities": [],
       "completionScore": 1,
       "resolvedFields": 11,
-      "status": "SPEC_AMBIGUOUS",
+      "status": "SPEC_COMPLETE",
       "manualReviewed": true,
       "roomComponentNote": "Shared number/collision/recovery component applies in Event and Reward; monster damage and direct-damage redirect components remain Combat-only.",
-      "reviewStatus": "MANUAL_REVIEWED"
+      "reviewStatus": "MANUAL_REVIEWED",
+      "decisionOverlay": {
+        "Q10": {
+          "selectedOption": "A",
+          "meaning": "기존 Dominance 소비 후 이번 resolution에서 신규 Dominance 획득.",
+          "scope": "OPERATIONAL_POLICY",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "userDecisionPolicy": {
+        "dominanceConsumeGainOrder": "CONSUME_PREEXISTING_THEN_GAIN_NEW_IN_RESOLUTION"
+      }
     },
     {
       "augmentId": "aug-302",
@@ -7564,14 +7597,23 @@
       "highRisk": true,
       "highRiskGuard": "One recovery per Acrobatics use; preserve card ID and chain guard; selector unresolved",
       "highRiskTest": "First three valid/one invalid, target card selection, recharge count, reconnect",
-      "ambiguities": [
-        "AMB-AUG-aug-390-RECOVERY_TARGET_SELECTION"
-      ],
+      "ambiguities": [],
       "completionScore": 1,
       "resolvedFields": 11,
-      "status": "SPEC_AMBIGUOUS",
+      "status": "SPEC_COMPLETE",
       "manualReviewed": true,
-      "reviewStatus": "MANUAL_REVIEWED"
+      "reviewStatus": "MANUAL_REVIEWED",
+      "decisionOverlay": {
+        "Q08": {
+          "selectedOption": "B",
+          "meaning": "가장 최근에 SPENT가 된 recoverable physical card를 deterministic하게 복구.",
+          "scope": "OPERATIONAL_POLICY",
+          "source": "USER_005Q_SELECTION"
+        }
+      },
+      "userDecisionPolicy": {
+        "recoveryTargetSelection": "MOST_RECENT_SPENT_RECOVERABLE_PHYSICAL_CARD"
+      }
     }
   ]
 }
