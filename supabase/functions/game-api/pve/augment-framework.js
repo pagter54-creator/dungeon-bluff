@@ -294,12 +294,32 @@ export function grantRelicOpportunity(run,owner,{applicationId,sourceAugmentId='
     if(p.relics.length>=limit)continue;
     const candidates=(run.relicCatalog||[]).filter(x=>x.pool==='GENERAL'&&!p.relics.includes(x.id)).map(x=>x.id).sort();
     if(!candidates.length)continue;
-    opportunity.candidateIds=candidates;
-    const relicId=choose(run,candidates,'relic-opportunity:'+applicationId+':'+p.playerId);
-    p.relics.push(relicId);opportunity.status='GRANTED';opportunity.playerId=p.playerId;opportunity.relicId=relicId;
-    s.grants[applicationId]={sourceAugmentId,playerId:p.playerId,relicId};
-    return {applied:true,relicId,playerId:p.playerId};
+    const pool=[...candidates];
+    while(pool.length&&opportunity.candidateIds.length<3){
+      const relicId=choose(run,pool,'relic-opportunity:'+applicationId+':'+p.playerId+':'+opportunity.candidateIds.length);
+      opportunity.candidateIds.push(relicId);pool.splice(pool.indexOf(relicId),1);
+    }
+    opportunity.status='PENDING';opportunity.playerId=p.playerId;
+    if(p.memberType==='ai')return chooseRelicOpportunity(run,p.playerId,applicationId,opportunity.candidateIds[0]);
+    return {applied:true,pending:true,playerId:p.playerId};
   }
   opportunity.reason='NO_ELIGIBLE_RECIPIENT_OR_CANDIDATE';
   return {applied:false,reason:opportunity.reason};
+}
+
+export function chooseRelicOpportunity(run,playerId,opportunityId,relicId){
+  const s=state(run),opportunity=s.relicOpportunities?.[opportunityId],p=run.players.find(x=>x.playerId===playerId);
+  if(!opportunity||!p||opportunity.playerId!==playerId)throw new Error('INVALID_RELIC_OPPORTUNITY_OWNER');
+  if(opportunity.status==='GRANTED')return {applied:false,reason:'DUPLICATE_GRANT'};
+  if(opportunity.status!=='PENDING')return {applied:false,reason:opportunity.reason||'TERMINAL_OPPORTUNITY'};
+  if(!opportunity.candidateIds.includes(relicId))throw new Error('INVALID_RELIC_OPPORTUNITY_CANDIDATE');
+  const limit=Number(p.relicInventoryLimit??run.relicInventoryLimit??Infinity);
+  if(p.relics.length>=limit||p.relics.includes(relicId)){
+    opportunity.status='FAILED';opportunity.reason=p.relics.includes(relicId)?'DUPLICATE_RELIC':'FULL_INVENTORY';
+    return {applied:false,reason:opportunity.reason};
+  }
+  p.relics.push(relicId);opportunity.status='GRANTED';opportunity.relicId=relicId;
+  s.grants[opportunityId]={sourceAugmentId:opportunity.sourceAugmentId,playerId,relicId};
+  s.telemetry.push({augmentId:opportunity.sourceAugmentId,trigger:'RELIC_CONFIRM',triggerCount:1,successCount:1,relicGranted:1});
+  return {applied:true,relicId,playerId};
 }
