@@ -35,7 +35,7 @@ function attack(run,p,n,valid=true){
 }
 function equipStart(run,p){attack(run,p,1,false);}
 function discover(run,p){const r={playerId:p.playerId,cardInstanceId:'discovery',finalNumber:1,valid:true};const cards=[1,2,3,4].map((finalNumber,i)=>({playerId:'p'+i,cardInstanceId:'d'+i,finalNumber,valid:true}));fire(run,p,'CARD_VALIDATED',{resolved:r,cards});}
-function discoveries(run,p,count){for(let i=0;i<count;i++){run.combat.id='discovery-'+i;run.combat.turn=1;discover(run,p);cleanupAugmentScope(run,'COMBAT');}run.combat.id='boss';run.combat.roomType='BOSS';}
+function discoveries(run,p,count){for(let i=0;i<count;i++){run.combat.id='discovery-'+i;run.combat.turn=1;discover(run,p);cleanupAugmentScope(run,'COMBAT');}run.combat.id='boss';run.combat.roomType='BOSS';run.combat.monster.hp=0;}
 const positive={
 1:({run,p})=>{attack(run,p,1);assert.equal(attack(run,p,2).damage.amount,6);},
 2:({run,p})=>{fire(run,p,'ON_ACQUIRE');assert.equal(p.maxHp,4);},
@@ -59,7 +59,7 @@ const positive={
 20:({run,p})=>{equipStart(run,p);run.combat.turnSubmissions.p0={skillData:{equipmentCategory:'WEAPON'}};assert.equal(attack(run,p,2).damage.amount,6);},
 21:({run,p})=>{discover(run,p);assert.deepEqual(run.players.map(x=>x.growthExp),[1,1,1,1]);},
 22:({run,p})=>{discover(run,p);assert.deepEqual(run.players.map(x=>x.growthExp),[2,2,2,2]);},
-23:({run,p})=>{discover(run,p);fire(run,p,'MONSTER_KILLED');assert.deepEqual(run.players.map(x=>x.runGold),[2,2,2,2]);},
+23:({run,p})=>{discover(run,p);run.combat.monster.hp=0;fire(run,p,'MONSTER_KILLED');assert.deepEqual(run.players.map(x=>x.runGold),[2,2,2,2]);},
 24:({run,p})=>{discover(run,p);run.combat.turn++;assert.equal(attack(run,run.players[1],5).damage.amount,6);},
 25:({run,p})=>{run.combat.roomType='ELITE_COMBAT';discover(run,p);assert.deepEqual(run.players.map(x=>x.growthExp),[3,3,3,3]);},
 26:({run,p})=>{discoveries(run,p,2);run.phase='SHOP';assert.equal(adventurerShopPrice(run,p,4,{consume:true}),3);assert.equal(adventurerShopPrice(run,p,4),4);},
@@ -134,7 +134,7 @@ test('005B-A negative relic opportunity duplicate/full inventory terminal failur
 test('005B-A seeded relic grant determinism and Gold idempotency',()=>{
  const {run,p}=fixture(30);discoveries(run,p,3);const a=structuredClone(run),b=structuredClone(run);
  fire(a,a.players[0],'BOSS_CLEAR');fire(b,b.players[0],'BOSS_CLEAR');assert.deepEqual(a,b);
- const gold=fixture(23);discover(gold.run,gold.p);fire(gold.run,gold.p,'MONSTER_KILLED');fire(gold.run,gold.p,'MONSTER_KILLED');assert.equal(gold.p.runGold,2);assert.equal(gold.p.growthExp,1);const sources=Object.values(gold.run.augmentFramework.grants).map(x=>x.sourceAugmentId);assert.ok(sources.includes('ADVENTURER_BASE_GOLD'));assert.ok(sources.includes('aug-023'));
+ const gold=fixture(23);discover(gold.run,gold.p);gold.run.combat.monster.hp=0;fire(gold.run,gold.p,'MONSTER_KILLED');fire(gold.run,gold.p,'MONSTER_KILLED');assert.equal(gold.p.runGold,2);assert.equal(gold.p.growthExp,1);const sources=Object.values(gold.run.augmentFramework.grants).map(x=>x.sourceAugmentId);assert.ok(sources.includes('ADVENTURER_BASE_GOLD'));assert.ok(sources.includes('aug-023'));
 });
 test('005B-A full equipment archetype and mixed archetype ordering',()=>{
  const {run,p}=fixture(19);p.augments=[aid(11),aid(13),aid(17),aid(19),aid(3)];
@@ -226,4 +226,16 @@ test('005B-A relic confirmation API persists choice and action replay grants not
 test('005B-A generic once-scope cleanup removes combat markers and retains run ownership',()=>{
  const {run,p}=fixture(22);discover(run,p);assert.ok(Object.values(run.augmentFramework.once).some(x=>x.scope==='ONCE_PER_COMBAT'));
  cleanupAugmentScope(run,'COMBAT');assert.equal(Object.values(run.augmentFramework.once).some(x=>x.scope==='ONCE_PER_COMBAT'),false);assert.ok(p.augments.includes('aug-022'));
+});
+
+test('005B-A three real Miracle combat clears and boss victory create a persistent relic opportunity',()=>{
+ const {run,p}=fixture(30);
+ for(let i=0;i<3;i++){
+ run.phase='COMBAT';run.currentRoomNodeId='real-room-'+i;run.combat=newCombatState(run.players,1,i===2?'BOSS':'NORMAL_COMBAT');run.combat.id='real-combat-'+i;
+ beginTurn(run);[1,2,3,4].forEach((number,seat)=>{const target=run.players[seat];submitCard(run,target.playerId,target.cardPool.find(x=>x.baseNumber===number).id);});resolveBasicTurn(run);
+ }
+ assert.equal(scopedAdventurerState(run,p,'discoveries','FLOOR').count,3);
+ const saved=JSON.parse(JSON.stringify(run)),entries=Object.entries(saved.augmentFramework.relicOpportunities);assert.equal(entries.length,1);
+ const [id,op]=entries[0];assert.equal(op.status,'PENDING');assert.equal(chooseRelicOpportunity(saved,op.playerId,id,op.candidateIds[0]).applied,true);
+ assert.equal(saved.players.flatMap(x=>x.relics).length,1);
 });
