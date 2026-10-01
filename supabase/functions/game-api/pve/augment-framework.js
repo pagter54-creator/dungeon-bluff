@@ -46,7 +46,7 @@ export function validateFrameworkEffect(def){
   for(const op of def.operations)if(!SUPPORTED_OPERATIONS.has(op.type))unsupported();
   return def;
 }
-const SUPPORTED_OPERATIONS=new Set(['APPLY_STATUS','ADD_STACK','SET_STACK','CONSUME_STACK','REMOVE_STATUS','RECOVER_CARD','DRAW_CARD','MOVE_CARD_ZONE','VANISH_CARD','RETURN_TO_DECK','SHUFFLE_DETERMINISTIC','ADD_DAMAGE','SET_DAMAGE','MULTIPLY_DAMAGE','EXTRA_DAMAGE_COMPONENT','HEAL','SELF_DAMAGE','SCHEDULE_EFFECT','RULE_MODIFIER','ADD_RUN_GOLD','ADD_EXP','GRANT_RELIC']);
+const SUPPORTED_OPERATIONS=new Set(['APPLY_STATUS','ADD_STACK','SET_STACK','CONSUME_STACK','REMOVE_STATUS','RECOVER_CARD','DRAW_CARD','MOVE_CARD_ZONE','VANISH_CARD','RETURN_TO_DECK','SHUFFLE_DETERMINISTIC','ADD_DAMAGE','SET_DAMAGE','MULTIPLY_DAMAGE','EXTRA_DAMAGE_COMPONENT','HEAL','SELF_DAMAGE','SCHEDULE_EFFECT','RULE_MODIFIER','ADD_RUN_GOLD','ADD_EXP','GRANT_RELIC','GRANT_RELIC_OPPORTUNITY']);
 function status(run,op,player){return state(run).statuses.find(x=>x.statusId===op.statusId&&x.targetId===(op.targetId||player.playerId));}
 function applyStatus(run,player,op){
   const s=state(run),targetId=op.targetId||player.playerId,existing=status(run,op,player),cap=op.cap??existing?.cap??(op.useDefaultCap?DEFAULT_STACK_CAP:null);
@@ -214,6 +214,7 @@ function operate(run,player,op,ctx,envelope){
   }
   if(op.type==='SCHEDULE_EFFECT')return {applied:true,delayed:scheduleDelayed(run,op,envelope)};
   if(op.type==='RULE_MODIFIER'){state(run).temporary.push({...op,ownerId:player.playerId,augmentId:envelope.sourceId});return {applied:true};}
+  if(op.type==='GRANT_RELIC_OPPORTUNITY')return grantRelicOpportunity(run,player,{...op,applicationId:op.applicationId||envelope.rootActionId+':'+op.sourceAugmentId});
   if(['ADD_RUN_GOLD','ADD_EXP','GRANT_RELIC'].includes(op.type))return grant(run,player,op,envelope);
   unsupported();
 }
@@ -275,4 +276,30 @@ export function cleanupAugmentScope(run,scope,{playerId=null}={}){
 export function projectAugmentFramework(run,viewerPlayerId){
   const s=run.augmentFramework;if(!s)return null;
   return {statuses:s.statuses.filter(x=>x.visibility==='PUBLIC'||x.visibility==='OWNER_PRIVATE'&&x.ownerId===viewerPlayerId).map(x=>structuredClone(x))};
+}
+
+export function grantAugmentGold(run,player,amount,sourceAugmentId,applicationId){
+  const envelope=makeAugmentEnvelope(run,player,'ON_KILL',{sourceId:sourceAugmentId,rootActionId:applicationId});
+  const total=amount>0?amount+(player.characterId==='adventurer'?1:0):amount;
+  return grant(run,player,{type:'ADD_RUN_GOLD',amount:total,sourceAugmentId,applicationId},envelope);
+}
+export function grantRelicOpportunity(run,owner,{applicationId,sourceAugmentId='aug-030'}){
+  const s=state(run);s.relicOpportunities||={};
+  if(s.relicOpportunities[applicationId])return {applied:false,reason:'DUPLICATE_OPPORTUNITY'};
+  const opportunity={sourceAugmentId,ownerId:owner.playerId,resetScope:'RUN',status:'FAILED',candidateIds:[]};
+  s.relicOpportunities[applicationId]=opportunity;
+  const players=[...run.players].sort((a,b)=>a.seat-b.seat||a.playerId.localeCompare(b.playerId));
+  for(const p of players){
+    const limit=Number(p.relicInventoryLimit??run.relicInventoryLimit??Infinity);
+    if(p.relics.length>=limit)continue;
+    const candidates=(run.relicCatalog||[]).filter(x=>x.pool==='GENERAL'&&!p.relics.includes(x.id)).map(x=>x.id).sort();
+    if(!candidates.length)continue;
+    opportunity.candidateIds=candidates;
+    const relicId=choose(run,candidates,'relic-opportunity:'+applicationId+':'+p.playerId);
+    p.relics.push(relicId);opportunity.status='GRANTED';opportunity.playerId=p.playerId;opportunity.relicId=relicId;
+    s.grants[applicationId]={sourceAugmentId,playerId:p.playerId,relicId};
+    return {applied:true,relicId,playerId:p.playerId};
+  }
+  opportunity.reason='NO_ELIGIBLE_RECIPIENT_OR_CANDIDATE';
+  return {applied:false,reason:opportunity.reason};
 }
