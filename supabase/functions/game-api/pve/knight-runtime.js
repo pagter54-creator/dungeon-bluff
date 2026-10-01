@@ -131,7 +131,7 @@ export function applyKnight(run,trigger,ctx={}){
     }
     if(owned(p,'aug-050')&&ctx.redirectedFrom&&ctx.redirectSource===p.playerId&&!s.used050&&ctx.incomingDamage.amount>=p.hp&&p.hp>0){
       const before=ctx.incomingDamage.amount;ctx.incomingDamage.amount=Math.max(0,p.hp-1);s.used050=true;
-      for(const ally of run.players.filter(x=>x.status!=='DOWNED'))armStatus(run,p,'NEXT_DIRECT_DAMAGE_REDUCTION:aug-050:'+p.playerId,'aug-050',ally.playerId,{amount:1});
+      for(const ally of run.players.filter(x=>x.status!=='DOWNED'))armStatus(run,p,'NEXT_DIRECT_DAMAGE_REDUCTION:aug-050:'+p.playerId+':'+ally.playerId,'aug-050',ally.playerId,{amount:1});
       fire('aug-050',true,{redirectDamage:before-ctx.incomingDamage.amount,protectionApplied:run.players.filter(x=>x.status!=='DOWNED').length});
     }
     return fired;
