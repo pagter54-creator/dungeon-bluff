@@ -7,7 +7,7 @@ import {beginAugmentChoices,chooseAugment} from '../supabase/functions/game-api/
 
 function fixture(id,characterId='adventurer'){
   const p=newPlayerRunState({id:'p0',user_id:'u0',character_id:characterId,member_type:'human',seat_index:0});
-  p.augments=[id];
+  p.augments=['aug-015','aug-016'].includes(id)?['aug-011',id]:[id];
   const run={id:'runtime-11',version:0,seed:'runtime-11',rngCounter:0,phase:'COMBAT',floor:1,players:[p],combat:{id:'combat-11',turn:1,privateByPlayer:{p0:{cycleIndex:1}},turnSubmissions:{}}};
   return {run,p,fire:(trigger,resolved={},damage=null)=>applyContent005B(run,trigger,{player:p,resolved,damage})};
 }
@@ -21,19 +21,21 @@ test('aug-004 first collision grants one EXP at the next valid attack after reco
 });
 test('aug-015 changes only the equipment category activated after a number difference of two',()=>{
   const {run,p,fire}=fixture('aug-015');
-  fire('CARD_VALIDATED',{valid:true,finalNumber:1});
+  fire('CARD_VALIDATED',{valid:false,finalNumber:1});run.combat.turn++;
   const weapon={valid:true,finalNumber:5},damage={amount:5};
   fire('CARD_VALIDATED',weapon);fire('BEFORE_DAMAGE',weapon,damage);
-  assert.equal(damage.amount,7);
+  assert.equal(damage.amount,8);
   assert.equal(run.augmentFramework.statuses.length,0);
 });
 test('aug-016 rewards the third distinct category once in the same physical cycle',()=>{
   const {run,fire}=fixture('aug-016');
-  fire('CARD_VALIDATED',{valid:true,finalNumber:1});
-  fire('CARD_VALIDATED',{valid:true,finalNumber:3});
+  fire('CARD_VALIDATED',{valid:false,finalNumber:1});run.combat.turn++;
+  fire('CARD_VALIDATED',{valid:true,finalNumber:2});run.combat.turn++;
+  fire('CARD_VALIDATED',{valid:true,finalNumber:3});run.combat.turn++;
   const third={valid:true,finalNumber:5},damage={amount:5};
   fire('CARD_VALIDATED',third);fire('BEFORE_DAMAGE',third,damage);
-  assert.equal(damage.amount,7);
+  assert.equal(damage.amount,8);
+  run.combat.turn++;
   const fourth={valid:true,finalNumber:4},next={amount:4};
   fire('CARD_VALIDATED',fourth);fire('BEFORE_DAMAGE',fourth,next);
   assert.equal(next.amount,4);
