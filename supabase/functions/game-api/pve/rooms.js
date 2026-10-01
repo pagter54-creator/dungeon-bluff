@@ -235,7 +235,7 @@ export function resolveRewardAttempt(run){
   for(const group of groups.values())if(group.length>1)for(const card of group)if(!card.collisionImmune){card.valid=false;card.invalidReason='COLLISION';}
   resolveGuardianWallCollisions(run,cards,groups,[]);
   assignVampireThralls(run,cards,groups,[]);
-  for(const rc of cards)applyOwnedEffects(run,'POST_COLLISION',{player:playerFor(run,rc.playerId),resolved:rc,privateState:room.privateByPlayer[rc.playerId]});
+  for(const rc of cards)applyOwnedEffects(run,'POST_COLLISION',{player:playerFor(run,rc.playerId),resolved:rc,submission:room.turnSubmissions[rc.playerId],privateState:room.privateByPlayer[rc.playerId]});
   attachValidity(cards);
   for(const card of cards)if(card.invalidReason==='COLLISION'){
     const player=playerFor(run,card.playerId);
