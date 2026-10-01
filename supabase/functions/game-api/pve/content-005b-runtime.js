@@ -1,4 +1,5 @@
 import {applyAdventurer} from './adventurer-runtime.js';
+import {applyKnight} from './knight-runtime.js';
 import {resourceMax} from './resources.js';
 
 const framework=run=>run.augmentFramework||={once:{},statuses:[],delayed:[],grants:{},acquired:{},temporary:[],telemetry:[],recoveryCounts:{},sequence:0};
@@ -65,11 +66,12 @@ const TRIGGERS=Object.freeze({
 });
 export function applyContent005B(run,trigger,ctx={}){
   const adventurer=applyAdventurer(run,trigger,ctx);
-  if((run.phase!=='COMBAT'&&trigger!=='ON_ACQUIRE')||ctx.followUp)return adventurer;
+  const knight=applyKnight(run,trigger,ctx);
+  if((run.phase!=='COMBAT'&&trigger!=='ON_ACQUIRE')||ctx.followUp)return [...adventurer,...knight];
   const candidates=TRIGGERS[trigger]||[],p=ctx.player;
   if(!p)return [];
   const owned=new Set(p.augments||[]);
-  const fired=[...adventurer];
+  const fired=[...adventurer,...knight];
   for(const id of candidates)if(!id.match(/^aug-0(?:0[1-9]|[12][0-9]|30)$/)&&owned.has(id)&&runRule(run,id,trigger,ctx))fired.push({augmentId:id,trigger});
   return fired;
 }
