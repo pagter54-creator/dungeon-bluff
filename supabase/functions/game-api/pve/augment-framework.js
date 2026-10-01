@@ -280,8 +280,12 @@ export function projectAugmentFramework(run,viewerPlayerId){
 
 export function grantAugmentGold(run,player,amount,sourceAugmentId,applicationId){
   const envelope=makeAugmentEnvelope(run,player,'ON_KILL',{sourceId:sourceAugmentId,rootActionId:applicationId});
-  const total=amount>0?amount+(player.characterId==='adventurer'?1:0):amount;
-  return grant(run,player,{type:'ADD_RUN_GOLD',amount:total,sourceAugmentId,applicationId},envelope);
+  const result=grant(run,player,{type:'ADD_RUN_GOLD',amount,sourceAugmentId,applicationId},envelope);
+  if(result.applied&&amount>0&&player.characterId==='adventurer'){
+    const base=grant(run,player,{type:'ADD_RUN_GOLD',amount:1,sourceAugmentId:'ADVENTURER_BASE_GOLD',applicationId:applicationId+':base'},envelope);
+    if(base.applied)result.resourceDelta+=base.resourceDelta;
+  }
+  return result;
 }
 export function grantRelicOpportunity(run,owner,{applicationId,sourceAugmentId='aug-030'}){
   const s=state(run);s.relicOpportunities||={};
