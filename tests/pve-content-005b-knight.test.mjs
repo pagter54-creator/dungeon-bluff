@@ -252,3 +252,41 @@ test('negative: aug-055 does not trigger when only one opposing card was actuall
 test('negative: crush bonuses do not trigger on a normal valid attack',()=>{
   const {run,p,priv}=fixture(['aug-053','aug-055','aug-058']);const resolved={valid:true,finalNumber:5,collisionImmune:false,crushedCardCount:0};applyKnight(run,'POST_COLLISION',{player:p,resolved,submission:{skillIntent:false},privateState:priv});const damage={amount:5};applyKnight(run,'BEFORE_DAMAGE',{player:p,resolved,damage});assert.equal(damage.amount,5);
 });
+
+
+test('Reward applicability: aug-038, aug-044 and aug-045 keep their explicit non-combat semantics',()=>{
+  const {run,p,priv}=fixture(['aug-038','aug-041','aug-044','aug-045']);run.phase='REWARD_ROOM';run.roomState={type:'REWARD_ROOM',attempt:1,privateByPlayer:{p0:priv}};
+  const submission={skillIntent:true};applyKnight(run,'ON_SKILL_USE',{player:p,submission,privateState:priv});assert.equal(submission.knightFreeToughness,true);
+  const id='p0:base:2',guard={...guardResolved(),cardInstanceId:id};
+  applyKnight(run,'POST_COLLISION',{player:p,resolved:guard,submission,privateState:priv});
+  assert.equal(p.persistentCharacterState.knightNextCycleToughness,1);
+  priv.remainingCardIds=priv.remainingCardIds.filter(x=>x!==id);priv.spentCardIds.push(id);
+  applyKnight(run,'TURN_END',{player:p,privateState:priv});
+  assert.ok(priv.remainingCardIds.includes(id));assert.ok(!priv.spentCardIds.includes(id));
+});
+
+test('mixed party keeps Adventurer runtime and Knight guard/crush state isolated',()=>{
+  const players=[
+    newPlayerRunState({id:'p0',user_id:'u0',character_id:'warrior',member_type:'human',seat_index:0}),
+    newPlayerRunState({id:'p1',user_id:'u1',character_id:'adventurer',member_type:'human',seat_index:1}),
+    newPlayerRunState({id:'p2',user_id:'u2',character_id:'rogue',member_type:'human',seat_index:2}),
+    newPlayerRunState({id:'p3',user_id:'u3',character_id:'mage',member_type:'human',seat_index:3})
+  ];
+  players[0].augments=['aug-041','aug-051'];players[1].augments=['aug-001'];
+  const run={id:'mixed-knight',seed:'mixed',rngCounter:0,version:1,phase:'COMBAT',floor:1,depth:1,flame:4,maxFlame:5,currentRoomNodeId:'node',players};
+  run.combat=newCombatState(players,999);
+  const knight=players[0],adv=players[1],kpriv=run.combat.privateByPlayer.p0;
+  const resolved=crush(1,5);applyKnight(run,'POST_COLLISION',{player:knight,resolved,submission:{skillIntent:true},privateState:kpriv});
+  applyOwnedEffects(run,'CARD_VALIDATED',{player:adv,resolved:{valid:true,collisionImmune:false,collisionGroupSize:1}});
+  assert.equal(run.augmentFramework.knight.p0.advance??0,0);
+  assert.equal(adv.publicResources.veteranStreak,1);
+  assert.ok(run.augmentFramework.telemetry.some(x=>x.augmentId==='aug-051'&&x.successCount===1));
+});
+
+test('high-risk Knight telemetry records Guardian, follow-up mark, Crush and pre-mitigation penetration successes',()=>{
+  const {run,p,priv}=fixture(['aug-041','aug-049','aug-051','aug-052']);
+  const guard=guardResolved();applyKnight(run,'POST_COLLISION',{player:p,resolved:guard,submission:{skillIntent:true},privateState:priv});
+  const cr=crush(2,5);applyKnight(run,'POST_COLLISION',{player:p,resolved:cr,submission:{skillIntent:true},privateState:priv});
+  run.combat.monster.defense=2;const damage={amount:5};applyKnight(run,'BEFORE_DAMAGE',{player:p,resolved:cr,damage});
+  for(const id of ['aug-041','aug-049','aug-051','aug-052'])assert.ok(run.augmentFramework.telemetry.some(x=>x.augmentId===id&&x.triggerCount===1&&x.successCount===1),id);
+});
