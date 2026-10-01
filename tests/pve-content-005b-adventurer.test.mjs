@@ -222,3 +222,8 @@ test('005B-A relic confirmation API persists choice and action replay grants not
  const response=await handlePveAction({admin,user:{id:'u0'},body,json:x=>x});assert.equal(response.run.players[0].relics.length,1);assert.equal(response.run.privateRelicOpportunity,undefined);
  const retry=await handlePveAction({admin,user:{id:'u0'},body,json:x=>x});assert.equal(retry.idempotent,true);assert.equal(retry.run.players[0].relics.length,1);
 });
+
+test('005B-A generic once-scope cleanup removes combat markers and retains run ownership',()=>{
+ const {run,p}=fixture(22);discover(run,p);assert.ok(Object.values(run.augmentFramework.once).some(x=>x.scope==='ONCE_PER_COMBAT'));
+ cleanupAugmentScope(run,'COMBAT');assert.equal(Object.values(run.augmentFramework.once).some(x=>x.scope==='ONCE_PER_COMBAT'),false);assert.ok(p.augments.includes('aug-022'));
+});
