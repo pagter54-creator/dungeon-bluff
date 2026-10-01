@@ -151,10 +151,12 @@ function discovery(run,p,ctx){
   }
 }
 register(['aug-023'],'MONSTER_KILLED',(run,p,id,ctx)=>{
+  if(!(run.combat?.monster?.hp<=0))return false;
   if(!scopedAdventurerState(run,p,'miracle').discovered||!claim(run,p,id,'ONCE_PER_FLOOR',ctx))return false;
   partyGold(run,p,id,1,token(run,p,ctx)+':'+id);return true;
 });
 register(['aug-029','aug-030'],'BOSS_CLEAR',(run,p,id,ctx)=>{
+  if(run.combat?.roomType!=='BOSS'||!(run.combat.monster?.hp<=0))return false;
   const count=scopedAdventurerState(run,p,'discoveries','FLOOR').count||0;
   if(count<(id==='aug-029'?2:3)||!claim(run,p,id,id==='aug-029'?'ONCE_PER_FLOOR':'ONCE_PER_RUN',ctx))return false;
   if(id==='aug-029')partyGold(run,p,id,1,token(run,p,ctx)+':'+id);
@@ -165,6 +167,7 @@ register(['aug-029','aug-030'],'BOSS_CLEAR',(run,p,id,ctx)=>{
   return true;
 });
 register(['aug-027'],'REWARD_RANKED',(run,p,id,ctx)=>{
+  if(run.phase!=='REWARD_ROOM')return false;
   if(!(ctx.rank>=0&&ctx.rank<2&&ctx.resolved?.valid)||!claim(run,p,id,'ONCE_PER_ROOM',ctx))return false;
   return Boolean(ctx.addCandidate?.());
 });
