@@ -13,7 +13,7 @@ const token=(run,p,ctx={})=>ctx.actionId||ctx.rootActionId||ctx.damageEventId||[
 function claim(run,p,id,scope,ctx={},component=''){
   const key=onceKey(run,p,id+':'+component,scope,ctx),f=framework(run);
   if(key&&f.once[key])return false;
-  if(key)f.once[key]=true;
+  if(key)f.once[key]={scope,playerId:p.playerId,augmentId:id,component};
   return true;
 }
 function record(run,id,trigger,success,metrics={}){
