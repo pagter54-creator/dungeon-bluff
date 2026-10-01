@@ -95,7 +95,7 @@ export function resolveEventTurn(run){
   for(const group of groups.values())if(group.length>1)for(const card of group)if(!card.collisionImmune){card.valid=false;card.invalidReason='COLLISION';}
   resolveGuardianWallCollisions(run,cards,groups,[]);
   assignVampireThralls(run,cards,groups,effects);
-  for(const card of cards)applyOwnedEffects(run,'POST_COLLISION',{player:playerFor(run,card.playerId),resolved:card,privateState:room.privateByPlayer[card.playerId]});
+  for(const card of cards)applyOwnedEffects(run,'POST_COLLISION',{player:playerFor(run,card.playerId),resolved:card,submission:room.turnSubmissions[card.playerId],privateState:room.privateByPlayer[card.playerId]});
   attachValidity(cards);
   for(const card of cards)applyOwnedEffects(run,'CARD_VALIDATED',{player:playerFor(run,card.playerId),resolved:card,privateState:room.privateByPlayer[card.playerId]});
   validateNumberMutationState(run,cards,mutationEvents);
