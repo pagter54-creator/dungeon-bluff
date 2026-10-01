@@ -4,6 +4,9 @@ export function projectRun(run,viewerPlayerId){
   const publicFramework=projectAugmentFramework(run,viewerPlayerId);
   const opportunity=Object.entries(run.augmentFramework?.relicOpportunities||{}).find(([,x])=>x.playerId===viewerPlayerId&&x.status==='PENDING');
   if(opportunity)out.privateRelicOpportunity={id:opportunity[0],candidateIds:[...opportunity[1].candidateIds]};
+  if(out.roomState?.type==='SHOP'&&run.augmentFramework?.cardState?.[viewerPlayerId+':ad:shopDiscount']?.ready){
+    for(const item of [...out.roomState.cardStock,...out.roomState.relicStock]){item.basePrice=item.price;item.price=Math.max(0,item.price-1);}
+  }
   delete out.augmentFramework;
   delete out.frameworkEffects;
   if(publicFramework)out.augmentStatuses=publicFramework.statuses;
