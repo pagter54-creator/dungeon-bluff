@@ -72,27 +72,27 @@ export function applyKnight(run,trigger,ctx={}){
   }
   if(trigger==='POST_COLLISION'){
     const didCrush=crush(r),used=Boolean(ctx.submission?.skillIntent??usedSkill(s,run));
-    if(owned(p,'aug-034')&&didCrush&&s.refund034Cycle!==ci){s.refund034Cycle=ci;fire('aug-034',gain(p,1)>0,{toughnessGained:1});}
-    if(owned(p,'aug-035')&&used&&!r?.collisionEventId&&s.refund035Cycle!==ci){s.refund035Cycle=ci;fire('aug-035',gain(p,1)>0,{toughnessGained:1});}
-    if(owned(p,'aug-036')&&didCrush){s.armed036=true;s.armed036Turn=Number(run.combat?.turn||0);fire('aug-036',true);}
-    if(owned(p,'aug-039')&&didCrush&&!s.acquired039){s.acquired039=true;armStatus(run,p,'KNIGHT_NEXT_DIRECT_REDUCTION_039','aug-039',p.playerId,{amount:1});fire('aug-039',true,{protectionApplied:1});}
+    if(rm==='COMBAT'&&owned(p,'aug-034')&&didCrush&&s.refund034Cycle!==ci){s.refund034Cycle=ci;fire('aug-034',gain(p,1)>0,{toughnessGained:1});}
+    if(rm==='COMBAT'&&owned(p,'aug-035')&&used&&!r?.collisionEventId&&s.refund035Cycle!==ci){s.refund035Cycle=ci;fire('aug-035',gain(p,1)>0,{toughnessGained:1});}
+    if(rm==='COMBAT'&&owned(p,'aug-036')&&didCrush){s.armed036=true;s.armed036Turn=Number(run.combat?.turn||0);fire('aug-036',true);}
+    if(rm==='COMBAT'&&owned(p,'aug-039')&&didCrush&&!s.acquired039){s.acquired039=true;armStatus(run,p,'NEXT_DIRECT_DAMAGE_REDUCTION:aug-039:'+p.playerId,'aug-039',p.playerId,{amount:1});fire('aug-039',true,{protectionApplied:1});}
     if(owned(p,'aug-044')&&r?.guardianSacrifice&&r.guardianRescueTargetId&&s.reserve044Cycle!==ci){s.reserve044Cycle=ci;nextCycleBonus(p,1);fire('aug-044',true,{toughnessGained:1});}
     if(owned(p,'aug-045')&&r?.guardianSacrifice&&r.cardInstanceId&&s.recovered045Cycle!==ci){
       s.pending045={cycleIndex:ci,cardInstanceId:r.cardInstanceId};fire('aug-045',true);
     }
-    if(owned(p,'aug-043')&&r?.guardianSacrifice&&r.guardianRescueTargetId){
+    if(rm==='COMBAT'&&owned(p,'aug-043')&&r?.guardianSacrifice&&r.guardianRescueTargetId){
       armStatus(run,p,'GUARDED_NEXT_VALID_ATTACK_043','aug-043',r.guardianRescueTargetId,{armedTurn:Number(run.combat?.turn||0)});fire('aug-043',true);
     }
-    if(owned(p,'aug-054')&&didCrush&&s.refund054Cycle!==ci){s.refund054Cycle=ci;fire('aug-054',gain(p,1)>0,{toughnessGained:1,cardsCrushed:Number(r.crushedCardCount)||0});}
-    if(owned(p,'aug-056')&&didCrush){s.armed056=true;s.armed056Turn=Number(run.combat?.turn||0);fire('aug-056',true);}
-    if(owned(p,'aug-057')&&didCrush&&s.breakthroughReady){
+    if(rm==='COMBAT'&&owned(p,'aug-054')&&didCrush&&s.refund054Cycle!==ci){s.refund054Cycle=ci;fire('aug-054',gain(p,1)>0,{toughnessGained:1,cardsCrushed:Number(r.crushedCardCount)||0});}
+    if(rm==='COMBAT'&&owned(p,'aug-056')&&didCrush){s.armed056=true;s.armed056Turn=Number(run.combat?.turn||0);fire('aug-056',true);}
+    if(rm==='COMBAT'&&owned(p,'aug-057')&&didCrush&&s.breakthroughReady){
       s.breakthroughReady=false;r.knight057Bonus=1;gain(p,1);fire('aug-057',true,{toughnessGained:1,bonusDamage:1});
     }
-    if(owned(p,'aug-059')&&didCrush&&Number(r.crushedCardCount)>=2&&!s.used059&&run.combat?.monster){
+    if(rm==='COMBAT'&&owned(p,'aug-059')&&didCrush&&Number(r.crushedCardCount)>=2&&!s.used059&&run.combat?.monster){
       s.used059=true;const before=Math.max(0,Number(run.combat.monster.defense)||0);run.combat.monster.defense=Math.max(0,before-1);
       fire('aug-059',true,{armorPenetrated:before-run.combat.monster.defense});
     }
-    if(owned(p,'aug-060')&&didCrush){
+    if(rm==='COMBAT'&&owned(p,'aug-060')&&didCrush){
       s.advance=Math.min(4,(Number(s.advance)||0)+1);r.knightCrush060=true;r.knightAdvanceStacks=s.advance;
       fire('aug-060',true,{stackMax:s.advance,cardsCrushed:Number(r.crushedCardCount)||0});
     }
@@ -117,8 +117,8 @@ export function applyKnight(run,trigger,ctx={}){
     if(bonus>0)ctx.damage.amount+=bonus;
     return fired;
   }
-  if(trigger==='AFTER_DAMAGE'&&rm==='COMBAT'&&r?.valid&&owned(p,'aug-060')&&!r.knightCrush060){
-    const before=Math.max(0,Number(s.advance)||0);s.advance=Math.max(0,before-1);
+  if(trigger==='AFTER_DAMAGE'&&rm==='COMBAT'&&r?.valid&&owned(p,'aug-060')&&!r.knightCrush060&&s.decayed060Turn!==Number(run.combat?.turn||0)){
+    const before=Math.max(0,Number(s.advance)||0);s.advance=Math.max(0,before-1);s.decayed060Turn=Number(run.combat?.turn||0);
     if(before!==s.advance)fire('aug-060',true,{stackMax:before});
     return fired;
   }
@@ -126,8 +126,6 @@ export function applyKnight(run,trigger,ctx={}){
     if(owned(p,'aug-033')&&usedSkill(s,run)&&s.reduced033Turn!==s.toughnessUsedTurn&&ctx.incomingDamage.amount>0){
       ctx.incomingDamage.amount=Math.max(0,ctx.incomingDamage.amount-1);s.reduced033Turn=s.toughnessUsedTurn;fire('aug-033',true,{redirectDamage:1});
     }
-    const prot039=state(run).statuses.find(x=>x.sourceId==='aug-039'&&x.ownerId===p.playerId&&x.targetId===p.playerId);
-    if(prot039&&ctx.incomingDamage.amount>0){ctx.incomingDamage.amount=Math.max(0,ctx.incomingDamage.amount-1);consumeAugmentStatus(run,prot039);fire('aug-039',true,{redirectDamage:1});}
     if(owned(p,'aug-042')&&ctx.redirectedFrom&&ctx.redirectSource===p.playerId&&!s.used042&&ctx.incomingDamage.amount>0){
       s.used042=true;ctx.incomingDamage.amount=Math.max(0,ctx.incomingDamage.amount-1);fire('aug-042',true,{redirectDamage:1});
     }
@@ -143,7 +141,7 @@ export function applyKnight(run,trigger,ctx={}){
       s.used037=true;fire('aug-037',gain(p,1)>0,{toughnessGained:1});
     }
     if(owned(p,'aug-047')&&ctx.redirectedFrom&&ctx.redirectSource===p.playerId&&Number(ctx.damage?.amount)>0&&Number(ctx.hpAfter)===1&&!s.used047){
-      s.used047=true;armStatus(run,p,'KNIGHT_NEXT_DIRECT_REDUCTION_047','aug-047',p.playerId,{amount:1});fire('aug-047',true,{protectionApplied:1});
+      s.used047=true;armStatus(run,p,'NEXT_DIRECT_DAMAGE_REDUCTION:aug-047:'+p.playerId,'aug-047',p.playerId,{amount:1});fire('aug-047',true,{protectionApplied:1});
     }
     return fired;
   }
