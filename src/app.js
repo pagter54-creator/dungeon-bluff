@@ -124,7 +124,9 @@ function pveProgressMarkup(run){
   return Array.from({length:count},(_,index)=>{const depth=index+1;return '<span class="stage-node '+(depth<current?'passed':depth===current?'current':'')+'" title="Depth '+depth+'">'+(depth<current?'✓':depth===count?'♛':'◇')+'</span>';}).join('');
 }
 function pveTopMarkup(run){
-  return sharedGameTopMarkup({counterLabel:'FLOOR',counterValue:run.floor,counterTotal:3,progressMarkup:pveProgressMarkup(run),meterLabel:'EXPEDITION FLAME',meterValue:run.flame,meterTotal:run.maxFlame,mapButton:true,extraClass:'pve-shared-top'});
+  const opportunity=run.privateRelicOpportunity;
+  const offer=opportunity?'<section class="pve-context-panel"><h3>전설의 발견 · 추가 유물 선택</h3>'+opportunity.candidateIds.map(id=>'<button class="button secondary" data-action="pve-opportunity-relic" data-opportunity-id="'+escape(opportunity.id)+'" data-relic-id="'+escape(id)+'">'+escape(relicUi(id).name)+'</button>').join('')+'</section>':'';
+  return offer+sharedGameTopMarkup({counterLabel:'FLOOR',counterValue:run.floor,counterTotal:3,progressMarkup:pveProgressMarkup(run),meterLabel:'EXPEDITION FLAME',meterValue:run.flame,meterTotal:run.maxFlame,mapButton:true,extraClass:'pve-shared-top'});
 }
 function renderPveEntryLoading(){
   const humans=(bundle?.members||[]).filter(member=>member.member_type==='human'),ready=bundle?.run?.entryLoading?.ready||[];
@@ -532,6 +534,7 @@ document.addEventListener('click', async event => {
   if(action==='pve-shop-cancel-card'&&button.dataset.productId){const productId=button.dataset.productId;pveSelected=null;void performPve('pve.shopCancelCard',{product_id:productId});}
   if(action==='pve-shop-ready')void performPve('pve.shopReady');
   if(action==='pve-reward-card')void performPve('pve.rewardSubmitCard',{card_instance_id:button.dataset.cardId,skill_intent:false});
+  if(action==='pve-opportunity-relic')void performPve('pve.chooseRelicOpportunity',{opportunity_id:button.dataset.opportunityId,relic_id:button.dataset.relicId});
   if(action==='pve-reward-relic')void performPve('pve.rewardChooseRelic',{relic_id:button.dataset.relicId});
   if(action==='pve-room-ready')void performPve('pve.roomReady');
   if (action === 'copy') { try { await navigator.clipboard.writeText(bundle.room.room_code); toast('방 코드를 복사했습니다.'); } catch { toast(`방 코드: ${bundle.room.room_code}`); } }
