@@ -10,7 +10,7 @@ import {ADVENTURER_CONTRACTS} from '../supabase/functions/game-api/pve/adventure
 import {EXECUTABLE_AUGMENT_RUNTIME} from '../supabase/functions/game-api/pve/augment-runtime.js';
 import {AUGMENT_BY_ID,augmentCandidates} from '../supabase/functions/game-api/pve/augment-catalog.js';
 import {beginAugmentChoices,chooseAugment} from '../supabase/functions/game-api/pve/augments.js';
-import {cleanupAugmentScope,grantRelicOpportunity} from '../supabase/functions/game-api/pve/augment-framework.js';
+import {cleanupAugmentScope,grantRelicOpportunity,chooseRelicOpportunity} from '../supabase/functions/game-api/pve/augment-framework.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 import {augmentUi} from '../src/pve-ui-catalog.js';
 import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-api/pve/combat.js';
@@ -64,9 +64,9 @@ const positive={
 27:({run,p})=>{run.phase='REWARD_ROOM';let added=0;fire(run,p,'REWARD_RANKED',{rank:1,resolved:{valid:true},addCandidate:()=>++added});assert.equal(added,1);},
 28:({run,p})=>{discoveries(run,p,3);assert.deepEqual(run.players.map(x=>x.growthExp),[14,14,14,14]);},
 29:({run,p})=>{discoveries(run,p,2);fire(run,p,'BOSS_CLEAR');assert.deepEqual(run.players.map(x=>x.runGold),[2,2,2,2]);},
-30:({run,p})=>{discoveries(run,p,3);fire(run,p,'BOSS_CLEAR');assert.equal(run.players.flatMap(x=>x.relics).length,1);assert.equal(Object.values(run.augmentFramework.relicOpportunities)[0].status,'GRANTED');}
+30:({run,p})=>{discoveries(run,p,3);fire(run,p,'BOSS_CLEAR');const [key,op]=Object.entries(run.augmentFramework.relicOpportunities)[0];assert.equal(op.status,'PENDING');assert.equal(chooseRelicOpportunity(run,op.playerId,key,op.candidateIds[0]).applied,true);assert.equal(run.players.flatMap(x=>x.relics).length,1);}
 };
-for(let n=1;n<=30;n++)test('005B-A positive '+aid(n),()=>positive[n](fixture(n)));
+for(let n=1;n<=30;n++)test('005B-A positive '+aid(n),()=>{const f=fixture(n);positive[n](f);assert.ok(f.run.augmentFramework.telemetry.some(x=>x.augmentId===aid(n)&&x.triggerCount===1&&x.successCount===1),aid(n)+' telemetry');});
 for(const n of [1,3,6,9])test('005B-A negative '+aid(n)+' invalid breaks streak',()=>{
  const {run,p}=fixture(n);attack(run,p,1,false);assert.equal(attack(run,p,2).damage.amount,n===6?6:5);
 });
@@ -146,4 +146,33 @@ test('005B-A candidate acquisition E2E after real room clear; next room and reco
  const saved=structuredClone(run);saved.phase='COMBAT';saved.combat=newCombatState(saved.players,999);saved.combat.id='next-room';const owner=saved.players[0];
  attack(saved,owner,1);attack(saved,owner,2);assert.equal(attack(saved,owner,3).damage.amount,7);
  const restored=JSON.parse(JSON.stringify(saved));assert.ok(restored.players[0].augments.includes(aid(3)));assert.equal(attack(restored,restored.players[0],4).damage.amount,7);
+});
+
+test('005B-A negative equipment conditions and caps; FINAL_NUMBER alternation',()=>{
+ const a=fixture(13);equipStart(a.run,a.p);attack(a.run,a.p,3);a.run.combat.privateByPlayer.p0.cycleIndex++;attack(a.run,a.p,2);attack(a.run,a.p,3);assert.equal(a.p.growthExp,2);
+ const b=fixture(14);equipStart(b.run,b.p);attack(b.run,b.p,4);attack(b.run,b.p,4);assert.equal(attack(b.run,b.p,5).damage.amount,6);attack(b.run,b.p,1);assert.equal(attack(b.run,b.p,5).damage.amount,5);
+ const c=fixture(17);equipStart(c.run,c.p);attack(c.run,c.p,2);attack(c.run,c.p,2);attack(c.run,c.p,3);assert.equal(attack(c.run,c.p,5).damage.amount,6);
+ const d=fixture(19);equipStart(d.run,d.p);attack(d.run,d.p,2);const status=d.run.augmentFramework.statuses.find(x=>x.sourceId==='aug-019');assert.equal(status.payload.amount,2);
+});
+test('005B-A negative discovery and Reward rank; lowest HP ties use lobby seats',()=>{
+ const a=fixture(22);fire(a.run,a.p,'CARD_VALIDATED',{resolved:{valid:true,finalNumber:1},cards:[1,2,3,3].map(finalNumber=>({valid:true,finalNumber}))});assert.equal(a.p.growthExp,0);
+ const b=fixture(25);discover(b.run,b.p);assert.equal(b.p.growthExp,1);
+ const c=fixture(27);c.run.phase='REWARD_ROOM';let added=0;fire(c.run,c.p,'REWARD_RANKED',{rank:2,resolved:{valid:true},addCandidate:()=>++added});assert.equal(added,0);
+ const d=fixture(12);equipStart(d.run,d.p);d.run.players[1].hp=d.run.players[2].hp=1;attack(d.run,d.p,2);assert.equal(d.run.augmentFramework.statuses.find(x=>x.sourceId==='aug-012').targetId,'p1');
+});
+test('005B-A relic opportunity confirms once after reconnect and hides other players candidates',()=>{
+ const {run,p}=fixture(30);discoveries(run,p,3);fire(run,p,'BOSS_CLEAR');const saved=JSON.parse(JSON.stringify(run));
+ const [id,op]=Object.entries(saved.augmentFramework.relicOpportunities)[0];
+ assert.equal(projectRun(saved,'p1').privateRelicOpportunity,undefined);assert.deepEqual(projectRun(saved,op.playerId).privateRelicOpportunity.candidateIds,op.candidateIds);
+ assert.throws(()=>chooseRelicOpportunity(saved,'p1',id,op.candidateIds[0]),/OWNER/);
+ assert.throws(()=>chooseRelicOpportunity(saved,op.playerId,id,'forged'),/CANDIDATE/);
+ assert.equal(chooseRelicOpportunity(saved,op.playerId,id,op.candidateIds[0]).applied,true);
+ assert.equal(chooseRelicOpportunity(saved,op.playerId,id,op.candidateIds[0]).applied,false);
+ assert.equal(saved.players.flatMap(x=>x.relics).length,1);
+});
+test('005B-A full inventory at final confirmation fails permanently without replacement',()=>{
+ const {run,p}=fixture(30);run.relicInventoryLimit=1;
+ grantRelicOpportunity(run,p,{applicationId:'late-full'});const op=run.augmentFramework.relicOpportunities['late-full'];
+ p.relics=['another'];assert.equal(chooseRelicOpportunity(run,p.playerId,'late-full',op.candidateIds[0]).reason,'FULL_INVENTORY');
+ p.relics=[];assert.equal(chooseRelicOpportunity(run,p.playerId,'late-full',op.candidateIds[0]).applied,false);
 });
