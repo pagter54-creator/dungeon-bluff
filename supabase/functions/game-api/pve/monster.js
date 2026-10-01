@@ -73,10 +73,11 @@ export function applyMonsterDamage(run,originalPlayer,amount,damageType,{damageE
   const redirect=guardianRedirect(run,originalPlayer,damageType,events,id,rawDamage);
   const player=redirect.target;
   if(!player||player.status==='DOWNED')return events;
+  const hpBefore=player.hp;
   const incomingDamage={amount:rawDamage};
   const beforeEffects=incomingDamage.amount;
   if(damageType==='DIRECT')consumeDirectDamageReduction(run,player,incomingDamage);
-  applyOwnedEffects(run,'BEFORE_PLAYER_DAMAGE',{player,incomingDamage,damageType,damageEventId:id,events});
+  applyOwnedEffects(run,'BEFORE_PLAYER_DAMAGE',{player,incomingDamage,damageType,damageEventId:id,events,redirectedFrom:redirect.redirected?originalPlayer.playerId:null,redirectSource:redirect.redirectSource||null,sourceAugmentId:redirect.redirected?(redirect.redirectSource===player.playerId?'GUARDIAN_REDIRECT':null):null});
   const afterEffects=Math.max(0,Number(incomingDamage.amount)||0);
   const effectPrevented=Math.max(0,beforeEffects-afterEffects);
   const armor=Math.max(0,Number(player.publicResources.armor)||0),blocked=Math.min(armor,afterEffects);
@@ -96,7 +97,7 @@ export function applyMonsterDamage(run,originalPlayer,amount,damageType,{damageE
       ...(blocked>0?[{type:'ARMOR',amount:blocked}]:[])
     ]
   });
-  applyOwnedEffects(run,'PLAYER_DAMAGED',{player,damage:{amount:actual},damageType,damageEventId:id,events});
+  applyOwnedEffects(run,'PLAYER_DAMAGED',{player,damage:{amount:actual},damageType,damageEventId:id,events,hpBefore,hpAfter:player.hp,redirectedFrom:redirect.redirected?originalPlayer.playerId:null,redirectSource:redirect.redirectSource||null});
   onMonsterPlayerDamagedCharacter(player,{damageType,actualDamage:actual,events});
   if(player.hp>=1)c.pendingDownPlayerIds=c.pendingDownPlayerIds.filter(pid=>pid!==player.playerId);
   return events;
