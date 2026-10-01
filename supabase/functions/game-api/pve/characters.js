@@ -385,8 +385,6 @@ export function resolveGuardianWallCollisions(run,cards,groups,events=[]){
         const pa=run.players.find(p=>p.playerId===a.playerId),pb=run.players.find(p=>p.playerId===b.playerId);
         return (pa?.seat??999)-(pb?.seat??999)||a.playerId.localeCompare(b.playerId);
       });
-      const requested=run.phase==='COMBAT'&&guardianPlayer.augments.includes('aug-046')?String(submission?.skillData?.targetPlayerId||submission?.skillData?.target_player_id||''):null;
-      if(requested&&candidates.some(card=>card.playerId===requested))candidates=[...candidates.filter(card=>card.playerId===requested),...candidates.filter(card=>card.playerId!==requested)];
       const maxRescues=run.phase==='COMBAT'&&guardianPlayer.augments.includes('aug-048')?2:1;
       const rescued=candidates.slice(0,maxRescues);if(!rescued.length)continue;
       guardian.valid=false;guardian.invalidReason='COLLISION';guardian.guardianSacrifice=true;
