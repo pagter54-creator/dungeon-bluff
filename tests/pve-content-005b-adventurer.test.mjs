@@ -1,3 +1,5 @@
+import {handlePveAction} from '../supabase/functions/game-api/pve/api.js';
+import {enterShopRoom,buyShopRelic,enterRewardRoom,submitRewardCard,resolveRewardAttempt} from '../supabase/functions/game-api/pve/rooms.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -175,4 +177,48 @@ test('005B-A full inventory at final confirmation fails permanently without repl
  grantRelicOpportunity(run,p,{applicationId:'late-full'});const op=run.augmentFramework.relicOpportunities['late-full'];
  p.relics=['another'];assert.equal(chooseRelicOpportunity(run,p.playerId,'late-full',op.candidateIds[0]).reason,'FULL_INVENTORY');
  p.relics=[];assert.equal(chooseRelicOpportunity(run,p.playerId,'late-full',op.candidateIds[0]).applied,false);
+});
+
+test('005B-A DESIGN-B precedence parity for all eight authored Adventurer contracts',()=>{
+ const design=JSON.parse(readFileSync(new URL('../docs/PVE_CONTENT_005Q_DESIGN_B.json',import.meta.url)));
+ const rows=design.entries.filter(x=>x.class==='adventurer');assert.equal(rows.length,8);
+ for(const source of rows){const runtime=ADVENTURER_CONTRACTS[source.augmentId];for(const field of ['trigger','condition','effect','value','cap','onceScope','resetScope','persistenceScope','roomApplicability','visibility','tooltip'])assert.deepEqual(runtime[field],source[field],source.augmentId+':'+field);}
+});
+test('005B-A complete equipment archetype acquired through all four stages executes together',()=>{
+ const {run,p}=fixture(11);p.augments=[];
+ for(const [threshold,id] of [[50,11],[150,13],[350,17],[750,19]]){run.phase='ROOM_RESULT';p.growthExp=threshold;beginAugmentChoices(run);chooseAugment(run,p.playerId,aid(id));}
+ assert.deepEqual(p.augments,['aug-011','aug-013','aug-017','aug-019']);run.phase='COMBAT';p.growthExp=0;
+ equipStart(run,p);attack(run,p,2);attack(run,p,3);assert.equal(attack(run,p,5).damage.amount,11);assert.equal(p.growthExp,2);
+});
+test('005B-A real Shop consumes discount only on successful purchase; no Gold gain modifier',()=>{
+ const {run,p}=fixture(26);discoveries(run,p,2);enterShopRoom(run);p.runGold=10;
+ const item=run.roomState.relicStock[0],base=item.price;
+ assert.equal(projectRun(run,p.playerId).roomState.relicStock[0].price,base-1);
+ buyShopRelic(run,p.playerId,item.id);assert.equal(p.runGold,10-base+1);
+ assert.equal(adventurerShopPrice(run,p,4),4);assert.equal(p.growthExp,2);
+});
+test('005B-A real Reward ranking reveals one extra candidate and retains pick order',()=>{
+ const {run,p}=fixture(27);delete run.combat;enterRewardRoom(run);
+ [5,4,3,2].forEach((number,i)=>{const player=run.players[i];submitRewardCard(run,player.playerId,player.cardPool.find(x=>x.baseNumber===number).id);});
+ resolveRewardAttempt(run);assert.equal(run.roomState.relicIds.length,5);assert.equal(run.roomState.pickOrder[0],p.playerId);
+ assert.deepEqual(run.roomState.publicTurnResult.cards.map(x=>x.damage),[5,4,3,2]);
+});
+test('005B-A camp protection does not stack across owners',()=>{
+ const {run,p}=fixture(12);run.players[1].augments=['aug-011','aug-012'];run.players[2].hp=1;
+ equipStart(run,p);attack(run,p,2);equipStart(run,run.players[1]);attack(run,run.players[1],2);
+ assert.equal(run.augmentFramework.statuses.filter(x=>x.sourceId==='aug-012'&&x.targetId==='p2').length,1);
+ const before=run.players[2].hp;applyMonsterDamage(run,run.players[2],1,'DIRECT');assert.equal(run.players[2].hp,before);
+});
+test('005B-A relic confirmation API persists choice and action replay grants nothing twice',async()=>{
+ const {run,p}=fixture(30);run.id=crypto.randomUUID();discoveries(run,p,3);fire(run,p,'BOSS_CLEAR');
+ const [id,op]=Object.entries(run.augmentFramework.relicOpportunities)[0],actionId=crypto.randomUUID();
+ let saved=structuredClone(run),result=null;
+ const admin={rpc:async(name,args)=>{
+ if(name==='pve_read')return {data:{state:structuredClone(saved),version:saved.version,action_result:result},error:null};
+ if(name==='pve_try_commit'){saved=structuredClone(args.p_state);saved.version=1;result={state:structuredClone(saved),committed_version:1};return {data:{state:saved,version:1},error:null};}
+ throw new Error(name);
+ }};
+ const body={action:'pve.chooseRelicOpportunity',run_id:run.id,action_id:actionId,expected_version:0,opportunity_id:id,relic_id:op.candidateIds[0]};
+ const response=await handlePveAction({admin,user:{id:'u0'},body,json:x=>x});assert.equal(response.run.players[0].relics.length,1);assert.equal(response.run.privateRelicOpportunity,undefined);
+ const retry=await handlePveAction({admin,user:{id:'u0'},body,json:x=>x});assert.equal(retry.idempotent,true);assert.equal(retry.run.players[0].relics.length,1);
 });
