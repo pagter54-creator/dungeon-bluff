@@ -1,9 +1,20 @@
 {
-  "schemaVersion": "005B_B_AUDIT_V1",
+  "schemaVersion": "005B_B_AUDIT_V2",
   "scope": "KNIGHT_ONLY",
+  "verifiedCodeHead": "979da0d2436e3fdfc38fa8d40178c1509472dfe1",
+  "projectChecks": {
+    "runNumber": 596,
+    "runId": 36893095266,
+    "status": "SUCCESS"
+  },
   "previousOverall005B": {
     "executable": 39,
-    "target": 150
+    "target": 150,
+    "preexistingKnightExecutable": [
+      "aug-031",
+      "aug-041",
+      "aug-051"
+    ]
   },
   "knight": {
     "target": 30,
@@ -12,38 +23,7 @@
     "dataOnly": 0,
     "missing": 0,
     "unsupported": 0,
-    "ids": [
-      "aug-031",
-      "aug-032",
-      "aug-033",
-      "aug-034",
-      "aug-035",
-      "aug-036",
-      "aug-037",
-      "aug-038",
-      "aug-039",
-      "aug-040",
-      "aug-041",
-      "aug-042",
-      "aug-043",
-      "aug-044",
-      "aug-045",
-      "aug-046",
-      "aug-047",
-      "aug-048",
-      "aug-049",
-      "aug-050",
-      "aug-051",
-      "aug-052",
-      "aug-053",
-      "aug-054",
-      "aug-055",
-      "aug-056",
-      "aug-057",
-      "aug-058",
-      "aug-059",
-      "aug-060"
-    ],
+    "candidateCoverage": 30,
     "archetypes": {
       "불굴의 기사": 10,
       "수호벽": 10,
@@ -54,51 +34,90 @@
       "2": 9,
       "3": 9,
       "4": 9
-    },
-    "candidateCoverage": 30
+    }
   },
   "overall005B": {
     "target": 150,
     "executable": 66,
     "deltaThisBatch": 27,
-    "whyNot69": "aug-031, aug-041, and aug-051 were already executable inside the prior 39/150 registry; only 27 unique IDs were newly registered.",
-    "complete": false
+    "whyNot69": "aug-031, aug-041, and aug-051 were already executable inside the prior 39/150 registry, so only 27 unique executable IDs were added."
   },
-  "highRisk": [
-    "aug-037",
-    "aug-038",
-    "aug-041",
-    "aug-045",
-    "aug-049",
-    "aug-052",
-    "aug-055",
-    "aug-057",
-    "aug-060"
-  ],
+  "roomMatrix": {
+    "combat": "30/30",
+    "event": [
+      "aug-038",
+      "aug-041",
+      "aug-044",
+      "aug-045"
+    ],
+    "reward": [
+      "aug-038",
+      "aug-041",
+      "aug-044",
+      "aug-045"
+    ],
+    "shop": [],
+    "rest": []
+  },
+  "highRisk": {
+    "ids": [
+      "aug-037",
+      "aug-038",
+      "aug-041",
+      "aug-045",
+      "aug-049",
+      "aug-052",
+      "aug-055",
+      "aug-057",
+      "aug-060"
+    ],
+    "allCovered": true,
+    "namedKnightSuiteTestsTouchingHighRisk": 13,
+    "existingNamedHighRiskRegressionsFor041049052": 5
+  },
+  "tests": {
+    "total": 730,
+    "pass": 730,
+    "fail": 0,
+    "knightSuiteExecuted": 45,
+    "positiveCardCases": 30,
+    "dedicatedNegativeCases": 5,
+    "reconnectCases": 2,
+    "fullArchetypeBuilds": 3,
+    "candidateAcquisitionE2E": 1,
+    "mixedParty": 1
+  },
+  "verification": {
+    "npm test": "PASS 730/730",
+    "npm run check": "PASS",
+    "npm run pve:stress:smoke": "PASS",
+    "pve:beta:preflight": "PASS",
+    "100SeedStages": [
+      "T06 PASS",
+      "T02 PASS",
+      "T00 PASS",
+      "T05 PASS",
+      "T09 PASS",
+      "T04 PASS",
+      "T03 PASS"
+    ]
+  },
   "invariants": {
     "betaV01RowsUnchanged": true,
     "stableIdsUnchanged": true,
     "stressGoldensAndFixturesUnchanged": true,
-    "adventurerRuntimePreserved": true,
-    "newRogueMageBerserkerRuntimeCount": 0
+    "adventurer30of30Preserved": true,
+    "newRogueMageBerserkerRuntimeCount": 0,
+    "supabaseProductionMutated": false
   },
-  "verification": {
-    "commands": {
-      "npm test": "PENDING_FINAL_CI",
-      "npm run check": "PENDING_FINAL_CI",
-      "npm run pve:stress:smoke": "PENDING_FINAL_CI"
-    },
-    "projectChecks": "PENDING_FINAL_CI"
-  },
-  "testPlan": {
-    "positiveCardCases": 30,
-    "fullArchetypeBuilds": 3,
-    "candidateAcquisitionE2E": 1,
-    "reconnectIntegration": 1,
-    "multipleKnightIntegration": 1,
-    "negativeCasesAtLeast": 5,
-    "existingHighRiskRegressionFile": "tests/pve-content-005b-high-risk.test.mjs"
-  },
-  "balanceWarning": "BALANCE_WARNING_005B_B: none introduced by implementation; values preserved from contract.",
-  "runtimeBlockers": []
+  "balanceWarning005BB": null,
+  "existingGlobalBalanceWarnings": [
+    "BALANCE_WARNING_F2",
+    "BALANCE_WARNING_F3"
+  ],
+  "runtimeBlockers": [],
+  "finalFlags": {
+    "KNIGHT_RUNTIME_COMPLETE": true,
+    "READY_FOR_PVE_CONTENT_005B_C_ROGUE": true
+  }
 }
