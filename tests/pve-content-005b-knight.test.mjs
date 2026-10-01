@@ -188,6 +188,7 @@ for(const spec of [
   p.growthExp=750;const run={id:'knight-build-'+spec.ids[0],seed:'build',rngCounter:0,version:1,phase:'ROOM_RESULT',floor:1,players:[p],map:{depthCount:8}};
   assert.equal(beginAugmentChoices(run,'ROOM_RESULT'),true);
   for(let tier=1;tier<=4;tier++){
+    if(!run.augmentChoice){run.phase='ROOM_RESULT';assert.equal(beginAugmentChoices(run,'ROOM_RESULT'),true);}
     const offer=run.augmentChoice.offersByPlayer.p0;
     assert.equal(offer.length,3);
     assert.ok(offer.every(id=>AUGMENT_BY_ID[id].tier===tier));
