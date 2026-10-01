@@ -1,3 +1,4 @@
+import {chooseRelicOpportunity} from './augment-framework.js';
 import {newPlayerRunState,newCombatState} from './model.js';
 import {PVE_CHARACTER_DEFS} from './characters.js';
 import {GAME_MODE,roomGameMode} from '../game-mode.js';
@@ -221,6 +222,8 @@ export async function handlePveAction({admin,user,body,json}){
     if(typeof body.card_instance_id!=='string')return fail(json,'card_instance_id가 필요합니다.');
     submitCard(run,me.playerId,body.card_instance_id,body.skill_intent===true,body.skill_data??null);
     resolveBasicTurn(run);
+  } else if(action==='pve.chooseRelicOpportunity'){
+    chooseRelicOpportunity(run,me.playerId,body.opportunity_id,body.relic_id);
   } else if(action==='pve.chooseAugment'){
     if(typeof body.augment_id!=='string')return fail(json,'augment_id가 필요합니다.');
     chooseAugment(run,me.playerId,body.augment_id);
