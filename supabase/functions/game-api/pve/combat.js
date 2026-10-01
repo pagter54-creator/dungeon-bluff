@@ -198,7 +198,7 @@ export function resolveBasicTurn(run){
   const mutationEvents=[],events=[...(c.pendingSkillEvents||[])];c.pendingSkillEvents=[];
   initializeNumberHistories(cards);
   c.phase='PRE_COLLISION_SELF_MODIFY';phaseTrace.push(c.phase);
-  for(const rc of cards){const p=playerFor(run,rc.playerId),submission=c.turnSubmissions[rc.playerId];if(submission.skillIntent)applyOwnedEffects(run,'ON_SKILL_USE',{player:p,resolved:rc,submission,events});selfModifyCard(p,rc,submission);applyOwnedEffects(run,'PRE_COLLISION_SELF_MODIFY',{player:p,resolved:rc,events});}
+  for(const rc of cards){const p=playerFor(run,rc.playerId),submission=c.turnSubmissions[rc.playerId];if(submission.skillIntent)applyOwnedEffects(run,'ON_SKILL_USE',{player:p,resolved:rc,submission,privateState:c.privateByPlayer[p.playerId],events});selfModifyCard(p,rc,submission);applyOwnedEffects(run,'PRE_COLLISION_SELF_MODIFY',{player:p,resolved:rc,events});}
   recordSelfModification(cards,mutationEvents);
   c.phase='PRE_COLLISION_SWAP';phaseTrace.push(c.phase);for(const rc of cards)applyOwnedEffects(run,'PRE_COLLISION',{player:playerFor(run,rc.playerId),resolved:rc,events});applyPreCollisionSwap(run,cards,mutationEvents);
   c.phase='PRE_COLLISION_STEAL';phaseTrace.push(c.phase);applyPreCollisionSteal(run,cards,mutationEvents);
@@ -214,7 +214,7 @@ export function resolveBasicTurn(run){
   assignVampireThralls(run,cards,groups,events);
   c.phase='POST_COLLISION_EFFECTS';phaseTrace.push(c.phase);
   const processedCollisionEventIds=new Set();
-  const collisionGroups=resolvePostCollisionEffects(run,cards,groups,events,mutationEvents,processedCollisionEventIds);for(const rc of cards)applyOwnedEffects(run,'POST_COLLISION',{player:playerFor(run,rc.playerId),resolved:rc,events});
+  const collisionGroups=resolvePostCollisionEffects(run,cards,groups,events,mutationEvents,processedCollisionEventIds);for(const rc of cards)applyOwnedEffects(run,'POST_COLLISION',{player:playerFor(run,rc.playerId),resolved:rc,submission:c.turnSubmissions[rc.playerId],privateState:c.privateByPlayer[rc.playerId],events});
   c.phase='VALIDITY_DERIVE';phaseTrace.push(c.phase);
   const validCards=cards.filter(x=>x.valid),lowestNumber=validCards.length?Math.min(...validCards.map(x=>x.finalNumber)):null;
   const lowestCards=validCards.filter(x=>x.finalNumber===lowestNumber);
@@ -292,7 +292,7 @@ export function resolveBasicTurn(run){
     numberHistories:cards.map(card=>structuredClone(card.numberHistory)),
     mutationEvents:structuredClone(mutationEvents)
   });
-  for(const packet of packets){const p=playerFor(run,packet.sourcePlayerId);applyOwnedEffects(run,'AFTER_DAMAGE',{player:p,damage:{amount:packet.amount},followUp:packet.followUp,packet,events:[]});}
+  for(const packet of packets){const p=playerFor(run,packet.sourcePlayerId),resolved=cards.find(x=>x.playerId===packet.sourcePlayerId);applyOwnedEffects(run,'AFTER_DAMAGE',{player:p,resolved,damage:{amount:packet.amount},followUp:packet.followUp,packet,events:[]});}
   for(const rc of cards)if(rc.valid)onValidAttack(playerFor(run,rc.playerId),run,rc,events);
   c.phase='POST_PLAYER_ATTACK';phaseTrace.push(c.phase);
   for(const rc of cards.filter(x=>x.valid))applyPostPlayerAttackCharacter(run,rc,events);
@@ -362,7 +362,7 @@ export function resolveBasicTurn(run){
     recordCombatTurnTelemetry(run,c.publicTurnResult);finalizeCombatTelemetry(run,'RUN_FAILED');
     return c.publicTurnResult;
   }
-  for(const p of run.players){onTurnEndCharacter(p,run,events);applyOwnedEffects(run,'TURN_END',{player:p,events});}
+  for(const p of run.players){onTurnEndCharacter(p,run,events);applyOwnedEffects(run,'TURN_END',{player:p,privateState:c.privateByPlayer[p.playerId],events});}
   cleanupAugmentScope(run,'TURN');
   c.phase='TURN_END';phaseTrace.push(c.phase);
   c.publicTurnResult=buildTurnResult();
