@@ -179,6 +179,7 @@ export function submitCard(run,playerId,cardInstanceId,skillIntent=false,skillDa
   const priv=c.privateByPlayer[playerId],card=cardFor(run,playerId,cardInstanceId);
   if(!priv||!priv.remainingCardIds.includes(cardInstanceId)||!card)throw new Error('Card is not available.');
   if(!isCardSelectableForCharacter(p,card))throw new Error('현재 쌍둥이 홀짝 상태에 맞는 카드만 선택할 수 있습니다.');
+  if(skillData?.equipmentCategory!=null&&(!p.augments.includes('aug-020')||!['LOW','UTILITY','WEAPON'].includes(skillData.equipmentCategory)))throw new Error('INVALID_EQUIPMENT_CATEGORY');
   validateCharacterSkillIntent(p,priv,Boolean(skillIntent),card,skillData);
   c.turnSubmissions[playerId]={playerId,cardInstanceId,skillIntent:Boolean(skillIntent),skillData:skillData==null?null:structuredClone(skillData),submittedAt:new Date().toISOString()};
   priv.selectedCardId=cardInstanceId;priv.skillIntent=Boolean(skillIntent);
@@ -218,7 +219,7 @@ export function resolveBasicTurn(run){
   const validCards=cards.filter(x=>x.valid),lowestNumber=validCards.length?Math.min(...validCards.map(x=>x.finalNumber)):null;
   const lowestCards=validCards.filter(x=>x.finalNumber===lowestNumber);
   for(const rc of cards)rc.soloLowest=Boolean(rc.valid&&lowestCards.length===1&&lowestCards[0]===rc);
-  for(const rc of cards){const p=playerFor(run,rc.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player:p,resolved:rc,events});resolvePostCollisionCharacter(run,rc,c.turnSubmissions[rc.playerId],events);}
+  for(const rc of cards){const p=playerFor(run,rc.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player:p,resolved:rc,cards,events});resolvePostCollisionCharacter(run,rc,c.turnSubmissions[rc.playerId],events);}
   attachValidity(cards);
   applyMonsterCardRules(run,cards,events);
   c.phase='DAMAGE_BUILD';phaseTrace.push(c.phase);
