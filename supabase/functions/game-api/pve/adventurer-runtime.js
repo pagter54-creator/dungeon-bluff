@@ -29,6 +29,7 @@ function partyGold(run,owner,id,amount,key){
   for(const p of run.players){const result=grantAugmentGold(run,p,amount,id,key+':'+owner.playerId+':'+p.playerId);if(result.applied)record(run,id,'GOLD_GRANT',true,{goldGranted:result.resourceDelta});}
 }
 function protect(run,p,id,target,amount){
+  if(id==='aug-012')framework(run).statuses=framework(run).statuses.filter(x=>x.sourceId!==id||x.targetId!==target.playerId);
   upsertAugmentStatus(run,p,{statusId:'NEXT_DIRECT_DAMAGE_REDUCTION:'+id+':'+target.playerId,targetId:target.playerId,sourceId:id,payload:{amount}});
   record(run,id,'PROTECTION',true,{protectionApplied:amount});
 }
