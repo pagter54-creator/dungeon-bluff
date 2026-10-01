@@ -1,3 +1,4 @@
+import {grantAugmentExp} from './augment-framework.js';
 import {choose} from './rng.js';
 import {GAMBLER_BASE_DECK} from './gambler.js';
 import {clearCombatResources,clearResourcesByScope,resourceMax} from './resources.js';
@@ -648,7 +649,10 @@ export function onCombatEndCharacter(player,run=null){
   if(priv){delete priv.revelationPeek;delete priv.demonNormalCardPool;delete priv.demonNormalRemaining;delete priv.demonNormalSpent;delete priv.demonNormalCycleIndex;}
 }
 export function onValidAttack(player,run=null,resolved=null,events=[]){
-  if(player.characterId==='adventurer')player.growthExp+=1;
+  if(player.characterId==='adventurer'){
+    if(run?.combat&&resolved)grantAugmentExp(run,player,1,'ADVENTURER_BASE',`base-exp:${run.combat.id}:${run.combat.turn}:${player.playerId}:${resolved.cardInstanceId}`);
+    else player.growthExp+=1;
+  }
   if(player.characterId==='demon_swordsman'){
     const rootActionId=run?.combat&&resolved?`action:${run.combat.id}:${run.combat.turn}:${player.playerId}:${resolved.cardInstanceId}`:null;
     const context={rootActionId,recoveryChainId:rootActionId?`reactivation:${rootActionId}`:null,sourceEffectId:'DEMON_BASE',chainDepth:1};
