@@ -37,7 +37,7 @@ const handlers={};
 const register=(ids,trigger,handler)=>{for(const id of ids){handlers[id]||={};handlers[id][trigger]=handler;}};
 register(['aug-001','aug-003','aug-006','aug-009'],'CARD_VALIDATED',(run,p,id,ctx)=>{
   const s=scopedAdventurerState(run,p,id),r=ctx.resolved;
-  if(id==='aug-001')return false; // The fixed reference handler owns this card's public veteran resource.
+  if(id==='aug-001')return Boolean(r.valid); // The fixed reference handler owns this card's public veteran resource.
   s.streak=r.valid?Math.min(id==='aug-006'?3:Number.MAX_SAFE_INTEGER,(s.streak||0)+1):0;
   const threshold=id==='aug-003'?3:id==='aug-009'?4:1,amount=id==='aug-009'?3:id==='aug-006'?s.streak:1;
   record(run,id,'STREAK',r.valid,{streakMax:s.streak});
@@ -159,7 +159,7 @@ register(['aug-029','aug-030'],'BOSS_CLEAR',(run,p,id,ctx)=>{
   if(id==='aug-029')partyGold(run,p,id,1,token(run,p,ctx)+':'+id);
   else{
     const result=grantRelicOpportunity(run,p,{applicationId:run.id+':aug-030',sourceAugmentId:id});
-    record(run,id,'RELIC_OPPORTUNITY',result.applied,{relicGranted:result.applied?1:0,reason:result.reason});
+    record(run,id,'RELIC_OPPORTUNITY',result.applied,{relicGranted:result.applied&&!result.pending?1:0,reason:result.reason});
   }
   return true;
 });
@@ -173,7 +173,7 @@ export function applyAdventurer(run,trigger,ctx={}){
   if(ctx.followUp)return [];
   const p=ctx.player;if(!p)return [];
   const ids=(p.augments||[]).filter(id=>ADVENTURER_CONTRACTS[id]);
-  const hasNextDamage=framework(run).statuses.some(x=>x.targetId===p.playerId&&x.statusId.startsWith('NEXT_VALID_DAMAGE:'));
+  const hasNextDamage=Boolean(ctx.resolved?.adventurerBonuses&&Object.keys(ctx.resolved.adventurerBonuses).length)||framework(run).statuses.some(x=>x.targetId===p.playerId&&x.statusId.startsWith('NEXT_VALID_DAMAGE:'));
   if(!ids.length&&!hasNextDamage)return [];
   const room=ctx.roomTypeOverride|| (run.phase==='REWARD_ROOM'?'REWARD':run.phase);
   const allowed=ids.filter(id=>trigger==='ON_ACQUIRE'||ADVENTURER_CONTRACTS[id].roomApplicability[room]);
