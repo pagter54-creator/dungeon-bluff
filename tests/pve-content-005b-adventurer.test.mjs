@@ -132,7 +132,7 @@ test('005B-A negative relic opportunity duplicate/full inventory terminal failur
 test('005B-A seeded relic grant determinism and Gold idempotency',()=>{
  const {run,p}=fixture(30);discoveries(run,p,3);const a=structuredClone(run),b=structuredClone(run);
  fire(a,a.players[0],'BOSS_CLEAR');fire(b,b.players[0],'BOSS_CLEAR');assert.deepEqual(a,b);
- const gold=fixture(23);discover(gold.run,gold.p);fire(gold.run,gold.p,'MONSTER_KILLED');fire(gold.run,gold.p,'MONSTER_KILLED');assert.equal(gold.p.runGold,2);assert.equal(gold.p.growthExp,1);
+ const gold=fixture(23);discover(gold.run,gold.p);fire(gold.run,gold.p,'MONSTER_KILLED');fire(gold.run,gold.p,'MONSTER_KILLED');assert.equal(gold.p.runGold,2);assert.equal(gold.p.growthExp,1);const sources=Object.values(gold.run.augmentFramework.grants).map(x=>x.sourceAugmentId);assert.ok(sources.includes('ADVENTURER_BASE_GOLD'));assert.ok(sources.includes('aug-023'));
 });
 test('005B-A full equipment archetype and mixed archetype ordering',()=>{
  const {run,p}=fixture(19);p.augments=[aid(11),aid(13),aid(17),aid(19),aid(3)];
