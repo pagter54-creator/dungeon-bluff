@@ -1,4 +1,5 @@
 import {ADVENTURER_CONTRACTS} from './adventurer-contracts.js';
+import {KNIGHT_CONTRACTS} from './knight-contracts.js';
 export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
   'aug-001':{
     ...ADVENTURER_CONTRACTS['aug-001'],
@@ -38,8 +39,7 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
   'aug-003':{executable:true,source:'BETA_v0.2',tooltip:"전투에서 유효 공격을 2회 연속 성공한 뒤, 3번째부터 연속 성공 공격의 피해가 1 증가합니다. 자신의 공격이 무효가 되면 기록이 초기화됩니다.",specialHandlers:['CONTENT_005B'],effects:[]},
   'aug-004':{executable:true,source:'BETA_v0.2',tooltip:"전투에서 첫 충돌 후 다음 유효 공격에 성공하면 성장 EXP 1을 추가로 얻습니다. 전투당 1회입니다.",specialHandlers:['CONTENT_005B'],effects:[]},
   'aug-031':{
-    executable:true,
-    source:'BETA_v0.1',
+    ...KNIGHT_CONTRACTS['aug-031'],
     effects:[
       {
         id:'aug-031-toughness-cap',
@@ -143,16 +143,14 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
     effects:[]
   },
   'aug-041':{
-    executable:true,
-    source:'BETA_v0.1',
-    specialHandlers:['GUARDIAN_WALL'],
+    ...KNIGHT_CONTRACTS['aug-041'],
+    specialHandlers:['GUARDIAN_WALL','KNIGHT_V02'],
     config:{guardedAlliesPerTurn:1,redirectCount:1,redirectDamageMode:'FULL'},
     effects:[]
   },
   'aug-051':{
-    executable:true,
-    source:'BETA_v0.1',
-    specialHandlers:['CRUSH_KNIGHT'],
+    ...KNIGHT_CONTRACTS['aug-051'],
+    specialHandlers:['CRUSH_KNIGHT','KNIGHT_V02'],
     config:{crushDamagePerCard:1,crushDamageCap:2},
     effects:[]
   },
@@ -264,6 +262,7 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
       }
     ]
   },
+  ...Object.fromEntries(Object.entries(KNIGHT_CONTRACTS).filter(([id])=>!['aug-031','aug-041','aug-051'].includes(id)).map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['KNIGHT_V02']}])) ,
   ...Object.fromEntries(Object.entries(ADVENTURER_CONTRACTS).filter(([id])=>id!=='aug-001').map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['ADVENTURER_V02']}]))
 });
 
