@@ -118,9 +118,9 @@ test('PVE-008 offers only executable augments and skips thresholds with no runti
   assert.deepEqual(dueAugmentTiers(run.players[0]),[1]);
   assert.equal(beginAugmentChoices(run,'MAP_VOTE'),true);assert.equal(run.phase,'AUGMENT_CHOICE');
   assert.deepEqual(run.augmentChoice.pendingByPlayer.p0,[1]);
-  assert.deepEqual(run.augmentChoice.offersByPlayer.p0,['aug-001']);
+  assert.deepEqual(run.augmentChoice.offersByPlayer.p0,['aug-001','aug-011','aug-021']);
   assert.equal(run.players[2].augments.length,1);assert.equal(run.augmentChoice.pendingByPlayer.p2.length,0);
-  assert.throws(()=>chooseAugment(run,'p0','aug-011'),/제시된/);
+  assert.throws(()=>chooseAugment(run,'p0','aug-002'),/제시된/);
   chooseAugment(run,'p0','aug-001');
   assert.equal(run.players[0].augmentBuild,'노련한 탐험가');
   assert.deepEqual(run.players[0].augments,['aug-001']);
@@ -146,7 +146,7 @@ test('PVE-008 viewer projection exposes only the viewer offer while keeping sele
   run.phase='ROOM_RESULT';run.players[0].growthExp=50;run.players[1].growthExp=50;
   beginAugmentChoices(run,'ROOM_RESULT');
   const view=projectRun(run,'p0'),raw=JSON.stringify(view);
-  assert.deepEqual(view.privateAugmentOffer,{tier:1,augmentIds:['aug-001']});
+  assert.deepEqual(view.privateAugmentOffer,{tier:1,augmentIds:['aug-001','aug-011','aug-021']});
   assert.deepEqual(view.augmentChoice.pendingPlayerIds.sort(),['p0','p1']);
   assert.equal(raw.includes('offersByPlayer'),false);assert.equal(raw.includes('pendingByPlayer'),false);
   chooseAugment(run,'p1','aug-031');
@@ -162,5 +162,5 @@ test('PVE-008 combat integration gates room result when a valid attack crosses t
   assert.equal(run.players[0].growthExp,50);
   assert.equal(run.phase,'AUGMENT_CHOICE');
   assert.deepEqual(run.augmentChoice.pendingByPlayer.p0,[1]);
-  assert.deepEqual(run.augmentChoice.offersByPlayer.p0,['aug-001']);
+  assert.deepEqual(run.augmentChoice.offersByPlayer.p0,['aug-001','aug-011','aug-021']);
 });
