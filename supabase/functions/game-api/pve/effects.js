@@ -98,6 +98,7 @@ export function applyOwnedEffects(run,trigger,ctx={}){
   for(const player of players){
     const defs=definitionsFor(run,player).filter(e=>e.trigger===trigger&&(!ctx.followUp||(e.tags||[]).includes('MULTI_HIT'))).sort((a,b)=>(a.priority||0)-(b.priority||0)||String(a.augmentId).localeCompare(String(b.augmentId))||String(a.id).localeCompare(String(b.id)));
     for(const effect of defs){
+      if(effect.augmentId==='aug-001'&&run.phase!=='COMBAT')continue;
       if(['EVENT','REWARD_ROOM'].includes(run.phase)&&['CARD_VALIDATED','BEFORE_DAMAGE','AFTER_DAMAGE'].includes(trigger)&&String(effect.augmentId).startsWith('aug-'))continue;
       const local={...ctx,run,player,privateState:ctx.privateState||privateState(run,player)};
       if(!conditionMatches(effect.condition,local)){recordEffectTelemetry(run,effect,player.playerId,false);continue;}
