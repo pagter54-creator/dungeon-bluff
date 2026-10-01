@@ -1,3 +1,4 @@
+import {assertAdventurerHandler} from './adventurer-runtime.js';
 import {choose} from './rng.js';
 import {AUGMENT_BY_ID,augmentCandidates} from './augment-catalog.js';
 import {advanceCompletedFloor} from './floor-transition.js';
@@ -24,7 +25,9 @@ export function grantGrowthExp(run,playerId,amount){
   return amount;
 }
 function offerFor(player,tier){
-  return augmentCandidates(player.characterId,tier,player.augmentBuild).filter(x=>x.executable===true).map(x=>x.id);
+  const candidates=augmentCandidates(player.characterId,tier,player.augmentBuild).filter(x=>x.executable===true&&!player.augments.includes(x.id));
+  if(player.characterId==='adventurer')for(const x of candidates)assertAdventurerHandler(x.id);
+  return candidates.map(x=>x.id);
 }
 function refreshOffer(run,playerId){
   const state=run.augmentChoice,tiers=state?.pendingByPlayer?.[playerId]||[];
