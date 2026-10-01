@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "005B_B_AUDIT_V1",
+  "scope": "KNIGHT_ONLY",
+  "previousOverall005B": {
+    "executable": 39,
+    "target": 150
+  },
+  "knight": {
+    "target": 30,
+    "registered": 30,
+    "executable": 30,
+    "dataOnly": 0,
+    "missing": 0,
+    "unsupported": 0,
+    "ids": [
+      "aug-031",
+      "aug-032",
+      "aug-033",
+      "aug-034",
+      "aug-035",
+      "aug-036",
+      "aug-037",
+      "aug-038",
+      "aug-039",
+      "aug-040",
+      "aug-041",
+      "aug-042",
+      "aug-043",
+      "aug-044",
+      "aug-045",
+      "aug-046",
+      "aug-047",
+      "aug-048",
+      "aug-049",
+      "aug-050",
+      "aug-051",
+      "aug-052",
+      "aug-053",
+      "aug-054",
+      "aug-055",
+      "aug-056",
+      "aug-057",
+      "aug-058",
+      "aug-059",
+      "aug-060"
+    ],
+    "archetypes": {
+      "불굴의 기사": 10,
+      "수호벽": 10,
+      "압살 기사": 10
+    },
+    "stageDistribution": {
+      "1": 3,
+      "2": 9,
+      "3": 9,
+      "4": 9
+    },
+    "candidateCoverage": 30
+  },
+  "overall005B": {
+    "target": 150,
+    "executable": 66,
+    "deltaThisBatch": 27,
+    "whyNot69": "aug-031, aug-041, and aug-051 were already executable inside the prior 39/150 registry; only 27 unique IDs were newly registered.",
+    "complete": false
+  },
+  "highRisk": [
+    "aug-037",
+    "aug-038",
+    "aug-041",
+    "aug-045",
+    "aug-049",
+    "aug-052",
+    "aug-055",
+    "aug-057",
+    "aug-060"
+  ],
+  "invariants": {
+    "betaV01RowsUnchanged": true,
+    "stableIdsUnchanged": true,
+    "stressGoldensAndFixturesUnchanged": true,
+    "adventurerRuntimePreserved": true,
+    "newRogueMageBerserkerRuntimeCount": 0
+  },
+  "verification": {
+    "commands": {
+      "npm test": "PENDING_FINAL_CI",
+      "npm run check": "PENDING_FINAL_CI",
+      "npm run pve:stress:smoke": "PENDING_FINAL_CI"
+    },
+    "projectChecks": "PENDING_FINAL_CI"
+  },
+  "testPlan": {
+    "positiveCardCases": 30,
+    "fullArchetypeBuilds": 3,
+    "candidateAcquisitionE2E": 1,
+    "reconnectIntegration": 1,
+    "multipleKnightIntegration": 1,
+    "negativeCasesAtLeast": 5,
+    "existingHighRiskRegressionFile": "tests/pve-content-005b-high-risk.test.mjs"
+  },
+  "balanceWarning": "BALANCE_WARNING_005B_B: none introduced by implementation; values preserved from contract.",
+  "runtimeBlockers": []
+}
