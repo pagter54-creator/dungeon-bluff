@@ -6,6 +6,7 @@ import {applyOwnedEffects} from '../supabase/functions/game-api/pve/effects.js';
 import {onCycleStartCharacter,resolveGuardianWallCollisions} from '../supabase/functions/game-api/pve/characters.js';
 import {applyMonsterDamage} from '../supabase/functions/game-api/pve/monster.js';
 import {AUGMENT_BY_ID,augmentCandidates} from '../supabase/functions/game-api/pve/augment-catalog.js';
+import {beginAugmentChoices,chooseAugment} from '../supabase/functions/game-api/pve/augments.js';
 
 function fixture(augments=[]){
   const ids=['warrior','adventurer','adventurer','adventurer'];
@@ -175,4 +176,78 @@ test('aug-060 gains Advance on crush, applies it immediately, then decays after 
 test('combat-only Knight bonuses do not leak into Event while 038/044/045 remain room-capable',()=>{
   const {run,p,priv}=fixture(['aug-038','aug-053','aug-055']);run.phase='EVENT';const submission={skillIntent:true};applyKnight(run,'ON_SKILL_USE',{player:p,submission,privateState:priv});assert.equal(submission.knightFreeToughness,true);
   const resolved=crush(2,5),damage={amount:5};applyKnight(run,'POST_COLLISION',{player:p,resolved,submission,privateState:priv});applyKnight(run,'BEFORE_DAMAGE',{player:p,resolved,damage});assert.equal(damage.amount,5);
+});
+
+
+for(const spec of [
+  {name:'불굴 full build',line:'불굴의 기사',ids:['aug-031','aug-032','aug-035','aug-038']},
+  {name:'수호벽 full build',line:'수호벽',ids:['aug-041','aug-042','aug-045','aug-048']},
+  {name:'압살 full build',line:'압살 기사',ids:['aug-051','aug-052','aug-055','aug-058']}
+])test(spec.name+' acquires Stage 1→4 from exact three-card offers',()=>{
+  const p=newPlayerRunState({id:'p0',user_id:'u0',character_id:'warrior',member_type:'human',seat_index:0});
+  p.growthExp=750;const run={id:'knight-build-'+spec.ids[0],seed:'build',rngCounter:0,version:1,phase:'ROOM_RESULT',floor:1,players:[p],map:{depthCount:8}};
+  assert.equal(beginAugmentChoices(run,'ROOM_RESULT'),true);
+  for(let tier=1;tier<=4;tier++){
+    const offer=run.augmentChoice.offersByPlayer.p0;
+    assert.equal(offer.length,3);
+    assert.ok(offer.every(id=>AUGMENT_BY_ID[id].tier===tier));
+    if(tier>1)assert.ok(offer.every(id=>AUGMENT_BY_ID[id].build===spec.line));
+    assert.ok(offer.includes(spec.ids[tier-1]));
+    chooseAugment(run,'p0',spec.ids[tier-1]);
+  }
+  assert.deepEqual(p.augments,spec.ids);
+  assert.deepEqual(p.persistentCharacterState.augmentTiers,[1,2,3,4]);
+  assert.equal(run.phase,'ROOM_RESULT');
+});
+
+test('Knight candidate acquisition survives reconnect and activates the selected Stage-1 runtime',()=>{
+  const p=newPlayerRunState({id:'p0',user_id:'u0',character_id:'warrior',member_type:'human',seat_index:0});p.growthExp=50;
+  const run={id:'knight-acquire',seed:'acquire',rngCounter:0,version:1,phase:'ROOM_RESULT',floor:1,players:[p],map:{depthCount:8}};
+  beginAugmentChoices(run,'ROOM_RESULT');assert.deepEqual(run.augmentChoice.offersByPlayer.p0,['aug-031','aug-041','aug-051']);
+  chooseAugment(run,'p0','aug-031');const restored=structuredClone(run),owner=restored.players[0];
+  restored.phase='COMBAT';restored.combat=newCombatState(restored.players,999);applyOwnedEffects(restored,'COMBAT_START',{player:owner});
+  assert.ok(owner.augments.includes('aug-031'));assert.equal(owner.publicResources.toughnessChargesMax,3);
+});
+
+test('Knight reconnect preserves Toughness, free-use, guard mark, recovered card, breakthrough and Advance state',()=>{
+  const {run,p,priv}=fixture(['aug-031','aug-038','aug-041','aug-045','aug-049','aug-057','aug-060']);
+  p.publicResources.toughnessChargesMax=3;p.publicResources.toughnessCharges=3;
+  const submission={skillIntent:true};applyKnight(run,'ON_SKILL_USE',{player:p,submission,privateState:priv});
+  p.publicResources.guardianTargetPlayerId='p1';
+  run.augmentFramework.statuses.push({statusId:'GUARDIAN_EXTRA_REDIRECT',sourceType:'AUGMENT',sourceId:'aug-049',ownerId:'p0',targetId:'p1',stacks:1,cap:1,payload:{ready:true},resetScope:'COMBAT',visibility:'PUBLIC'});
+  const recoverId='p0:base:2';applyKnight(run,'POST_COLLISION',{player:p,resolved:{...guardResolved(),cardInstanceId:recoverId},submission:{skillIntent:true},privateState:priv});
+  priv.remainingCardIds=priv.remainingCardIds.filter(x=>x!==recoverId);priv.spentCardIds.push(recoverId);applyKnight(run,'TURN_END',{player:p,privateState:priv});
+  p.publicResources.toughnessCharges=3;run.combat.turn=2;applyKnight(run,'TURN_END',{player:p,privateState:priv});
+  applyKnight(run,'POST_COLLISION',{player:p,resolved:crush(),submission:{skillIntent:true},privateState:priv});
+  const restored=structuredClone(run),rp=restored.players[0],rpriv=restored.combat.privateByPlayer.p0;
+  assert.equal(rp.publicResources.toughnessChargesMax,3);
+  assert.equal(rpriv.knightToughnessFreeUsedCycle,1);
+  assert.equal(rp.publicResources.guardianTargetPlayerId,'p1');
+  assert.ok(restored.augmentFramework.statuses.some(x=>x.sourceId==='aug-049'));
+  assert.ok(rpriv.remainingCardIds.includes(recoverId));
+  assert.equal(restored.augmentFramework.knight.p0.advance,1);
+});
+
+test('multiple Knights keep independent Toughness and deterministic Guardian ownership',()=>{
+  const {run}=fixture([]);const p0=run.players[0],p1=run.players[1];
+  p0.augments=['aug-041'];p1.characterId='warrior';p1.augments=['aug-041'];p1.cardPool=p0.cardPool.map((x,i)=>({...x,id:'p1:base:'+(i+1)}));p1.publicResources.toughnessCharges=1;
+  run.combat.turnSubmissions={p0:{skillIntent:true},p1:{skillIntent:true},p2:{},p3:{}};
+  const cards=['p0','p1','p2','p3'].map(playerId=>({playerId,invalidReason:'COLLISION',valid:false}));
+  resolveGuardianWallCollisions(run,cards,new Map([[5,cards]]),[]);
+  assert.equal(p0.publicResources.guardianTargetPlayerId,'p2');
+  assert.equal(p1.publicResources.guardianTargetPlayerId,'p3');
+});
+
+test('negative: aug-038 second legal activation in the same cycle is not free',()=>{
+  const {run,p,priv}=fixture(['aug-038']);let sub={skillIntent:true};applyKnight(run,'ON_SKILL_USE',{player:p,submission:sub,privateState:priv});assert.equal(sub.knightFreeToughness,true);
+  sub={skillIntent:true};applyKnight(run,'ON_SKILL_USE',{player:p,submission:sub,privateState:priv});assert.equal(sub.knightFreeToughness,undefined);
+});
+test('negative: aug-037 does not trigger merely because combat starts at HP 1',()=>{
+  const {run,p}=fixture(['aug-037']);p.hp=1;p.publicResources.toughnessCharges=0;applyKnight(run,'COMBAT_START',{player:p});applyKnight(run,'PLAYER_DAMAGED',{player:p,hpBefore:1,hpAfter:1,damage:{amount:0}});assert.equal(p.publicResources.toughnessCharges,0);
+});
+test('negative: aug-055 does not trigger when only one opposing card was actually removed',()=>{
+  const {run,p,priv}=fixture(['aug-055']);const resolved=crush(1);applyKnight(run,'POST_COLLISION',{player:p,resolved,submission:{skillIntent:true},privateState:priv});const damage={amount:5};applyKnight(run,'BEFORE_DAMAGE',{player:p,resolved,damage});assert.equal(damage.amount,5);
+});
+test('negative: crush bonuses do not trigger on a normal valid attack',()=>{
+  const {run,p,priv}=fixture(['aug-053','aug-055','aug-058']);const resolved={valid:true,finalNumber:5,collisionImmune:false,crushedCardCount:0};applyKnight(run,'POST_COLLISION',{player:p,resolved,submission:{skillIntent:false},privateState:priv});const damage={amount:5};applyKnight(run,'BEFORE_DAMAGE',{player:p,resolved,damage});assert.equal(damage.amount,5);
 });
