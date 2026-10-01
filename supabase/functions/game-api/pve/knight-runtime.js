@@ -169,3 +169,9 @@ export function applyKnight(run,trigger,ctx={}){
   }
   return fired;
 }
+
+export function assertKnightHandler(augmentId){
+  const n=Number(String(augmentId||'').replace('aug-',''));
+  if(!Number.isInteger(n)||n<31||n>60){const error=new Error('Knight augment handler is missing.');error.code='KNIGHT_RUNTIME_HANDLER_MISSING';throw error;}
+  return true;
+}
