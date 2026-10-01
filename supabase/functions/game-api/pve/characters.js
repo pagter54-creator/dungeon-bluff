@@ -4,6 +4,7 @@ import {GAMBLER_BASE_DECK} from './gambler.js';
 import {clearCombatResources,clearResourcesByScope,resourceMax} from './resources.js';
 import {executableAugmentRuntime} from './augment-runtime.js';
 import {upsertAugmentStatus} from './augment-framework.js';
+import {consumeKnightNextCycleBonus,knightFreeUseAvailable} from './knight-runtime.js';
 
 export const PVE_CHARACTER_DEFS={
   adventurer:{deck:[1,2,3,4,5],skillId:'gold_bonus'},
@@ -138,7 +139,10 @@ export function onTurnStartCharacter(player,run){
   }
 }
 export function onCycleStartCharacter(player,privateState){
-  if(player.characterId==='warrior')player.publicResources.toughnessCharges=Math.min(resourceMax(player,'toughnessCharges',2),(player.publicResources.toughnessCharges||0)+1);
+  if(player.characterId==='warrior'){
+    player.publicResources.toughnessCharges=Math.min(resourceMax(player,'toughnessCharges',2),(player.publicResources.toughnessCharges||0)+1);
+    consumeKnightNextCycleBonus(player);
+  }
   if(player.characterId==='gunner'){
     player.publicResources.fullBurstReady=(privateState.cycleIndex||1)>=(player.publicResources.burstReadyCycle||1);
   }
@@ -178,7 +182,7 @@ export function validateCharacterSkillIntent(player,privateState,skillIntent,car
     if(player.augments.includes('aug-351'))rejectSkill('INVALID_SKILL_REQUEST','해방된 귀검은 귀참 대신 귀화를 사용합니다.');
     if(!player.publicResources.ghostSlashReady)rejectSkill('SKILL_NOT_READY','이번 사이클의 귀참을 이미 사용했습니다.');
   }
-  if(player.characterId==='warrior'&&(player.publicResources.toughnessCharges||0)<1)rejectSkill('INSUFFICIENT_RESOURCE','강인함 충전이 없습니다.');
+  if(player.characterId==='warrior'&&(player.publicResources.toughnessCharges||0)<1&&!knightFreeUseAvailable(player,privateState))rejectSkill('INSUFFICIENT_RESOURCE','강인함 충전이 없습니다.');
   if(player.characterId==='mage'){
     const mana=player.publicResources.mana||0;
     if(player.augments.includes('aug-111')){
@@ -343,9 +347,9 @@ export function selfModifyCard(player,resolved,submission){
 }
 export function collisionImmunity(player,submission){
   if(player.characterId!=='warrior'||!submission.skillIntent)return false;
-  const charges=player.publicResources.toughnessCharges||0;
-  if(charges<1)rejectSkill('INSUFFICIENT_RESOURCE','강인함 충전이 없습니다.');
-  player.publicResources.toughnessCharges=charges-1;
+  const charges=player.publicResources.toughnessCharges||0,free=Boolean(submission.knightFreeToughness);
+  if(!free&&charges<1)rejectSkill('INSUFFICIENT_RESOURCE','강인함 충전이 없습니다.');
+  if(!free)player.publicResources.toughnessCharges=charges-1;
   if(player.augments.includes('aug-041'))return false;
   return true;
 }
@@ -370,7 +374,8 @@ export function resolveGuardianWallCollisions(run,cards,groups,events=[]){
     });
     for(const guardian of guardians){
       const guardianPlayer=run.players.find(p=>p.playerId===guardian.playerId);
-      const candidates=[...group].filter(card=>{
+      const submission=(run.combat||run.roomState)?.turnSubmissions?.[guardian.playerId];
+      let candidates=[...group].filter(card=>{
         if(card.playerId===guardian.playerId||card.invalidReason!=='COLLISION'||card.valid)return false;
         const targetPlayer=run.players.find(p=>p.playerId===card.playerId);
         const targetSubmission=(run.combat||run.roomState)?.turnSubmissions?.[card.playerId];
@@ -380,21 +385,27 @@ export function resolveGuardianWallCollisions(run,cards,groups,events=[]){
         const pa=run.players.find(p=>p.playerId===a.playerId),pb=run.players.find(p=>p.playerId===b.playerId);
         return (pa?.seat??999)-(pb?.seat??999)||a.playerId.localeCompare(b.playerId);
       });
-      const target=candidates[0];if(!target)continue;
-      target.valid=true;delete target.invalidReason;target.guardianRescued=true;target.guardianRescuedBy=guardian.playerId;
-      guardian.valid=false;guardian.invalidReason='COLLISION';guardian.guardianSacrifice=true;guardian.guardianRescueTargetId=target.playerId;
+      const requested=guardianPlayer.augments.includes('aug-046')?String(submission?.skillData?.targetPlayerId||submission?.skillData?.target_player_id||''):null;
+      if(requested&&candidates.some(card=>card.playerId===requested))candidates=[...candidates.filter(card=>card.playerId===requested),...candidates.filter(card=>card.playerId!==requested)];
+      const maxRescues=run.phase==='COMBAT'&&guardianPlayer.augments.includes('aug-048')?2:1;
+      const rescued=candidates.slice(0,maxRescues);if(!rescued.length)continue;
+      guardian.valid=false;guardian.invalidReason='COLLISION';guardian.guardianSacrifice=true;
+      guardian.guardianRescueTargetId=rescued[0].playerId;guardian.guardianRescueTargetIds=rescued.map(card=>card.playerId);
+      for(const target of rescued){
+        target.valid=true;delete target.invalidReason;target.guardianRescued=true;target.guardianRescuedBy=guardian.playerId;
+        const guardEventId=`guard:${run.floor}:${run.depth}:${run.combat?.monster?.id||'combat'}:${run.combat?.turn||run.roomState?.attempt||0}:${guardian.playerId}:${target.playerId}`;
+        events.push({type:'GUARDIAN_WALL_RESCUE',phase:'COLLISION_RESOLVE',guardEventId,finalNumber:Number(finalNumber),playerId:guardian.playerId,targetId:target.playerId,redirectCount:1});
+        rescueCount++;
+      }
       if(run.phase==='COMBAT'){
-         guardianPlayer.publicResources.guardianTargetPlayerId=target.playerId;
-         if(guardianPlayer.augments.includes('aug-049'))upsertAugmentStatus(run,guardianPlayer,{statusId:'GUARDIAN_EXTRA_REDIRECT',targetId:target.playerId,sourceId:'aug-049',payload:{ready:false}});
-       }
-      const guardEventId=`guard:${run.floor}:${run.depth}:${run.combat?.monster?.id||'combat'}:${run.combat?.turn||0}:${guardian.playerId}`;
-      events.push({type:'GUARDIAN_WALL_RESCUE',phase:'COLLISION_RESOLVE',guardEventId,finalNumber:Number(finalNumber),playerId:guardian.playerId,targetId:target.playerId,redirectCount:1});
-      rescueCount++;
+        const protectedTarget=rescued[0];
+        guardianPlayer.publicResources.guardianTargetPlayerId=protectedTarget.playerId;
+        if(guardianPlayer.augments.includes('aug-049'))upsertAugmentStatus(run,guardianPlayer,{statusId:'GUARDIAN_EXTRA_REDIRECT',targetId:protectedTarget.playerId,sourceId:'aug-049',payload:{ready:false}});
+      }
     }
   }
   return rescueCount;
 }
-
 export function resolvePostCollisionEffects(run,cards,groups,events=[],mutationEvents=[],processedCollisionEventIds=new Set()){
   const collisionGroups=[];
   const entries=[...groups.entries()].filter(([,group])=>group.length>1).sort((a,b)=>Number(a[0])-Number(b[0]));
