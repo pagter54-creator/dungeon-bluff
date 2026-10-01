@@ -1,5 +1,7 @@
+import {ADVENTURER_CONTRACTS} from './adventurer-contracts.js';
 export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
   'aug-001':{
+    ...ADVENTURER_CONTRACTS['aug-001'],
     executable:true,
     source:'BETA_v0.1',
     effects:[
@@ -261,7 +263,8 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
         tags:['T05','NUMBER_MUTATION']
       }
     ]
-  }
+  },
+  ...Object.fromEntries(Object.entries(ADVENTURER_CONTRACTS).filter(([id])=>id!=='aug-001').map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['ADVENTURER_V02']}]))
 });
 
 export function executableAugmentRuntime(augmentId){return EXECUTABLE_AUGMENT_RUNTIME[augmentId]||null;}
