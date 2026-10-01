@@ -16,7 +16,8 @@ export const ADVENTURER_CONTRACTS=Object.freeze({
       "text": "연속 유효 공격 2회째부터 해당 공격에 추가 피해 +1. 충돌 시 연속 기록 0."
     },
     "value": {
-      "description": "연속 유효 공격 2회째부터 해당 공격에 추가 피해 +1. 충돌 시 연속 기록 0."
+      "activationStreak": 2,
+      "bonusDamage": 1
     },
     "cap": {
       "text": "NONE",
@@ -76,7 +77,8 @@ export const ADVENTURER_CONTRACTS=Object.freeze({
       "text": "최대 HP +1, 획득 시 HP1 회복."
     },
     "value": {
-      "description": "최대 HP +1, 획득 시 HP1 회복."
+      "maxHp": 1,
+      "heal": 1
     },
     "cap": {
       "text": "MAX_HP",
@@ -195,10 +197,10 @@ export const ADVENTURER_CONTRACTS=Object.freeze({
       "POST_COLLISION",
       "ON_VALID"
     ],
-    "condition": "전투 첫 충돌 이후 다음 유효 성공에 추가 성장 EXP 보너스.",
+    "condition": "전투에서 첫 충돌 후 다음 유효 공격에 성공하면 성장 EXP 1을 추가로 얻습니다. 전투당 1회입니다.",
     "effect": {
-      "sourceField": "betaValue",
-      "text": "조건 달성 시 EXP +1."
+      "sourceField": "BETA_V0_2_COMPLETION",
+      "text": "전투에서 첫 충돌 후 다음 유효 공격에 성공하면 성장 EXP 1을 추가로 얻습니다. 전투당 1회입니다."
     },
     "value": {
       "extraExp": 1
@@ -256,14 +258,14 @@ export const ADVENTURER_CONTRACTS=Object.freeze({
       "ON_VALID",
       "PRE_DAMAGE"
     ],
-    "condition": "전투 첫 피격을 완화하고 이후 다음 유효 공격을 강화.",
+    "condition": "전투 첫 직접 피격을 1 줄이고 이후 다음 유효 공격 피해를 1 높입니다. 전투당 1회입니다.",
     "effect": {
-      "sourceField": "betaValue",
-      "text": "다음 직접 피해 1 감소."
+      "sourceField": "BETA_V0_2_COMPLETION",
+      "text": "전투 첫 직접 피격을 1 줄이고 이후 다음 유효 공격 피해를 1 높입니다. 전투당 1회입니다."
     },
     "value": {
-      "reduction": 1,
-      "bonusDamage": 1
+      "directReduction": 1,
+      "nextAttackDamage": 1
     },
     "cap": {
       "perResolution": 1
@@ -318,15 +320,15 @@ export const ADVENTURER_CONTRACTS=Object.freeze({
       "ON_INVALID",
       "PRE_DAMAGE"
     ],
-    "condition": "연속 유효 성공 횟수가 높을수록 공격 보너스가 단계적으로 증가.",
+    "condition": "연속 유효 공격마다 숙련이 1 증가하며 최대 3입니다. 현재 공격은 숙련당 피해 +1을 얻습니다. 무효 제출과 전투 종료 시 초기화됩니다.",
     "effect": {
-      "sourceField": "betaValue",
-      "text": "조건 1회당 스택 +1(최대 3); 스택 1당 관련 효과 +1 피해 상당."
+      "sourceField": "BETA_V0_2_COMPLETION",
+      "text": "연속 유효 공격마다 숙련이 1 증가하며 최대 3입니다. 현재 공격은 숙련당 피해 +1을 얻습니다. 무효 제출과 전투 종료 시 초기화됩니다."
     },
     "value": {
       "stackGain": 1,
       "stackCap": 3,
-      "bonusPerStack": 1
+      "damagePerStack": 1
     },
     "cap": {
       "text": "최대 3",
@@ -385,7 +387,8 @@ export const ADVENTURER_CONTRACTS=Object.freeze({
       "text": "모험가 기본 추가 EXP가 3번째 유효 공격마다 1회 추가로 발동해 EXP +1."
     },
     "value": {
-      "description": "모험가 기본 추가 EXP가 3번째 유효 공격마다 1회 추가로 발동해 EXP +1."
+      "everyValid": 3,
+      "extraExp": 1
     },
     "cap": {
       "perResolution": 1
@@ -443,7 +446,8 @@ export const ADVENTURER_CONTRACTS=Object.freeze({
       "text": "최대 HP +1, 획득 시 HP1 회복."
     },
     "value": {
-      "description": "최대 HP +1, 획득 시 HP1 회복."
+      "maxHp": 1,
+      "heal": 1
     },
     "cap": {
       "text": "MAX_HP",
@@ -568,7 +572,8 @@ export const ADVENTURER_CONTRACTS=Object.freeze({
       "text": "전투 종료 시 유효 공격 성공률이 80% 이상이면 EXP +3."
     },
     "value": {
-      "description": "전투 종료 시 유효 공격 성공률이 80% 이상이면 EXP +3."
+      "requiredSuccessRate": 0.8,
+      "extraExp": 3
     },
     "cap": {
       "perResolution": 1
@@ -622,15 +627,16 @@ export const ADVENTURER_CONTRACTS=Object.freeze({
       "ON_VALID",
       "PRE_DAMAGE"
     ],
-    "condition": "직전 제출 숫자와 다른 숫자로 유효 성공 시: 1~2 = 다음 직접 피해 1 감소, 3 = EXP +1, 4~5 = 추가 피해 +1",
+    "condition": "직전 제출과 다른 FINAL_NUMBER로 유효 성공하면 장비가 발동합니다. 1~2 방어: 다음 직접 피해 -1, 3 탐험: EXP +1, 4~5 무기: 피해 +1. 종류별 사이클당 1회, 장비 EXP 전투 상한 2입니다.",
     "effect": {
-      "sourceField": "betaValue",
-      "text": "직전 제출 숫자와 다른 숫자로 유효 성공 시: 1~2 = 다음 직접 피해 1 감소, 3 = EXP +1, 4~5 = 추가 피해 +1."
+      "sourceField": "BETA_V0_2_COMPLETION",
+      "text": "직전 제출과 다른 FINAL_NUMBER로 유효 성공하면 장비가 발동합니다. 1~2 방어: 다음 직접 피해 -1, 3 탐험: EXP +1, 4~5 무기: 피해 +1. 종류별 사이클당 1회, 장비 EXP 전투 상한 2입니다."
     },
     "value": {
-      "LOW": 1,
-      "UTILITY": 1,
-      "WEAPON": 1
+      "lowReduction": 1,
+      "utilityExp": 1,
+      "weaponDamage": 1,
+      "equipmentExpCombatCap": 2
     },
     "cap": {
       "text": "NONE",
@@ -879,16 +885,16 @@ export const ADVENTURER_CONTRACTS=Object.freeze({
       "ON_VALID",
       "PRE_DAMAGE"
     ],
-    "condition": "직전 숫자와 차이가 2 이상이면 이번 장비 효과 강화.",
+    "condition": "직전 제출과 숫자 차이가 2 이상인 유효 장비는 강화됩니다. 방어는 다음 피해 감소 +1, 탐험은 EXP +1(전투 상한 2), 무기는 피해 +2입니다.",
     "effect": {
-      "sourceField": "betaValue",
-      "text": "조건 달성 시 추가 피해 +2."
+      "sourceField": "BETA_V0_2_COMPLETION",
+      "text": "직전 제출과 숫자 차이가 2 이상인 유효 장비는 강화됩니다. 방어는 다음 피해 감소 +1, 탐험은 EXP +1(전투 상한 2), 무기는 피해 +2입니다."
     },
     "value": {
-      "requiredNumberDifference": 2,
-      "weaponBonusDamage": 2,
-      "lowAdditionalReduction": 1,
-      "utilityAdditionalExp": 1
+      "difference": 2,
+      "lowExtraReduction": 1,
+      "utilityExtraExp": 1,
+      "weaponExtraDamage": 2
     },
     "cap": {
       "text": "최대 3스택",
@@ -942,14 +948,14 @@ export const ADVENTURER_CONTRACTS=Object.freeze({
       "ON_VALID",
       "PRE_DAMAGE"
     ],
-    "condition": "한 사이클 안에 방어·탐험·공격 장비를 모두 발동하면 준비 완료 보너스.",
+    "condition": "한 사이클에서 방어·탐험·무기 장비를 모두 유효하게 사용하면 세 번째 장비의 공격 피해가 2 증가합니다. 사이클당 1회입니다.",
     "effect": {
-      "sourceField": "betaValue",
-      "text": "조건 달성 시 추가 피해 +2."
+      "sourceField": "BETA_V0_2_COMPLETION",
+      "text": "한 사이클에서 방어·탐험·무기 장비를 모두 유효하게 사용하면 세 번째 장비의 공격 피해가 2 증가합니다. 사이클당 1회입니다."
     },
     "value": {
-      "bonusDamage": 2,
-      "requiredCategories": 3
+      "categories": 3,
+      "bonusDamage": 2
     },
     "cap": {
       "text": "최대 3스택",
@@ -1088,7 +1094,10 @@ export const ADVENTURER_CONTRACTS=Object.freeze({
       "text": "한 사이클에서 방어·탐험·공격 장비를 모두 발동하면 다음 유효 성공에 세 효과를 동시에 적용: 다음 직접 피해 1 감소 + EXP1 + 추가 피해1."
     },
     "value": {
-      "description": "한 사이클에서 방어·탐험·공격 장비를 모두 발동하면 다음 유효 성공에 세 효과를 동시에 적용: 다음 직접 피해 1 감소 + EXP1 + 추가 피해1."
+      "categories": 3,
+      "nextLowReduction": 1,
+      "nextExp": 1,
+      "nextDamage": 1
     },
     "cap": {
       "text": "NONE",
@@ -1210,13 +1219,14 @@ export const ADVENTURER_CONTRACTS=Object.freeze({
       "ON_VALID",
       "PRE_DAMAGE"
     ],
-    "condition": "직전 숫자와 다른 숫자로 유효 성공할 때 숫자 구간과 무관하게 방어/탐험/공격 중 1개를 선택",
+    "condition": "직전 제출과 다른 FINAL_NUMBER로 유효 성공할 때 방어·탐험·무기 중 선택한 장비를 발동합니다. 종류별 사이클당 1회와 장비 EXP 전투 상한 2는 유지됩니다.",
     "effect": {
-      "sourceField": "betaValue",
-      "text": "직전 숫자와 다른 숫자로 유효 성공할 때 숫자 구간과 무관하게 방어/탐험/공격 중 1개를 선택."
+      "sourceField": "BETA_V0_2_COMPLETION",
+      "text": "직전 제출과 다른 FINAL_NUMBER로 유효 성공할 때 방어·탐험·무기 중 선택한 장비를 발동합니다. 종류별 사이클당 1회와 장비 EXP 전투 상한 2는 유지됩니다."
     },
     "value": {
-      "choiceCount": 1
+      "choiceCount": 1,
+      "equipmentExpCombatCap": 2
     },
     "cap": {
       "perResolution": 1
@@ -1274,7 +1284,8 @@ export const ADVENTURER_CONTRACTS=Object.freeze({
       "text": "4명이 서로 다른 숫자로 모두 유효 성공하면 '기적의 발견': 전원 EXP +1."
     },
     "value": {
-      "description": "4명이 서로 다른 숫자로 모두 유효 성공하면 '기적의 발견': 전원 EXP +1."
+      "distinctValidPlayers": 4,
+      "partyExp": 1
     },
     "cap": {
       "perResolution": 1
@@ -1394,7 +1405,7 @@ export const ADVENTURER_CONTRACTS=Object.freeze({
       "text": "기적의 발견이 발생한 전투 승리 시 전원 골드 +1G."
     },
     "value": {
-      "description": "기적의 발견이 발생한 전투 승리 시 전원 골드 +1G."
+      "partyGold": 1
     },
     "cap": {
       "perResolution": 1
@@ -1448,13 +1459,13 @@ export const ADVENTURER_CONTRACTS=Object.freeze({
       "ON_VALID",
       "PRE_DAMAGE"
     ],
-    "condition": "기적의 발견 직후 모든 아군의 다음 유효 공격에 작은 보너스.",
+    "condition": "기적의 발견 후 전원 다음 유효 공격 피해가 1 증가합니다. 발견을 일으킨 현재 공격은 제외하며 전투 종료 시 소멸합니다.",
     "effect": {
-      "sourceField": "betaValue",
-      "text": "다음 유효 공격 추가 피해 +1."
+      "sourceField": "BETA_V0_2_COMPLETION",
+      "text": "기적의 발견 후 전원 다음 유효 공격 피해가 1 증가합니다. 발견을 일으킨 현재 공격은 제외하며 전투 종료 시 소멸합니다."
     },
     "value": {
-      "bonusDamage": 1
+      "nextAttackDamage": 1
     },
     "cap": {
       "text": "NONE",
@@ -1513,7 +1524,7 @@ export const ADVENTURER_CONTRACTS=Object.freeze({
       "text": "엘리트/보스에서 기적의 발견 시 기본 보상 외 전원 EXP +2 추가."
     },
     "value": {
-      "description": "엘리트/보스에서 기적의 발견 시 기본 보상 외 전원 EXP +2 추가."
+      "partyExtraExp": 2
     },
     "cap": {
       "perResolution": 1
@@ -1572,7 +1583,8 @@ export const ADVENTURER_CONTRACTS=Object.freeze({
       "text": "한 층에서 기적의 발견 2회 달성 시 다음 상점 첫 구매 가격 -1G."
     },
     "value": {
-      "description": "한 층에서 기적의 발견 2회 달성 시 다음 상점 첫 구매 가격 -1G."
+      "floorDiscoveries": 2,
+      "firstShopPriceReduction": 1
     },
     "cap": {
       "perResolution": 1
@@ -1624,12 +1636,13 @@ export const ADVENTURER_CONTRACTS=Object.freeze({
     "trigger": [
       "ON_VALID"
     ],
-    "condition": "보상방에서 본인이 유효 통과하고 최종 피해 상위 2명 안이면 유물 후보 +1개 공개 후 기존 선택 규칙 적용",
+    "condition": "보상방에서 유효 통과하고 최종 피해 순위 상위 2명이면 공용 유물 후보를 1개 추가 공개합니다. 방당 1회, 기존 선택 순서를 유지합니다.",
     "effect": {
-      "sourceField": "betaValue",
-      "text": "보상방에서 본인이 유효 통과하고 최종 피해 상위 2명 안이면 유물 후보 +1개 공개 후 기존 선택 규칙 적용."
+      "sourceField": "BETA_V0_2_COMPLETION",
+      "text": "보상방에서 유효 통과하고 최종 피해 순위 상위 2명이면 공용 유물 후보를 1개 추가 공개합니다. 방당 1회, 기존 선택 순서를 유지합니다."
     },
     "value": {
+      "rankTop": 2,
       "extraCandidates": 1
     },
     "cap": {
@@ -1689,7 +1702,8 @@ export const ADVENTURER_CONTRACTS=Object.freeze({
       "text": "기적의 발견 시 전원 EXP +2 추가; 한 층 3회 달성 시 전원 EXP +5 추가."
     },
     "value": {
-      "description": "기적의 발견 시 전원 EXP +2 추가; 한 층 3회 달성 시 전원 EXP +5 추가."
+      "partyExtraExp": 2,
+      "thirdFloorDiscoveryExtraExp": 5
     },
     "cap": {
       "perResolution": 1
@@ -1750,7 +1764,8 @@ export const ADVENTURER_CONTRACTS=Object.freeze({
       "text": "한 층에서 기적의 발견 2회 이상이면 보스 클리어 후 전원 +1G."
     },
     "value": {
-      "description": "한 층에서 기적의 발견 2회 이상이면 보스 클리어 후 전원 +1G."
+      "floorDiscoveries": 2,
+      "partyGold": 1
     },
     "cap": {
       "perResolution": 1
@@ -1809,7 +1824,9 @@ export const ADVENTURER_CONTRACTS=Object.freeze({
       "text": "한 층에서 기적의 발견 3회 이상 달성 후 보스를 클리어하면 파티용 추가 유물 1개 획득 기회 생성."
     },
     "value": {
-      "description": "한 층에서 기적의 발견 3회 이상 달성 후 보스를 클리어하면 파티용 추가 유물 1개 획득 기회 생성."
+      "floorDiscoveries": 3,
+      "partyRelicOpportunities": 1,
+      "runCap": 1
     },
     "cap": {
       "perResolution": 1
