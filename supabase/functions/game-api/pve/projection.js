@@ -2,6 +2,8 @@ import {projectAugmentFramework} from './augment-framework.js';
 export function projectRun(run,viewerPlayerId){
   const out=structuredClone(run);
   const publicFramework=projectAugmentFramework(run,viewerPlayerId);
+  const opportunity=Object.entries(run.augmentFramework?.relicOpportunities||{}).find(([,x])=>x.playerId===viewerPlayerId&&x.status==='PENDING');
+  if(opportunity)out.privateRelicOpportunity={id:opportunity[0],candidateIds:[...opportunity[1].candidateIds]};
   delete out.augmentFramework;
   delete out.frameworkEffects;
   if(publicFramework)out.augmentStatuses=publicFramework.statuses;
