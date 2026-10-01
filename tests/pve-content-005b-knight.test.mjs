@@ -105,10 +105,10 @@ test('aug-045 recovers the exact sacrificed physical cardInstanceId',()=>{
   priv.remainingCardIds=priv.remainingCardIds.filter(x=>x!==id);priv.spentCardIds.push(id);
   applyKnight(run,'TURN_END',{player:p,privateState:priv});assert.ok(priv.remainingCardIds.includes(id));assert.ok(!priv.spentCardIds.includes(id));
 });
-test('aug-046 honors an explicit legal guard target in Combat and otherwise remains deterministic',()=>{
+test('aug-046 ignores hidden target input and guards the earliest lobby-seat ally deterministically',()=>{
   const {run}=fixture(['aug-041','aug-046']);run.combat.turnSubmissions={p0:{skillIntent:true,skillData:{targetPlayerId:'p2'}},p1:{},p2:{}};
   const cards=[{playerId:'p0',invalidReason:'COLLISION',valid:false},{playerId:'p1',invalidReason:'COLLISION',valid:false},{playerId:'p2',invalidReason:'COLLISION',valid:false}];
-  resolveGuardianWallCollisions(run,cards,new Map([[3,cards]]),[]);assert.equal(cards[2].valid,true);
+  resolveGuardianWallCollisions(run,cards,new Map([[3,cards]]),[]);assert.equal(cards[1].valid,true);assert.equal(cards[2].valid,false);
 });
 test('aug-047 arms a one-shot reduction when redirected damage leaves the Knight at HP 1',()=>{
   const {run,p}=fixture(['aug-041','aug-047']);p.publicResources.guardianTargetPlayerId='p1';p.hp=3;
