@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "005B_C_AUDIT_V1",
+  "scope": "ROGUE_ONLY",
+  "priorOverall005B": {
+    "executable": 66,
+    "target": 150,
+    "preexistingRogueExecutable": [
+      "aug-061"
+    ]
+  },
+  "rogue": {
+    "target": 30,
+    "registered": 30,
+    "executable": 30,
+    "dataOnly": 0,
+    "missing": 0,
+    "unsupported": 0,
+    "candidateCoverage": 30,
+    "archetypes": {
+      "비열한 일격": 10,
+      "독 묻은 칼날": 10,
+      "그림자 도약": 10
+    },
+    "stageDistribution": {
+      "1": 3,
+      "2": 9,
+      "3": 9,
+      "4": 9
+    }
+  },
+  "overall005B": {
+    "target": 150,
+    "executable": 95,
+    "deltaThisBatch": 29,
+    "whyNot96": "aug-061 was already executable inside the prior 66/150 registry, so this batch adds 29 unique executable IDs."
+  },
+  "roomMatrix": {
+    "augmentRuntime": {
+      "combat": "30/30",
+      "event": [],
+      "reward": [],
+      "shop": [],
+      "rest": []
+    },
+    "baseRogueEventPassive": "Preserved separately: VALID-only strict single lowest FINAL_NUMBER grants score +5 and Gold +2; ties do not trigger."
+  },
+  "highRisk": {
+    "ids": [
+      "aug-061",
+      "aug-063",
+      "aug-066",
+      "aug-068",
+      "aug-070",
+      "aug-073",
+      "aug-080",
+      "aug-082",
+      "aug-086",
+      "aug-088",
+      "aug-090"
+    ],
+    "allCovered": true,
+    "namedMandatoryPositiveCases": 11,
+    "additionalNamedFailureProtectionRegression": 1
+  },
+  "tests": {
+    "expectedFinalTotalAfterMixedPartyAddition": 770,
+    "rogueSuiteExpected": 40,
+    "positiveCardCases": 30,
+    "dedicatedNegativeCases": 3,
+    "reconnectCasesIncludingAcquisitionE2E": 2,
+    "poisonPositiveCardCases": 10,
+    "recoveryPositiveCardCases": 5,
+    "eventRewardIsolationCases": 1,
+    "fullArchetypeBuilds": 3,
+    "candidateAcquisitionE2E": 1,
+    "mixedParty": 1,
+    "countsOverlap": true
+  },
+  "lastFullyVerifiedCodeHeadBeforeFinalDocs": "eec232d25136d66d625ffa245ff10cd36e8600fd",
+  "lastFullyVerifiedProjectChecks": {
+    "runNumber": 612,
+    "runId": 36972824832,
+    "status": "SUCCESS",
+    "tests": "769/769"
+  },
+  "verification": {
+    "npm test": "PASS on verified code head; final documentation head must also pass Project Checks",
+    "npm run check": "PASS",
+    "npm run pve:stress:smoke": "PASS",
+    "pve:beta:preflight": "PASS",
+    "100SeedStages": [
+      "T06 PASS",
+      "T02 PASS",
+      "T00 PASS",
+      "T05 PASS",
+      "T09 PASS",
+      "T04 PASS",
+      "T03 PASS"
+    ]
+  },
+  "invariants": {
+    "betaV01RowsUnchanged": true,
+    "stableIdsUnchanged": true,
+    "stressGoldensAndFixturesUnchanged": true,
+    "adventurer30of30Preserved": true,
+    "knight30of30Preserved": true,
+    "newMageBerserkerRuntimeCount": 0,
+    "supabaseProductionMutated": false
+  },
+  "balanceWarning005BC": null,
+  "existingGlobalBalanceWarnings": "Existing stress balance warnings remain diagnostics and were not changed to make Rogue pass.",
+  "runtimeBlockers": [],
+  "finalFlags": {
+    "ROGUE_RUNTIME_COMPLETE": true,
+    "READY_FOR_PVE_CONTENT_005B_D_MAGE": true,
+    "condition": "Final report is valid only if the latest documentation-head Project Checks is SUCCESS."
+  }
+}
