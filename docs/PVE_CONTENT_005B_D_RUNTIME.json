@@ -1,0 +1,637 @@
+{
+  "schemaVersion": "005B-D_RUNTIME_V1",
+  "sourcePrecedence": [
+    "PVE_CONTENT_005Q_DESIGN_B",
+    "005Q_CONTRACT_OVERLAY",
+    "005R_CONTRACT",
+    "BETA_V0.1",
+    "EXISTING_RUNTIME"
+  ],
+  "scope": "MAGE_ONLY",
+  "ids": "aug-091..aug-120",
+  "roomPolicy": {
+    "augmentRuntime": "COMBAT_ONLY",
+    "eventReward": "No Mage combat damage/heal/protection/cleanse leakage"
+  },
+  "cards": [
+    {
+      "id": "aug-091",
+      "name": "대마도 증폭",
+      "characterId": "mage",
+      "archetype": "대마도 증폭",
+      "stage": 1,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "COMBAT_START",
+        "SELF_MODIFY"
+      ],
+      "condition": "Mana max 6; spend 2/4/6 => +1/+2/+3",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "manaMax=6; amplify +1/+2/+3",
+      "cap": 6,
+      "executable": true
+    },
+    {
+      "id": "aug-092",
+      "name": "마력 우물",
+      "characterId": "mage",
+      "archetype": "대마도 증폭",
+      "stage": 2,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "COMBAT_START"
+      ],
+      "condition": "Mana max 7 and start combat with Mana 1",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "manaMax=7; start mana=1",
+      "cap": 7,
+      "executable": true
+    },
+    {
+      "id": "aug-093",
+      "name": "순환 회로",
+      "characterId": "mage",
+      "archetype": "대마도 증폭",
+      "stage": 2,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "CARD_VALIDATED"
+      ],
+      "condition": "valid amplified card refunds Mana 1",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "COMBAT",
+      "value": "refund 1",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-094",
+      "name": "과잉 증폭",
+      "characterId": "mage",
+      "archetype": "대마도 증폭",
+      "stage": 2,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE"
+      ],
+      "condition": "valid amplify spending >=4 gains +2 damage",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "COMBAT",
+      "value": "+2 damage",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-095",
+      "name": "마력 범람",
+      "characterId": "mage",
+      "archetype": "대마도 증폭",
+      "stage": 3,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "TURN_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE"
+      ],
+      "condition": "turn-start Mana full then valid amplify gains +2 damage",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "+2 damage",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-096",
+      "name": "잔류 마력",
+      "characterId": "mage",
+      "archetype": "대마도 증폭",
+      "stage": 3,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "CARD_VALIDATED",
+        "TURN_START"
+      ],
+      "condition": "valid amplify arms +1 natural Mana recovery next turn; no consecutive trigger",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "next natural recovery +1",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-097",
+      "name": "금단의 공식",
+      "characterId": "mage",
+      "archetype": "대마도 증폭",
+      "stage": 3,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "TURN_START"
+      ],
+      "condition": "spend >=6 valid amplify +4; next natural recovery 0",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "+4; skip next natural recovery",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-098",
+      "name": "무한 마력기관",
+      "characterId": "mage",
+      "archetype": "대마도 증폭",
+      "stage": 4,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "CARD_VALIDATED"
+      ],
+      "condition": "valid amplify refunds floor(spent/2), capped 2 per turn",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "COMBAT",
+      "value": "refund <=2",
+      "cap": 2,
+      "executable": true
+    },
+    {
+      "id": "aug-099",
+      "name": "칠중성의 마도식",
+      "characterId": "mage",
+      "archetype": "대마도 증폭",
+      "stage": 4,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "COMBAT_START",
+        "SELF_MODIFY",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE"
+      ],
+      "condition": "Mana max 7; spend 7 => +4 number and valid hit +3 damage",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "COMBAT",
+      "value": "manaMax7; +4 number; +3 damage",
+      "cap": 7,
+      "executable": true
+    },
+    {
+      "id": "aug-100",
+      "name": "대마도 포화",
+      "characterId": "mage",
+      "archetype": "대마도 증폭",
+      "stage": 4,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE"
+      ],
+      "condition": "spend all Mana from max: current +4 and next valid +2",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "value": "+4 then next valid +2",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-101",
+      "name": "백마도사",
+      "characterId": "mage",
+      "archetype": "백마도사",
+      "stage": 1,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "POST_COLLISION_EFFECTS"
+      ],
+      "condition": "Mana-modified collision heals earliest-seat collided ally 1; self excluded",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "COMBAT",
+      "value": "heal 1 target",
+      "cap": 1,
+      "executable": true
+    },
+    {
+      "id": "aug-102",
+      "name": "생명 공명",
+      "characterId": "mage",
+      "archetype": "백마도사",
+      "stage": 2,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "ON_HEAL"
+      ],
+      "condition": "actual White Magic heal from HP1 grants next DIRECT -1",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "value": "next DIRECT -1",
+      "cap": 1,
+      "executable": true
+    },
+    {
+      "id": "aug-103",
+      "name": "마력 순환술",
+      "characterId": "mage",
+      "archetype": "백마도사",
+      "stage": 2,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "ON_HEAL"
+      ],
+      "condition": "actual White Magic heal refunds Mana 1",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "COMBAT",
+      "value": "Mana +1",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-104",
+      "name": "전투 축복",
+      "characterId": "mage",
+      "archetype": "백마도사",
+      "stage": 2,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "ON_HEAL",
+        "BEFORE_DAMAGE"
+      ],
+      "condition": "actual heal grants target next valid attack +2",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_COMBAT_GRANT",
+      "resetScope": "COMBAT",
+      "value": "next valid +2",
+      "cap": 2,
+      "executable": true
+    },
+    {
+      "id": "aug-105",
+      "name": "연쇄 치유",
+      "characterId": "mage",
+      "archetype": "백마도사",
+      "stage": 3,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "POST_COLLISION_EFFECTS"
+      ],
+      "condition": "White Magic collision with 2+ allies heals up to two lowest-HP allies",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "COMBAT",
+      "value": "heal up to 2 targets by 1",
+      "cap": 2,
+      "executable": true
+    },
+    {
+      "id": "aug-106",
+      "name": "백색 장막",
+      "characterId": "mage",
+      "archetype": "백마도사",
+      "stage": 3,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "POST_COLLISION_EFFECTS"
+      ],
+      "condition": "full-HP White Magic target gets next DIRECT -1 instead of heal",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "next DIRECT -1",
+      "cap": 1,
+      "executable": true
+    },
+    {
+      "id": "aug-107",
+      "name": "정화 공식",
+      "characterId": "mage",
+      "archetype": "백마도사",
+      "stage": 3,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "ON_HEAL"
+      ],
+      "condition": "actual heal removes earliest monster-origin harmful status",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "value": "cleanse 1",
+      "cap": 1,
+      "executable": true
+    },
+    {
+      "id": "aug-108",
+      "name": "대백마법",
+      "characterId": "mage",
+      "archetype": "백마도사",
+      "stage": 4,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "POST_COLLISION_EFFECTS"
+      ],
+      "condition": "White Magic also heals lowest-HP other living ally 1",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "value": "extra heal 1",
+      "cap": 1,
+      "executable": true
+    },
+    {
+      "id": "aug-109",
+      "name": "수호천사",
+      "characterId": "mage",
+      "archetype": "백마도사",
+      "stage": 4,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "ON_HEAL"
+      ],
+      "condition": "actually healed ally gets next DIRECT -1",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "next DIRECT -1",
+      "cap": 1,
+      "executable": true
+    },
+    {
+      "id": "aug-110",
+      "name": "성전의 축복",
+      "characterId": "mage",
+      "archetype": "백마도사",
+      "stage": 4,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "ON_HEAL",
+        "BEFORE_DAMAGE"
+      ],
+      "condition": "healed ally next valid +2; consumption refunds source Mage Mana 1",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "+2 then Mana +1",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-111",
+      "name": "역산술",
+      "characterId": "mage",
+      "archetype": "역산술",
+      "stage": 1,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "SELF_MODIFY"
+      ],
+      "condition": "spend 2/4 to change number ±1/±2; final range 0..6",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "±1/±2",
+      "cap": 6,
+      "executable": true
+    },
+    {
+      "id": "aug-112",
+      "name": "잔차 회수",
+      "characterId": "mage",
+      "archetype": "역산술",
+      "stage": 2,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "CARD_VALIDATED"
+      ],
+      "condition": "valid downward Reverse Math refunds Mana 1",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "COMBAT",
+      "value": "Mana +1",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-113",
+      "name": "경계값 계산",
+      "characterId": "mage",
+      "archetype": "역산술",
+      "stage": 2,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE"
+      ],
+      "condition": "valid Reverse Math final 0 or >=6: +2 damage and Mana +1",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "COMBAT",
+      "value": "+2 and Mana +1",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-114",
+      "name": "교대 공식",
+      "characterId": "mage",
+      "archetype": "역산술",
+      "stage": 2,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE"
+      ],
+      "condition": "opposite direction from previous valid Reverse Math => +1 damage",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "COMBAT",
+      "value": "+1 damage",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-115",
+      "name": "자동 보정",
+      "characterId": "mage",
+      "archetype": "역산술",
+      "stage": 3,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "COLLISION_RESOLVE"
+      ],
+      "condition": "on collision, one extra step in submitted direction if it avoids collision",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_CYCLE",
+      "resetScope": "COMBAT",
+      "value": "auto shift ±1",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-116",
+      "name": "보존 법칙",
+      "characterId": "mage",
+      "archetype": "역산술",
+      "stage": 3,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "CARD_VALIDATED",
+        "TURN_START"
+      ],
+      "condition": "spend4 magnitude2 valid Reverse Math => next natural recovery +1",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "value": "next natural recovery +1",
+      "cap": 1,
+      "executable": true
+    },
+    {
+      "id": "aug-117",
+      "name": "대칭식",
+      "characterId": "mage",
+      "archetype": "역산술",
+      "stage": 3,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE"
+      ],
+      "condition": "alternating valid directions build symmetry max3; +1 damage per stack",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "symmetry cap3; +1/stack",
+      "cap": 3,
+      "executable": true
+    },
+    {
+      "id": "aug-118",
+      "name": "완전한 해",
+      "characterId": "mage",
+      "archetype": "역산술",
+      "stage": 4,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "COLLISION_RESOLVE"
+      ],
+      "condition": "colliding Reverse Math auto shifts to nearest free ±1; submitted direction wins tie",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "TWICE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "value": "auto shift ±1",
+      "cap": 2,
+      "executable": true
+    },
+    {
+      "id": "aug-119",
+      "name": "수식의 반전",
+      "characterId": "mage",
+      "archetype": "역산술",
+      "stage": 4,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE"
+      ],
+      "condition": "spend4 downward magnitude2 valid => +3 damage",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "COMBAT",
+      "value": "+3 damage",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-120",
+      "name": "무한 대칭식",
+      "characterId": "mage",
+      "archetype": "역산술",
+      "stage": 4,
+      "handler": "MAGE_V02",
+      "trigger": [
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE"
+      ],
+      "condition": "alternating valid direction +1 symmetry max4; same direction/invalid -1; +1 damage per stack",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "symmetry cap4; +1/stack",
+      "cap": 4,
+      "executable": true
+    }
+  ]
+}
