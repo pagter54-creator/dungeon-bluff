@@ -6,6 +6,7 @@ import {BERSERKER_CONTRACTS} from '../supabase/functions/game-api/pve/berserker-
 import {AUGMENT_BY_ID,augmentCandidates} from '../supabase/functions/game-api/pve/augment-catalog.js';
 import {EXECUTABLE_AUGMENT_RUNTIME} from '../supabase/functions/game-api/pve/augment-runtime.js';
 import {PVE_EXECUTABLE_AUGMENT_UI} from '../src/pve-ui-catalog.js';
+import {beginAugmentChoices,chooseAugment} from '../supabase/functions/game-api/pve/augments.js';
 
 function fixture(ids=[]){
   const chars=['berserker','mage','rogue','warrior'];
@@ -94,12 +95,28 @@ test('full 005B audit is 150/150 executable, reachable and tooltip-complete',()=
   }
 });
 
-for(const build of ['피의 광전','불사 투사','최후의 격노'])test('full Berserker archetype metadata reaches Stage 4: '+build,()=>{
-  const s1=augmentCandidates('berserker',1).filter(x=>x.build===build);assert.equal(s1.length,1);
-  for(const tier of [2,3,4]){
-    const offer=augmentCandidates('berserker',tier,build);
-    assert.equal(offer.length,3);assert.ok(offer.every(x=>x.executable&&x.build===build&&x.tier===tier));
+for(const spec of [
+  {build:'피의 광전',ids:['aug-121','aug-122','aug-125','aug-128']},
+  {build:'불사 투사',ids:['aug-131','aug-132','aug-135','aug-138']},
+  {build:'최후의 격노',ids:['aug-141','aug-142','aug-145','aug-148']}
+])test('full Berserker archetype build reaches Stage 4: '+spec.build,()=>{
+  const p=newPlayerRunState({id:'p0',user_id:'u0',character_id:'berserker',member_type:'human',seat_index:0});p.growthExp=750;
+  const run={id:'berserker-build-'+spec.ids[0],seed:'berserker-build',rngCounter:0,version:1,phase:'ROOM_RESULT',floor:1,players:[p],map:{depthCount:8}};
+  assert.equal(beginAugmentChoices(run,'ROOM_RESULT'),true);
+  for(let tier=1;tier<=4;tier++){
+    if(!run.augmentChoice){run.phase='ROOM_RESULT';assert.equal(beginAugmentChoices(run,'ROOM_RESULT'),true);}
+    const offer=run.augmentChoice.offersByPlayer.p0;assert.equal(offer.length,3);assert.ok(offer.includes(spec.ids[tier-1]));if(tier>1)assert.ok(offer.every(id=>AUGMENT_BY_ID[id].build===spec.build));chooseAugment(run,'p0',spec.ids[tier-1]);
   }
+  assert.deepEqual(p.augments,spec.ids);assert.deepEqual(p.persistentCharacterState.augmentTiers,[1,2,3,4]);
+});
+
+test('Berserker candidate acquisition survives reconnect and activates Stage-1 runtime',()=>{
+  const p=newPlayerRunState({id:'p0',user_id:'u0',character_id:'berserker',member_type:'human',seat_index:0});
+  p.growthExp=50;const run={id:'berserker-e2e',seed:'berserker-e2e',rngCounter:0,version:1,phase:'ROOM_RESULT',floor:1,players:[p],map:{depthCount:8}};
+  assert.equal(beginAugmentChoices(run,'ROOM_RESULT'),true);assert.ok(run.augmentChoice.offersByPlayer.p0.includes('aug-121'));chooseAugment(run,'p0','aug-121');
+  const saved=structuredClone(run),owner=saved.players[0];saved.phase='COMBAT';saved.combat={id:'c',turn:1,privateByPlayer:{p0:{cycleIndex:1}},turnSubmissions:{}};
+  owner.hp=2;const resolved={valid:true,finalNumber:4};applyBerserker(saved,'CARD_VALIDATED',{player:owner,resolved});const damage={amount:4};applyBerserker(saved,'BEFORE_DAMAGE',{player:owner,resolved,damage,followUps:[],followUp:false});
+  assert.ok(owner.augments.includes('aug-121'));
 });
 
 test('mixed Berserker + Mage + Rogue + Knight state remains isolated',()=>{
