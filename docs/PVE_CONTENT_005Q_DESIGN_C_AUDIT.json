@@ -46,7 +46,7 @@
   "persistenceResolved": 120,
   "reconnectResolved": 120,
   "idempotencyResolved": 120,
-  "tooltipResolved": 111,
+  "tooltipResolved": 120,
   "highRiskIds": [
     "aug-151",
     "aug-161",
@@ -132,6 +132,6 @@
     "requiredFieldsNonNull": 120,
     "noUnknownRooms": true,
     "noUndefinedScopes": true,
-    "noPlaceholderTooltips": 111
+    "noPlaceholderTooltips": 120
   }
 }
