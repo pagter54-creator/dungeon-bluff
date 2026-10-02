@@ -1,5 +1,40 @@
-import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+
 const design=JSON.parse(fs.readFileSync(new URL('../docs/PVE_CONTENT_005Q_DESIGN_C.json',import.meta.url),'utf8'));
 const audit=JSON.parse(fs.readFileSync(new URL('../docs/PVE_CONTENT_005Q_DESIGN_C_AUDIT.json',import.meta.url),'utf8'));
 const required=["augmentId","characterId","archetype","stage","name","sourceIntent","trigger","timingPhase","condition","effectType","effectValue","targetRule","tieRule","stateKey","stateType","stackRule","stackCap","consumeRule","onceScope","resetScope","persistenceScope","roomApplicability","orderingBefore","orderingAfter","visibility","reconnectRule","idempotencyRule","interactionNotes","tooltipBetaV02","runtimePrimitivesRequired","testCasesRequired","designStatus"];
-test('005Q DESIGN-C 120 runtime-ready contracts',()=>{assert.equal(design.cards.length,120);const ids=design.cards.map(x=>x.augmentId);assert.equal(new Set(ids).size,120);assert.deepEqual(ids,[...Array(120)].map((_,i)=>'aug-'+String(151+i).padStart(3,'0')));for(const c of design.cards){for(const k of required)assert.notEqual(c[k],undefined,`${c.augmentId} missing ${k}`);assert.notEqual(c[k],null,`${c.augmentId} null ${k}`);assert.equal(c.designStatus,'SPEC_COMPLETE');assert.equal(c.runtimeReady,true);assert.equal(c.executable,false);assert.deepEqual(Object.keys(c.roomApplicability).sort(),['COMBAT','EVENT','REST','REWARD','SHOP']);assert.ok(Object.values(c.roomApplicability).every(v=>typeof v==='boolean'));assert.ok(c.tooltipBetaV02);assert.ok(!/조건 달성|적당히|일정 확률|추가 효과/.test(c.tooltipBetaV02),`${c.augmentId} placeholder tooltip`);}assert.deepEqual(Object.fromEntries(['prophet','imp','gambler','gunner'].map(k=>[k,design.cards.filter(c=>c.characterId===k).length])),{prophet:30,imp:30,gambler:30,gunner:30});for(const k of ['prophet','imp','gambler','gunner'])assert.deepEqual([1,2,3,4].map(s=>design.cards.filter(c=>c.characterId===k&&c.stage===s).length),[3,9,9,9]);assert.equal(audit.specComplete,120);assert.equal(audit.runtimeReady,120);assert.equal(audit.runtimeBlocked,0);assert.equal(audit.runtimeMutation,false);assert.equal(audit.productionSupabaseMutation,false);assert.equal(audit.candidateExecutableTransition,false);});
+
+test('005Q DESIGN-C 120 runtime-ready contracts',()=>{
+  assert.equal(design.cards.length,120);
+  const ids=design.cards.map(x=>x.augmentId);
+  assert.equal(new Set(ids).size,120);
+  assert.deepEqual(ids,[...Array(120)].map((_,i)=>'aug-'+String(151+i).padStart(3,'0')));
+  for(const c of design.cards){
+    for(const k of required){
+      assert.notEqual(c[k],undefined,`${c.augmentId} missing ${k}`);
+      assert.notEqual(c[k],null,`${c.augmentId} null ${k}`);
+    }
+    assert.equal(c.designStatus,'SPEC_COMPLETE');
+    assert.equal(c.runtimeReady,true);
+    assert.equal(c.executable,false);
+    assert.deepEqual(Object.keys(c.roomApplicability).sort(),['COMBAT','EVENT','REST','REWARD','SHOP']);
+    assert.ok(Object.values(c.roomApplicability).every(v=>typeof v==='boolean'));
+    assert.ok(c.tooltipBetaV02);
+    assert.ok(!/조건 달성|적당히|일정 확률|추가 효과/.test(c.tooltipBetaV02),`${c.augmentId} placeholder tooltip`);
+  }
+  assert.deepEqual(
+    Object.fromEntries(['prophet','imp','gambler','gunner'].map(k=>[k,design.cards.filter(c=>c.characterId===k).length])),
+    {prophet:30,imp:30,gambler:30,gunner:30}
+  );
+  for(const k of ['prophet','imp','gambler','gunner']){
+    assert.deepEqual([1,2,3,4].map(s=>design.cards.filter(c=>c.characterId===k&&c.stage===s).length),[3,9,9,9]);
+  }
+  assert.equal(audit.specComplete,120);
+  assert.equal(audit.runtimeReady,120);
+  assert.equal(audit.runtimeBlocked,0);
+  assert.equal(audit.runtimeMutation,false);
+  assert.equal(audit.productionSupabaseMutation,false);
+  assert.equal(audit.candidateExecutableTransition,false);
+});
