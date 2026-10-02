@@ -1,6 +1,7 @@
 import {applyAdventurer} from './adventurer-runtime.js';
 import {applyKnight} from './knight-runtime.js';
 import {applyRogue} from './rogue-runtime.js';
+import {applyMage} from './mage-runtime.js';
 import {resourceMax} from './resources.js';
 
 const framework=run=>run.augmentFramework||={once:{},statuses:[],delayed:[],grants:{},acquired:{},temporary:[],telemetry:[],recoveryCounts:{},sequence:0};
@@ -62,8 +63,8 @@ const TRIGGERS=Object.freeze({
   ON_ACQUIRE:[],
   POST_COLLISION:[],
   CARD_VALIDATED:['aug-125'],
-  TURN_START:['aug-095'],
-  BEFORE_DAMAGE:['aug-095','aug-122','aug-125','aug-133','aug-142']
+  TURN_START:[],
+  BEFORE_DAMAGE:['aug-122','aug-125','aug-133','aug-142']
 });
 export function applyContent005B(run,trigger,ctx={}){
   const adventurer=applyAdventurer(run,trigger,ctx);
