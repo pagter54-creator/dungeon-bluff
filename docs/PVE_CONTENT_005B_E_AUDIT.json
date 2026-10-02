@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "005B_E_AUDIT_V1",
+  "scope": "BERSERKER_AND_FULL_005B",
+  "previousOverall005B": {
+    "executable": 122,
+    "target": 150,
+    "preexistingBerserkerExecutable": [
+      "aug-121",
+      "aug-131"
+    ]
+  },
+  "berserker": {
+    "target": 30,
+    "registered": 30,
+    "executable": 30,
+    "dataOnly": 0,
+    "missing": 0,
+    "unsupported": 0,
+    "candidateCoverage": 30,
+    "archetypes": {
+      "피의 광전": 10,
+      "불사 투사": 10,
+      "최후의 격노": 10
+    },
+    "stageDistribution": {
+      "1": 3,
+      "2": 9,
+      "3": 9,
+      "4": 9
+    }
+  },
+  "overall005B": {
+    "target": 150,
+    "executable": 150,
+    "dataOnly": 0,
+    "missing": 0,
+    "unsupported": 0,
+    "deltaThisBatch": 28,
+    "whyNot152": "aug-121 and aug-131 were already executable inside the prior 122/150 registry; 28 unique IDs were added."
+  },
+  "roomMatrix": {
+    "combat": "30/30",
+    "event": [],
+    "reward": [],
+    "shop": [],
+    "rest": []
+  },
+  "highRisk": {
+    "ids": [
+      "aug-121",
+      "aug-124",
+      "aug-128",
+      "aug-129",
+      "aug-130",
+      "aug-131",
+      "aug-133",
+      "aug-136",
+      "aug-137",
+      "aug-139",
+      "aug-140",
+      "aug-143",
+      "aug-145",
+      "aug-146",
+      "aug-147",
+      "aug-148",
+      "aug-149",
+      "aug-150"
+    ],
+    "allCovered": true
+  },
+  "tests": {
+    "expectedFinalTotal": 853,
+    "berserkerSpecificRuntimeCases": 41,
+    "positiveCardCases": 30,
+    "dedicatedFirstHp1Regression": 1,
+    "dedicatedExtraHitRecursionRegression": 1,
+    "fullArchetypeBuilds": 3,
+    "candidateAcquisitionE2E": 1,
+    "mixedParty": 1,
+    "full005BRegistryTooltipAudit": 1,
+    "fullExpeditionRunClearE2E": 1,
+    "existingT04GoldenCovers": [
+      "base self-damage minHP1/cannotDown",
+      "base collision heal cap2",
+      "aug-131 maxHP collision heal",
+      "DIRECT actualDamage Revenge",
+      "self-damage no Revenge"
+    ]
+  },
+  "fullAudits": {
+    "registry": "150/150",
+    "candidate": "5 classes x 30 reachable/executable with stage/build validation",
+    "tooltip": "aug-001..150 concrete UI entries; no placeholder",
+    "reconnect": "per-class existing reconnect suites + Berserker scoped state",
+    "classMatrix": "no-augment/base regressions + Stage1..4 class suites",
+    "fullExpedition": "actual 005B augments equipped; Floor1->Floor2->Floor3->final boss->RUN_CLEAR"
+  },
+  "invariants": {
+    "betaV01RowsUnchanged": true,
+    "stableIdsUnchanged": true,
+    "stressGoldensAndFixturesUnchanged": true,
+    "adventurer30of30Preserved": true,
+    "knight30of30Preserved": true,
+    "rogue30of30Preserved": true,
+    "mage30of30Preserved": true,
+    "supabaseProductionMutated": false
+  },
+  "balanceWarning005BE": null,
+  "runtimeBlockers": [],
+  "verification": {
+    "codeHead": "ef6a76e77c120080c7748c8efbc22b0b16f90bfe",
+    "required": [
+      "npm test",
+      "npm run check",
+      "npm run pve:stress:smoke",
+      "T06/T02/T00/T05/T09/T04/T03 100-seed",
+      "final documentation-head Project Checks SUCCESS"
+    ],
+    "finalGate": "PENDING_DOCUMENTATION_HEAD_CI_AT_DOCUMENT_CREATION"
+  },
+  "finalFlags": {
+    "BERSERKER_RUNTIME_COMPLETE": true,
+    "PVE_CONTENT_005B_EXECUTABLE": "150/150",
+    "READY_FOR_PVE_CONTENT_005B_FINAL": true,
+    "READY_FOR_PVE_CONTENT_005C_DESIGN": true,
+    "condition": "Valid when final documentation-head Project Checks is SUCCESS."
+  }
+}
