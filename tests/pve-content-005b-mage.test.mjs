@@ -20,7 +20,7 @@ function fixture(ids=[]){
 }
 function amp({valid=true,spent=2,before=4,finalNumber=3}={}){return {valid,skillUsed:'amplify',resourceSpent:spent,resourceBefore:before,resourceAfter:Math.max(0,before-spent),skillValue:spent===7?4:spent===6?3:spent===4?2:1,finalNumber};}
 function rev(direction=1,magnitude=1,{valid=true,spent=magnitude===2?4:2,finalNumber=3}={}){return {valid,skillUsed:'reverse_math',resourceSpent:spent,resourceBefore:4,resourceAfter:Math.max(0,4-spent),skillValue:direction*magnitude,finalNumber};}
-function damage(fire,r,amount=5,player=null){const d={amount};fire('BEFORE_DAMAGE',r,{damage:d,followUp:false,player:player||undefined});return d.amount;}
+function damage(fire,r,amount=5){const d={amount};fire('BEFORE_DAMAGE',r,{damage:d,followUp:false});return d.amount;}
 function af(run){return run.augmentFramework||=( {once:{},statuses:[],delayed:[],grants:{},acquired:{},temporary:[],telemetry:[],recoveryCounts:{},sequence:0} );}
 function whiteFixture(ids,allyHps=[2,3,3]){
   const x=fixture(['aug-101',...ids]),{run,p,players}=x;
@@ -74,7 +74,7 @@ test('positive aug-099 sets max seven, permits spend seven and adds three damage
   assert.equal(r.finalNumber,5);r.valid=true;fire('CARD_VALIDATED',r);assert.equal(damage(fire,r),8);
 });
 test('positive aug-100 gives +4 now and +2 on the next valid attack once per combat',()=>{
-  const {run,fire}=fixture(['aug-091','aug-100']);const first=amp({spent:6,before:6});fire('CARD_VALIDATED',first);assert.equal(damage(fire,first),9);
+  const {run,fire}=fixture(['aug-091','aug-100']);fire('COMBAT_START');const first=amp({spent:6,before:6});fire('CARD_VALIDATED',first);assert.equal(damage(fire,first),9);
   run.combat.turn=2;const second={valid:true,finalNumber:3};fire('CARD_VALIDATED',second);assert.equal(damage(fire,second),7);
 });
 
@@ -174,17 +174,19 @@ test('Mage reconnect preserves mana, direction, symmetry and White Magic state',
   const restored=structuredClone(run);assert.equal(restored.players[0].publicResources.mana,3);assert.equal(restored.augmentFramework.mage.p0.lastSuccessfulReverseDirection,-1);assert.equal(restored.augmentFramework.mage.p0.symmetry120,1);
 });
 
-for(const [build,stage1] of [['대마도 증폭','aug-091'],['백마도사','aug-101'],['역산술','aug-111']])test('full Mage archetype build reaches Stage 4: '+build,()=>{
-  const p=newPlayerRunState({id:'p0',user_id:'u0',character_id:'mage',member_type:'human',seat_index:0});
-  const run={id:'mage-build-'+stage1,seed:'mage-build-'+stage1,rngCounter:0,version:1,phase:'ROOM_RESULT',floor:1,players:[p],map:{depthCount:8}};
-  const thresholds=[50,150,350,750];
+for(const spec of [
+  {build:'대마도 증폭',ids:['aug-091','aug-092','aug-095','aug-098']},
+  {build:'백마도사',ids:['aug-101','aug-102','aug-105','aug-108']},
+  {build:'역산술',ids:['aug-111','aug-112','aug-115','aug-118']}
+])test('full Mage archetype build reaches Stage 4: '+spec.build,()=>{
+  const p=newPlayerRunState({id:'p0',user_id:'u0',character_id:'mage',member_type:'human',seat_index:0});p.growthExp=750;
+  const run={id:'mage-build-'+spec.ids[0],seed:'mage-build',rngCounter:0,version:1,phase:'ROOM_RESULT',floor:1,players:[p],map:{depthCount:8}};
+  assert.equal(beginAugmentChoices(run,'ROOM_RESULT'),true);
   for(let tier=1;tier<=4;tier++){
-    p.growthExp=thresholds[tier-1];run.phase='ROOM_RESULT';assert.equal(beginAugmentChoices(run,'ROOM_RESULT'),true);
-    const offer=run.augmentChoice.offersByPlayer.p0;
-    const chosen=tier===1?stage1:offer.find(id=>AUGMENT_BY_ID[id].build===build);
-    assert.ok(chosen);chooseAugment(run,'p0',chosen);
+    if(!run.augmentChoice){run.phase='ROOM_RESULT';assert.equal(beginAugmentChoices(run,'ROOM_RESULT'),true);}
+    const offer=run.augmentChoice.offersByPlayer.p0;assert.equal(offer.length,3);assert.ok(offer.includes(spec.ids[tier-1]));if(tier>1)assert.ok(offer.every(id=>AUGMENT_BY_ID[id].build===spec.build));chooseAugment(run,'p0',spec.ids[tier-1]);
   }
-  assert.equal(p.augmentBuild,build);assert.equal(p.persistentCharacterState.augmentTiers.length,4);assert.ok(p.augments.every(id=>AUGMENT_BY_ID[id].build===build));
+  assert.deepEqual(p.augments,spec.ids);assert.deepEqual(p.persistentCharacterState.augmentTiers,[1,2,3,4]);
 });
 
 test('Mage candidate acquisition survives reconnect and activates Stage-1 runtime',()=>{
