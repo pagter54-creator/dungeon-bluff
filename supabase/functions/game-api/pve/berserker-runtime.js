@@ -167,7 +167,9 @@ export function applyBerserker(run,trigger,ctx={}){
   if(trigger==='BEFORE_DAMAGE'&&r&&ctx.damage&&!ctx.followUp){
     const keys=['berserker123Bonus','berserker124Bonus','berserker125Bonus','berserker126Bonus','berserker128Bonus','berserker129Bonus','berserker133Bonus','berserker136Bonus','berserker139Bonus','berserker140Bonus','berserker141Bonus','berserker142Bonus','berserker143Bonus','berserker145Bonus','berserker148Bonus','berserker149Bonus','berserker150Bonus'];
     let bonus=0;for(const k of keys)bonus+=Math.max(0,Number(r[k])||0);
-    if(owned(p,'aug-122')&&r.berserkerExpectedHpCost>0)bonus+=1;
+    if(owned(p,'aug-122')&&(r.berserkerExpectedHpCost>0||(r.berserkerExpectedHpCost==null&&r.valid&&p.hp>1)))bonus+=1;
+    if(owned(p,'aug-133')&&r.valid&&r.revengeConsumed&&!Number(r.berserker133Bonus))bonus+=1;
+    if(owned(p,'aug-142')&&r.valid&&p.hp===1&&!Number(r.berserker142Bonus))bonus+=1;
     if(bonus>0){ctx.damage.amount+=bonus;mark(run,'BERSERKER_V02',trigger,true,{bonusDamage:bonus});}
     const extra=Math.max(0,Number(r.berserker128Extra)||0)+Math.max(0,Number(r.berserker148Extra)||0);
     if(extra>0&&Array.isArray(ctx.followUps))ctx.followUps.push({sourcePlayerId:p.playerId,amount:extra,tags:['BERSERKER_EXTRA_COMPONENT'],followUp:true,followUpDepth:1});
