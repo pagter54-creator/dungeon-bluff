@@ -5,6 +5,7 @@ import {clearCombatResources,clearResourcesByScope,resourceMax} from './resource
 import {executableAugmentRuntime} from './augment-runtime.js';
 import {upsertAugmentStatus} from './augment-framework.js';
 import {consumeKnightNextCycleBonus,knightFreeUseAvailable} from './knight-runtime.js';
+import {mageNaturalManaRecovery,resolveMageWhiteMagicCollision} from './mage-runtime.js';
 
 export const PVE_CHARACTER_DEFS={
   adventurer:{deck:[1,2,3,4,5],skillId:'gold_bonus'},
@@ -130,7 +131,7 @@ export function onTurnStartCharacter(player,run){
     if(priv)delete priv.revelationPeek;
   }
   if(player.status==='DOWNED')return;
-  if(player.characterId==='mage')player.publicResources.mana=Math.min(resourceMax(player,'mana',4),(player.publicResources.mana||0)+1);
+  if(player.characterId==='mage')mageNaturalManaRecovery(run,player);
   if(player.characterId==='twins'){
     if(!Number.isInteger(player.publicResources.parity))player.publicResources.parity=choose(run,[0,1],`twins-parity:${player.playerId}`);
     const state=run.combat?.privateByPlayer?.[player.playerId]||run.roomState?.privateByPlayer?.[player.playerId];
@@ -193,9 +194,9 @@ export function validateCharacterSkillIntent(player,privateState,skillIntent,car
       const magnitude=manaSpend===4?2:1,next=(card?.baseNumber??0)+direction*magnitude;
       if(!Number.isInteger(next)||next<0||next>6)rejectSkill('INVALID_SKILL_REQUEST','역산술 결과는 0~6 범위여야 합니다.');
     }else{
-      const allowed=player.augments.includes('aug-091')?[2,4,6]:[2,4];
+      const allowed=player.augments.includes('aug-099')?[2,4,6,7]:player.augments.includes('aug-091')?[2,4,6]:[2,4];
       const requested=skillData?.manaSpend==null?null:Number(skillData.manaSpend);
-      const manaSpend=requested??(player.augments.includes('aug-091')&&mana>=6?6:mana>=4?4:2);
+      const manaSpend=requested??(player.augments.includes('aug-099')&&mana>=7?7:player.augments.includes('aug-091')&&mana>=6?6:mana>=4?4:2);
       if(!allowed.includes(manaSpend))rejectSkill('INVALID_SKILL_REQUEST','증폭 마나 비용이 올바르지 않습니다.');
       if(mana<manaSpend)rejectSkill('INSUFFICIENT_RESOURCE','마나가 부족합니다.');
     }
@@ -334,9 +335,9 @@ export function selfModifyCard(player,resolved,submission){
     return;
   }
   const requested=submission.skillData?.manaSpend==null?null:Number(submission.skillData.manaSpend);
-  const spend=requested??(maxMana>=6&&mana>=6?6:mana>=4?4:2);
+  const spend=requested??(player.augments.includes('aug-099')&&maxMana>=7&&mana>=7?7:maxMana>=6&&mana>=6?6:mana>=4?4:2);
   if(mana<spend)rejectSkill('INSUFFICIENT_RESOURCE','마나가 부족합니다.');
-  const bonus=spend===6?3:spend===4?2:1;
+  const bonus=spend===7?4:spend===6?3:spend===4?2:1;
   player.publicResources.mana=mana-spend;
   resolved.resourceName='mana';resolved.resourceBefore=mana;resolved.resourceSpent=spend;resolved.resourceAfter=player.publicResources.mana;
   resolved.workingNumber+=bonus;
@@ -442,21 +443,8 @@ export function resolvePostCollisionEffects(run,cards,groups,events=[],mutationE
     }
 
     for(const resolved of invalidated){
-      const player=run.players.find(p=>p.playerId===resolved.playerId);
-      if(player?.characterId!=='mage'||!player.augments.includes('aug-101')||!(Number(resolved.resourceSpent)>0))continue;
-      const cfg=runtimeConfig('aug-101'),healAmount=Math.max(1,Number(cfg.healAmount)||1);
-      const targetCards=[...group].filter(card=>card.playerId!==player.playerId).sort((a,b)=>{
-        const pa=run.players.find(p=>p.playerId===a.playerId),pb=run.players.find(p=>p.playerId===b.playerId);
-        return (pa?.seat??999)-(pb?.seat??999)||a.playerId.localeCompare(b.playerId);
-      });
-      const targetCard=targetCards.find(card=>run.players.find(p=>p.playerId===card.playerId)?.status!=='DOWNED');
-      if(!targetCard)continue;
-      const target=run.players.find(p=>p.playerId===targetCard.playerId),before=target.hp,after=Math.min(target.maxHp,before+healAmount),healed=Math.max(0,after-before);
-      target.hp=after;resolved.whiteMagicTargetId=target.playerId;resolved.whiteMagicHeal=healed;
-      whiteMagicHeal+=healed;triggeredEffectCount++;
-      const healEventId=`heal:white:${collisionEventId}:${player.playerId}:${target.playerId}`;
-      events.push({type:'WHITE_MAGIC_HEAL',phase:'POST_COLLISION_EFFECTS',collisionEventId,healEventId,playerId:player.playerId,targetId:target.playerId,requestedHeal:healAmount,amount:healed,before,after,wastedHeal:Math.max(0,healAmount-healed)});
-      if(healed>0)events.push({type:'PLAYER_HEALED',phase:'POST_COLLISION_EFFECTS',collisionEventId,healEventId,playerId:target.playerId,sourcePlayerId:player.playerId,source:'WHITE_MAGIC',amount:healed,before,after});
+      const white=resolveMageWhiteMagicCollision(run,resolved,group,events);
+      if(white.triggered){whiteMagicHeal+=white.healAmount;triggeredEffectCount++;}
     }
 
     for(const resolved of immune){
