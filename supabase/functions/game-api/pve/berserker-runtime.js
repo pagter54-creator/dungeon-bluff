@@ -51,7 +51,7 @@ export function planBerserkerCollisionHeal(run,p,resolved,{amount=1,healCap:cap}
   const s=state(run,p);let next=Math.max(0,Number(amount)||0);
   if(owned(p,'aug-146')&&p.hp===1&&!s.used146){
     s.used146=true;s.guard146=1;next=0;mark(run,'aug-146','POST_COLLISION',true,{protectionApplied:1});
-  }else if(owned(p,'aug-132'))next+=1;
+  }else if(owned(p,'aug-132')){next+=1;mark(run,'aug-132','POST_COLLISION',true,{collisionHeal:1});}
   if(owned(p,'aug-135')&&p.hp>=cap){s.guard135=1;mark(run,'aug-135','POST_COLLISION',true,{protectionApplied:1});}
   return {amount:next,healCap:cap};
 }
@@ -112,6 +112,7 @@ export function applyBerserker(run,trigger,ctx={}){
     const actual=Math.max(0,Number(ctx.damage?.amount)||0),before=Number(ctx.hpBefore),after=Number(ctx.hpAfter);
     firstHp1(run,p,before,after,'MONSTER_DAMAGE');
     if(ctx.damageType==='DIRECT'&&actual>0){
+      if(owned(p,'aug-131')){mark(run,'aug-131',trigger,true,{revengeGained:1});fired.push({augmentId:'aug-131',trigger});}
       if(owned(p,'aug-136')&&s.woundGainTurn!==t){s.woundGainTurn=t;s.woundMemory=Math.min(3,(Number(s.woundMemory)||0)+1);mark(run,'aug-136',trigger,true,{revengeGained:1,stackMax:s.woundMemory});fired.push({augmentId:'aug-136',trigger});}
       if(owned(p,'aug-140'))s.revenge140Ready=true;
       recordBrawlEvent(run,p,'DAMAGE');
@@ -155,7 +156,7 @@ export function applyBerserker(run,trigger,ctx={}){
       if(valid&&p.hp===1)s.hp1Streak145=(Number(s.hp1Streak145)||0)+1;else s.hp1Streak145=0;
       if(s.hp1Streak145>=2&&!s.used145){s.used145=true;s.rampageCharges=2;}
     }
-    if(owned(p,'aug-147')&&valid&&p.hp===1&&(final===4||final===5))s.guard147=1;
+    if(owned(p,'aug-147')&&valid&&p.hp===1&&(final===4||final===5)){s.guard147=1;mark(run,'aug-147',trigger,true,{protectionApplied:1});}
     if(owned(p,'aug-148')){
       if(valid&&p.hp===1)s.hp1Streak148=(Number(s.hp1Streak148)||0)+1;else s.hp1Streak148=0;
       if(s.hp1Streak148>=3&&!s.used148){s.used148=true;addBonus(r,'berserker148Bonus',4);r.berserker148Extra=2;}
@@ -166,12 +167,21 @@ export function applyBerserker(run,trigger,ctx={}){
   }
   if(trigger==='BEFORE_DAMAGE'&&r&&ctx.damage&&!ctx.followUp){
     const keys=['berserker123Bonus','berserker124Bonus','berserker125Bonus','berserker126Bonus','berserker128Bonus','berserker129Bonus','berserker133Bonus','berserker136Bonus','berserker139Bonus','berserker140Bonus','berserker141Bonus','berserker142Bonus','berserker143Bonus','berserker145Bonus','berserker148Bonus','berserker149Bonus','berserker150Bonus'];
-    let bonus=0;for(const k of keys)bonus+=Math.max(0,Number(r[k])||0);
-    if(owned(p,'aug-122')&&(r.berserkerExpectedHpCost>0||(r.berserkerExpectedHpCost==null&&r.valid&&p.hp>1)))bonus+=1;
-    if(owned(p,'aug-133')&&r.valid&&r.revengeConsumed&&!Number(r.berserker133Bonus))bonus+=1;
-    if(owned(p,'aug-142')&&r.valid&&p.hp===1&&!Number(r.berserker142Bonus))bonus+=1;
-    if(bonus>0){ctx.damage.amount+=bonus;mark(run,'BERSERKER_V02',trigger,true,{bonusDamage:bonus});}
-    const extra=Math.max(0,Number(r.berserker128Extra)||0)+Math.max(0,Number(r.berserker148Extra)||0);
+    const byId=[
+      ['aug-123','berserker123Bonus'],['aug-124','berserker124Bonus'],['aug-125','berserker125Bonus'],['aug-126','berserker126Bonus'],
+      ['aug-128','berserker128Bonus'],['aug-129','berserker129Bonus'],['aug-133','berserker133Bonus'],['aug-136','berserker136Bonus'],
+      ['aug-139','berserker139Bonus'],['aug-140','berserker140Bonus'],['aug-141','berserker141Bonus'],['aug-142','berserker142Bonus'],
+      ['aug-143','berserker143Bonus'],['aug-145','berserker145Bonus'],['aug-148','berserker148Bonus'],['aug-149','berserker149Bonus'],['aug-150','berserker150Bonus']
+    ];
+    let bonus=0;
+    for(const [id,key] of byId){const amount=Math.max(0,Number(r[key])||0);bonus+=amount;if(amount>0)mark(run,id,trigger,true,{bonusDamage:amount});}
+    if(owned(p,'aug-122')&&(r.berserkerExpectedHpCost>0||(r.berserkerExpectedHpCost==null&&r.valid&&p.hp>1))){bonus+=1;mark(run,'aug-122',trigger,true,{bonusDamage:1});}
+    if(owned(p,'aug-133')&&r.valid&&r.revengeConsumed&&!Number(r.berserker133Bonus)){bonus+=1;mark(run,'aug-133',trigger,true,{bonusDamage:1});}
+    if(owned(p,'aug-142')&&r.valid&&p.hp===1&&!Number(r.berserker142Bonus)){bonus+=1;mark(run,'aug-142',trigger,true,{bonusDamage:1});}
+    if(bonus>0)ctx.damage.amount+=bonus;
+    const extra128=Math.max(0,Number(r.berserker128Extra)||0),extra148=Math.max(0,Number(r.berserker148Extra)||0),extra=extra128+extra148;
+    if(extra128)mark(run,'aug-128',trigger,true,{extraHitDamage:extra128});
+    if(extra148)mark(run,'aug-148',trigger,true,{extraHitDamage:extra148});
     if(extra>0&&Array.isArray(ctx.followUps))ctx.followUps.push({sourcePlayerId:p.playerId,amount:extra,tags:['BERSERKER_EXTRA_COMPONENT'],followUp:true,followUpDepth:1});
     return fired;
   }
