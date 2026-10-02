@@ -1,6 +1,7 @@
 import {assertAdventurerHandler} from './adventurer-runtime.js';
 import {assertKnightHandler} from './knight-runtime.js';
 import {assertRogueHandler} from './rogue-runtime.js';
+import {assertMageHandler} from './mage-runtime.js';
 import {choose} from './rng.js';
 import {AUGMENT_BY_ID,augmentCandidates} from './augment-catalog.js';
 import {advanceCompletedFloor} from './floor-transition.js';
