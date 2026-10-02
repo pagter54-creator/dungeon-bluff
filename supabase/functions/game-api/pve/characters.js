@@ -6,6 +6,7 @@ import {executableAugmentRuntime} from './augment-runtime.js';
 import {upsertAugmentStatus} from './augment-framework.js';
 import {consumeKnightNextCycleBonus,knightFreeUseAvailable} from './knight-runtime.js';
 import {mageNaturalManaRecovery,resolveMageWhiteMagicCollision} from './mage-runtime.js';
+import {planBerserkerCollisionHeal,afterBerserkerAttackCost,notifyBerserkerHeal} from './berserker-runtime.js';
 
 export const PVE_CHARACTER_DEFS={
   adventurer:{deck:[1,2,3,4,5],skillId:'gold_bonus'},
@@ -427,7 +428,8 @@ export function resolvePostCollisionEffects(run,cards,groups,events=[],mutationE
       if(player?.characterId!=='berserker'||player.status==='DOWNED')continue;
       const immortal=player.augments.includes('aug-131');
       const healCap=immortal?player.maxHp:Math.min(player.maxHp,2);
-      const before=player.hp,after=Math.min(healCap,before+1);
+      const plan=planBerserkerCollisionHeal(run,player,resolved,{amount:1,healCap});
+      const before=player.hp,after=Math.min(plan.healCap,before+plan.amount);
       const healed=Math.max(0,after-before);
       player.hp=after;
       resolved.berserkerCollisionHeal=healed;
@@ -444,7 +446,13 @@ export function resolvePostCollisionEffects(run,cards,groups,events=[],mutationE
 
     for(const resolved of invalidated){
       const white=resolveMageWhiteMagicCollision(run,resolved,group,events);
-      if(white.triggered){whiteMagicHeal+=white.healAmount;triggeredEffectCount++;}
+      if(white.triggered){
+        whiteMagicHeal+=white.healAmount;triggeredEffectCount++;
+        for(const h of resolved.whiteMagicHeals||[]){
+          const target=run.players.find(p=>p.playerId===h.targetId);
+          if(target?.characterId==='berserker'&&Number(h.amount)>0)notifyBerserkerHeal(run,target,h.amount,'WHITE_MAGIC');
+        }
+      }
     }
 
     for(const resolved of immune){
@@ -527,6 +535,7 @@ export function applyPostPlayerAttackCharacter(run,resolved,events=[]){
     const error=new Error('피의 광전 피해 보너스와 실제 HP 비용이 불일치합니다.');error.code='BLOOD_FRENZY_COST_MISMATCH';throw error;
   }
   events.push({type:'BERSERKER_ATTACK_HP_COST',phase:'POST_PLAYER_ATTACK',playerId:player.playerId,amount:cost,before,after,bloodFrenzyBonusDamage:Number(resolved.bloodFrenzyBonusDamage)||0});
+  afterBerserkerAttackCost(run,player,resolved,{before,after,cost,events});
   return cost;
 }
 
