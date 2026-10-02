@@ -60,7 +60,7 @@ test('CONTENT-005A only offers executable augments, locks the chosen archetype, 
   assert.deepEqual(saved.players[0].augments,['aug-101']);
   assert.deepEqual(saved.players[0].persistentCharacterState.augmentTiers,[1]);
   assert.equal(saved.phase,'ROOM_RESULT');
-  assert.deepEqual(dueAugmentTiers(saved.players[0]),[]);
+  assert.deepEqual(dueAugmentTiers(saved.players[0]),[2,3,4]);
   assert.throws(()=>chooseAugment(saved,'p0','aug-101'),/선택 단계/);
 });
 
