@@ -80,7 +80,42 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
       }
     ]
   },
-  'aug-061':{...ROGUE_CONTRACTS['aug-061'],effects:[],specialHandlers:['ROGUE_V02']},
+  'aug-061':{
+    ...ROGUE_CONTRACTS['aug-061'],
+    specialHandlers:['ROGUE_V02'],
+    effects:[
+      {
+        id:'aug-061-sneaky-success',
+        trigger:'CARD_VALIDATED',
+        priority:40,
+        condition:{all:[{path:'resolved.valid',eq:true},{path:'resolved.soloLowest',eq:true}]},
+        operations:[
+          {type:'CAPTURE_RESOURCE',resource:'sneakyStack',field:'sneakyBonus'},
+          {type:'ADD_RESOURCE',resource:'sneakyStack',amount:1}
+        ],
+        maxTriggers:1,resetScope:'TURN',tags:['T00','REFERENCE']
+      },
+      {
+        id:'aug-061-sneaky-reset',
+        trigger:'CARD_VALIDATED',
+        priority:41,
+        condition:{not:{all:[{path:'resolved.valid',eq:true},{path:'resolved.soloLowest',eq:true}]}},
+        operations:[{type:'SET_RESOURCE',resource:'sneakyStack',amount:0}],
+        maxTriggers:1,resetScope:'TURN',tags:['T00','REFERENCE']
+      },
+      {
+        id:'aug-061-sneaky-damage',
+        trigger:'BEFORE_DAMAGE',
+        priority:60,
+        condition:{path:'resolved.sneakyBonus',gt:0},
+        operations:[
+          {type:'MODIFY_DAMAGE',amountPath:'resolved.sneakyBonus'},
+          {type:'SPEND_RESOURCE',resource:'sneakyStack',amountPath:'resolved.sneakyBonus'}
+        ],
+        maxTriggers:1,resetScope:'TURN',tags:['T00','REFERENCE']
+      }
+    ]
+  },
   'aug-091':{
     executable:true,
     source:'BETA_v0.1',
