@@ -9,7 +9,7 @@ const combatRoom=run=>run.phase==='COMBAT';
 const clamp=(n,min,max)=>Math.min(max,Math.max(min,Number(n)||0));
 const rstate=(run,p)=>{
   const f=framework(run);f.rogue||={};
-  return f.rogue[p.playerId]||={combatId:run.combat?.id||null,sneakyStacks:clamp(p.publicResources?.sneakyStack,0,2),soloLowestStreak:0,criticalStacks:0,leapStreak:0};
+  return f.rogue[p.playerId]||={combatId:run.combat?.id||null,sneakyStacks:clamp(p.publicResources?.sneakyStack,0,2),soloLowestStreak:0,criticalStacks:0,leapStreak:0,leapChain:0};
 };
 const poisonState=(run,owner)=>{
   const f=framework(run);f.roguePoison||={};
@@ -120,7 +120,7 @@ export function applyRogue(run,trigger,ctx={}){
   const s=rstate(run,p),r=ctx.resolved,rm=combatRoom(run),ci=cycle(run,p,ctx),t=turn(run);
 
   if(trigger==='COMBAT_START'){
-    framework(run).rogue[p.playerId]={combatId:run.combat?.id||null,sneakyStacks:clamp(p.publicResources?.sneakyStack,0,2),soloLowestStreak:0,criticalStacks:0,leapStreak:0};
+    framework(run).rogue[p.playerId]={combatId:run.combat?.id||null,sneakyStacks:clamp(p.publicResources?.sneakyStack,0,2),soloLowestStreak:0,criticalStacks:0,leapStreak:0,leapChain:0};
     if(owned(p,'aug-071'))framework(run).roguePoison={...(framework(run).roguePoison||{}),[p.playerId]:{ownerId:p.playerId,sourceAugmentId:'aug-071',targetId:run.combat?.monster?.id||null,stacks:0,cap:3,hitProgress:0,defenseDebuffUntilTurn:0,defenseNullifyCharges:0}};
     return fired;
   }
@@ -181,14 +181,17 @@ export function applyRogue(run,trigger,ctx={}){
     if(owned(p,'aug-083')&&jump&&direction<0)s.next083=true;
     if(owned(p,'aug-084')&&jump&&s.lastJumpTurn===t-1)r.rogue084Bonus=1;
 
-    if(owned(p,'aug-085')){
-      if(jump){s.leapStreak=Math.min(3,(Number(s.leapStreak)||0)+1);r.rogue085Bonus=s.leapStreak;}
-      else if((Number(s.leapStreak)||0)>0){
-        if(owned(p,'aug-086')&&s.protected086Cycle!==ci){s.protected086Cycle=ci;fire(run,fired,'aug-086','STREAK_PROTECT',true,{leapStreakMax:s.leapStreak});}
-        else s.leapStreak=0;
+    if(jump){
+      s.leapChain=(Number(s.leapChain)||0)+1;
+      if(owned(p,'aug-085')){s.leapStreak=Math.min(3,(Number(s.leapStreak)||0)+1);r.rogue085Bonus=s.leapStreak;}
+    }else if((Number(s.leapChain)||0)>0){
+      if(owned(p,'aug-086')&&s.protected086Cycle!==ci){
+        s.protected086Cycle=ci;
+        fire(run,fired,'aug-086','STREAK_PROTECT',true,{leapStreakMax:s.leapChain});
+      }else{
+        s.leapChain=0;
+        if(owned(p,'aug-085'))s.leapStreak=0;
       }
-    }else if(owned(p,'aug-086')&&!jump&&(Number(s.leapStreak)||0)>0){
-      if(s.protected086Cycle!==ci){s.protected086Cycle=ci;fire(run,fired,'aug-086','STREAK_PROTECT',true,{leapStreakMax:s.leapStreak});}else s.leapStreak=0;
     }
 
     if(owned(p,'aug-087')&&jump&&Math.abs(current-priorFinal)===4)r.rogue087Bonus=4;
