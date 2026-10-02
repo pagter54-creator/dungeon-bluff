@@ -15,6 +15,7 @@ import {applyMonsterDamage} from './monster.js';
 import {beginAugmentChoices} from './augments.js';
 import {applyOwnedEffects} from './effects.js';
 import {rogueArmorPenetration} from './rogue-runtime.js';
+import {applyMageCollisionCorrection} from './mage-runtime.js';
 import {cleanupAugmentScope,resolveDelayed,clearAugmentStatusesForOwner} from './augment-framework.js';
 import {initCombatTelemetry,recordCombatTurnTelemetry,finalizeCombatTelemetry} from './telemetry.js';
 import {
@@ -206,7 +207,8 @@ export function resolveBasicTurn(run){
   c.phase='FINAL_NUMBER_REVEAL';phaseTrace.push(c.phase);finalizeNumbers(cards);for(const rc of cards)applyOwnedEffects(run,'POST_REVEAL',{player:playerFor(run,rc.playerId),resolved:rc,events});
   c.phase='COLLISION_RESOLVE';phaseTrace.push(c.phase);
   for(const rc of cards)rc.collisionImmune=collisionImmunity(playerFor(run,rc.playerId),c.turnSubmissions[rc.playerId]);
-  const groups=new Map();for(const rc of cards){const a=groups.get(rc.finalNumber)||[];a.push(rc);groups.set(rc.finalNumber,a);}
+  let groups=new Map();for(const rc of cards){const a=groups.get(rc.finalNumber)||[];a.push(rc);groups.set(rc.finalNumber,a);}
+  groups=applyMageCollisionCorrection(run,cards,groups,events);
   attachCollisionGroups(run,cards,groups);
   for(const group of groups.values()){
     if(group.length>1)for(const rc of group)if(!rc.collisionImmune){rc.valid=false;rc.invalidReason='COLLISION';}
