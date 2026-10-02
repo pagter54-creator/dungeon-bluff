@@ -69,6 +69,7 @@ test('005B actual augments cross Floor 1/2/3 and final boss to RUN_CLEAR',async(
   const admin=adminFor(initial);let n=1000,run=await call(admin,'getState',0),floors=[],reconnects=[];
   for(let guard=0;guard<700&&!['RUN_CLEAR','RUN_FAILED'].includes(run.phase);guard++){
     if(run.phase==='MAP_VOTE'){
+      if(run.floor===3&&!reconnects.includes('F3_MAP_ENTRY')){run=await call(admin,'getState',0);reconnects.push('F3_MAP_ENTRY');}
       if(!floors.includes(run.floor))floors.push(run.floor);
       const nodes=connectedNodeIds(run.map).map(id=>run.map.nodes.find(x=>x.id===id));
       const desired=run.floor===3?['NORMAL_COMBAT','EVENT','NORMAL_COMBAT','ELITE_COMBAT','REST','SHOP','NORMAL_COMBAT','REWARD_ROOM','ELITE_COMBAT','BOSS'][nodes[0].depth-1]:null;
@@ -84,13 +85,9 @@ test('005B actual augments cross Floor 1/2/3 and final boss to RUN_CLEAR',async(
     if(run.phase==='REWARD_ROOM'){run=run.roomState.pickOrder?.length?await call(admin,'rewardChooseRelic',n++,{relic_id:run.roomState.relicIds[0]}):await call(admin,'rewardSubmitCard',n++,{card_instance_id:legal(run,true)});continue;}
     if(run.phase==='ROOM_RESULT'){run=await call(admin,'roomReady',n++);continue;}
     if(run.phase==='AUGMENT_CHOICE'){run=await call(admin,'chooseAugment',n++,{augment_id:run.privateAugmentOffer.augmentIds[0]});continue;}
-    if(run.phase==='FLOOR_CLEAR'){
-      const completedFloor=run.floor;run=await call(admin,'continueFloor',n++);
-      if(completedFloor===2&&!reconnects.includes('F2_TO_F3')){run=await call(admin,'getState',0);reconnects.push('F2_TO_F3');}
-      continue;
-    }
+    if(run.phase==='FLOOR_CLEAR'){run=await call(admin,'continueFloor',n++);continue;}
     assert.fail('unhandled phase '+run.phase);
   }
-  assert.equal(run.phase,'RUN_CLEAR');assert.deepEqual(floors,[1,2,3]);assert.deepEqual(reconnects,['F1_COMBAT','F2_TO_F3']);
+  assert.equal(run.phase,'RUN_CLEAR');assert.deepEqual(floors,[1,2,3]);assert.deepEqual(reconnects,['F1_COMBAT','F3_MAP_ENTRY']);
   for(const [i,ids] of equipped.entries())for(const id of ids)assert.ok(admin.state.players[i].augments.includes(id),id);
 });
