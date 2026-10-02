@@ -21,6 +21,7 @@ function card(p,n,exclude=null){return p.cardPool.find(c=>c.baseNumber===n&&c.id
 function resolved(p,n,{valid=true,soloLowest=false,id=null}={}){const c=id?cardById(p,id):card(p,n);return {valid,soloLowest,finalNumber:n,cardInstanceId:c?.id||id||('virtual-'+n)};}
 function cardById(p,id){return p.cardPool.find(c=>c.id===id);}
 function spend(priv,id){priv.remainingCardIds=priv.remainingCardIds.filter(x=>x!==id);if(!priv.spentCardIds.includes(id))priv.spentCardIds.push(id);}
+function af(run){return run.augmentFramework||=( {once:{},statuses:[],delayed:[],grants:{},acquired:{},temporary:[],telemetry:[],recoveryCounts:{},sequence:0} );}
 function damage(fire,r,amount=5,extra={}){const d={amount},followUps=[];fire('BEFORE_DAMAGE',r,{damage:d,followUps,...extra});return {damage:d,followUps};}
 
 test('Rogue runtime registry is exact 30/30 executable with 1/3/3/3 stages per archetype',()=>{
@@ -82,24 +83,24 @@ test('positive aug-074 poisoned target grants attacker a one-shot next-valid bon
   const d2={amount:3},q2=[];applyRogue(run,'BEFORE_DAMAGE',{player:ally,resolved:r,damage:d2,followUps:q2});assert.equal(d2.amount,4);
 });
 test('positive aug-075 poison explosion weakens defense in pre-mitigation phase',()=>{
-  const {run,players}=fixture(['aug-071','aug-075']);run.augmentFramework.roguePoison={p0:{ownerId:'p0',sourceAugmentId:'aug-071',targetId:'dummy',stacks:1,cap:3,hitProgress:1}};
+  const {run,players}=fixture(['aug-071','aug-075']);af(run).roguePoison={p0:{ownerId:'p0',sourceAugmentId:'aug-071',targetId:'dummy',stacks:1,cap:3,hitProgress:1}};
   const ally=players[1],r={valid:true,finalNumber:3,cardInstanceId:ally.cardPool[0].id},d={amount:3},q=[];applyRogue(run,'BEFORE_DAMAGE',{player:ally,resolved:r,damage:d,followUps:q});assert.equal(rogueArmorPenetration(run,ally,r,2),1);
 });
 test('positive aug-076 poison explosion arms all allies next-valid +1',()=>{
-  const {run,players}=fixture(['aug-071','aug-076']);run.augmentFramework.roguePoison={p0:{ownerId:'p0',sourceAugmentId:'aug-071',targetId:'dummy',stacks:1,cap:3,hitProgress:1}};
+  const {run,players}=fixture(['aug-071','aug-076']);af(run).roguePoison={p0:{ownerId:'p0',sourceAugmentId:'aug-071',targetId:'dummy',stacks:1,cap:3,hitProgress:1}};
   const a=players[1],r={valid:true,finalNumber:3,cardInstanceId:a.cardPool[0].id},d={amount:3},q=[];applyRogue(run,'BEFORE_DAMAGE',{player:a,resolved:r,damage:d,followUps:q});
   const b=players[2],rb={valid:true,finalNumber:4,cardInstanceId:b.cardPool[0].id},db={amount:4},qb=[];applyRogue(run,'BEFORE_DAMAGE',{player:b,resolved:rb,damage:db,followUps:qb});assert.equal(db.amount,5);
 });
 test('positive aug-077 consumes poison three into a seven-damage explosion',()=>{
-  const {run,players}=fixture(['aug-071','aug-077']);run.augmentFramework.roguePoison={p0:{ownerId:'p0',sourceAugmentId:'aug-071',targetId:'dummy',stacks:3,cap:3,hitProgress:1}};
+  const {run,players}=fixture(['aug-071','aug-077']);af(run).roguePoison={p0:{ownerId:'p0',sourceAugmentId:'aug-071',targetId:'dummy',stacks:3,cap:3,hitProgress:1}};
   const a=players[1],r={valid:true,finalNumber:3,cardInstanceId:a.cardPool[0].id},d={amount:3},q=[];applyRogue(run,'BEFORE_DAMAGE',{player:a,resolved:r,damage:d,followUps:q});assert.equal(q[0].amount,7);assert.equal(run.augmentFramework.roguePoison.p0.stacks,0);
 });
 test('positive aug-078 creates nine-damage poison burst and one defense-nullify charge',()=>{
-  const {run,players}=fixture(['aug-071','aug-078']);run.augmentFramework.roguePoison={p0:{ownerId:'p0',sourceAugmentId:'aug-071',targetId:'dummy',stacks:3,cap:3,hitProgress:1,defenseNullifyCharges:0}};
+  const {run,players}=fixture(['aug-071','aug-078']);af(run).roguePoison={p0:{ownerId:'p0',sourceAugmentId:'aug-071',targetId:'dummy',stacks:3,cap:3,hitProgress:1,defenseNullifyCharges:0}};
   const a=players[1],r={valid:true,finalNumber:3,cardInstanceId:a.cardPool[0].id},d={amount:3},q=[];applyRogue(run,'BEFORE_DAMAGE',{player:a,resolved:r,damage:d,followUps:q});assert.equal(q[0].amount,9);assert.equal(rogueArmorPenetration(run,a,r,3),3);
 });
 test('positive aug-079 adds one while poison remains at two or more',()=>{
-  const {run,players}=fixture(['aug-071','aug-079']);run.augmentFramework.roguePoison={p0:{ownerId:'p0',sourceAugmentId:'aug-071',targetId:'dummy',stacks:2,cap:3,hitProgress:0}};
+  const {run,players}=fixture(['aug-071','aug-079']);af(run).roguePoison={p0:{ownerId:'p0',sourceAugmentId:'aug-071',targetId:'dummy',stacks:2,cap:3,hitProgress:0}};
   const a=players[1],r={valid:true,finalNumber:3,cardInstanceId:a.cardPool[0].id},d={amount:3},q=[];applyRogue(run,'BEFORE_DAMAGE',{player:a,resolved:r,damage:d,followUps:q});assert.equal(d.amount,4);
 });
 test('positive aug-080 recovers deterministic low BASE card and retains poison one after explosion',()=>{
@@ -142,7 +143,7 @@ test('negative Rogue conditions reject ties, invalids, poison overflow and wrong
   const {run,p,priv,fire}=fixture(['aug-062','aug-071','aug-072','aug-073','aug-081']);
   let r=resolved(p,1,{soloLowest:false});fire('CARD_VALIDATED',r);assert.equal(damage(fire,r).damage.amount,5);
   r=resolved(p,1,{valid:false,soloLowest:false});fire('CARD_VALIDATED',r);assert.equal(run.augmentFramework.roguePoison?.p0?.stacks??0,0);
-  run.augmentFramework.roguePoison={p0:{ownerId:'p0',sourceAugmentId:'aug-071',targetId:'dummy',stacks:3,cap:3,hitProgress:0}};fire('CARD_VALIDATED',resolved(p,1,{soloLowest:true}));assert.equal(run.augmentFramework.roguePoison.p0.stacks,3);
+  af(run).roguePoison={p0:{ownerId:'p0',sourceAugmentId:'aug-071',targetId:'dummy',stacks:3,cap:3,hitProgress:0}};fire('CARD_VALIDATED',resolved(p,1,{soloLowest:true}));assert.equal(run.augmentFramework.roguePoison.p0.stacks,3);
   const four=card(p,4);fire('CARD_VALIDATED',resolved(p,4,{soloLowest:true,id:four.id}));spend(priv,four.id);fire('TURN_END');assert.ok(priv.spentCardIds.includes(four.id));
 });
 test('negative Rogue combat-only damage and poison do not leak into Event or Reward',()=>{
@@ -167,6 +168,7 @@ for(const spec of [
   const run={id:'rogue-build-'+spec.ids[0],seed:'build',rngCounter:0,version:1,phase:'ROOM_RESULT',floor:1,players:[p],map:{depthCount:8}};
   assert.equal(beginAugmentChoices(run,'ROOM_RESULT'),true);
   for(let tier=1;tier<=4;tier++){
+    if(!run.augmentChoice){run.phase='ROOM_RESULT';assert.equal(beginAugmentChoices(run,'ROOM_RESULT'),true);}
     const offer=run.augmentChoice.offersByPlayer.p0;assert.equal(offer.length,3);assert.ok(offer.includes(spec.ids[tier-1]));if(tier>1)assert.ok(offer.every(id=>AUGMENT_BY_ID[id].build===spec.line));chooseAugment(run,'p0',spec.ids[tier-1]);
   }
   assert.deepEqual(p.augments,spec.ids);assert.deepEqual(p.persistentCharacterState.augmentTiers,[1,2,3,4]);
