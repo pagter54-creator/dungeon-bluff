@@ -173,6 +173,19 @@ for(const spec of [
   }
   assert.deepEqual(p.augments,spec.ids);assert.deepEqual(p.persistentCharacterState.augmentTiers,[1,2,3,4]);
 });
+test('mixed Rogue + Adventurer + Knight + Mage keeps FINAL_NUMBER and class state isolated',()=>{
+  const {run,p,players,fire}=fixture(['aug-061','aug-082']);
+  players[1].augments=['aug-001'];players[2].augments=['aug-031'];players[3].augments=['aug-091'];
+  players[2].publicResources.toughness=2;players[3].publicResources.mana=4;
+  fire('CARD_VALIDATED',{valid:true,soloLowest:false,finalNumber:1,cardInstanceId:card(p,1).id});
+  run.combat.turn=2;
+  const r={valid:true,soloLowest:true,finalNumber:5,baseNumber:3,cardInstanceId:card(p,5).id};
+  fire('CARD_VALIDATED',r);const out=damage(fire,r);
+  assert.equal(out.damage.amount,6);
+  assert.equal(players[2].publicResources.toughness,2);
+  assert.equal(players[3].publicResources.mana,4);
+  assert.equal(players[1].growthExp,0);
+});
 test('Rogue candidate acquisition survives reconnect and keeps exact Stage-1 offer',()=>{
   const p=newPlayerRunState({id:'p0',user_id:'u0',character_id:'rogue',member_type:'human',seat_index:0});p.growthExp=50;
   const run={id:'rogue-acquire',seed:'acquire',rngCounter:0,version:1,phase:'ROOM_RESULT',floor:1,players:[p],map:{depthCount:8}};
