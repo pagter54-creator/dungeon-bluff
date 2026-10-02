@@ -4,6 +4,8 @@ import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/p
 import {applyBerserker,planBerserkerCollisionHeal,afterBerserkerAttackCost,notifyBerserkerHeal} from '../supabase/functions/game-api/pve/berserker-runtime.js';
 import {BERSERKER_CONTRACTS} from '../supabase/functions/game-api/pve/berserker-contracts.js';
 import {AUGMENT_BY_ID,augmentCandidates} from '../supabase/functions/game-api/pve/augment-catalog.js';
+import {EXECUTABLE_AUGMENT_RUNTIME} from '../supabase/functions/game-api/pve/augment-runtime.js';
+import {PVE_EXECUTABLE_AUGMENT_UI} from '../src/pve-ui-catalog.js';
 
 function fixture(ids=[]){
   const chars=['berserker','mage','rogue','warrior'];
@@ -74,4 +76,40 @@ test('negative Berserker cases preserve base and room invariants',()=>{
 test('reconnect preserves Berserker scoped state deterministically',()=>{
   const {run,p,fire}=fixture(['aug-136','aug-145','aug-149']);p.hp=1;damaged(fire,2,1,1);fire('CARD_VALIDATED',card());
   const clone=structuredClone(run);assert.deepEqual(clone.augmentFramework.berserker[p.playerId],run.augmentFramework.berserker[p.playerId]);
+});
+
+test('full 005B audit is 150/150 executable, reachable and tooltip-complete',()=>{
+  const ids=Array.from({length:150},(_,i)=>'aug-'+String(i+1).padStart(3,'0'));
+  assert.equal(ids.filter(id=>EXECUTABLE_AUGMENT_RUNTIME[id]?.executable).length,150);
+  for(const id of ids){
+    const def=AUGMENT_BY_ID[id];
+    assert.ok(def,id+' catalog');
+    assert.equal(def.executable,true,id+' executable');
+    assert.ok(PVE_EXECUTABLE_AUGMENT_UI[id],id+' UI');
+    assert.ok(PVE_EXECUTABLE_AUGMENT_UI[id].description&&!PVE_EXECUTABLE_AUGMENT_UI[id].description.includes('조건 달성 시'),id+' tooltip');
+  }
+  for(const [characterId,ranges] of Object.entries({adventurer:[1,30],warrior:[31,60],rogue:[61,90],mage:[91,120],berserker:[121,150]})){
+    const [a,b]=ranges;
+    assert.equal(ids.slice(a-1,b).filter(id=>AUGMENT_BY_ID[id]?.characterId===characterId&&AUGMENT_BY_ID[id]?.executable).length,30,characterId);
+  }
+});
+
+for(const build of ['피의 광전','불사 투사','최후의 격노'])test('full Berserker archetype metadata reaches Stage 4: '+build,()=>{
+  const s1=augmentCandidates('berserker',1).filter(x=>x.build===build);assert.equal(s1.length,1);
+  for(const tier of [2,3,4]){
+    const offer=augmentCandidates('berserker',tier,build);
+    assert.equal(offer.length,3);assert.ok(offer.every(x=>x.executable&&x.build===build&&x.tier===tier));
+  }
+});
+
+test('mixed Berserker + Mage + Rogue + Knight state remains isolated',()=>{
+  const {run,p,players,fire}=fixture(['aug-149','aug-136']);
+  players[1].augments=['aug-091'];players[1].publicResources.mana=3;
+  players[2].augments=['aug-061'];players[2].publicResources.sneakyStack=1;
+  players[3].augments=['aug-031'];players[3].publicResources.toughnessCharges=2;
+  p.hp=1;damaged(fire,2,1,1);fire('CARD_VALIDATED',card());
+  assert.equal(players[1].publicResources.mana,3);
+  assert.equal(players[2].publicResources.sneakyStack,1);
+  assert.equal(players[3].publicResources.toughnessCharges,2);
+  assert.ok(run.augmentFramework.berserker[p.playerId]);
 });
