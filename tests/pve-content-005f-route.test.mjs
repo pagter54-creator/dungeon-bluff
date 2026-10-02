@@ -45,21 +45,14 @@ test('005F test-only framework fixture crosses Floor 1/2/3 and RUN_CLEAR without
       const desired=run.floor===3?['NORMAL_COMBAT','EVENT','NORMAL_COMBAT','ELITE_COMBAT','REST','SHOP','NORMAL_COMBAT','REWARD_ROOM','ELITE_COMBAT','BOSS'][nodes[0].depth-1]:null;
       run=await call(admin,'voteNextRoom',n++,{node_id:(nodes.find(x=>x.type===desired)||nodes[0]).id});continue;
     }
-    if(run.phase==='COMBAT'){
-      if(run.floor===1&&!reconnects.includes('F1_COMBAT')){run=await call(admin,'getState',0);reconnects.push('F1_COMBAT');}
-      run=await call(admin,'submitCard',n++,{card_instance_id:legal(run)});continue;
-    }
+    if(run.phase==='COMBAT'){run=await call(admin,'submitCard',n++,{card_instance_id:legal(run)});continue;}
     if(run.phase==='EVENT'){run=await call(admin,'submitEventCard',n++,{card_instance_id:legal(run,true)});continue;}
     if(run.phase==='REST'){run=await call(admin,'restChoice',n++,{choice:'FULL_HEAL'});continue;}
     if(run.phase==='SHOP'){run=await call(admin,'shopReady',n++);continue;}
     if(run.phase==='REWARD_ROOM'){run=run.roomState.pickOrder?.length?await call(admin,'rewardChooseRelic',n++,{relic_id:run.roomState.relicIds[0]}):await call(admin,'rewardSubmitCard',n++,{card_instance_id:legal(run,true)});continue;}
     if(run.phase==='ROOM_RESULT'){run=await call(admin,'roomReady',n++);continue;}
     if(run.phase==='AUGMENT_CHOICE'){run=await call(admin,'chooseAugment',n++,{augment_id:run.privateAugmentOffer.augmentIds[0]});continue;}
-    if(run.phase==='FLOOR_CLEAR'){
-      const completedFloor=run.floor;run=await call(admin,'continueFloor',n++);
-      if(completedFloor===2&&!reconnects.includes('F2_TO_F3')){run=await call(admin,'getState',0);reconnects.push('F2_TO_F3');}
-      continue;
-    }
+    if(run.phase==='FLOOR_CLEAR'){run=await call(admin,'continueFloor',n++);continue;}
     assert.fail('unhandled phase '+run.phase);
   }
   assert.equal(run.phase,'RUN_CLEAR');assert.deepEqual(floors,[1,2,3]);assert.ok(admin.state.players[0].augments.includes('test-only-005f'));
@@ -81,14 +74,21 @@ test('005B actual augments cross Floor 1/2/3 and final boss to RUN_CLEAR',async(
       const desired=run.floor===3?['NORMAL_COMBAT','EVENT','NORMAL_COMBAT','ELITE_COMBAT','REST','SHOP','NORMAL_COMBAT','REWARD_ROOM','ELITE_COMBAT','BOSS'][nodes[0].depth-1]:null;
       run=await call(admin,'voteNextRoom',n++,{node_id:(nodes.find(x=>x.type===desired)||nodes[0]).id});continue;
     }
-    if(run.phase==='COMBAT'){run=await call(admin,'submitCard',n++,{card_instance_id:legal(run)});continue;}
+    if(run.phase==='COMBAT'){
+      if(run.floor===1&&!reconnects.includes('F1_COMBAT')){run=await call(admin,'getState',0);reconnects.push('F1_COMBAT');}
+      run=await call(admin,'submitCard',n++,{card_instance_id:legal(run)});continue;
+    }
     if(run.phase==='EVENT'){run=await call(admin,'submitEventCard',n++,{card_instance_id:legal(run,true)});continue;}
     if(run.phase==='REST'){run=await call(admin,'restChoice',n++,{choice:'FULL_HEAL'});continue;}
     if(run.phase==='SHOP'){run=await call(admin,'shopReady',n++);continue;}
     if(run.phase==='REWARD_ROOM'){run=run.roomState.pickOrder?.length?await call(admin,'rewardChooseRelic',n++,{relic_id:run.roomState.relicIds[0]}):await call(admin,'rewardSubmitCard',n++,{card_instance_id:legal(run,true)});continue;}
     if(run.phase==='ROOM_RESULT'){run=await call(admin,'roomReady',n++);continue;}
     if(run.phase==='AUGMENT_CHOICE'){run=await call(admin,'chooseAugment',n++,{augment_id:run.privateAugmentOffer.augmentIds[0]});continue;}
-    if(run.phase==='FLOOR_CLEAR'){run=await call(admin,'continueFloor',n++);continue;}
+    if(run.phase==='FLOOR_CLEAR'){
+      const completedFloor=run.floor;run=await call(admin,'continueFloor',n++);
+      if(completedFloor===2&&!reconnects.includes('F2_TO_F3')){run=await call(admin,'getState',0);reconnects.push('F2_TO_F3');}
+      continue;
+    }
     assert.fail('unhandled phase '+run.phase);
   }
   assert.equal(run.phase,'RUN_CLEAR');assert.deepEqual(floors,[1,2,3]);assert.deepEqual(reconnects,['F1_COMBAT','F2_TO_F3']);
