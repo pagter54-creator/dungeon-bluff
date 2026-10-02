@@ -2,6 +2,7 @@ import {applyAdventurer} from './adventurer-runtime.js';
 import {applyKnight} from './knight-runtime.js';
 import {applyRogue} from './rogue-runtime.js';
 import {applyMage} from './mage-runtime.js';
+import {applyBerserker} from './berserker-runtime.js';
 import {resourceMax} from './resources.js';
 
 const framework=run=>run.augmentFramework||={once:{},statuses:[],delayed:[],grants:{},acquired:{},temporary:[],telemetry:[],recoveryCounts:{},sequence:0};
@@ -41,41 +42,26 @@ function runRule(run,id,trigger,ctx){
     if(trigger==='TURN_START'){s.fullAtTurn=Number(p.publicResources.mana)===resourceMax(p,'mana',4)?turn:null;return false;}
     if(trigger==='BEFORE_DAMAGE'&&r?.valid&&r.skillUsed==='amplify'&&s.fullAtTurn===turn&&ctx.damage){ctx.damage.amount+=2;mark(run,id,trigger,true,{bonusDamage:2});return true;}
   }
-  if(id==='aug-122'){
-    if(trigger==='BEFORE_DAMAGE'&&r?.valid&&p.hp>1&&ctx.damage){ctx.damage.amount+=1;mark(run,id,trigger,true,{bonusDamage:1});return true;}
-  }
-  if(id==='aug-125'){
-    if(trigger==='CARD_VALIDATED'&&r){
-      s.streak=r.valid&&p.hp>1?(s.streak||0)+1:0;
-      if(s.streak>=2){r.content005bBonuses||={};r.content005bBonuses[id]=2;}
-    }
-    if(trigger==='BEFORE_DAMAGE'&&r?.content005bBonuses?.[id]&&ctx.damage){ctx.damage.amount+=2;mark(run,id,trigger,true,{bonusDamage:2});return true;}
-  }
-  if(id==='aug-133'){
-    if(trigger==='BEFORE_DAMAGE'&&r?.valid&&r.revengeConsumed&&ctx.damage){ctx.damage.amount+=1;mark(run,id,trigger,true,{bonusDamage:1});return true;}
-  }
-  if(id==='aug-142'){
-    if(trigger==='BEFORE_DAMAGE'&&r?.valid&&p.hp===1&&ctx.damage){ctx.damage.amount+=1;mark(run,id,trigger,true,{bonusDamage:1});return true;}
-  }
   return false;
 }
 const TRIGGERS=Object.freeze({
   ON_ACQUIRE:[],
   POST_COLLISION:[],
-  CARD_VALIDATED:['aug-125'],
+  CARD_VALIDATED:[],
   TURN_START:[],
-  BEFORE_DAMAGE:['aug-122','aug-125','aug-133','aug-142']
+  BEFORE_DAMAGE:[]
 });
 export function applyContent005B(run,trigger,ctx={}){
   const adventurer=applyAdventurer(run,trigger,ctx);
   const knight=applyKnight(run,trigger,ctx);
   const rogue=applyRogue(run,trigger,ctx);
   const mage=applyMage(run,trigger,ctx);
-  if((run.phase!=='COMBAT'&&trigger!=='ON_ACQUIRE')||ctx.followUp)return [...adventurer,...knight,...rogue,...mage];
+  const berserker=applyBerserker(run,trigger,ctx);
+  if((run.phase!=='COMBAT'&&trigger!=='ON_ACQUIRE')||ctx.followUp)return [...adventurer,...knight,...rogue,...mage,...berserker];
   const candidates=TRIGGERS[trigger]||[],p=ctx.player;
   if(!p)return [];
   const owned=new Set(p.augments||[]);
-  const fired=[...adventurer,...knight,...rogue,...mage];
+  const fired=[...adventurer,...knight,...rogue,...mage,...berserker];
   for(const id of candidates)if(!id.match(/^aug-0(?:0[1-9]|[12][0-9]|30)$/)&&owned.has(id)&&runRule(run,id,trigger,ctx))fired.push({augmentId:id,trigger});
   return fired;
 }
