@@ -68,7 +68,7 @@ export function resolveMageWhiteMagicCollision(run,resolved,group,events=[]){
     }
     const after=Math.min(target.maxHp,before+1),healed=Math.max(0,after-before);target.hp=after;total+=healed;
     heals.push({targetId:target.playerId,before,after,amount:healed,source});
-    const healEventId=`heal:white:${run.combat?.id||run.id}:${t}:${mage.playerId}:${target.playerId}:${source}`;
+    const healEventId=source==='aug-101'&&resolved.collisionEventId?`heal:white:${resolved.collisionEventId}:${mage.playerId}:${target.playerId}`:`heal:white:${run.combat?.id||run.id}:${t}:${mage.playerId}:${target.playerId}:${source}`;
     events.push({type:'WHITE_MAGIC_HEAL',phase:'POST_COLLISION_EFFECTS',collisionEventId:resolved.collisionEventId||null,healEventId,playerId:mage.playerId,targetId:target.playerId,requestedHeal:1,amount:healed,before,after,wastedHeal:1-healed,sourceAugmentId:source});
     if(healed>0){events.push({type:'PLAYER_HEALED',phase:'POST_COLLISION_EFFECTS',collisionEventId:resolved.collisionEventId||null,healEventId,playerId:target.playerId,sourcePlayerId:mage.playerId,source:'WHITE_MAGIC',amount:healed,before,after});processActualWhiteHeal(run,mage,target,before,healed,fired);}
   };
