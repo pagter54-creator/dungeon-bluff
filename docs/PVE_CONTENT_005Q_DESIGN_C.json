@@ -428,7 +428,7 @@
       "stateKey": "aug_151_refund_used",
       "stateType": "BOOLEAN",
       "stackRule": "Apply on declared trigger; clamp to declared cap; derived effects do not recursively retrigger.",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "ONCE_PER_COMBAT",
       "resetScope": "COMBAT_END",
@@ -526,7 +526,7 @@
       "stateKey": "aug_152_recover_card_selector",
       "stateType": "CARD_ZONE_STATE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
       "onceScope": "NONE",
       "resetScope": "NEVER_WITHIN_RUN",
@@ -622,7 +622,7 @@
       "stateKey": "aug_153_recover_card",
       "stateType": "CARD_ZONE_STATE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "Recover most-recent eligible own BASE card except the just-resolved card; preserve cardInstanceId.",
       "onceScope": "ONCE_PER_CYCLE",
       "resetScope": "CYCLE_END",
@@ -714,7 +714,7 @@
       "stateKey": "NONE",
       "stateType": "NONE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "NONE",
       "resetScope": "NEVER_WITHIN_RUN",
@@ -735,7 +735,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Recovery preserves same physical cardInstanceId; selected/submitted ineligible."
       ],
-      "tooltipBetaV02": "조건 달성 시 EXP +1. 전투당 최대 +2 EXP.",
+      "tooltipBetaV02": "복구한 카드의 유효 공격에 작은 추가 피해 또는 성장 보너스.일 때 {\"text\":\"조건 달성 시 EXP +1.\",\"numericHints\":[1]} 효과를 적용합니다.",
       "runtimePrimitivesRequired": [
         "MODIFY_EXP"
       ],
@@ -806,7 +806,7 @@
       "stateKey": "aug_155_gain_resource",
       "stateType": "INTEGER",
       "stackRule": "Apply on declared trigger; clamp to declared cap; derived effects do not recursively retrigger.",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "ONCE_PER_COMBAT",
       "resetScope": "COMBAT_END",
@@ -1020,7 +1020,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Recovery preserves same physical cardInstanceId; selected/submitted ineligible."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +2. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "The same printed number has been recovered by Revelation and used valid at least twice this combat.일 때 추가 피해 +2 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -1089,7 +1089,7 @@
       "stateKey": "aug_158_recover_card_selector",
       "stateType": "CARD_ZONE_STATE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
       "onceScope": "ONCE_PER_REVELATION_USE",
       "resetScope": "NEVER_WITHIN_RUN",
@@ -1207,7 +1207,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Recovery preserves same physical cardInstanceId; selected/submitted ineligible."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +4. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "A Revelation-recovered own card is used valid and this turn began with at least 1 Revelation.일 때 추가 피해 +4 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -1279,7 +1279,7 @@
       "stateKey": "NONE",
       "stateType": "NONE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "ONCE_PER_TURN",
       "resetScope": "TURN_END",
@@ -1370,7 +1370,7 @@
       "stateKey": "aug_161_recover_card",
       "stateType": "CARD_ZONE_STATE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
       "onceScope": {
         "perRevelation": "ONCE_PER_REVELATION_USE",
@@ -1474,7 +1474,7 @@
       "stateKey": "aug_162_recover_card_selector",
       "stateType": "CARD_ZONE_STATE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
       "onceScope": "ONCE_PER_CYCLE",
       "resetScope": "CYCLE_END",
@@ -1569,7 +1569,7 @@
       "stateKey": "aug_163_recover_card",
       "stateType": "CARD_ZONE_STATE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
       "onceScope": "ONCE_PER_CYCLE",
       "resetScope": "CYCLE_END",
@@ -1663,7 +1663,7 @@
       "stateKey": "aug_164_delayed_attack_buff",
       "stateType": "STATUS",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
       "onceScope": "NONE",
       "resetScope": "COMBAT_END",
@@ -1753,7 +1753,7 @@
       "stateKey": "aug_165_gain_resource",
       "stateType": "INTEGER",
       "stackRule": "Apply on declared trigger; clamp to declared cap; derived effects do not recursively retrigger.",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "ONCE_PER_COMBAT",
       "resetScope": "COMBAT_END",
@@ -1851,7 +1851,7 @@
       "stateKey": "NONE",
       "stateType": "NONE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "ONCE_PER_CYCLE",
       "resetScope": "CYCLE_END",
@@ -2138,7 +2138,7 @@
       "stateKey": "aug_169_recover_card_selector",
       "stateType": "CARD_ZONE_STATE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
       "onceScope": "ONCE_PER_REVELATION_USE",
       "resetScope": "NEVER_WITHIN_RUN",
@@ -2229,7 +2229,7 @@
       "stateKey": "NONE",
       "stateType": "NONE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "ONCE_PER_REVELATION_USE",
       "resetScope": "COMBAT_END",
@@ -2446,7 +2446,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Recovery preserves same physical cardInstanceId; selected/submitted ineligible."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +1. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "중복 발생 예언 적중 보상 강화.일 때 {\"text\":\"조건 달성 시 추가 피해 +1.\",\"numericHints\":[1]} 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -2544,7 +2544,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Recovery preserves same physical cardInstanceId; selected/submitted ineligible."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +1. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "Declared positive prediction resolves with no collision among living players and at least 2 valid allies.일 때 추가 피해 +1 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -2641,7 +2641,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Recovery preserves same physical cardInstanceId; selected/submitted ineligible."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +1. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "The number declared before submissions matches Seer's final valid number.일 때 추가 피해 +1 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -2910,7 +2910,7 @@
       "stateKey": "NONE",
       "stateType": "NONE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "ONCE_PER_PREDICTION",
       "resetScope": "TURN_END",
@@ -3001,7 +3001,7 @@
       "stateKey": "NONE",
       "stateType": "NONE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "ONCE_PER_COMBAT",
       "resetScope": "COMBAT_END",
@@ -3193,7 +3193,7 @@
       "stateKey": "NONE",
       "stateType": "NONE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "ONCE_PER_COMBAT",
       "resetScope": "COMBAT_END",
@@ -3409,7 +3409,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "PRE_COLLISION_STEAL never recursively reruns from derived effects."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +2. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "One PRE_COLLISION_STEAL steals positive amount from at least 2 distinct victims.일 때 추가 피해 +2 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -3504,7 +3504,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "PRE_COLLISION_STEAL never recursively reruns from derived effects."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +1. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "슬쩍 후 자신의 공격이 유효하면 다음 턴 작은 보너스.일 때 {\"text\":\"조건 달성 시 추가 피해 +1.\",\"numericHints\":[1]} 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -3576,7 +3576,7 @@
       "stateKey": "NONE",
       "stateType": "NONE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "ONCE_PER_TURN",
       "resetScope": "TURN_END",
@@ -3694,7 +3694,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "PRE_COLLISION_STEAL never recursively reruns from derived effects."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +2. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "Total actual stolen amount in current PRE_COLLISION_STEAL is at least 2.일 때 추가 피해 +2 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -3791,7 +3791,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "PRE_COLLISION_STEAL never recursively reruns from derived effects."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +2. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "After PRE_COLLISION_STEAL owner FINAL_NUMBER >=5 and attack valid.일 때 추가 피해 +2 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -3886,7 +3886,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "PRE_COLLISION_STEAL never recursively reruns from derived effects."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +2. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "슬쩍 공격 성공 시 다음 사이클 첫 슬쩍 강화.일 때 {\"text\":\"조건 달성 시 추가 피해 +2.\",\"numericHints\":[2]} 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -4340,7 +4340,7 @@
       "stateKey": "aug_192_modify_resource_cap",
       "stateType": "INTEGER",
       "stackRule": "Apply on declared trigger; clamp to declared cap; derived effects do not recursively retrigger.",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "NONE",
       "resetScope": "NEVER_WITHIN_RUN",
@@ -4640,7 +4640,7 @@
       "stateKey": "aug_195_choice_spend_resource",
       "stateType": "INTEGER",
       "stackRule": "Apply on declared trigger; clamp to declared cap; derived effects do not recursively retrigger.",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
       "onceScope": "ONCE_PER_TURN",
       "resetScope": "TURN_END",
@@ -4734,7 +4734,7 @@
       "stateKey": "aug_196_gain_resource",
       "stateType": "INTEGER",
       "stackRule": "Apply on declared trigger; clamp to declared cap; derived effects do not recursively retrigger.",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "ONCE_PER_TURN",
       "resetScope": "TURN_END",
@@ -4852,7 +4852,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "PRE_COLLISION_STEAL never recursively reruns from derived effects."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +2. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "Owner spends at least 3 stolenNumber in one action.일 때 추가 피해 +2 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -5043,7 +5043,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "PRE_COLLISION_STEAL never recursively reruns from derived effects."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +4. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "Owner spends at least 4 stolenNumber in one action before a valid Combat attack.일 때 추가 피해 +4 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -5413,7 +5413,7 @@
       "stateKey": "aug_203_prevent_damage",
       "stateType": "STATUS",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "ONCE_PER_COMBAT",
       "resetScope": "COMBAT_END",
@@ -5531,7 +5531,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "PRE_COLLISION_STEAL never recursively reruns from derived effects."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +1. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "At least 2 distinct allies receive Mischief from owner in same turn.일 때 추가 피해 +1 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -5629,7 +5629,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "PRE_COLLISION_STEAL never recursively reruns from derived effects."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +2. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "A Mischief-marked ally resolves valid with FINAL_NUMBER >=4.일 때 추가 피해 +2 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -5722,7 +5722,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "PRE_COLLISION_STEAL never recursively reruns from derived effects."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +1. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "장난 폭발 시 임프가 작은 보너스를 얻음. 아군 피해는 유지.일 때 {\"text\":\"조건 달성 시 추가 피해 +1.\",\"numericHints\":[1]} 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -5792,7 +5792,7 @@
       "stateKey": "aug_207_apply_status",
       "stateType": "STATUS",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
       "onceScope": "ONCE_PER_CYCLE",
       "resetScope": "CYCLE_END",
@@ -5985,7 +5985,7 @@
       "stateKey": "aug_209_apply_status",
       "stateType": "STATUS",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
       "onceScope": "NONE",
       "resetScope": "COMBAT_END",
@@ -6471,7 +6471,7 @@
       "stateKey": "aug_214_gain_resource",
       "stateType": "INTEGER",
       "stackRule": "Apply on declared trigger; clamp to declared cap; derived effects do not recursively retrigger.",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "ONCE_PER_SHUFFLE",
       "resetScope": "ON_SHUFFLE",
@@ -6586,7 +6586,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Use DECK/HAND/DISCARD/VANISHED adapters, not standard SPENT recovery."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +2. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "특수 카드 사용 후 다음 일반 공격이 유효하면 행운 유지/강화.일 때 {\"text\":\"조건 달성 시 추가 피해 +2.\",\"numericHints\":[2]} 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -6659,7 +6659,7 @@
       "stateKey": "aug_216_gain_resource",
       "stateType": "INTEGER",
       "stackRule": "Apply on declared trigger; clamp to declared cap; derived effects do not recursively retrigger.",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "ONCE_PER_CYCLE",
       "resetScope": "CYCLE_END",
@@ -6777,7 +6777,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Use DECK/HAND/DISCARD/VANISHED adapters, not standard SPENT recovery."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +3. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "Previous valid special number was 6 and current 7, or previous 7 and current 6.일 때 추가 피해 +3 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -6873,7 +6873,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Use DECK/HAND/DISCARD/VANISHED adapters, not standard SPENT recovery."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +3. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "A physical number-6 card is valid.일 때 추가 피해 +3 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -7265,7 +7265,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Use DECK/HAND/DISCARD/VANISHED adapters, not standard SPENT recovery."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +1. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "Submitted printed number has at least 2 matching copies remaining across DECK+HAND before settlement.일 때 추가 피해 +1 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -7525,7 +7525,7 @@
       "stateKey": "NONE",
       "stateType": "NONE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "NONE",
       "resetScope": "COMBAT_END",
@@ -7642,7 +7642,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Use DECK/HAND/DISCARD/VANISHED adapters, not standard SPENT recovery."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +2. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "Across last 5 successful ordinary 1-5 cards, counts form one pair plus three other distinct numbers.일 때 추가 피해 +2 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -7824,7 +7824,7 @@
       "stateKey": "aug_228_modify_draw",
       "stateType": "CARD_ZONE_STATE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
       "onceScope": "ONCE_PER_SHUFFLE",
       "resetScope": "ON_SHUFFLE",
@@ -7942,7 +7942,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Use DECK/HAND/DISCARD/VANISHED adapters, not standard SPENT recovery."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +3. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "Owner completes a recognized counting combination different from immediately previous combination.일 때 추가 피해 +3 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -8015,7 +8015,7 @@
       "stateKey": "aug_230_modify_draw",
       "stateType": "CARD_ZONE_STATE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
       "onceScope": "ONCE_PER_SHUFFLE",
       "resetScope": "ON_SHUFFLE",
@@ -8108,7 +8108,7 @@
       "stateKey": "aug_231_spend_resource",
       "stateType": "INTEGER",
       "stackRule": "Apply on declared trigger; clamp to declared cap; derived effects do not recursively retrigger.",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "Both physical cards consumed. Ordinary -> DISCARD; used 6/7 -> VANISHED. Collision failure still settles both, no sum damage.",
       "onceScope": "NONE",
       "resetScope": "TURN_END",
@@ -8305,7 +8305,7 @@
       "stateKey": "aug_233_draw_card",
       "stateType": "CARD_ZONE_STATE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
       "onceScope": "ONCE_PER_COMBAT",
       "resetScope": "COMBAT_END",
@@ -8423,7 +8423,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Use DECK/HAND/DISCARD/VANISHED adapters, not standard SPENT recovery."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +1. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "All-In succeeds using two cards both <=3.일 때 추가 피해 +1 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -8793,7 +8793,7 @@
       "stateKey": "aug_238_all_in_override",
       "stateType": "CARD_ZONE_STATE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "ONCE_PER_COMBAT",
       "resetScope": "COMBAT_END",
@@ -9086,7 +9086,7 @@
       "stateKey": "gunner_magazine",
       "stateType": "CARD_ZONE_STATE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "Full Burst success consumes selected plus every remaining magazine card; preserve physical IDs.",
       "onceScope": "NONE",
       "resetScope": "CYCLE_END",
@@ -9181,7 +9181,7 @@
       "stateKey": "NONE",
       "stateType": "NONE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "ONCE_PER_BURST",
       "resetScope": "CYCLE_END",
@@ -9297,7 +9297,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Full Burst derived card uses keep parent/root action linkage."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +1. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "전탄발사 성공 후 새 사이클 첫 유효 공격 강화.일 때 {\"text\":\"조건 달성 시 추가 피해 +1.\",\"numericHints\":[1]} 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -9393,7 +9393,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Full Burst derived card uses keep parent/root action linkage."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +1. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "Full Burst succeeds with at least 2 remaining magazine cards additionally used.일 때 추가 피해 +1 효과를 적용합니다. 제한: ONCE_PER_BURST.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -9490,7 +9490,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Full Burst derived card uses keep parent/root action linkage."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +1. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "After Full Burst succeeds, first valid attack of newly entered cycle.일 때 추가 피해 +1 효과를 적용합니다. 제한: ONCE_PER_CYCLE.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -9683,7 +9683,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Full Burst derived card uses keep parent/root action linkage."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +3. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "Full Burst activated when exactly 1 other magazine card remains, and activation card succeeds.일 때 추가 피해 +3 효과를 적용합니다. 제한: ONCE_PER_BURST.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -9753,7 +9753,7 @@
       "stateKey": "NONE",
       "stateType": "NONE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "ONCE_PER_CYCLE",
       "resetScope": "CYCLE_END",
@@ -9872,7 +9872,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Full Burst derived card uses keep parent/root action linkage."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +3. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "After successful Full Burst, first valid new-cycle attack succeeds; arm next Full Burst bonus.일 때 추가 피해 +3 효과를 적용합니다. 제한: ONCE_PER_CYCLE.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -10171,7 +10171,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Full Burst derived card uses keep parent/root action linkage."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +1. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "사이클 첫 유효 공격이 적을 조준해 이후 정밀 사격 효과 강화.일 때 {\"text\":\"조건 달성 시 추가 피해 +1.\",\"numericHints\":[1]} 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -10244,7 +10244,7 @@
       "stateKey": "aug_253_preserve_status",
       "stateType": "STATUS",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
       "onceScope": "ONCE_PER_COMBAT",
       "resetScope": "COMBAT_END",
@@ -10362,7 +10362,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Full Burst derived card uses keep parent/root action linkage."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +2. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "Current selected card is last remaining magazine card and resolves valid under Precision Shot.일 때 추가 피해 +2 효과를 적용합니다. 제한: ONCE_PER_CYCLE.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -10458,7 +10458,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Full Burst derived card uses keep parent/root action linkage."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +2. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "Precision Shot valid and abs(previous FINAL_NUMBER-current FINAL_NUMBER)>=2.일 때 추가 피해 +2 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -10627,7 +10627,7 @@
       "stateKey": "NONE",
       "stateType": "NONE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "ONCE_PER_TURN",
       "resetScope": "TURN_END",
@@ -11134,7 +11134,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Full Burst derived card uses keep parent/root action linkage."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +1. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "과열이 있는 동안 전탄발사 피해 증가.일 때 {\"text\":\"조건 달성 시 추가 피해 +1.\",\"numericHints\":[1]} 효과를 적용합니다. 제한: ONCE_PER_TURN.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -11204,7 +11204,7 @@
       "stateKey": "NONE",
       "stateType": "NONE",
       "stackRule": "NOT_APPLICABLE",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "NONE",
       "resetScope": "TURN_END",
@@ -11322,7 +11322,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Full Burst derived card uses keep parent/root action linkage."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +1. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "Full Burst succeeds while Overheat >=2 before burst resolution.일 때 추가 피해 +1 효과를 적용합니다. 제한: ONCE_PER_BURST.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -11418,7 +11418,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Full Burst derived card uses keep parent/root action linkage."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +3. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "Overheat==2 when Full Burst selected-card hit resolves valid.일 때 추가 피해 +3 효과를 적용합니다. 제한: ONCE_PER_BURST.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -11588,7 +11588,7 @@
       "stateKey": "aug_267_set_resource",
       "stateType": "INTEGER",
       "stackRule": "Apply on declared trigger; clamp to declared cap; derived effects do not recursively retrigger.",
-      "stackCap": null,
+      "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
       "onceScope": "ONCE_PER_COMBAT",
       "resetScope": "COMBAT_END",
@@ -11705,7 +11705,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Full Burst derived card uses keep parent/root action linkage."
       ],
-      "tooltipBetaV02": "조건 달성 시 추가 피해 +4. 턴당 1회; 누적형은 최대 3스택.",
+      "tooltipBetaV02": "Full Burst selected-card hit valid while Overheat==3.일 때 추가 피해 +4 효과를 적용합니다. 제한: ONCE_PER_BURST.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
