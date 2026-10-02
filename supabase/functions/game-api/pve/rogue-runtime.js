@@ -134,6 +134,7 @@ export function applyRogue(run,trigger,ctx={}){
 
     if(owned(p,'aug-061')){
       if(r.sneakyBonus!=null){
+        r.rogueSneakyFrameworkApplied=true;
         s.sneakyStacks=clamp(p.publicResources?.sneakyStack,0,2);
       }else if(solo){
         const prior=clamp(s.sneakyStacks,0,2);
@@ -212,7 +213,7 @@ export function applyRogue(run,trigger,ctx={}){
 
   if(trigger==='BEFORE_DAMAGE'&&rm&&r?.valid&&ctx.damage&&!ctx.followUp){
     let bonus=0;
-    if(owned(p,'aug-061')&&r.sneakyBonus==null&&Number(r.rogueSneakyBonus)>0){const b=clamp(r.rogueSneakyBonus,0,2);bonus+=b;s.sneakyStacks=Math.max(0,clamp(s.sneakyStacks,0,2)-b);mirrorSneaky(p,s);fire(run,fired,'aug-061',trigger,true,{bonusDamage:b});}
+    if(owned(p,'aug-061')&&!r.rogueSneakyFrameworkApplied&&Number(r.rogueSneakyBonus)>0){const b=clamp(r.rogueSneakyBonus,0,2);bonus+=b;s.sneakyStacks=Math.max(0,clamp(s.sneakyStacks,0,2)-b);mirrorSneaky(p,s);fire(run,fired,'aug-061',trigger,true,{bonusDamage:b});}
     if(owned(p,'aug-062')&&r.soloLowest&&Number(r.finalNumber)===1&&!Number(r.rogue062Bonus))r.rogue062Bonus=1;
     const bonuses=[
       ['aug-062','rogue062Bonus'],['aug-063','rogue063Bonus'],['aug-065','rogue065Bonus'],['aug-066','rogue066Bonus'],['aug-068','rogue068Bonus'],['aug-070','rogue070Bonus'],
