@@ -2,6 +2,7 @@ import {ADVENTURER_CONTRACTS} from './adventurer-contracts.js';
 import {KNIGHT_CONTRACTS} from './knight-contracts.js';
 import {ROGUE_CONTRACTS} from './rogue-contracts.js';
 import {MAGE_CONTRACTS} from './mage-contracts.js';
+import {BERSERKER_CONTRACTS} from './berserker-contracts.js';
 export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
   'aug-001':{
     ...ADVENTURER_CONTRACTS['aug-001'],
@@ -155,16 +156,14 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
     effects:[]
   },
   'aug-121':{
-    executable:true,
-    source:'BETA_v0.1',
-    specialHandlers:['BLOOD_FRENZY'],
+    ...BERSERKER_CONTRACTS['aug-121'],
+    specialHandlers:['BLOOD_FRENZY','BERSERKER_V02'],
     config:{bonusDamageOnActualHpCost:2},
     effects:[]
   },
   'aug-131':{
-    executable:true,
-    source:'BETA_v0.1',
-    specialHandlers:['IMMORTAL_FIGHTER'],
+    ...BERSERKER_CONTRACTS['aug-131'],
+    specialHandlers:['IMMORTAL_FIGHTER','BERSERKER_V02'],
     config:{collisionHealCapMode:'MAX_HP',revengeMax:1,revengeBonusDamage:2},
     effects:[]
   },
@@ -266,6 +265,7 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
   ...Object.fromEntries(Object.entries(ADVENTURER_CONTRACTS).filter(([id])=>id!=='aug-001').map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['ADVENTURER_V02']}])) ,
   ...Object.fromEntries(Object.entries(ROGUE_CONTRACTS).filter(([id])=>id!=='aug-061').map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['ROGUE_V02']}])) ,
   ...Object.fromEntries(Object.entries(MAGE_CONTRACTS).filter(([id])=>!['aug-091','aug-101','aug-111'].includes(id)).map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['MAGE_V02']}])) ,
+  ...Object.fromEntries(Object.entries(BERSERKER_CONTRACTS).filter(([id])=>!['aug-121','aug-131'].includes(id)).map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['BERSERKER_V02']}])) ,
 });
 
 export function executableAugmentRuntime(augmentId){return EXECUTABLE_AUGMENT_RUNTIME[augmentId]||null;}
