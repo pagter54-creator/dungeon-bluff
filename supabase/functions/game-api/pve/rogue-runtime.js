@@ -133,8 +133,12 @@ export function applyRogue(run,trigger,ctx={}){
     const jump=isJump(priorFinal,current,valid),direction=jump?jumpDirection(priorFinal,current):0;
 
     if(owned(p,'aug-061')){
-      if(solo){
-        const prior=clamp(s.sneakyStacks,0,2);r.rogueSneakyBonus=prior;r.rogueSneakySpend=prior;s.sneakyStacks=Math.min(2,prior+1);mirrorSneaky(p,s);
+      if(r.sneakyBonus!=null){
+        s.sneakyStacks=clamp(p.publicResources?.sneakyStack,0,2);
+      }else if(solo){
+        const prior=clamp(s.sneakyStacks,0,2);
+        r.rogueSneakyBonus=prior;r.rogueSneakySpend=prior;r.sneakyBonus=prior;
+        s.sneakyStacks=Math.min(2,prior+1);mirrorSneaky(p,s);
         fire(run,fired,'aug-061',trigger,true,{sneakyStacksGained:Math.max(0,s.sneakyStacks-prior),soloLowestCount:1,stackMax:s.sneakyStacks});
       }else{s.sneakyStacks=0;mirrorSneaky(p,s);}
     }
@@ -208,7 +212,8 @@ export function applyRogue(run,trigger,ctx={}){
 
   if(trigger==='BEFORE_DAMAGE'&&rm&&r?.valid&&ctx.damage&&!ctx.followUp){
     let bonus=0;
-    if(owned(p,'aug-061')&&Number(r.rogueSneakyBonus)>0){const b=clamp(r.rogueSneakyBonus,0,2);bonus+=b;s.sneakyStacks=Math.max(0,clamp(s.sneakyStacks,0,2)-b);mirrorSneaky(p,s);fire(run,fired,'aug-061',trigger,true,{bonusDamage:b});}
+    if(owned(p,'aug-061')&&r.sneakyBonus==null&&Number(r.rogueSneakyBonus)>0){const b=clamp(r.rogueSneakyBonus,0,2);bonus+=b;s.sneakyStacks=Math.max(0,clamp(s.sneakyStacks,0,2)-b);mirrorSneaky(p,s);fire(run,fired,'aug-061',trigger,true,{bonusDamage:b});}
+    if(owned(p,'aug-062')&&r.soloLowest&&Number(r.finalNumber)===1&&!Number(r.rogue062Bonus))r.rogue062Bonus=1;
     const bonuses=[
       ['aug-062','rogue062Bonus'],['aug-063','rogue063Bonus'],['aug-065','rogue065Bonus'],['aug-066','rogue066Bonus'],['aug-068','rogue068Bonus'],['aug-070','rogue070Bonus'],
       ['aug-081','rogue081Bonus'],['aug-082','rogue082Bonus'],['aug-083','rogue083Bonus'],['aug-084','rogue084Bonus'],['aug-085','rogue085Bonus'],['aug-087','rogue087Bonus'],['aug-088','rogue088Bonus'],['aug-089','rogue089Bonus']
