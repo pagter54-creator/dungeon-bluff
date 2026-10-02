@@ -84,7 +84,7 @@ test('005B-A registry and contract metadata audit; all 30 candidates and all 3 a
  const expected=Array.from({length:30},(_,i)=>aid(i+1));
  assert.deepEqual(ADVENTURER_HANDLER_IDS,expected);
  assert.deepEqual(Object.keys(EXECUTABLE_AUGMENT_RUNTIME).filter(x=>Number(x.slice(4))<=30).sort(),expected);
- assert.equal(Object.keys(EXECUTABLE_AUGMENT_RUNTIME).filter(x=>Number(x.slice(4))<=150).length,66);
+ assert.equal(Object.keys(EXECUTABLE_AUGMENT_RUNTIME).filter(x=>Number(x.slice(4))<=150).length,95);
  const doc=JSON.parse(readFileSync(new URL('../docs/PVE_CONTENT_005B_A_RUNTIME.json',import.meta.url)));
  for(const c of doc.entries){
  assert.deepEqual(ADVENTURER_CONTRACTS[c.augmentId],c);
