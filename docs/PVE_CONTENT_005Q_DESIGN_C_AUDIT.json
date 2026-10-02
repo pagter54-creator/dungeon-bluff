@@ -1,0 +1,137 @@
+{
+  "schemaVersion": "PVE_CONTENT_005Q_DESIGN_C_AUDIT_V1",
+  "baselineHead": "4d7a5f46391234f36d82d1d992090946fdfd802e",
+  "branch": "feat/pve-content-005q-design-c",
+  "target": 120,
+  "exactIds": {
+    "first": "aug-151",
+    "last": "aug-270",
+    "unique": 120,
+    "missing": []
+  },
+  "specComplete": 120,
+  "specPartial": 0,
+  "specAmbiguous": 0,
+  "runtimeReady": 120,
+  "runtimeBlocked": 0,
+  "perClass": {
+    "prophet": {
+      "count": 30,
+      "runtimeReady": 30
+    },
+    "imp": {
+      "count": 30,
+      "runtimeReady": 30
+    },
+    "gambler": {
+      "count": 30,
+      "runtimeReady": 30
+    },
+    "gunner": {
+      "count": 30,
+      "runtimeReady": 30
+    }
+  },
+  "archetypeCoverage": 12,
+  "stageDistribution": {
+    "1": 12,
+    "2": 36,
+    "3": 36,
+    "4": 36
+  },
+  "roomResolved": 120,
+  "visibilityResolved": 120,
+  "onceResolved": 120,
+  "resetResolved": 120,
+  "persistenceResolved": 120,
+  "reconnectResolved": 120,
+  "idempotencyResolved": 120,
+  "tooltipResolved": 120,
+  "highRiskIds": [
+    "aug-151",
+    "aug-161",
+    "aug-171",
+    "aug-181",
+    "aug-201",
+    "aug-211",
+    "aug-221",
+    "aug-231",
+    "aug-241",
+    "aug-251",
+    "aug-257",
+    "aug-261"
+  ],
+  "userDecisionBundles": 0,
+  "designBlockers": [],
+  "balanceWarnings": [
+    "BETA v0.2 inferred thresholds/values are provenance-tagged and require runtime-batch balance validation.",
+    "No runtime/golden tuning performed."
+  ],
+  "runtimeMutation": false,
+  "productionSupabaseMutation": false,
+  "candidateExecutableTransition": false,
+  "betaV01Changed": false,
+  "stableIdsChanged": false,
+  "primitives": {
+    "alreadyExists": [
+      "GAIN_RESOURCE",
+      "RECOVER_CARD",
+      "ADD_DAMAGE",
+      "DELAY_EFFECT",
+      "ADD_STACK",
+      "MODIFY_RESOURCE_CAP",
+      "REVEAL_PRIVATE_INFO",
+      "MODIFY_NUMBER",
+      "SPEND_RESOURCE",
+      "MODIFY_INCOMING_DAMAGE",
+      "APPLY_STATUS",
+      "DRAW_CARD",
+      "MODIFY_DECK",
+      "MOVE_CARD_ZONE",
+      "SET_DAMAGE",
+      "SET_RESOURCE"
+    ],
+    "needsExtension": [
+      "RECOVERED_CARD_PROVENANCE",
+      "ALLY_RECOVERY_SELECTOR",
+      "PREDICTION_STATE",
+      "DOWN_RESOLVE_WINDOW",
+      "REWARD_PRE_CONFIRM_HOOK",
+      "OWNER_PRIVATE_DECK_PROJECTION",
+      "ALL_IN_RESOLUTION",
+      "MAGAZINE_ADAPTER",
+      "PRECISION_SHOT_PREDICATE",
+      "OVERHEAT_ADAPTER",
+      "FULL_BURST_ORDERING"
+    ],
+    "newPrimitive": [
+      "BASE_RULE_OVERRIDE",
+      "RECOVER_CARD_SELECTOR",
+      "MODIFY_EXP",
+      "PHYSICAL_CARD_IDENTITY",
+      "MODIFY_DAMAGE",
+      "OVERRIDE_BASE_RULE",
+      "HEAL",
+      "ROOT_ACTION_GUARD",
+      "DAMAGE_SELF",
+      "FULL_BURST",
+      "MODIFY_FULL_BURST"
+    ]
+  },
+  "flags": {
+    "READY_FOR_PVE_CONTENT_005C_A_SEER": true,
+    "READY_FOR_PVE_CONTENT_005C_RUNTIME": true
+  },
+  "requiredFieldsNonNull": 120,
+  "validator": {
+    "exactIds": true,
+    "unique120": true,
+    "perClass30": true,
+    "archetypes12x10": true,
+    "stageDistributionPerClass": "3/9/9/9",
+    "requiredFieldsNonNull": 120,
+    "noUnknownRooms": true,
+    "noUndefinedScopes": true,
+    "noPlaceholderTooltips": 120
+  }
+}
