@@ -1,5 +1,6 @@
 import {choose} from './rng.js';
 import {applyOwnedEffects} from './effects.js';
+import {findAugmentStatus,consumeAugmentStatus,clearAugmentStatusesForOwner,consumeDirectDamageReduction} from './augment-framework.js';
 import {f1MonsterById} from './content-f1.js';
 import {onMonsterPlayerDamagedCharacter} from './characters.js';
 import {prepareMonsterTurn,prepareMonsterAction,finishMonsterAction} from './monster-behavior.js';
@@ -38,12 +39,24 @@ function guardianRedirect(run,originalPlayer,damageType,events,damageEventId,raw
     p.status!=='DOWNED'&&p.characterId==='warrior'&&p.augments?.includes('aug-041')&&
     p.publicResources?.guardianTargetPlayerId===originalPlayer.playerId
   ).sort((a,b)=>a.seat-b.seat||a.playerId.localeCompare(b.playerId));
-  const guard=guards[0];if(!guard)return {target:originalPlayer,redirected:false};
-  delete guard.publicResources.guardianTargetPlayerId;
+  let guard=guards[0],source='aug-041';
+  if(guard){
+    delete guard.publicResources.guardianTargetPlayerId;
+    const mark=findAugmentStatus(run,'GUARDIAN_EXTRA_REDIRECT',originalPlayer.playerId,{ownerId:guard.playerId});
+    if(mark)mark.payload.ready=true;
+  }else{
+    const mark=findAugmentStatus(run,'GUARDIAN_EXTRA_REDIRECT',originalPlayer.playerId,{ready:true});
+    if(mark){
+      consumeAugmentStatus(run,mark);
+      guard=run.players.find(p=>p.playerId===mark.ownerId&&p.status!=='DOWNED'&&p.characterId==='warrior');
+      source='aug-049';
+    }
+  }
+  if(!guard)return {target:originalPlayer,redirected:false};
   events.push({
     type:'DAMAGE_REDIRECTED',phase:'DAMAGE_REDIRECT_DECISION',damageEventId,
     originalTarget:originalPlayer.playerId,redirectedTarget:guard.playerId,redirectSource:guard.playerId,
-    damageBeforeReduction:rawDamage,redirectConsumed:true
+    sourceAugmentId:source,damageBeforeReduction:rawDamage,redirectConsumed:true
   });
   return {target:guard,redirected:true,originalTarget:originalPlayer.playerId,redirectSource:guard.playerId};
 }
@@ -60,15 +73,18 @@ export function applyMonsterDamage(run,originalPlayer,amount,damageType,{damageE
   const redirect=guardianRedirect(run,originalPlayer,damageType,events,id,rawDamage);
   const player=redirect.target;
   if(!player||player.status==='DOWNED')return events;
+  const hpBefore=player.hp;
   const incomingDamage={amount:rawDamage};
   const beforeEffects=incomingDamage.amount;
-  applyOwnedEffects(run,'BEFORE_PLAYER_DAMAGE',{player,incomingDamage,damageType,damageEventId:id,events});
+  if(damageType==='DIRECT')consumeDirectDamageReduction(run,player,incomingDamage);
+  applyOwnedEffects(run,'BEFORE_PLAYER_DAMAGE',{player,incomingDamage,damageType,damageEventId:id,events,redirectedFrom:redirect.redirected?originalPlayer.playerId:null,redirectSource:redirect.redirectSource||null,sourceAugmentId:redirect.redirected?(redirect.redirectSource===player.playerId?'GUARDIAN_REDIRECT':null):null});
   const afterEffects=Math.max(0,Number(incomingDamage.amount)||0);
   const effectPrevented=Math.max(0,beforeEffects-afterEffects);
   const armor=Math.max(0,Number(player.publicResources.armor)||0),blocked=Math.min(armor,afterEffects);
   if(blocked)player.publicResources.armor=armor-blocked;
   const actual=Math.max(0,afterEffects-blocked),preventedDamage=Math.max(0,rawDamage-actual);
   if(actual)player.hp-=actual;
+  if(player.hp<=0)clearAugmentStatusesForOwner(run,'GUARDIAN_EXTRA_REDIRECT',player.playerId);
   c.pendingDownPlayerIds||=[];
   if(player.hp<=0&&!c.pendingDownPlayerIds.includes(player.playerId))c.pendingDownPlayerIds.push(player.playerId);
   events.push({
@@ -81,7 +97,7 @@ export function applyMonsterDamage(run,originalPlayer,amount,damageType,{damageE
       ...(blocked>0?[{type:'ARMOR',amount:blocked}]:[])
     ]
   });
-  applyOwnedEffects(run,'PLAYER_DAMAGED',{player,damage:{amount:actual},damageType,damageEventId:id,events});
+  applyOwnedEffects(run,'PLAYER_DAMAGED',{player,damage:{amount:actual},damageType,damageEventId:id,events,hpBefore,hpAfter:player.hp,redirectedFrom:redirect.redirected?originalPlayer.playerId:null,redirectSource:redirect.redirectSource||null});
   onMonsterPlayerDamagedCharacter(player,{damageType,actualDamage:actual,events});
   if(player.hp>=1)c.pendingDownPlayerIds=c.pendingDownPlayerIds.filter(pid=>pid!==player.playerId);
   return events;

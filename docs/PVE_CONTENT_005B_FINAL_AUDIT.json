@@ -1,0 +1,191 @@
+{
+  "schemaVersion": "PVE_CONTENT_005B_FINAL_AUDIT_V1",
+  "auditedHead": "e358d2d91a735be9beb96e3b65dcd652c4eff184",
+  "pullRequest": {
+    "number": 17,
+    "draft": true,
+    "branch": "feat/pve-content-005b-runtime"
+  },
+  "scope": {
+    "ids": "aug-001..aug-150",
+    "classes": [
+      "Adventurer",
+      "Knight",
+      "Rogue",
+      "Mage",
+      "Berserker"
+    ],
+    "no005C": true,
+    "noBalanceTuning": true,
+    "productionSupabaseMutation": false
+  },
+  "registry": {
+    "total": 150,
+    "executable": 150,
+    "dataOnly": 0,
+    "missing": 0,
+    "unsupported": 0,
+    "duplicates": 0,
+    "perClass": {
+      "Adventurer": 30,
+      "Knight": 30,
+      "Rogue": 30,
+      "Mage": 30,
+      "Berserker": 30
+    }
+  },
+  "archetypeStage": {
+    "perClass": "3 archetypes x 10",
+    "stageDistributionPerClass": {
+      "1": 3,
+      "2": 9,
+      "3": 9,
+      "4": 9
+    },
+    "pass": true
+  },
+  "candidate": {
+    "reachable": 150,
+    "deadEnds": 0,
+    "ownedDuplicateExclusion": true,
+    "crossBuildExclusion": true,
+    "pass": true
+  },
+  "silentNoOp": {
+    "count": 0,
+    "evidence": "30 positive runtime cases per class across 005B-A..E suites"
+  },
+  "unreachableHandler": {
+    "count": 0,
+    "evidence": "150/150 candidate reachability plus executable registry"
+  },
+  "invariants": {
+    "baseClass": true,
+    "canonicalNumberPipeline": true,
+    "finalNumberSemantics": true,
+    "damageTaxonomy": true,
+    "actualDamage": true,
+    "downResolve": true,
+    "flame": true,
+    "roomIsolation": true,
+    "onceScope": true,
+    "resetScope": true,
+    "statusLifecycle": true,
+    "delayedEffects": true,
+    "cardRecovery": true,
+    "recoveryRecursion": true,
+    "economyIdempotency": true,
+    "relicOpportunity": true,
+    "tooltipParity": 150,
+    "telemetry": true,
+    "performanceSanity": true,
+    "staleStateMemory": true,
+    "backwardCompatibility": true
+  },
+  "roomMatrix": {
+    "event": "PASS",
+    "reward": "PASS",
+    "shopRest": "PASS",
+    "contamination": 0
+  },
+  "reconnect": {
+    "perClass": true,
+    "fullExpedition": true,
+    "points": [
+      "Floor1 mid-combat",
+      "Floor3 map entry"
+    ]
+  },
+  "privacy": {
+    "pass": true,
+    "hiddenCycleCardsProtected": true,
+    "projectionCoverage": true
+  },
+  "determinism": {
+    "pass": true,
+    "stressReplay": true
+  },
+  "idempotency": {
+    "acquisition": true,
+    "onAcquire": true,
+    "rewardsSettlement": true
+  },
+  "classAcceptance": {
+    "Adventurer": true,
+    "Knight": true,
+    "Rogue": true,
+    "Mage": true,
+    "Berserker": true
+  },
+  "mixedParty": {
+    "pass": true,
+    "crossClassInteractions": true,
+    "fullBuildTests": true,
+    "candidateProgressionE2E": true
+  },
+  "expedition": {
+    "runClear": true,
+    "mixedClasses": true,
+    "reconnect": true,
+    "settlement": true,
+    "failurePath": true,
+    "bossKillWipeInvariant": true,
+    "abandon": true
+  },
+  "verification": {
+    "workflow": {
+      "name": "Project Checks",
+      "runNumber": 662,
+      "runId": 37027909206,
+      "status": "SUCCESS",
+      "checkedHead": "e358d2d91a735be9beb96e3b65dcd652c4eff184"
+    },
+    "npmTest": "PASS",
+    "npmRunCheck": "PASS",
+    "stressSmoke": "PASS",
+    "stress500": {
+      "scenarios": [
+        "T00",
+        "T02",
+        "T03",
+        "T04",
+        "T05",
+        "T06",
+        "T09",
+        "T14"
+      ],
+      "seedsPerScenario": 500,
+      "totalScenarioSeeds": 4000,
+      "hardFailures": 0,
+      "passGate": true
+    },
+    "artifactId": 11238025286
+  },
+  "balanceWarnings": {
+    "blocker": false,
+    "codes": [
+      "REFERENCE_CLASS_COLLISION_2X_SAME_AVAILABILITY",
+      "REPEATED_BURST",
+      "TURN_LENGTH_OUTSIDE_35_PERCENT",
+      "BALANCE_WARNING_F2",
+      "BALANCE_WARNING_F3"
+    ],
+    "policy": "diagnostic only; no tuning performed in FINAL"
+  },
+  "unchanged": {
+    "betaV01": true,
+    "stableIds": true,
+    "stressFixturesGoldens": true,
+    "productionSupabase": true
+  },
+  "blockers": {
+    "release": [],
+    "design": []
+  },
+  "finalFlags": {
+    "PVE_CONTENT_005B_FINAL_ACCEPTED": true,
+    "MERGE_RECOMMENDED": true,
+    "READY_FOR_PVE_CONTENT_005C_DESIGN": true
+  },
+  "finalDocumentationHeadCI": "POST_COMMIT_GATE_REQUIRED"
+}

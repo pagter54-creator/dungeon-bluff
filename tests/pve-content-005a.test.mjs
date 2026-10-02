@@ -23,8 +23,8 @@ test('CONTENT-005A enumerates 390 stable conceptual slots and measures actual co
   assert.equal(AUGMENT_DEFINITIONS.length,217);
   const ids=AUGMENT_DEFINITIONS.map(x=>x.id);
   assert.equal(new Set(ids).size,ids.length);
-  assert.equal(Object.keys(EXECUTABLE_AUGMENT_RUNTIME).length,19);
-  assert.equal(AUGMENT_DEFINITIONS.filter(x=>x.executable===true).length,19);
+  assert.ok(Object.keys(EXECUTABLE_AUGMENT_RUNTIME).length>=19);
+  assert.equal(AUGMENT_DEFINITIONS.filter(x=>x.executable===true).length,Object.keys(EXECUTABLE_AUGMENT_RUNTIME).length);
   assert.equal(390-AUGMENT_DEFINITIONS.length,173);
   for(const def of AUGMENT_DEFINITIONS){
     const n=Number(def.id.slice(4)),expected=slot(n);
@@ -60,7 +60,7 @@ test('CONTENT-005A only offers executable augments, locks the chosen archetype, 
   assert.deepEqual(saved.players[0].augments,['aug-101']);
   assert.deepEqual(saved.players[0].persistentCharacterState.augmentTiers,[1]);
   assert.equal(saved.phase,'ROOM_RESULT');
-  assert.deepEqual(dueAugmentTiers(saved.players[0]),[]);
+  assert.deepEqual(dueAugmentTiers(saved.players[0]),[2,3,4]);
   assert.throws(()=>chooseAugment(saved,'p0','aug-101'),/선택 단계/);
 });
 

@@ -1,7 +1,12 @@
+import {grantAugmentExp} from './augment-framework.js';
 import {choose} from './rng.js';
 import {GAMBLER_BASE_DECK} from './gambler.js';
 import {clearCombatResources,clearResourcesByScope,resourceMax} from './resources.js';
 import {executableAugmentRuntime} from './augment-runtime.js';
+import {upsertAugmentStatus} from './augment-framework.js';
+import {consumeKnightNextCycleBonus,knightFreeUseAvailable} from './knight-runtime.js';
+import {mageNaturalManaRecovery,resolveMageWhiteMagicCollision} from './mage-runtime.js';
+import {planBerserkerCollisionHeal,afterBerserkerAttackCost,notifyBerserkerHeal} from './berserker-runtime.js';
 
 export const PVE_CHARACTER_DEFS={
   adventurer:{deck:[1,2,3,4,5],skillId:'gold_bonus'},
@@ -127,7 +132,7 @@ export function onTurnStartCharacter(player,run){
     if(priv)delete priv.revelationPeek;
   }
   if(player.status==='DOWNED')return;
-  if(player.characterId==='mage')player.publicResources.mana=Math.min(resourceMax(player,'mana',4),(player.publicResources.mana||0)+1);
+  if(player.characterId==='mage')mageNaturalManaRecovery(run,player);
   if(player.characterId==='twins'){
     if(!Number.isInteger(player.publicResources.parity))player.publicResources.parity=choose(run,[0,1],`twins-parity:${player.playerId}`);
     const state=run.combat?.privateByPlayer?.[player.playerId]||run.roomState?.privateByPlayer?.[player.playerId];
@@ -136,7 +141,10 @@ export function onTurnStartCharacter(player,run){
   }
 }
 export function onCycleStartCharacter(player,privateState){
-  if(player.characterId==='warrior')player.publicResources.toughnessCharges=Math.min(resourceMax(player,'toughnessCharges',2),(player.publicResources.toughnessCharges||0)+1);
+  if(player.characterId==='warrior'){
+    player.publicResources.toughnessCharges=Math.min(resourceMax(player,'toughnessCharges',2),(player.publicResources.toughnessCharges||0)+1);
+    consumeKnightNextCycleBonus(player);
+  }
   if(player.characterId==='gunner'){
     player.publicResources.fullBurstReady=(privateState.cycleIndex||1)>=(player.publicResources.burstReadyCycle||1);
   }
@@ -176,7 +184,7 @@ export function validateCharacterSkillIntent(player,privateState,skillIntent,car
     if(player.augments.includes('aug-351'))rejectSkill('INVALID_SKILL_REQUEST','해방된 귀검은 귀참 대신 귀화를 사용합니다.');
     if(!player.publicResources.ghostSlashReady)rejectSkill('SKILL_NOT_READY','이번 사이클의 귀참을 이미 사용했습니다.');
   }
-  if(player.characterId==='warrior'&&(player.publicResources.toughnessCharges||0)<1)rejectSkill('INSUFFICIENT_RESOURCE','강인함 충전이 없습니다.');
+  if(player.characterId==='warrior'&&(player.publicResources.toughnessCharges||0)<1&&!knightFreeUseAvailable(player,privateState))rejectSkill('INSUFFICIENT_RESOURCE','강인함 충전이 없습니다.');
   if(player.characterId==='mage'){
     const mana=player.publicResources.mana||0;
     if(player.augments.includes('aug-111')){
@@ -187,9 +195,9 @@ export function validateCharacterSkillIntent(player,privateState,skillIntent,car
       const magnitude=manaSpend===4?2:1,next=(card?.baseNumber??0)+direction*magnitude;
       if(!Number.isInteger(next)||next<0||next>6)rejectSkill('INVALID_SKILL_REQUEST','역산술 결과는 0~6 범위여야 합니다.');
     }else{
-      const allowed=player.augments.includes('aug-091')?[2,4,6]:[2,4];
+      const allowed=player.augments.includes('aug-099')?[2,4,6,7]:player.augments.includes('aug-091')?[2,4,6]:[2,4];
       const requested=skillData?.manaSpend==null?null:Number(skillData.manaSpend);
-      const manaSpend=requested??(player.augments.includes('aug-091')&&mana>=6?6:mana>=4?4:2);
+      const manaSpend=requested??(player.augments.includes('aug-099')&&mana>=7?7:player.augments.includes('aug-091')&&mana>=6?6:mana>=4?4:2);
       if(!allowed.includes(manaSpend))rejectSkill('INVALID_SKILL_REQUEST','증폭 마나 비용이 올바르지 않습니다.');
       if(mana<manaSpend)rejectSkill('INSUFFICIENT_RESOURCE','마나가 부족합니다.');
     }
@@ -224,7 +232,10 @@ export function activateImmediateCharacterSkill(run,player,skillData=null){
     const healEventId=`heal:transfusion:${run.floor}:${run.depth}:${c.monster?.id||'combat'}:${c.turn}:${player.playerId}`;
     const event={type:'TRANSFUSION_USED',phase:'SELECTION_OPEN',healEventId,playerId:player.playerId,targetId:target.playerId,bloodBefore:blood,bloodSpent:cost,bloodAfter:player.publicResources.blood,requestedHeal:healAmount,amount:healed,before,after,wastedHeal:Math.max(0,healAmount-healed)};
     c.pendingSkillEvents||=[];c.pendingSkillEvents.push(event);
-    if(healed>0)c.pendingSkillEvents.push({type:'PLAYER_HEALED',phase:'SELECTION_OPEN',healEventId,playerId:target.playerId,sourcePlayerId:player.playerId,source:'TRANSFUSION',amount:healed,before,after});
+    if(healed>0){
+      c.pendingSkillEvents.push({type:'PLAYER_HEALED',phase:'SELECTION_OPEN',healEventId,playerId:target.playerId,sourcePlayerId:player.playerId,source:'TRANSFUSION',amount:healed,before,after});
+      notifyBerserkerHeal(run,target,healed,'TRANSFUSION');
+    }
     return event;
   }
   if(player.characterId==='prophet'){
@@ -328,9 +339,9 @@ export function selfModifyCard(player,resolved,submission){
     return;
   }
   const requested=submission.skillData?.manaSpend==null?null:Number(submission.skillData.manaSpend);
-  const spend=requested??(maxMana>=6&&mana>=6?6:mana>=4?4:2);
+  const spend=requested??(player.augments.includes('aug-099')&&maxMana>=7&&mana>=7?7:maxMana>=6&&mana>=6?6:mana>=4?4:2);
   if(mana<spend)rejectSkill('INSUFFICIENT_RESOURCE','마나가 부족합니다.');
-  const bonus=spend===6?3:spend===4?2:1;
+  const bonus=spend===7?4:spend===6?3:spend===4?2:1;
   player.publicResources.mana=mana-spend;
   resolved.resourceName='mana';resolved.resourceBefore=mana;resolved.resourceSpent=spend;resolved.resourceAfter=player.publicResources.mana;
   resolved.workingNumber+=bonus;
@@ -341,9 +352,9 @@ export function selfModifyCard(player,resolved,submission){
 }
 export function collisionImmunity(player,submission){
   if(player.characterId!=='warrior'||!submission.skillIntent)return false;
-  const charges=player.publicResources.toughnessCharges||0;
-  if(charges<1)rejectSkill('INSUFFICIENT_RESOURCE','강인함 충전이 없습니다.');
-  player.publicResources.toughnessCharges=charges-1;
+  const charges=player.publicResources.toughnessCharges||0,free=Boolean(submission.knightFreeToughness);
+  if(!free&&charges<1)rejectSkill('INSUFFICIENT_RESOURCE','강인함 충전이 없습니다.');
+  if(!free)player.publicResources.toughnessCharges=charges-1;
   if(player.augments.includes('aug-041'))return false;
   return true;
 }
@@ -360,7 +371,7 @@ export function resolveGuardianWallCollisions(run,cards,groups,events=[]){
     if(group.length<2)continue;
     const guardians=[...group].filter(card=>{
       const player=run.players.find(p=>p.playerId===card.playerId);
-      const submission=run.combat?.turnSubmissions?.[card.playerId];
+      const submission=(run.combat||run.roomState)?.turnSubmissions?.[card.playerId];
       return player?.status!=='DOWNED'&&player?.characterId==='warrior'&&player.augments.includes('aug-041')&&submission?.skillIntent===true&&card.invalidReason==='COLLISION';
     }).sort((a,b)=>{
       const pa=run.players.find(p=>p.playerId===a.playerId),pb=run.players.find(p=>p.playerId===b.playerId);
@@ -368,28 +379,36 @@ export function resolveGuardianWallCollisions(run,cards,groups,events=[]){
     });
     for(const guardian of guardians){
       const guardianPlayer=run.players.find(p=>p.playerId===guardian.playerId);
-      const candidates=[...group].filter(card=>{
+      const submission=(run.combat||run.roomState)?.turnSubmissions?.[guardian.playerId];
+      let candidates=[...group].filter(card=>{
         if(card.playerId===guardian.playerId||card.invalidReason!=='COLLISION'||card.valid)return false;
         const targetPlayer=run.players.find(p=>p.playerId===card.playerId);
-        const targetSubmission=run.combat?.turnSubmissions?.[card.playerId];
+        const targetSubmission=(run.combat||run.roomState)?.turnSubmissions?.[card.playerId];
         const sacrificingGuardian=targetPlayer?.characterId==='warrior'&&targetPlayer.augments.includes('aug-041')&&targetSubmission?.skillIntent===true;
         return targetPlayer?.status!=='DOWNED'&&!sacrificingGuardian;
       }).sort((a,b)=>{
         const pa=run.players.find(p=>p.playerId===a.playerId),pb=run.players.find(p=>p.playerId===b.playerId);
         return (pa?.seat??999)-(pb?.seat??999)||a.playerId.localeCompare(b.playerId);
       });
-      const target=candidates[0];if(!target)continue;
-      target.valid=true;delete target.invalidReason;target.guardianRescued=true;target.guardianRescuedBy=guardian.playerId;
-      guardian.valid=false;guardian.invalidReason='COLLISION';guardian.guardianSacrifice=true;guardian.guardianRescueTargetId=target.playerId;
-      guardianPlayer.publicResources.guardianTargetPlayerId=target.playerId;
-      const guardEventId=`guard:${run.floor}:${run.depth}:${run.combat?.monster?.id||'combat'}:${run.combat?.turn||0}:${guardian.playerId}`;
-      events.push({type:'GUARDIAN_WALL_RESCUE',phase:'COLLISION_RESOLVE',guardEventId,finalNumber:Number(finalNumber),playerId:guardian.playerId,targetId:target.playerId,redirectCount:1});
-      rescueCount++;
+      const maxRescues=run.phase==='COMBAT'&&guardianPlayer.augments.includes('aug-048')?2:1;
+      const rescued=candidates.slice(0,maxRescues);if(!rescued.length)continue;
+      guardian.valid=false;guardian.invalidReason='COLLISION';guardian.guardianSacrifice=true;
+      guardian.guardianRescueTargetId=rescued[0].playerId;guardian.guardianRescueTargetIds=rescued.map(card=>card.playerId);
+      for(const target of rescued){
+        target.valid=true;delete target.invalidReason;target.guardianRescued=true;target.guardianRescuedBy=guardian.playerId;
+        const guardEventId=`guard:${run.floor}:${run.depth}:${run.combat?.monster?.id||'combat'}:${run.combat?.turn||run.roomState?.attempt||0}:${guardian.playerId}:${target.playerId}`;
+        events.push({type:'GUARDIAN_WALL_RESCUE',phase:'COLLISION_RESOLVE',guardEventId,finalNumber:Number(finalNumber),playerId:guardian.playerId,targetId:target.playerId,redirectCount:1});
+        rescueCount++;
+      }
+      if(run.phase==='COMBAT'){
+        const protectedTarget=rescued[0];
+        guardianPlayer.publicResources.guardianTargetPlayerId=protectedTarget.playerId;
+        if(guardianPlayer.augments.includes('aug-049'))upsertAugmentStatus(run,guardianPlayer,{statusId:'GUARDIAN_EXTRA_REDIRECT',targetId:protectedTarget.playerId,sourceId:'aug-049',payload:{ready:false}});
+      }
     }
   }
   return rescueCount;
 }
-
 export function resolvePostCollisionEffects(run,cards,groups,events=[],mutationEvents=[],processedCollisionEventIds=new Set()){
   const collisionGroups=[];
   const entries=[...groups.entries()].filter(([,group])=>group.length>1).sort((a,b)=>Number(a[0])-Number(b[0]));
@@ -412,7 +431,8 @@ export function resolvePostCollisionEffects(run,cards,groups,events=[],mutationE
       if(player?.characterId!=='berserker'||player.status==='DOWNED')continue;
       const immortal=player.augments.includes('aug-131');
       const healCap=immortal?player.maxHp:Math.min(player.maxHp,2);
-      const before=player.hp,after=Math.min(healCap,before+1);
+      const plan=planBerserkerCollisionHeal(run,player,resolved,{amount:1,healCap});
+      const before=player.hp,after=Math.min(plan.healCap,before+plan.amount);
       const healed=Math.max(0,after-before);
       player.hp=after;
       resolved.berserkerCollisionHeal=healed;
@@ -428,21 +448,14 @@ export function resolvePostCollisionEffects(run,cards,groups,events=[],mutationE
     }
 
     for(const resolved of invalidated){
-      const player=run.players.find(p=>p.playerId===resolved.playerId);
-      if(player?.characterId!=='mage'||!player.augments.includes('aug-101')||!(Number(resolved.resourceSpent)>0))continue;
-      const cfg=runtimeConfig('aug-101'),healAmount=Math.max(1,Number(cfg.healAmount)||1);
-      const targetCards=[...group].filter(card=>card.playerId!==player.playerId).sort((a,b)=>{
-        const pa=run.players.find(p=>p.playerId===a.playerId),pb=run.players.find(p=>p.playerId===b.playerId);
-        return (pa?.seat??999)-(pb?.seat??999)||a.playerId.localeCompare(b.playerId);
-      });
-      const targetCard=targetCards.find(card=>run.players.find(p=>p.playerId===card.playerId)?.status!=='DOWNED');
-      if(!targetCard)continue;
-      const target=run.players.find(p=>p.playerId===targetCard.playerId),before=target.hp,after=Math.min(target.maxHp,before+healAmount),healed=Math.max(0,after-before);
-      target.hp=after;resolved.whiteMagicTargetId=target.playerId;resolved.whiteMagicHeal=healed;
-      whiteMagicHeal+=healed;triggeredEffectCount++;
-      const healEventId=`heal:white:${collisionEventId}:${player.playerId}:${target.playerId}`;
-      events.push({type:'WHITE_MAGIC_HEAL',phase:'POST_COLLISION_EFFECTS',collisionEventId,healEventId,playerId:player.playerId,targetId:target.playerId,requestedHeal:healAmount,amount:healed,before,after,wastedHeal:Math.max(0,healAmount-healed)});
-      if(healed>0)events.push({type:'PLAYER_HEALED',phase:'POST_COLLISION_EFFECTS',collisionEventId,healEventId,playerId:target.playerId,sourcePlayerId:player.playerId,source:'WHITE_MAGIC',amount:healed,before,after});
+      const white=resolveMageWhiteMagicCollision(run,resolved,group,events);
+      if(white.triggered){
+        whiteMagicHeal+=white.healAmount;triggeredEffectCount++;
+        for(const h of resolved.whiteMagicHeals||[]){
+          const target=run.players.find(p=>p.playerId===h.targetId);
+          if(target?.characterId==='berserker'&&Number(h.amount)>0)notifyBerserkerHeal(run,target,h.amount,'WHITE_MAGIC');
+        }
+      }
     }
 
     for(const resolved of immune){
@@ -525,6 +538,7 @@ export function applyPostPlayerAttackCharacter(run,resolved,events=[]){
     const error=new Error('피의 광전 피해 보너스와 실제 HP 비용이 불일치합니다.');error.code='BLOOD_FRENZY_COST_MISMATCH';throw error;
   }
   events.push({type:'BERSERKER_ATTACK_HP_COST',phase:'POST_PLAYER_ATTACK',playerId:player.playerId,amount:cost,before,after,bloodFrenzyBonusDamage:Number(resolved.bloodFrenzyBonusDamage)||0});
+  afterBerserkerAttackCost(run,player,resolved,{before,after,cost,events});
   return cost;
 }
 
@@ -616,7 +630,7 @@ export function resolvePostCollisionCharacter(run,resolved,submission,events=[])
   }
 }
 export function baseDamageForCharacter(player,resolved){
-  if(player.characterId==='rogue'&&resolved.soloLowest)return 5;
+  if(player.characterId==='rogue'&&resolved.soloLowest&&!player.augments.includes('aug-071'))return 5;
   let damage=resolved.finalNumber;
   if(player.characterId==='twins')damage+=2+Math.max(0,Number(resolved.acrobaticsBonusDamage)||0);
   if(player.characterId==='berserker')damage+=1;
@@ -644,7 +658,10 @@ export function onCombatEndCharacter(player,run=null){
   if(priv){delete priv.revelationPeek;delete priv.demonNormalCardPool;delete priv.demonNormalRemaining;delete priv.demonNormalSpent;delete priv.demonNormalCycleIndex;}
 }
 export function onValidAttack(player,run=null,resolved=null,events=[]){
-  if(player.characterId==='adventurer')player.growthExp+=1;
+  if(player.characterId==='adventurer'){
+    if(run?.combat&&resolved)grantAugmentExp(run,player,1,'ADVENTURER_BASE',`base-exp:${run.combat.id}:${run.combat.turn}:${player.playerId}:${resolved.cardInstanceId}`);
+    else player.growthExp+=1;
+  }
   if(player.characterId==='demon_swordsman'){
     const rootActionId=run?.combat&&resolved?`action:${run.combat.id}:${run.combat.turn}:${player.playerId}:${resolved.cardInstanceId}`:null;
     const context={rootActionId,recoveryChainId:rootActionId?`reactivation:${rootActionId}`:null,sourceEffectId:'DEMON_BASE',chainDepth:1};

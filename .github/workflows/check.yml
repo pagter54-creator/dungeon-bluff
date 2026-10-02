@@ -75,6 +75,15 @@ jobs:
       - name: Run PVE T03 100-seed balance
         run: npm run pve:stress:balance -- --scenario T03 --output artifacts/pve-stress-t03-balance
 
+      - name: Run PVE 005B FINAL 500-seed stress
+        if: github.event_name == 'pull_request' && github.head_ref == 'feat/pve-content-005b-runtime'
+        shell: bash
+        run: |
+          set -euo pipefail
+          for scenario in T00 T02 T03 T04 T05 T06 T09 T14; do
+            npm run pve:stress:full -- --scenario "$scenario" --output "artifacts/pve-stress-005b-final/$scenario"
+          done
+
       - name: Upload PVE stress smoke reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -137,6 +146,14 @@ jobs:
         with:
           name: pve-stress-t03-balance-${{ github.sha }}
           path: artifacts/pve-stress-t03-balance/
+          if-no-files-found: error
+
+      - name: Upload PVE 005B FINAL 500-seed reports
+        if: always() && github.event_name == 'pull_request' && github.head_ref == 'feat/pve-content-005b-runtime'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pve-stress-005b-final-${{ github.sha }}
+          path: artifacts/pve-stress-005b-final/
           if-no-files-found: error
 
 

@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "005B_D_AUDIT_V1",
+  "scope": "MAGE_ONLY",
+  "previousOverall005B": {
+    "executable": 95,
+    "target": 150,
+    "preexistingMageExecutable": [
+      "aug-091",
+      "aug-101",
+      "aug-111"
+    ]
+  },
+  "mage": {
+    "target": 30,
+    "registered": 30,
+    "executable": 30,
+    "dataOnly": 0,
+    "missing": 0,
+    "unsupported": 0,
+    "candidateCoverage": 30,
+    "archetypes": {
+      "대마도 증폭": 10,
+      "백마도사": 10,
+      "역산술": 10
+    },
+    "stageDistribution": {
+      "1": 3,
+      "2": 9,
+      "3": 9,
+      "4": 9
+    }
+  },
+  "overall005B": {
+    "target": 150,
+    "executable": 122,
+    "deltaThisBatch": 27,
+    "whyNot125": "aug-091, aug-101, and aug-111 were already executable inside the prior 95/150 registry, so this batch adds 27 unique executable IDs."
+  },
+  "roomMatrix": {
+    "augmentRuntime": {
+      "combat": "30/30",
+      "event": [],
+      "reward": [],
+      "shop": [],
+      "rest": []
+    },
+    "note": "Mage combat damage/heal/cleanse/protection augments do not leak into Event or Reward."
+  },
+  "highRisk": {
+    "ids": [
+      "aug-095",
+      "aug-098",
+      "aug-101",
+      "aug-102",
+      "aug-103",
+      "aug-104",
+      "aug-107",
+      "aug-109",
+      "aug-111",
+      "aug-112",
+      "aug-114",
+      "aug-116",
+      "aug-119",
+      "aug-120"
+    ],
+    "allCovered": true,
+    "namedPositiveCases": 14
+  },
+  "tests": {
+    "expectedFinalTotal": 811,
+    "mageSuiteRuntimeTests": 41,
+    "positiveCardCases": 30,
+    "dedicatedNegativeCases": 3,
+    "reconnectCases": 1,
+    "manaPositiveCardCases": 10,
+    "whiteMagicPositiveCardCases": 10,
+    "reverseMagicPositiveCardCases": 10,
+    "eventRewardIsolationCases": 1,
+    "fullArchetypeBuilds": 3,
+    "candidateAcquisitionE2E": 1,
+    "mixedParty": 1,
+    "countsOverlap": true
+  },
+  "invariants": {
+    "betaV01RowsUnchanged": true,
+    "stableIdsUnchanged": true,
+    "stressGoldensAndFixturesUnchanged": true,
+    "adventurer30of30Preserved": true,
+    "knight30of30Preserved": true,
+    "rogue30of30Preserved": true,
+    "newBerserkerRuntimeCount": 0,
+    "supabaseProductionMutated": false
+  },
+  "verification": {
+    "codeHeadBeforeDocs": "fba7e8740546829384e95cfa363161cfe80ae0b5",
+    "projectChecks": "Final report requires latest documentation-head Project Checks SUCCESS."
+  },
+  "balanceWarning005BD": null,
+  "runtimeBlockers": [],
+  "finalFlags": {
+    "MAGE_RUNTIME_COMPLETE": true,
+    "READY_FOR_PVE_CONTENT_005B_E_BERSERKER": true,
+    "condition": "Valid only after final documentation-head Project Checks SUCCESS."
+  }
+}

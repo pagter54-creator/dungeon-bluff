@@ -1,5 +1,6 @@
+import {adventurerShopPrice} from './adventurer-runtime.js';
 import {choose,drawIndex} from './rng.js';
-import {selfModifyCard,collisionImmunity,isCardSelectableForCharacter,validateCharacterSkillIntent,onCycleStartCharacter,onTurnStartCharacter,onTurnEndCharacter,initializeCombatCharacter,baseDamageForCharacter} from './characters.js';
+import {selfModifyCard,collisionImmunity,resolveGuardianWallCollisions,isCardSelectableForCharacter,validateCharacterSkillIntent,onCycleStartCharacter,onTurnStartCharacter,onTurnEndCharacter,initializeCombatCharacter,baseDamageForCharacter} from './characters.js';
 import {restoreCardCycle,persistCardCycles} from './card-cycle.js';
 import {drawGamblerHand,settleGamblerHand} from './gambler.js';
 import {initializeNumberHistories,recordSelfModification,applyPreCollisionSwap,applyPreCollisionSteal,finalizeNumbers,attachCollisionGroups,attachValidity,assignVampireThralls,validateNumberMutationState} from './number-mutation.js';
@@ -119,8 +120,9 @@ export function confirmShopCard(run,playerId,productId,replaceCardId,nowMs=Date.
   if(p.characterId==='gambler')throw new Error('도박사는 카드 상품을 구매할 수 없습니다.');
   if(item.reservedByPlayerId!==playerId||Number(item.reservedUntil)<=nowMs)throw new Error('유효한 카드 상품 예약이 필요합니다.');
   const old=cardFor(p,replaceCardId);if(!old)throw new Error('교체할 물리 카드를 찾을 수 없습니다.');
-  if(p.runGold<item.price)throw new Error('런 골드가 부족합니다.');
-  p.runGold-=item.price;
+  const price=adventurerShopPrice(run,p,item.price);
+  if(p.runGold<price)throw new Error('런 골드가 부족합니다.');
+  p.runGold-=price;adventurerShopPrice(run,p,item.price,{consume:true});
   p.cardPool=p.cardPool.filter(c=>c.id!==replaceCardId);
   p.cardPool.push({id:`${playerId}:shop:${run.currentRoomNodeId}:${productId}`,baseNumber:item.value,source:'SHOP'});
   item.sold=true;item.reservedByPlayerId=null;item.reservedUntil=null;item.buyerPlayerId=playerId;
@@ -131,8 +133,9 @@ export function buyShopRelic(run,playerId,productId){
   const p=playerFor(run,playerId),item=shopRelic(run,productId);if(!p||!item||item.sold)throw new Error('구매할 수 없는 유물 상품입니다.');
   if(run.roomState.readyPlayerIds.includes(playerId))throw new Error('상점 이용을 종료한 플레이어입니다.');
   if(p.relics.includes(item.relicId))throw new Error('동일 유물을 중복 보유할 수 없습니다.');
-  if(p.runGold<item.price)throw new Error('런 골드가 부족합니다.');
-  p.runGold-=item.price;p.relics.push(item.relicId);item.sold=true;item.buyerPlayerId=playerId;return item;
+  const price=adventurerShopPrice(run,p,item.price);
+  if(p.runGold<price)throw new Error('런 골드가 부족합니다.');
+  p.runGold-=price;adventurerShopPrice(run,p,item.price,{consume:true});p.relics.push(item.relicId);item.sold=true;item.buyerPlayerId=playerId;return item;
 }
 export function finishShop(run,playerId){
   if(run.phase!=='SHOP'||run.roomState?.type!=='SHOP')throw new Error('현재 상점이 아닙니다.');
@@ -230,8 +233,9 @@ export function resolveRewardAttempt(run){
   const groups=new Map();for(const card of cards){const group=groups.get(card.finalNumber)||[];group.push(card);groups.set(card.finalNumber,group);}
   attachCollisionGroups(run,cards,groups);
   for(const group of groups.values())if(group.length>1)for(const card of group)if(!card.collisionImmune){card.valid=false;card.invalidReason='COLLISION';}
+  resolveGuardianWallCollisions(run,cards,groups,[]);
   assignVampireThralls(run,cards,groups,[]);
-  for(const rc of cards)applyOwnedEffects(run,'POST_COLLISION',{player:playerFor(run,rc.playerId),resolved:rc,privateState:room.privateByPlayer[rc.playerId]});
+  for(const rc of cards)applyOwnedEffects(run,'POST_COLLISION',{player:playerFor(run,rc.playerId),resolved:rc,submission:room.turnSubmissions[rc.playerId],privateState:room.privateByPlayer[rc.playerId]});
   attachValidity(cards);
   for(const card of cards)if(card.invalidReason==='COLLISION'){
     const player=playerFor(run,card.playerId);
@@ -271,7 +275,13 @@ export function resolveRewardAttempt(run){
   }
   if(room.catalogIncomplete){autoAssignRemaining(run,run.players.map(p=>p.playerId));return {cards,catalogIncomplete:true};}
   room.invalidPlayerIds=run.players.filter(p=>!valid.some(c=>c.playerId===p.playerId)).map(p=>p.playerId);
-  room.pickOrder=tieOrdered(run,valid).map(c=>c.playerId);
+  const ranked=tieOrdered(run,valid);
+  room.pickOrder=ranked.map(c=>c.playerId);
+  for(const card of ranked)applyOwnedEffects(run,'REWARD_RANKED',{player:playerFor(run,card.playerId),resolved:card,rank:ranked.indexOf(card),addCandidate:()=>{
+    const candidates=relicPool(run.relicCatalog||[],'GENERAL').filter(x=>!room.relicIds.includes(x.id)&&!run.players.some(p=>p.relics.includes(x.id)));
+    if(!candidates.length)return false;
+    room.relicIds.push(choose(run,candidates,'aug-027:'+run.currentRoomNodeId+':'+card.playerId).id);return true;
+  }});
   autoResolveAiPickers(run);
   return {cards,pickOrder:[...room.pickOrder],retry:false};
 }

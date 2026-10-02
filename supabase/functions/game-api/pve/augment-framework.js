@@ -46,7 +46,7 @@ export function validateFrameworkEffect(def){
   for(const op of def.operations)if(!SUPPORTED_OPERATIONS.has(op.type))unsupported();
   return def;
 }
-const SUPPORTED_OPERATIONS=new Set(['APPLY_STATUS','ADD_STACK','SET_STACK','CONSUME_STACK','REMOVE_STATUS','RECOVER_CARD','DRAW_CARD','MOVE_CARD_ZONE','VANISH_CARD','RETURN_TO_DECK','SHUFFLE_DETERMINISTIC','ADD_DAMAGE','SET_DAMAGE','MULTIPLY_DAMAGE','EXTRA_DAMAGE_COMPONENT','HEAL','SELF_DAMAGE','SCHEDULE_EFFECT','RULE_MODIFIER','ADD_RUN_GOLD','ADD_EXP','GRANT_RELIC']);
+const SUPPORTED_OPERATIONS=new Set(['APPLY_STATUS','ADD_STACK','SET_STACK','CONSUME_STACK','REMOVE_STATUS','RECOVER_CARD','DRAW_CARD','MOVE_CARD_ZONE','VANISH_CARD','RETURN_TO_DECK','SHUFFLE_DETERMINISTIC','ADD_DAMAGE','SET_DAMAGE','MULTIPLY_DAMAGE','EXTRA_DAMAGE_COMPONENT','HEAL','SELF_DAMAGE','SCHEDULE_EFFECT','RULE_MODIFIER','ADD_RUN_GOLD','ADD_EXP','GRANT_RELIC','GRANT_RELIC_OPPORTUNITY']);
 function status(run,op,player){return state(run).statuses.find(x=>x.statusId===op.statusId&&x.targetId===(op.targetId||player.playerId));}
 function applyStatus(run,player,op){
   const s=state(run),targetId=op.targetId||player.playerId,existing=status(run,op,player),cap=op.cap??existing?.cap??(op.useDefaultCap?DEFAULT_STACK_CAP:null);
@@ -60,6 +60,27 @@ function applyStatus(run,player,op){
   else if(existing)existing.stacks=next;
   else s.statuses.push({statusId:op.statusId,sourceType:op.sourceType||'AUGMENT',sourceId:op.sourceId||null,ownerId:player.playerId,targetId,stacks:next,cap,payload:structuredClone(op.payload||{}),appliedAt:op.appliedAt||null,resetScope:op.resetScope||'COMBAT',visibility:op.visibility||'PUBLIC'});
   return {stackDelta:next-before};
+}
+export function upsertAugmentStatus(run,owner,{statusId,targetId,sourceId,resetScope='COMBAT',payload={}}){
+  const s=state(run);
+  s.statuses=s.statuses.filter(item=>item.statusId!==statusId||item.ownerId!==owner.playerId);
+  const item={statusId,sourceType:'AUGMENT',sourceId,ownerId:owner.playerId,targetId,stacks:1,cap:1,payload:structuredClone(payload),appliedAt:s.sequence,resetScope,visibility:'PUBLIC'};
+  s.statuses.push(item);
+  return item;
+}
+export function clearAugmentStatusesForOwner(run,statusId,ownerId){
+  const s=state(run),before=s.statuses.length;
+  s.statuses=s.statuses.filter(item=>item.statusId!==statusId||item.ownerId!==ownerId);
+  return before-s.statuses.length;
+}
+export function findAugmentStatus(run,statusId,targetId,{ownerId=null,ready=null}={}){
+  return state(run).statuses.find(item=>item.statusId===statusId&&item.targetId===targetId&&(ownerId==null||item.ownerId===ownerId)&&(ready==null||item.payload?.ready===ready))||null;
+}
+export function consumeAugmentStatus(run,item){
+  const s=state(run),index=s.statuses.indexOf(item);
+  if(index<0)return false;
+  s.statuses.splice(index,1);
+  return true;
 }
 export function recoverPhysicalCard(run,player,cardInstanceId,ctx={}){
   const priv=ctx.privateState||run.combat?.privateByPlayer?.[player.playerId]||run.roomState?.privateByPlayer?.[player.playerId];
@@ -162,6 +183,22 @@ function grant(run,player,op,envelope){
   s.grants[id]={rootActionId:envelope.rootActionId,sourceAugmentId:op.sourceAugmentId||null};
   return {applied:true,resourceDelta:op.type==='GRANT_RELIC'?0:amount};
 }
+export function grantAugmentExp(run,player,amount,sourceAugmentId,applicationId){
+  const envelope=makeAugmentEnvelope(run,player,'ON_VALID',{sourceId:sourceAugmentId,rootActionId:applicationId});
+  return grant(run,player,{type:'ADD_EXP',amount,sourceAugmentId,applicationId},envelope);
+}
+export function consumeDirectDamageReduction(run,player,damage){
+  const s=state(run),items=s.statuses.filter(item=>item.targetId===player.playerId&&item.statusId.startsWith('NEXT_DIRECT_DAMAGE_REDUCTION:'))
+    .sort((a,b)=>(a.appliedAt||0)-(b.appliedAt||0)||String(a.sourceId).localeCompare(String(b.sourceId)));
+  let prevented=0;
+  for(const item of items){
+    const before=Math.max(0,Number(damage.amount)||0);
+    damage.amount=Math.max(0,before-Math.max(0,Number(item.payload?.amount)||0));
+    prevented+=before-damage.amount;
+    consumeAugmentStatus(run,item);
+  }
+  return prevented;
+}
 function operate(run,player,op,ctx,envelope){
   if(['APPLY_STATUS','ADD_STACK','SET_STACK','CONSUME_STACK','REMOVE_STATUS'].includes(op.type))return {applied:true,...applyStatus(run,player,op)};
   if(op.type==='RECOVER_CARD'){const result=recoverPhysicalCard(run,player,op.cardInstanceId,ctx);if(result.applied)dispatchAugmentTrigger(run,'ON_RECOVER_CARD',{player,privateState:ctx.privateState,rootActionId:result.rootActionId,parentEventId:result.parentEventId,recoveryChainId:result.recoveryChainId,chainDepth:result.chainDepth});return result;}
@@ -177,6 +214,7 @@ function operate(run,player,op,ctx,envelope){
   }
   if(op.type==='SCHEDULE_EFFECT')return {applied:true,delayed:scheduleDelayed(run,op,envelope)};
   if(op.type==='RULE_MODIFIER'){state(run).temporary.push({...op,ownerId:player.playerId,augmentId:envelope.sourceId});return {applied:true};}
+  if(op.type==='GRANT_RELIC_OPPORTUNITY')return grantRelicOpportunity(run,player,{...op,applicationId:op.applicationId||envelope.rootActionId+':'+op.sourceAugmentId});
   if(['ADD_RUN_GOLD','ADD_EXP','GRANT_RELIC'].includes(op.type))return grant(run,player,op,envelope);
   unsupported();
 }
@@ -231,10 +269,61 @@ export function cleanupAugmentScope(run,scope,{playerId=null}={}){
   s.statuses=s.statuses.filter(x=>!matches(x));
   s.delayed=s.delayed.filter(x=>!matches(x));
   s.temporary=s.temporary.filter(x=>!matches(x));
+  for(const [key,value] of Object.entries(s.cardState||{}))if(value.resetScope===scope&&(!playerId||value.ownerId===playerId))delete s.cardState[key];
   const onceScope='ONCE_PER_'+scope;
   for(const [key,value] of Object.entries(s.once))if(value.scope===onceScope&&(!playerId||value.playerId===playerId))delete s.once[key];
 }
 export function projectAugmentFramework(run,viewerPlayerId){
   const s=run.augmentFramework;if(!s)return null;
   return {statuses:s.statuses.filter(x=>x.visibility==='PUBLIC'||x.visibility==='OWNER_PRIVATE'&&x.ownerId===viewerPlayerId).map(x=>structuredClone(x))};
+}
+
+export function grantAugmentGold(run,player,amount,sourceAugmentId,applicationId){
+  const envelope=makeAugmentEnvelope(run,player,'ON_KILL',{sourceId:sourceAugmentId,rootActionId:applicationId});
+  const result=grant(run,player,{type:'ADD_RUN_GOLD',amount,sourceAugmentId,applicationId},envelope);
+  if(result.applied&&amount>0&&player.characterId==='adventurer'){
+    const base=grant(run,player,{type:'ADD_RUN_GOLD',amount:1,sourceAugmentId:'ADVENTURER_BASE_GOLD',applicationId:applicationId+':base'},envelope);
+    if(base.applied)result.resourceDelta+=base.resourceDelta;
+  }
+  return result;
+}
+export function grantRelicOpportunity(run,owner,{applicationId,sourceAugmentId='aug-030'}){
+  const s=state(run);s.relicOpportunities||={};
+  if(s.relicOpportunities[applicationId])return {applied:false,reason:'DUPLICATE_OPPORTUNITY'};
+  const opportunity={sourceAugmentId,ownerId:owner.playerId,resetScope:'RUN',status:'FAILED',candidateIds:[]};
+  s.relicOpportunities[applicationId]=opportunity;
+  const players=[...run.players].sort((a,b)=>a.seat-b.seat||a.playerId.localeCompare(b.playerId));
+  for(const p of players){
+    const limit=Number(p.relicInventoryLimit??run.relicInventoryLimit??Infinity);
+    if(p.relics.length>=limit)continue;
+    const candidates=(run.relicCatalog||[]).filter(x=>x.pool==='GENERAL'&&!p.relics.includes(x.id)).map(x=>x.id).sort();
+    if(!candidates.length)continue;
+    const pool=[...candidates];
+    while(pool.length&&opportunity.candidateIds.length<3){
+      const relicId=choose(run,pool,'relic-opportunity:'+applicationId+':'+p.playerId+':'+opportunity.candidateIds.length);
+      opportunity.candidateIds.push(relicId);pool.splice(pool.indexOf(relicId),1);
+    }
+    opportunity.status='PENDING';opportunity.playerId=p.playerId;
+    if(p.memberType==='ai')return chooseRelicOpportunity(run,p.playerId,applicationId,opportunity.candidateIds[0]);
+    return {applied:true,pending:true,playerId:p.playerId};
+  }
+  opportunity.reason='NO_ELIGIBLE_RECIPIENT_OR_CANDIDATE';
+  return {applied:false,reason:opportunity.reason};
+}
+
+export function chooseRelicOpportunity(run,playerId,opportunityId,relicId){
+  const s=state(run),opportunity=s.relicOpportunities?.[opportunityId],p=run.players.find(x=>x.playerId===playerId);
+  if(!opportunity||!p||opportunity.playerId!==playerId)throw new Error('INVALID_RELIC_OPPORTUNITY_OWNER');
+  if(opportunity.status==='GRANTED')return {applied:false,reason:'DUPLICATE_GRANT'};
+  if(opportunity.status!=='PENDING')return {applied:false,reason:opportunity.reason||'TERMINAL_OPPORTUNITY'};
+  if(!opportunity.candidateIds.includes(relicId))throw new Error('INVALID_RELIC_OPPORTUNITY_CANDIDATE');
+  const limit=Number(p.relicInventoryLimit??run.relicInventoryLimit??Infinity);
+  if(p.relics.length>=limit||p.relics.includes(relicId)){
+    opportunity.status='FAILED';opportunity.reason=p.relics.includes(relicId)?'DUPLICATE_RELIC':'FULL_INVENTORY';
+    return {applied:false,reason:opportunity.reason};
+  }
+  p.relics.push(relicId);opportunity.status='GRANTED';opportunity.relicId=relicId;
+  s.grants[opportunityId]={sourceAugmentId:opportunity.sourceAugmentId,playerId,relicId};
+  s.telemetry.push({augmentId:opportunity.sourceAugmentId,trigger:'RELIC_CONFIRM',triggerCount:1,successCount:1,relicGranted:1});
+  return {applied:true,relicId,playerId};
 }

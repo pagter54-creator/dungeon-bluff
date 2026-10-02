@@ -1,7 +1,12 @@
+import {assertAdventurerHandler} from './adventurer-runtime.js';
+import {assertKnightHandler} from './knight-runtime.js';
+import {assertRogueHandler} from './rogue-runtime.js';
+import {assertMageHandler} from './mage-runtime.js';
 import {choose} from './rng.js';
 import {AUGMENT_BY_ID,augmentCandidates} from './augment-catalog.js';
 import {advanceCompletedFloor} from './floor-transition.js';
 import {acquireAugmentOnce} from './augment-framework.js';
+import {applyContent005B} from './content-005b-runtime.js';
 
 export const AUGMENT_THRESHOLDS=[50,150,350,750];
 
@@ -23,7 +28,11 @@ export function grantGrowthExp(run,playerId,amount){
   return amount;
 }
 function offerFor(player,tier){
-  return augmentCandidates(player.characterId,tier,player.augmentBuild).filter(x=>x.executable===true).map(x=>x.id);
+  const candidates=augmentCandidates(player.characterId,tier,player.augmentBuild).filter(x=>x.executable===true&&!player.augments.includes(x.id));
+  if(player.characterId==='adventurer')for(const x of candidates)assertAdventurerHandler(x.id);
+  if(player.characterId==='warrior')for(const x of candidates)assertKnightHandler(x.id);
+  if(player.characterId==='rogue')for(const x of candidates)assertRogueHandler(x.id);
+  return candidates.map(x=>x.id);
 }
 function refreshOffer(run,playerId){
   const state=run.augmentChoice,tiers=state?.pendingByPlayer?.[playerId]||[];
@@ -60,7 +69,8 @@ function applyChoice(run,playerId,augmentId){
   }
   if(player.augments.includes(augmentId))throw new Error('이미 획득한 증강입니다.');
   player.augments.push(augmentId);
-  acquireAugmentOnce(run,player,augmentId,{actionId:`augment-choice:${run.id}:${run.version}:${playerId}:${augmentId}`});
+  const acquisition=acquireAugmentOnce(run,player,augmentId,{actionId:`augment-choice:${run.id}:${run.version}:${playerId}:${augmentId}`});
+  if(acquisition.applied)applyContent005B(run,'ON_ACQUIRE',{player});
   completedTiers(player).push(tier);
   tiers.shift();
   refreshOffer(run,playerId);
