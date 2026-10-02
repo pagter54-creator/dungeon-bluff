@@ -116,7 +116,7 @@ export function applyMage(run,trigger,ctx={}){
   const s=mstate(run,p),r=ctx.resolved,t=turn(run),rm=combatRoom(run);
   if(trigger==='COMBAT_START'){
     framework(run).mage[p.playerId]={combatId:run.combat?.id||null,symmetry117:0,symmetry120:0};
-    if(owned(p,'aug-091'))p.publicResources.manaMax=Math.max(6,Number(p.publicResources.manaMax)||0);
+    if(owned(p,'aug-091')){p.publicResources.manaMax=Math.max(6,Number(p.publicResources.manaMax)||0);fire(run,fired,'aug-091',trigger,true,{manaMax:p.publicResources.manaMax});}
     if(owned(p,'aug-092')||owned(p,'aug-099'))p.publicResources.manaMax=7;
     if(owned(p,'aug-092')){const before=Number(p.publicResources.mana)||0;p.publicResources.mana=Math.min(maxMana(p),Math.max(1,before));mark(run,'aug-092',trigger,true,{manaGained:p.publicResources.mana-before});}
     return fired;
@@ -136,6 +136,7 @@ export function applyMage(run,trigger,ctx={}){
       if(valid&&owned(p,'aug-100')&&!s.used100&&Number(r.resourceBefore)===maxMana(p)&&spent===Number(r.resourceBefore)){r.mage100Bonus=4;s.used100=true;s.next100={armedTurn:t};}
     }
     if(reverse){
+      fire(run,fired,'aug-111',trigger,true,{reversePlusCount:direction>0?1:0,reverseMinusCount:direction<0?1:0,manaSpent:spent});
       const last=s.lastSuccessfulReverseDirection||0,alternating=valid&&last!==0&&direction!==last;
       if(valid&&owned(p,'aug-112')&&direction<0&&s.refund112Turn!==t){const gained=gainMana(run,p,1,'aug-112',trigger);s.refund112Turn=t;if(gained)fired.push({augmentId:'aug-112',trigger});}
       if(valid&&owned(p,'aug-113')&&(Number(r.finalNumber)===0||Number(r.finalNumber)>=6)&&s.boundary113Turn!==t){r.mage113Bonus=2;const gained=gainMana(run,p,1,'aug-113',trigger);s.boundary113Turn=t;if(gained||r.mage113Bonus)fired.push({augmentId:'aug-113',trigger});}
