@@ -138,7 +138,7 @@ test('positive aug-117 builds symmetry on alternating valid reverse directions a
 });
 test('positive aug-118 auto-corrects colliding reverse card to nearest free number up to twice per combat',()=>{
   const {run,p}=fixture(['aug-111','aug-118']);const a={playerId:p.playerId,finalNumber:3,workingNumber:3,skillUsed:'reverse_math',skillValue:1,numberHistory:{postStealNumber:3,finalNumber:3}},b={playerId:'p1',finalNumber:3,workingNumber:3,numberHistory:{postStealNumber:3,finalNumber:3}};
-  const out=applyMageCollisionCorrection(run,[a,b],new Map([[3,[a,b]]),[]);assert.equal(a.finalNumber,4);assert.equal(out.get(4)[0],a);
+  const out=applyMageCollisionCorrection(run,[a,b],new Map([[3,[a,b]]]));assert.equal(a.finalNumber,4);assert.equal(out.get(4)[0],a);
 });
 test('positive aug-119 gives +3 only to spend-four downward magnitude-two valid reverse',()=>{
   const {fire}=fixture(['aug-111','aug-119']);const r=rev(-1,2,{spent:4});fire('CARD_VALIDATED',r);assert.equal(damage(fire,r),8);
