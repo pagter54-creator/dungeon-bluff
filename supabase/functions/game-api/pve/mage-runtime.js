@@ -156,6 +156,7 @@ export function applyMage(run,trigger,ctx={}){
     return fired;
   }
   if(trigger==='BEFORE_DAMAGE'&&rm&&r?.valid&&ctx.damage&&!ctx.followUp){
+    if(owned(p,'aug-095')&&r.skillUsed==='amplify'&&s.fullManaTurn===t&&!(Number(r.mage095Bonus)>0))r.mage095Bonus=2;
     let bonus=0;const bonuses=[['aug-094','mage094Bonus'],['aug-095','mage095Bonus'],['aug-097','mage097Bonus'],['aug-099','mage099Bonus'],['aug-100','mage100Bonus'],['aug-100','mage100NextBonus'],['aug-113','mage113Bonus'],['aug-114','mage114Bonus'],['aug-117','mage117Bonus'],['aug-119','mage119Bonus'],['aug-120','mage120Bonus']];
     for(const [id,key] of bonuses){const amount=Math.max(0,Number(r[key])||0);if(owned(p,id)&&amount){bonus+=amount;fire(run,fired,id,trigger,true,{bonusDamage:amount,symmetryStackMax:id==='aug-120'?s.symmetry120:id==='aug-117'?s.symmetry117:undefined});}}
     if(bonus)ctx.damage.amount+=bonus;return fired;
