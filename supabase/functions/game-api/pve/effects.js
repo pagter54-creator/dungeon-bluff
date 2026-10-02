@@ -3,6 +3,7 @@ import {AUGMENT_BY_ID} from './augment-catalog.js';
 import {resourceMax} from './resources.js';
 import {dispatchAugmentTrigger} from './augment-framework.js';
 import {applyContent005B} from './content-005b-runtime.js';
+import {notifyBerserkerHeal} from './berserker-runtime.js';
 
 const VALID_OPERATIONS=new Set([
   'MODIFY_NUMBER','MODIFY_DAMAGE','SET_DAMAGE','ADD_STATUS','REMOVE_STATUS','HEAL','DAMAGE_SELF',
@@ -70,7 +71,7 @@ function applyOperation(run,player,op,ctx,metrics){
   else if(op.type==='SET_DAMAGE'){const before=ctx.damage.amount;ctx.damage.amount=Math.max(0,amount);addMetric(metrics,'extra_damage',ctx.damage.amount-before);}
   else if(op.type==='ADD_STATUS'){player.persistentCharacterState.statusEffects||=[];if(!player.persistentCharacterState.statusEffects.includes(op.status))player.persistentCharacterState.statusEffects.push(op.status);}
   else if(op.type==='REMOVE_STATUS'){player.persistentCharacterState.statusEffects=(player.persistentCharacterState.statusEffects||[]).filter(x=>x!==op.status);}
-  else if(op.type==='HEAL'){const before=player.hp;player.hp=Math.min(player.maxHp,player.hp+Math.max(0,amount));addMetric(metrics,'healing',player.hp-before);}
+  else if(op.type==='HEAL'){const before=player.hp;player.hp=Math.min(player.maxHp,player.hp+Math.max(0,amount));const healed=Math.max(0,player.hp-before);addMetric(metrics,'healing',healed);if(healed>0)notifyBerserkerHeal(run,player,healed,ctx.sourceAugmentId||ctx.sourceRelicId||'EFFECT_HEAL');}
   else if(op.type==='DAMAGE_SELF')player.hp=Math.max(0,player.hp-Math.max(0,amount));
   else if(op.type==='ADD_RESOURCE'){const before=Number(player.publicResources[op.resource])||0;const max=resourceMax(player,op.resource,Infinity);player.publicResources[op.resource]=Math.min(max,before+amount);addMetric(metrics,'resources_refunded',player.publicResources[op.resource]-before);}
   else if(op.type==='SET_RESOURCE'){const max=resourceMax(player,op.resource,Infinity);player.publicResources[op.resource]=Math.max(0,Math.min(max,amount));}
