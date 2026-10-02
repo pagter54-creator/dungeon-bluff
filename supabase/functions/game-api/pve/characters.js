@@ -630,7 +630,7 @@ export function resolvePostCollisionCharacter(run,resolved,submission,events=[])
   }
 }
 export function baseDamageForCharacter(player,resolved){
-  if(player.characterId==='rogue'&&resolved.soloLowest)return 5;
+  if(player.characterId==='rogue'&&resolved.soloLowest&&!player.augments.includes('aug-071'))return 5;
   let damage=resolved.finalNumber;
   if(player.characterId==='twins')damage+=2+Math.max(0,Number(resolved.acrobaticsBonusDamage)||0);
   if(player.characterId==='berserker')damage+=1;
