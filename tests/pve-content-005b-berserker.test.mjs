@@ -7,6 +7,7 @@ import {AUGMENT_BY_ID,augmentCandidates} from '../supabase/functions/game-api/pv
 import {EXECUTABLE_AUGMENT_RUNTIME} from '../supabase/functions/game-api/pve/augment-runtime.js';
 import {PVE_EXECUTABLE_AUGMENT_UI} from '../src/pve-ui-catalog.js';
 import {beginAugmentChoices,chooseAugment} from '../supabase/functions/game-api/pve/augments.js';
+import {resolvePostCollisionCharacter,applyPostPlayerAttackCharacter,baseDamageForCharacter} from '../supabase/functions/game-api/pve/characters.js';
 
 function fixture(ids=[]){
   const chars=['berserker','mage','rogue','warrior'];
