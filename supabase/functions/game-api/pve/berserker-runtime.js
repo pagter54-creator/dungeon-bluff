@@ -59,14 +59,14 @@ export function afterBerserkerAttackCost(run,p,resolved,{before,after,cost,event
   if(p?.characterId!=='berserker'||!combat(run))return;
   const s=state(run,p),t=turn(run);resolved.berserkerActualHpCost=cost;
   firstHp1(run,p,before,after,'BASE_BERSERKER_SELF_DAMAGE');
+  if(resolved.revengeConsumed&&owned(p,'aug-137')&&!s.used137){
+    s.used137=true;const healed=actualHeal(run,p,1,'aug-137',events);mark(run,'aug-137','POST_PLAYER_ATTACK',healed>0,{healAmount:healed,revengeConsumed:1});
+  }
   if(!(cost>0))return;
   mark(run,'aug-121','POST_PLAYER_ATTACK',owned(p,'aug-121'),{selfDamageTaken:cost});
   if(resolved.berserkerHeal127&&!s.used127){s.used127=true;actualHeal(run,p,1,'aug-127',events);mark(run,'aug-127','POST_PLAYER_ATTACK',true,{healAmount:1});}
   if(owned(p,'aug-130')&&s.refund130Turn!==t){
     s.refund130Turn=t;const healed=actualHeal(run,p,1,'aug-130',events);mark(run,'aug-130','POST_PLAYER_ATTACK',healed>0,{healAmount:healed});
-  }
-  if(resolved.revengeConsumed&&owned(p,'aug-137')&&!s.used137){
-    s.used137=true;const healed=actualHeal(run,p,1,'aug-137',events);mark(run,'aug-137','POST_PLAYER_ATTACK',healed>0,{healAmount:healed,revengeConsumed:1});
   }
 }
 function addBonus(r,key,n){if(n>0)r[key]=(Number(r[key])||0)+n;}
