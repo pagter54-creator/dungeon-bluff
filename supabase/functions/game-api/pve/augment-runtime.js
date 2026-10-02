@@ -1,6 +1,7 @@
 import {ADVENTURER_CONTRACTS} from './adventurer-contracts.js';
 import {KNIGHT_CONTRACTS} from './knight-contracts.js';
 import {ROGUE_CONTRACTS} from './rogue-contracts.js';
+import {MAGE_CONTRACTS} from './mage-contracts.js';
 export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
   'aug-001':{
     ...ADVENTURER_CONTRACTS['aug-001'],
@@ -117,8 +118,7 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
     ]
   },
   'aug-091':{
-    executable:true,
-    source:'BETA_v0.1',
+    ...MAGE_CONTRACTS['aug-091'],
     effects:[
       {
         id:'aug-091-mana-cap',
@@ -128,19 +128,18 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
         maxTriggers:1,resetScope:'COMBAT',
         tags:['T00','REFERENCE']
       }
-    ]
+    ],
+    specialHandlers:['MAGE_V02']
   },
   'aug-101':{
-    executable:true,
-    source:'BETA_v0.1',
-    specialHandlers:['WHITE_MAGE'],
+    ...MAGE_CONTRACTS['aug-101'],
+    specialHandlers:['WHITE_MAGE','MAGE_V02'],
     config:{healAmount:1,maxTargetsPerTurn:1,excludeSelf:true},
     effects:[]
   },
   'aug-111':{
-    executable:true,
-    source:'BETA_v0.1',
-    specialHandlers:['REVERSE_MATH'],
+    ...MAGE_CONTRACTS['aug-111'],
+    specialHandlers:['REVERSE_MATH','MAGE_V02'],
     effects:[]
   },
   'aug-041':{
@@ -266,6 +265,7 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
   ...Object.fromEntries(Object.entries(KNIGHT_CONTRACTS).filter(([id])=>!['aug-031','aug-041','aug-051'].includes(id)).map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['KNIGHT_V02']}])) ,
   ...Object.fromEntries(Object.entries(ADVENTURER_CONTRACTS).filter(([id])=>id!=='aug-001').map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['ADVENTURER_V02']}])) ,
   ...Object.fromEntries(Object.entries(ROGUE_CONTRACTS).filter(([id])=>id!=='aug-061').map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['ROGUE_V02']}])) ,
+  ...Object.fromEntries(Object.entries(MAGE_CONTRACTS).filter(([id])=>!['aug-091','aug-101','aug-111'].includes(id)).map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['MAGE_V02']}])) ,
 });
 
 export function executableAugmentRuntime(augmentId){return EXECUTABLE_AUGMENT_RUNTIME[augmentId]||null;}
