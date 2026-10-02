@@ -1,5 +1,6 @@
 import {applyAdventurer} from './adventurer-runtime.js';
 import {applyKnight} from './knight-runtime.js';
+import {applyRogue} from './rogue-runtime.js';
 import {resourceMax} from './resources.js';
 
 const framework=run=>run.augmentFramework||={once:{},statuses:[],delayed:[],grants:{},acquired:{},temporary:[],telemetry:[],recoveryCounts:{},sequence:0};
@@ -60,18 +61,19 @@ function runRule(run,id,trigger,ctx){
 const TRIGGERS=Object.freeze({
   ON_ACQUIRE:[],
   POST_COLLISION:[],
-  CARD_VALIDATED:['aug-084','aug-088','aug-125'],
+  CARD_VALIDATED:['aug-125'],
   TURN_START:['aug-095'],
-  BEFORE_DAMAGE:['aug-062','aug-084','aug-088','aug-095','aug-122','aug-125','aug-133','aug-142']
+  BEFORE_DAMAGE:['aug-095','aug-122','aug-125','aug-133','aug-142']
 });
 export function applyContent005B(run,trigger,ctx={}){
   const adventurer=applyAdventurer(run,trigger,ctx);
   const knight=applyKnight(run,trigger,ctx);
-  if((run.phase!=='COMBAT'&&trigger!=='ON_ACQUIRE')||ctx.followUp)return [...adventurer,...knight];
+  const rogue=applyRogue(run,trigger,ctx);
+  if((run.phase!=='COMBAT'&&trigger!=='ON_ACQUIRE')||ctx.followUp)return [...adventurer,...knight,...rogue];
   const candidates=TRIGGERS[trigger]||[],p=ctx.player;
   if(!p)return [];
   const owned=new Set(p.augments||[]);
-  const fired=[...adventurer,...knight];
+  const fired=[...adventurer,...knight,...rogue];
   for(const id of candidates)if(!id.match(/^aug-0(?:0[1-9]|[12][0-9]|30)$/)&&owned.has(id)&&runRule(run,id,trigger,ctx))fired.push({augmentId:id,trigger});
   return fired;
 }
