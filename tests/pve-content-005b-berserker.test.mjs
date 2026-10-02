@@ -131,3 +131,19 @@ test('mixed Berserker + Mage + Rogue + Knight state remains isolated',()=>{
   assert.equal(players[3].publicResources.toughnessCharges,2);
   assert.ok(run.augmentFramework.berserker[p.playerId]);
 });
+
+test('aug-149 triggers only on the first actual HP1 transition in a combat',()=>{
+  const {run,p,fire}=fixture(['aug-149']);p.hp=1;damaged(fire,2,1,1);
+  const first=run.augmentFramework.berserker[p.playerId].greatRageStartTurn;
+  p.hp=2;notifyBerserkerHeal(run,p,1,'TEST_HEAL');run.combat.turn=2;p.hp=1;damaged(fire,2,1,1);
+  assert.equal(run.augmentFramework.berserker[p.playerId].greatRageStartTurn,first);
+  assert.equal(run.augmentFramework.telemetry.filter(x=>x.augmentId==='aug-149'&&x.firstHp1Triggers===1).length,1);
+});
+
+test('aug-148 extra component cannot recursively create another Berserker extra component',()=>{
+  const {run,p,fire}=fixture(['aug-148']);p.hp=1;fire('CARD_VALIDATED',card());fire('CARD_VALIDATED',card());const r=card();fire('CARD_VALIDATED',r);
+  const out=dmg(fire,r);assert.equal(out.followUps.length,1);
+  const nestedDamage={amount:out.followUps[0].amount},nested=[];
+  applyBerserker(run,'BEFORE_DAMAGE',{player:p,resolved:r,damage:nestedDamage,followUps:nested,followUp:true});
+  assert.equal(nestedDamage.amount,2);assert.equal(nested.length,0);
+});
