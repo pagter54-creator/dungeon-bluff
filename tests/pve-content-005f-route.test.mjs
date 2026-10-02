@@ -62,7 +62,7 @@ test('005F test-only framework fixture crosses Floor 1/2/3 and RUN_CLEAR without
 
 test('005B actual augments cross Floor 1/2/3 and final boss to RUN_CLEAR',async()=>{
   const classes=['berserker','mage','rogue','warrior'];
-  const members=classes.map((character_id,i)=>({id:'b'+i,user_id:i===0?'u0':undefined,member_type:i===0?'human':'ai',character_id,seat_index:i,display_name:'005B '+i}));
+  const members=classes.map((character_id,i)=>({id:'p'+i,user_id:i===0?'u0':undefined,member_type:i===0?'human':'ai',character_id,seat_index:i,display_name:'005B '+i}));
   const initial=buildInitialPveRun({room:{id:'20000000-0000-4000-8000-000000000002'},members},{seed:'005b-full-expedition-route',depthCount:8});
   const equipped=[['aug-121'],['aug-091'],['aug-061'],['aug-031']];
   for(let i=0;i<initial.players.length;i++)initial.players[i].augments.push(...equipped[i]);
