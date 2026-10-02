@@ -14,6 +14,7 @@ import {resolveF3AfterDamage} from './monster-behavior-f3.js';
 import {applyMonsterDamage} from './monster.js';
 import {beginAugmentChoices} from './augments.js';
 import {applyOwnedEffects} from './effects.js';
+import {rogueArmorPenetration} from './rogue-runtime.js';
 import {cleanupAugmentScope,resolveDelayed,clearAugmentStatusesForOwner} from './augment-framework.js';
 import {initCombatTelemetry,recordCombatTurnTelemetry,finalizeCombatTelemetry} from './telemetry.js';
 import {
@@ -249,8 +250,11 @@ export function resolveBasicTurn(run){
       ...(Number(rc.bloodFrenzyBonusDamage)>0?['AUG_121_BLOOD_FRENZY']:[]),
       ...(Number(rc.ghostSlashBonusDamage)>0?['GHOST_SLASH']:[])
     ];
-    const armorPenetration=player.characterId==='warrior'&&player.augments.includes('aug-052')&&Number(rc.crushedCardCount)>0?Math.min(1,defense):0;
-    if(armorPenetration)modifierIds.push('AUG_052_ARMOR_PENETRATION');
+    const knightArmorPenetration=player.characterId==='warrior'&&player.augments.includes('aug-052')&&Number(rc.crushedCardCount)>0?Math.min(1,defense):0;
+    const roguePoisonPenetration=rogueArmorPenetration(run,player,rc,Math.max(0,defense-knightArmorPenetration));
+    const armorPenetration=Math.min(defense,knightArmorPenetration+roguePoisonPenetration);
+    if(knightArmorPenetration)modifierIds.push('AUG_052_ARMOR_PENETRATION');
+    if(roguePoisonPenetration)modifierIds.push('ROGUE_POISON_DEFENSE');
     let primary=burstPacket({sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,amount:Math.max(0,baseDamageForCharacter(player,rc)+engraving-Math.max(0,defense-armorPenetration)-(rc.monsterDamagePenalty||0)),armorPenetration,tags:['BASE_CARD'],followUp:false},
       {resolved:rc,player,baseNumber:rc.finalNumber,baseDamage:rc.finalNumber,classBonus,augmentBonus,modifierIds});
     const primaryDamage={amount:primary.amount},queued=[];
