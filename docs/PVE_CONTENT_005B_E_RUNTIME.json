@@ -1,0 +1,829 @@
+{
+  "schemaVersion": "005B-E_RUNTIME_V1",
+  "sourcePrecedence": [
+    "PVE_CONTENT_005Q_DESIGN_B",
+    "005Q_CONTRACT_OVERLAY",
+    "005R_CONTRACT",
+    "BETA_V0.1",
+    "EXISTING_RUNTIME"
+  ],
+  "scope": "BERSERKER_ONLY",
+  "ids": "aug-121..aug-150",
+  "baseInvariant": {
+    "deck": [
+      1,
+      2,
+      4,
+      4,
+      5
+    ],
+    "validAttackBonusDamage": 1,
+    "baseSelfDamage": {
+      "amount": 1,
+      "minHp": 1,
+      "canDown": false,
+      "timing": "POST_PLAYER_ATTACK"
+    },
+    "collisionHeal": {
+      "amount": 1,
+      "baseCapHp": 2,
+      "aug131Cap": "MAX_HP"
+    }
+  },
+  "taxonomy": {
+    "baseSelfDamage": "BASE_BERSERKER_SELF_DAMAGE: minHP1, cannot down",
+    "augmentSelfDamage": "separate contract-specific path",
+    "revenge": "monster DIRECT actualDamage>0 only",
+    "hp1": "authoritative player.hp === 1 only",
+    "extraHit": "follow-up damage component with depth/recursion guard"
+  },
+  "roomPolicy": {
+    "combat": "30/30",
+    "event": [],
+    "reward": [],
+    "shop": [],
+    "rest": []
+  },
+  "cards": [
+    {
+      "id": "aug-121",
+      "name": "피의 광전",
+      "characterId": "berserker",
+      "archetype": "피의 광전",
+      "stage": 1,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "actual HP cost 1 on valid attack",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "+2 damage",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-122",
+      "name": "끓어오르는 피",
+      "characterId": "berserker",
+      "archetype": "피의 광전",
+      "stage": 2,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "actual HP cost 1 on valid attack",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "COMBAT",
+      "value": "+1 damage",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-123",
+      "name": "핏빛 가속",
+      "characterId": "berserker",
+      "archetype": "피의 광전",
+      "stage": 2,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "after HP-cost valid attack, next valid attack",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "next valid +1",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-124",
+      "name": "전투의 식사",
+      "characterId": "berserker",
+      "archetype": "피의 광전",
+      "stage": 2,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "actual heal arms next HP-cost valid attack",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "value": "next cost attack +2",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-125",
+      "name": "상처 벌리기",
+      "characterId": "berserker",
+      "archetype": "피의 광전",
+      "stage": 3,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "2+ consecutive HP-cost valid attacks",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "+2 damage",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-126",
+      "name": "붉은 추격",
+      "characterId": "berserker",
+      "archetype": "피의 광전",
+      "stage": 3,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "immediate next turn higher FINAL_NUMBER valid attack after HP-cost success",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "+2 damage",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-127",
+      "name": "피의 환류",
+      "characterId": "berserker",
+      "archetype": "피의 광전",
+      "stage": 3,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "second HP-cost valid success",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "value": "heal 1",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-128",
+      "name": "피의 폭풍",
+      "characterId": "berserker",
+      "archetype": "피의 광전",
+      "stage": 4,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "consecutive HP-cost valid attacks",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "Blood Storm max4; +1 damage per stack; first max extra component 2",
+      "cap": 4,
+      "executable": true
+    },
+    {
+      "id": "aug-129",
+      "name": "붉은 기관",
+      "characterId": "berserker",
+      "archetype": "피의 광전",
+      "stage": 4,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "actual heals store Vigor; next HP-cost valid attack consumes it",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "Vigor max3; +2 damage per stack",
+      "cap": 3,
+      "executable": true
+    },
+    {
+      "id": "aug-130",
+      "name": "끝없는 광전",
+      "characterId": "berserker",
+      "archetype": "피의 광전",
+      "stage": 4,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "actual HP-cost valid success",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "COMBAT",
+      "value": "heal/refund 1",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-131",
+      "name": "불사 투사",
+      "characterId": "berserker",
+      "archetype": "불사 투사",
+      "stage": 1,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "collision healing and monster DIRECT actualDamage>0",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "collision cap maxHP; Revenge max1; next valid +2",
+      "cap": 1,
+      "executable": true
+    },
+    {
+      "id": "aug-132",
+      "name": "질긴 목숨",
+      "characterId": "berserker",
+      "archetype": "불사 투사",
+      "stage": 2,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "collision healing",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "collision heal amount +1; existing cap rules",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-133",
+      "name": "되갚아주마",
+      "characterId": "berserker",
+      "archetype": "불사 투사",
+      "stage": 2,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "valid attack actually consumes Revenge",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "COMBAT",
+      "value": "+1 damage",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-134",
+      "name": "살아남는 법",
+      "characterId": "berserker",
+      "archetype": "불사 투사",
+      "stage": 2,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "first monster DIRECT damage",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "value": "reduce 1",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-135",
+      "name": "넘치는 생명력",
+      "characterId": "berserker",
+      "archetype": "불사 투사",
+      "stage": 3,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "collision heal attempted at max HP",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "next DIRECT damage -1; nonstacking",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-136",
+      "name": "상처의 기억",
+      "characterId": "berserker",
+      "archetype": "불사 투사",
+      "stage": 3,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "monster DIRECT actualDamage>0",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "COMBAT",
+      "value": "Wound Memory max3; next Revenge +1/stack",
+      "cap": 3,
+      "executable": true
+    },
+    {
+      "id": "aug-137",
+      "name": "피로 갚는다",
+      "characterId": "berserker",
+      "archetype": "불사 투사",
+      "stage": 3,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "successful valid attack consumes Revenge",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "value": "heal 1",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-138",
+      "name": "불사신",
+      "characterId": "berserker",
+      "archetype": "불사 투사",
+      "stage": 4,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "lethal monster DIRECT incoming damage",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "value": "survive at HP1",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-139",
+      "name": "난전의 왕",
+      "characterId": "berserker",
+      "archetype": "불사 투사",
+      "stage": 4,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "actual heal and monster direct damage alternate",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "Brawl max4; +1/stack; at 2+ next direct -1 consuming 1",
+      "cap": 4,
+      "executable": true
+    },
+    {
+      "id": "aug-140",
+      "name": "광기의 반격",
+      "characterId": "berserker",
+      "archetype": "불사 투사",
+      "stage": 4,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "monster direct damage then next Revenge attack",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "Revenge attack +4; success arms next DIRECT -1",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-141",
+      "name": "최후의 격노",
+      "characterId": "berserker",
+      "archetype": "최후의 격노",
+      "stage": 1,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "authoritative HP1 after maxHP becomes 2",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "valid attacks +2",
+      "cap": 2,
+      "executable": true
+    },
+    {
+      "id": "aug-142",
+      "name": "죽음의 문턱",
+      "characterId": "berserker",
+      "archetype": "최후의 격노",
+      "stage": 2,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "authoritative HP exactly 1 and valid attack",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "COMBAT",
+      "value": "+1 damage",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-143",
+      "name": "살육 본능",
+      "characterId": "berserker",
+      "archetype": "최후의 격노",
+      "stage": 2,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "HP1 consecutive valid attacks",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": null,
+      "resetScope": "COMBAT",
+      "value": "Rage max3; +1 damage/stack",
+      "cap": 3,
+      "executable": true
+    },
+    {
+      "id": "aug-144",
+      "name": "이를 악물고",
+      "characterId": "berserker",
+      "archetype": "최후의 격노",
+      "stage": 2,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "HP1 first monster DIRECT damage",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "value": "reduce 1",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-145",
+      "name": "폭주",
+      "characterId": "berserker",
+      "archetype": "최후의 격노",
+      "stage": 3,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "HP1 valid streak reaches 2",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "value": "next two valid attacks +2",
+      "cap": 2,
+      "executable": true
+    },
+    {
+      "id": "aug-146",
+      "name": "피 묻은 미소",
+      "characterId": "berserker",
+      "archetype": "최후의 격노",
+      "stage": 3,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "first HP1 collision heal",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "value": "convert heal into next monster DIRECT -1",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-147",
+      "name": "죽음과 춤을",
+      "characterId": "berserker",
+      "archetype": "최후의 격노",
+      "stage": 3,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "HP1 FINAL_NUMBER 4 or 5 valid success",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "COMBAT",
+      "value": "next monster DIRECT -1",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-148",
+      "name": "살아있는 재앙",
+      "characterId": "berserker",
+      "archetype": "최후의 격노",
+      "stage": 4,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "HP1 valid streak reaches 3",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "value": "+4 and extra damage component 2",
+      "cap": null,
+      "executable": true
+    },
+    {
+      "id": "aug-149",
+      "name": "마지막 불꽃",
+      "characterId": "berserker",
+      "archetype": "최후의 격노",
+      "stage": 4,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "first actual transition to HP1",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "value": "next 2 turns first valid +3; one DIRECT -1",
+      "cap": 2,
+      "executable": true
+    },
+    {
+      "id": "aug-150",
+      "name": "피의 왕좌",
+      "characterId": "berserker",
+      "archetype": "최후의 격노",
+      "stage": 4,
+      "handler": "BERSERKER_V02",
+      "trigger": [
+        "COMBAT_START",
+        "CARD_VALIDATED",
+        "BEFORE_DAMAGE",
+        "POST_PLAYER_ATTACK",
+        "POST_COLLISION",
+        "BEFORE_PLAYER_DAMAGE",
+        "PLAYER_DAMAGED"
+      ],
+      "condition": "maxHP fixed 1",
+      "rooms": [
+        "COMBAT"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "value": "all valid +3; combat-start Blood Armor blocks one DIRECT",
+      "cap": 1,
+      "executable": true
+    }
+  ]
+}
