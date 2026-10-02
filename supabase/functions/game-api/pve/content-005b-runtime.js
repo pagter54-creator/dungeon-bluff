@@ -70,11 +70,12 @@ export function applyContent005B(run,trigger,ctx={}){
   const adventurer=applyAdventurer(run,trigger,ctx);
   const knight=applyKnight(run,trigger,ctx);
   const rogue=applyRogue(run,trigger,ctx);
-  if((run.phase!=='COMBAT'&&trigger!=='ON_ACQUIRE')||ctx.followUp)return [...adventurer,...knight,...rogue];
+  const mage=applyMage(run,trigger,ctx);
+  if((run.phase!=='COMBAT'&&trigger!=='ON_ACQUIRE')||ctx.followUp)return [...adventurer,...knight,...rogue,...mage];
   const candidates=TRIGGERS[trigger]||[],p=ctx.player;
   if(!p)return [];
   const owned=new Set(p.augments||[]);
-  const fired=[...adventurer,...knight,...rogue];
+  const fired=[...adventurer,...knight,...rogue,...mage];
   for(const id of candidates)if(!id.match(/^aug-0(?:0[1-9]|[12][0-9]|30)$/)&&owned.has(id)&&runRule(run,id,trigger,ctx))fired.push({augmentId:id,trigger});
   return fired;
 }
