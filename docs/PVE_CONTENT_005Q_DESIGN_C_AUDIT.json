@@ -46,7 +46,7 @@
   "persistenceResolved": 120,
   "reconnectResolved": 120,
   "idempotencyResolved": 120,
-  "tooltipResolved": 120,
+  "tooltipResolved": 111,
   "highRiskIds": [
     "aug-151",
     "aug-161",
@@ -121,5 +121,17 @@
   "flags": {
     "READY_FOR_PVE_CONTENT_005C_A_SEER": true,
     "READY_FOR_PVE_CONTENT_005C_RUNTIME": true
+  },
+  "requiredFieldsNonNull": 120,
+  "validator": {
+    "exactIds": true,
+    "unique120": true,
+    "perClass30": true,
+    "archetypes12x10": true,
+    "stageDistributionPerClass": "3/9/9/9",
+    "requiredFieldsNonNull": 120,
+    "noUnknownRooms": true,
+    "noUndefinedScopes": true,
+    "noPlaceholderTooltips": 111
   }
 }
