@@ -695,18 +695,13 @@
         "decisions": []
       },
       "trigger": [
-        "ON_VALID",
-        "ON_RECOVER_CARD",
-        "PRE_DAMAGE"
+        "ON_VALID"
       ],
       "timingPhase": "ON_VALID",
-      "condition": "복구한 카드의 유효 공격에 작은 추가 피해 또는 성장 보너스.",
+      "condition": "계시로 복구된 자신의 physical card가 전투에서 유효하게 사용된다.",
       "effectType": "MODIFY_EXP",
       "effectValue": {
-        "text": "조건 달성 시 EXP +1.",
-        "numericHints": [
-          1
-        ]
+        "exp": 1
       },
       "damageTaxonomy": "NOT_APPLICABLE",
       "targetRule": "OWNER_OR_CURRENT_ACTION",
@@ -716,8 +711,8 @@
       "stackRule": "NOT_APPLICABLE",
       "stackCap": "NOT_APPLICABLE",
       "consumeRule": "NONE",
-      "onceScope": "NONE",
-      "resetScope": "NEVER_WITHIN_RUN",
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "TURN_END",
       "persistenceScope": "RUN",
       "roomApplicability": {
         "COMBAT": true,
@@ -735,7 +730,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Recovery preserves same physical cardInstanceId; selected/submitted ineligible."
       ],
-      "tooltipBetaV02": "복구한 카드의 유효 공격에 작은 추가 피해 또는 성장 보너스.일 때 {\"text\":\"조건 달성 시 EXP +1.\",\"numericHints\":[1]} 효과를 적용합니다.",
+      "tooltipBetaV02": "계시로 복구한 자신의 카드를 전투에서 유효하게 사용하면 EXP를 1 얻습니다. 턴당 1회.",
       "runtimePrimitivesRequired": [
         "MODIFY_EXP"
       ],
@@ -2404,17 +2399,15 @@
         "decisions": []
       },
       "trigger": [
-        "POST_COLLISION",
-        "PRE_DAMAGE"
+        "POST_COLLISION"
       ],
       "timingPhase": "POST_COLLISION",
-      "condition": "중복 발생 예언 적중 보상 강화.",
-      "effectType": "ADD_DAMAGE",
+      "condition": "이번 턴에 충돌이 발생한다고 선언한 예언이 실제 충돌 결과와 일치한다.",
+      "effectType": "DELAYED_ATTACK_BUFF",
       "effectValue": {
-        "text": "조건 달성 시 추가 피해 +1.",
-        "numericHints": [
-          1
-        ]
+        "bonusDamage": 1,
+        "uses": 1,
+        "target": "OWNER_NEXT_VALID_ATTACK"
       },
       "damageTaxonomy": "ADD",
       "targetRule": "CURRENT_ENEMY",
@@ -2446,7 +2439,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Recovery preserves same physical cardInstanceId; selected/submitted ineligible."
       ],
-      "tooltipBetaV02": "중복 발생 예언 적중 보상 강화.일 때 {\"text\":\"조건 달성 시 추가 피해 +1.\",\"numericHints\":[1]} 효과를 적용합니다. 제한: ONCE_PER_TURN.",
+      "tooltipBetaV02": "이번 턴의 충돌 발생을 정확히 예언하면 자신의 다음 유효 공격 피해가 1 증가합니다. 턴당 1회.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -3461,18 +3454,15 @@
         "decisions": []
       },
       "trigger": [
-        "PRE_COLLISION",
-        "ON_VALID",
-        "PRE_DAMAGE"
+        "ON_VALID"
       ],
       "timingPhase": "PRE_COLLISION",
-      "condition": "슬쩍 후 자신의 공격이 유효하면 다음 턴 작은 보너스.",
-      "effectType": "ADD_DAMAGE",
+      "condition": "이번 턴 PRE_COLLISION_STEAL에서 실제 숫자를 1 이상 훔친 뒤 자신의 공격이 유효하다.",
+      "effectType": "DELAYED_ATTACK_BUFF",
       "effectValue": {
-        "text": "조건 달성 시 추가 피해 +1.",
-        "numericHints": [
-          1
-        ]
+        "bonusDamage": 1,
+        "uses": 1,
+        "expiry": "NEXT_TURN_END"
       },
       "damageTaxonomy": "ADD",
       "targetRule": "OWNER_OR_CURRENT_ACTION",
@@ -3504,7 +3494,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "PRE_COLLISION_STEAL never recursively reruns from derived effects."
       ],
-      "tooltipBetaV02": "슬쩍 후 자신의 공격이 유효하면 다음 턴 작은 보너스.일 때 {\"text\":\"조건 달성 시 추가 피해 +1.\",\"numericHints\":[1]} 효과를 적용합니다. 제한: ONCE_PER_TURN.",
+      "tooltipBetaV02": "숫자를 실제로 1 이상 훔친 턴에 공격까지 유효하면 다음 턴 첫 유효 공격 피해가 1 증가합니다.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -3843,18 +3833,15 @@
         "decisions": []
       },
       "trigger": [
-        "PRE_COLLISION",
-        "ON_VALID",
-        "PRE_DAMAGE"
+        "ON_VALID"
       ],
       "timingPhase": "PRE_COLLISION",
-      "condition": "슬쩍 공격 성공 시 다음 사이클 첫 슬쩍 강화.",
-      "effectType": "ADD_DAMAGE",
+      "condition": "PRE_COLLISION_STEAL로 실제 숫자를 1 이상 훔친 공격이 유효하게 끝난다.",
+      "effectType": "DELAYED_ATTACK_BUFF",
       "effectValue": {
-        "text": "조건 달성 시 추가 피해 +2.",
-        "numericHints": [
-          2
-        ]
+        "bonusDamage": 2,
+        "uses": 1,
+        "expiry": "NEXT_CYCLE_END"
       },
       "damageTaxonomy": "ADD",
       "targetRule": "OWNER_OR_CURRENT_ACTION",
@@ -3867,8 +3854,8 @@
         "source": "BETA_VALUE_OR_LIMIT"
       },
       "consumeRule": "NONE",
-      "onceScope": "ONCE_PER_TURN",
-      "resetScope": "TURN_END",
+      "onceScope": "ONCE_PER_CYCLE",
+      "resetScope": "CYCLE_END",
       "persistenceScope": "RUN",
       "roomApplicability": {
         "COMBAT": true,
@@ -3886,7 +3873,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "PRE_COLLISION_STEAL never recursively reruns from derived effects."
       ],
-      "tooltipBetaV02": "슬쩍 공격 성공 시 다음 사이클 첫 슬쩍 강화.일 때 {\"text\":\"조건 달성 시 추가 피해 +2.\",\"numericHints\":[2]} 효과를 적용합니다. 제한: ONCE_PER_TURN.",
+      "tooltipBetaV02": "숫자를 훔친 공격이 유효하면 다음 사이클의 첫 유효 공격 피해가 2 증가합니다. 사이클당 1회.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -5684,13 +5671,12 @@
         "PRE_DAMAGE"
       ],
       "timingPhase": "PRE_DAMAGE",
-      "condition": "장난 폭발 시 임프가 작은 보너스를 얻음. 아군 피해는 유지.",
-      "effectType": "ADD_DAMAGE",
+      "condition": "자신이 부여한 Mischief가 반복 절도로 폭발한다.",
+      "effectType": "DELAYED_ATTACK_BUFF",
       "effectValue": {
-        "text": "조건 달성 시 추가 피해 +1.",
-        "numericHints": [
-          1
-        ]
+        "bonusDamage": 1,
+        "uses": 1,
+        "target": "OWNER_NEXT_VALID_ATTACK"
       },
       "damageTaxonomy": "ADD",
       "targetRule": "SOURCE_SPECIFIED_ALLY_OR_EARLIEST_SEAT_TIE",
@@ -5722,7 +5708,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "PRE_COLLISION_STEAL never recursively reruns from derived effects."
       ],
-      "tooltipBetaV02": "장난 폭발 시 임프가 작은 보너스를 얻음. 아군 피해는 유지.일 때 {\"text\":\"조건 달성 시 추가 피해 +1.\",\"numericHints\":[1]} 효과를 적용합니다. 제한: ONCE_PER_TURN.",
+      "tooltipBetaV02": "자신이 부여한 장난이 폭발하면 자신의 다음 유효 공격 피해가 1 증가합니다. 장난 폭발의 원래 피해는 그대로 적용됩니다.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -6544,17 +6530,13 @@
         "decisions": []
       },
       "trigger": [
-        "ON_VALID",
-        "PRE_DAMAGE"
+        "ON_VALID"
       ],
       "timingPhase": "ON_VALID",
-      "condition": "특수 카드 사용 후 다음 일반 공격이 유효하면 행운 유지/강화.",
+      "condition": "직전에 유효하게 사용한 physical special card가 6 또는 7이고, 그 다음 ordinary 1~5 카드가 유효하다.",
       "effectType": "ADD_DAMAGE",
       "effectValue": {
-        "text": "조건 달성 시 추가 피해 +2.",
-        "numericHints": [
-          2
-        ]
+        "bonusDamage": 2
       },
       "damageTaxonomy": "ADD",
       "targetRule": "OWNER_OR_CURRENT_ACTION",
@@ -6586,7 +6568,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Use DECK/HAND/DISCARD/VANISHED adapters, not standard SPENT recovery."
       ],
-      "tooltipBetaV02": "특수 카드 사용 후 다음 일반 공격이 유효하면 행운 유지/강화.일 때 {\"text\":\"조건 달성 시 추가 피해 +2.\",\"numericHints\":[2]} 효과를 적용합니다. 제한: ONCE_PER_TURN.",
+      "tooltipBetaV02": "6 또는 7을 유효하게 사용한 뒤 다음 일반 카드(1~5) 공격이 유효하면 그 공격 피해가 2 증가합니다.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -9255,17 +9237,13 @@
         "decisions": []
       },
       "trigger": [
-        "ON_VALID",
-        "PRE_DAMAGE"
+        "ON_VALID"
       ],
       "timingPhase": "ON_VALID",
-      "condition": "전탄발사 성공 후 새 사이클 첫 유효 공격 강화.",
+      "condition": "Full Burst가 성공해 새 사이클에 진입한 뒤 그 사이클의 첫 유효 공격이다.",
       "effectType": "ADD_DAMAGE",
       "effectValue": {
-        "text": "조건 달성 시 추가 피해 +1.",
-        "numericHints": [
-          1
-        ]
+        "bonusDamage": 1
       },
       "damageTaxonomy": "ADD",
       "targetRule": "OWNER_OR_CURRENT_ACTION",
@@ -9278,8 +9256,8 @@
         "source": "BETA_VALUE_OR_LIMIT"
       },
       "consumeRule": "NONE",
-      "onceScope": "ONCE_PER_TURN",
-      "resetScope": "TURN_END",
+      "onceScope": "ONCE_PER_CYCLE",
+      "resetScope": "CYCLE_END",
       "persistenceScope": "RUN",
       "roomApplicability": {
         "COMBAT": true,
@@ -9297,7 +9275,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Full Burst derived card uses keep parent/root action linkage."
       ],
-      "tooltipBetaV02": "전탄발사 성공 후 새 사이클 첫 유효 공격 강화.일 때 {\"text\":\"조건 달성 시 추가 피해 +1.\",\"numericHints\":[1]} 효과를 적용합니다. 제한: ONCE_PER_TURN.",
+      "tooltipBetaV02": "전탄발사 성공으로 새 사이클에 진입하면 그 사이클의 첫 유효 공격 피해가 1 증가합니다.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -10129,17 +10107,14 @@
         "decisions": []
       },
       "trigger": [
-        "ON_VALID",
-        "PRE_DAMAGE"
+        "ON_VALID"
       ],
       "timingPhase": "ON_VALID",
-      "condition": "사이클 첫 유효 공격이 적을 조준해 이후 정밀 사격 효과 강화.",
+      "condition": "현재 사이클의 첫 유효 공격이 성공해 precision setup을 획득한 뒤, 그 사이클의 다음 Precision Shot이 유효하다.",
       "effectType": "ADD_DAMAGE",
       "effectValue": {
-        "text": "조건 달성 시 추가 피해 +1.",
-        "numericHints": [
-          1
-        ]
+        "bonusDamage": 1,
+        "requiresState": "precisionSetup"
       },
       "damageTaxonomy": "ADD",
       "targetRule": "CURRENT_ENEMY",
@@ -10152,8 +10127,8 @@
         "source": "BETA_VALUE_OR_LIMIT"
       },
       "consumeRule": "NONE",
-      "onceScope": "ONCE_PER_TURN",
-      "resetScope": "TURN_END",
+      "onceScope": "ONCE_PER_CYCLE",
+      "resetScope": "CYCLE_END",
       "persistenceScope": "RUN",
       "roomApplicability": {
         "COMBAT": true,
@@ -10171,7 +10146,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Full Burst derived card uses keep parent/root action linkage."
       ],
-      "tooltipBetaV02": "사이클 첫 유효 공격이 적을 조준해 이후 정밀 사격 효과 강화.일 때 {\"text\":\"조건 달성 시 추가 피해 +1.\",\"numericHints\":[1]} 효과를 적용합니다. 제한: ONCE_PER_TURN.",
+      "tooltipBetaV02": "사이클의 첫 유효 공격에 성공하면 조준을 잡습니다. 그 사이클의 다음 정밀 사격 피해가 1 증가합니다.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
@@ -11096,13 +11071,10 @@
         "PRE_DAMAGE"
       ],
       "timingPhase": "PRE_DAMAGE",
-      "condition": "과열이 있는 동안 전탄발사 피해 증가.",
+      "condition": "Overheat가 1 이상인 상태에서 Full Burst의 선택 카드가 유효하다.",
       "effectType": "ADD_DAMAGE",
       "effectValue": {
-        "text": "조건 달성 시 추가 피해 +1.",
-        "numericHints": [
-          1
-        ]
+        "bonusDamage": 1
       },
       "damageTaxonomy": "ADD",
       "targetRule": "OWNER_OR_CURRENT_ACTION",
@@ -11115,8 +11087,8 @@
         "source": "BETA_VALUE_OR_LIMIT"
       },
       "consumeRule": "NONE",
-      "onceScope": "ONCE_PER_TURN",
-      "resetScope": "TURN_END",
+      "onceScope": "ONCE_PER_BURST",
+      "resetScope": "CYCLE_END",
       "persistenceScope": "COMBAT",
       "roomApplicability": {
         "COMBAT": true,
@@ -11134,7 +11106,7 @@
         "005B semantics immutable; insert only at declared phase.",
         "Full Burst derived card uses keep parent/root action linkage."
       ],
-      "tooltipBetaV02": "과열이 있는 동안 전탄발사 피해 증가.일 때 {\"text\":\"조건 달성 시 추가 피해 +1.\",\"numericHints\":[1]} 효과를 적용합니다. 제한: ONCE_PER_TURN.",
+      "tooltipBetaV02": "과열이 1 이상인 상태에서 전탄발사가 성공하면 선택 카드 공격 피해가 1 증가합니다.",
       "runtimePrimitivesRequired": [
         "ADD_DAMAGE"
       ],
