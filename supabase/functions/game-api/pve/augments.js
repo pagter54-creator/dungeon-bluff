@@ -1,5 +1,6 @@
 import {assertAdventurerHandler} from './adventurer-runtime.js';
 import {assertKnightHandler} from './knight-runtime.js';
+import {assertRogueHandler} from './rogue-runtime.js';
 import {choose} from './rng.js';
 import {AUGMENT_BY_ID,augmentCandidates} from './augment-catalog.js';
 import {advanceCompletedFloor} from './floor-transition.js';
@@ -29,6 +30,7 @@ function offerFor(player,tier){
   const candidates=augmentCandidates(player.characterId,tier,player.augmentBuild).filter(x=>x.executable===true&&!player.augments.includes(x.id));
   if(player.characterId==='adventurer')for(const x of candidates)assertAdventurerHandler(x.id);
   if(player.characterId==='warrior')for(const x of candidates)assertKnightHandler(x.id);
+  if(player.characterId==='rogue')for(const x of candidates)assertRogueHandler(x.id);
   return candidates.map(x=>x.id);
 }
 function refreshOffer(run,playerId){
