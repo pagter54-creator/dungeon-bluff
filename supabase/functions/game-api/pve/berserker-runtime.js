@@ -25,7 +25,7 @@ function firstHp1(run,p,before,after,source){
   if(!(before>1&&after===1))return false;
   const s=state(run,p);if(s.firstHp1Reached)return false;
   s.firstHp1Reached=true;s.firstHp1Source=source;s.firstHp1Turn=turn(run);
-  mark(run,'aug-149','FIRST_HP1',owned(p,'aug-149'),{firstHp1Triggers:owned(p,'aug-149')?1:0,source});
+  if(owned(p,'aug-149'))mark(run,'aug-149','FIRST_HP1',true,{firstHp1Triggers:1,source});
   if(owned(p,'aug-149')&&!s.used149){s.used149=true;s.greatRageStartTurn=turn(run)+1;s.greatRageEndTurn=turn(run)+2;s.greatRageGuard=1;}
   return true;
 }
@@ -63,7 +63,7 @@ export function afterBerserkerAttackCost(run,p,resolved,{before,after,cost,event
     s.used137=true;const healed=actualHeal(run,p,1,'aug-137',events);mark(run,'aug-137','POST_PLAYER_ATTACK',healed>0,{healAmount:healed,revengeConsumed:1});
   }
   if(!(cost>0))return;
-  mark(run,'aug-121','POST_PLAYER_ATTACK',owned(p,'aug-121'),{selfDamageTaken:cost});
+  if(owned(p,'aug-121'))mark(run,'aug-121','POST_PLAYER_ATTACK',true,{selfDamageTaken:cost});
   if(resolved.berserkerHeal127&&!s.used127){s.used127=true;actualHeal(run,p,1,'aug-127',events);mark(run,'aug-127','POST_PLAYER_ATTACK',true,{healAmount:1});}
   if(owned(p,'aug-130')&&s.refund130Turn!==t){
     s.refund130Turn=t;const healed=actualHeal(run,p,1,'aug-130',events);mark(run,'aug-130','POST_PLAYER_ATTACK',healed>0,{healAmount:healed});
@@ -166,7 +166,6 @@ export function applyBerserker(run,trigger,ctx={}){
     return fired;
   }
   if(trigger==='BEFORE_DAMAGE'&&r&&ctx.damage&&!ctx.followUp){
-    const keys=['berserker123Bonus','berserker124Bonus','berserker125Bonus','berserker126Bonus','berserker128Bonus','berserker129Bonus','berserker133Bonus','berserker136Bonus','berserker139Bonus','berserker140Bonus','berserker141Bonus','berserker142Bonus','berserker143Bonus','berserker145Bonus','berserker148Bonus','berserker149Bonus','berserker150Bonus'];
     const byId=[
       ['aug-123','berserker123Bonus'],['aug-124','berserker124Bonus'],['aug-125','berserker125Bonus'],['aug-126','berserker126Bonus'],
       ['aug-128','berserker128Bonus'],['aug-129','berserker129Bonus'],['aug-133','berserker133Bonus'],['aug-136','berserker136Bonus'],
