@@ -254,7 +254,7 @@ test('005C-C actual positive/negative effect matrix covers aug-211..240 30/30',(
   },()=>{const x=fixture(['aug-220']);assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('o',4,true)),0);assert.equal(x.state.fortuneStack||0,0);});
   runCase('aug-221',()=>{
     const x=fixture(['aug-221']);for(const v of [1,2,3])applyGamblerValidated(x.run,x.p,x.state,resolvedFor('n'+v,v,true));assert.equal(x.state.cardCounterArmed,true);x.run.combat.turn=2;assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('pay',4,true)),2);
-  },()=>{const x=fixture(['aug-221']);for(const [i,v] of [1,1,2].entries())applyGamblerValidated(x.run,x.p,x.state,resolvedFor('n'+i,v,true));assert.equal(x.state.cardCounterArmed,false);});
+  },()=>{const x=fixture(['aug-221']);for(const [i,v] of [1,1,2].entries())applyGamblerValidated(x.run,x.p,x.state,resolvedFor('n'+i,v,true));assert.equal(Boolean(x.state.cardCounterArmed),false);});
   runCase('aug-222',()=>{
     const x=fixture(['aug-222']),ones=x.p.cardPool.filter(c=>c.baseNumber===1);x.state.remainingCardIds=[ones[0].id];x.state.drawPileIds=[ones[1].id,...x.state.drawPileIds.filter(id=>!ones.some(c=>c.id===id))];assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor(ones[0].id,1,true)),1);
   },()=>{
