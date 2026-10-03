@@ -80,9 +80,10 @@ test('aug-194 stored >=3 at turn end gives next-turn stored-spend attack +2',()=
   const rc={playerId:'p0',finalNumber:3,valid:true,stolenNumberSpent:1};assert.equal(validate(x.run,x.p,rc),2);
   const n=fixture(['aug-191','aug-194']);n.p.publicResources.stolenNumber=2;onImpTurnEnd(n.run,n.p);n.run.combat.turn=2;assert.equal(validate(n.run,n.p,{playerId:'p0',finalNumber:3,valid:true,stolenNumberSpent:1}),0);
 });
-test('aug-195 spends 2 for ATTACK next-valid +2 and rejects insufficient resource',()=>{
+test('aug-195 spends 2 for ATTACK next-valid +2, is once/turn, and rejects insufficient resource',()=>{
   const x=fixture(['aug-191','aug-195']);x.p.publicResources.stolenNumber=2;prepareImpSubmission(x.run,x.p,{impTradeMode:'ATTACK'});assert.equal(x.p.publicResources.stolenNumber,0);
   assert.equal(validate(x.run,x.p,{playerId:'p0',finalNumber:2,valid:true}),2);
+  x.p.publicResources.stolenNumber=2;assert.throws(()=>prepareImpSubmission(x.run,x.p,{impTradeMode:'DEFENSE'}),/ONCE_PER_TURN/);
   const n=fixture(['aug-191','aug-195']);n.p.publicResources.stolenNumber=1;assert.throws(()=>prepareImpSubmission(n.run,n.p,{impTradeMode:'ATTACK'}),/INSUFFICIENT/);
 });
 test('aug-196 spending >=2 on valid attack refunds one stored number once/turn',()=>{
