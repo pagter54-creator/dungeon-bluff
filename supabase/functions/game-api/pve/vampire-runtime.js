@@ -46,7 +46,7 @@ function reserve(run,p,n){
  const s=vampireState(run,p);if(!s.reserve)s.reserve={source:'aug-'+n,earnedSequence:s.sequence,earnedTurn:(run.combat||run.roomState).turn};
 }
 export function performVampireSwap(run,p,actor,target,cards,events=[],state=run.combat){
- if(!combat(run)&&(!has(p,301)||!['EVENT','REWARD_ROOM'].includes(run.phase)))throw new Error('현재 방에서는 피의 명령 숫자 교환을 사용할 수 없습니다.');
+ if(!combat(run)&&!['EVENT','REWARD_ROOM'].includes(run.phase))throw new Error('현재 방에서는 피의 명령 숫자 교환을 사용할 수 없습니다.');
  const s=refresh(run,p),root=state.turn+':'+actor.cardInstanceId;
  if(s.results['swap:'+root])return false;
  if(!live(p)||!live(player(run,target.playerId))||!s.mark?.active||s.mark.thrallPlayerId!==target.playerId)throw new Error('피의 명령 대상이 이번 턴 판정에 없습니다.');
