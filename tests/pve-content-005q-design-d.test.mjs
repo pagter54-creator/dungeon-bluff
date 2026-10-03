@@ -29,7 +29,7 @@ const regressions = [
   ['D03 overflow no conversion', d => d.baseCanonicals.demon_swordsman.devour.multipleLevels=false, /D03overflow/],
   ['D04 parity wrong phase', d => d.baseCanonicals.twins.parity.input='FINAL_NUMBER', /D04printed/],
   ['D05 reserve cap2', d => operation(d,303,'GRANT_COMMAND_RESERVE').cap=2, /D05reserve/],
-  ['D05 same-resolve Dominance', d => operation(d,308,'ARM_COMMAND_DAMAGE_STREAM').eligibleFrom='CURRENT_RESOLVE', /D05persistent/],
+  ['D05 same-resolve or permanent Dominance damage', d => { const op = operation(d,308,'ARM_COMMAND_DAMAGE_STREAM'); op.eligibleFrom='CURRENT_RESOLVE'; op.charges=0; op.consumeCharge=false; }, /D05persistent/],
   ['D06 whole collision group protected', d => operation(d,307,'PROTECT_OWNER_COLLISION_VALIDITY').leaveOtherMembersInvalid=false, /D06owner/],
   ['D07 automatic transform', d => operation(d,351,'SET_TRANSFORMATION_READY').automatic=true, /D07manual/],
   ['D07 restore parked normal cycle', d => operation(d,351,'ACTIVATE_TRANSFORMATION').replaceNormalCycle=false, /D07manual/],
