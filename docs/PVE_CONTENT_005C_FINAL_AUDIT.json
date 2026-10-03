@@ -188,7 +188,8 @@
       ],
       "usesRealApi": true,
       "fixture": "Test-only commit adapter sets enemyHP999 before turn3, thenHP1, passive intent and full partyHP/Flame. Starting owned augment stages/build are pinned. At least three actual combat turns allow required real Seer recovery/aug151 success. Checks routing/runtime/serialization, not natural balance clearability.",
-      "productionEffect": false
+      "productionEffect": false,
+      "status": "ROUTE_REACHES_RUN_CLEAR_BUT_SEER_AUGMENT_TRIGGER_FAILS"
     },
     "settlement": {
       "realSqlTests": "tests/database.test.mjs",
@@ -239,7 +240,8 @@
       "balancePolicy": "Record BALANCE_WARNING_005C_FINAL from emitted reports without tuning; warnings do not block acceptance."
     },
     "immutableSourcePolicy": "DESIGN-C/BETA/005Q/005R/stable IDs/golden unchanged; matrix points to existing contracts and USER_CONFIRMED overlays.",
-    "currentHeadResult": "Requires final documentation HEAD completed/success; verified exact HEAD/run/jobs are recorded in PR body without creating another documentation commit."
+    "currentHeadResult": "Requires final documentation HEAD completed/success; verified exact HEAD/run/jobs are recorded in PR body without creating another documentation commit.",
+    "mixedFullBuildLimit": "Owned full-build and deterministic mixed tests pass; Seer ability trigger remains unreachable from initial0 without test-seeded resource. Do not count these as full live Seer runtime acceptance."
   },
   "blockerPolicy": {
     "RELEASE_BLOCKERS": "Any required gate failure",
@@ -249,7 +251,7 @@
     "BALANCE_WARNING_005C_FINAL": "Nonblocking only; use actual stress output"
   },
   "completionGate": {
-    "condition": "CURRENT_DOCUMENTATION_HEAD_PROJECT_CHECKS_COMPLETED_SUCCESS_AND_ALL_8_500_SEED_JOBS_SUCCESS",
+    "condition": "NO_DESIGN_RUNTIME_TEST_BLOCKERS_AND_CURRENT_DOCUMENTATION_HEAD_PROJECT_CHECKS_COMPLETED_SUCCESS_AND_ALL_8_500_SEED_JOBS_SUCCESS",
     "pendingFlags": {
       "PVE_CONTENT_005C_FINAL_ACCEPTED": false,
       "MERGE_RECOMMENDED": false,
@@ -261,5 +263,63 @@
       "READY_FOR_PVE_CONTENT_005D_DESIGN": true
     },
     "instructions": "Flags evaluate to true only after exact current documentation HEAD CI success. Keep Draft and do not merge or start005D."
+  },
+  "acceptanceStatus": "DESIGN_BLOCKED",
+  "blockers": {
+    "RELEASE_BLOCKERS": [
+      {
+        "id": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED",
+        "reason": "Live Seer starts Revelation0; every positive Revelation source requires prior activation/recovery/prediction. DESIGN-C defines spend1 and activation-turn-valid gain1 but no first-charge source."
+      }
+    ],
+    "DESIGN_BLOCKERS": [
+      {
+        "id": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED",
+        "evidence": {
+          "initialization": "initializeSeerCombat sets revelation=0",
+          "gain": "resolveSeerBaseValidity returns0 unless activationTurn===currentTurn",
+          "activation": "activateSeerImmediateSkill rejects before<1",
+          "contract": "DESIGN-C.baseCanonical.prophet.rule.gain specifies activation-turn gain, no initial charge/ordinary attack source"
+        },
+        "requiredUserDecision": "Specify first-charge source. Combat-start1 or ordinary-valid-attack gain would add gameplay meaning and must be confirmed.",
+        "sourceModified": false
+      }
+    ],
+    "RUNTIME_BLOCKERS": [
+      {
+        "id": "SEER_ACTIVATION_UNREACHABLE_FROM_FRESH_COMBAT",
+        "dependentOn": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      }
+    ],
+    "TEST_BLOCKERS": [
+      {
+        "id": "LIVE_FOUR_CLASS_AND_MIXED_EXPEDITION_SEER_TRIGGER",
+        "failedTests": 2
+      },
+      {
+        "id": "FINAL_500_STRESS_NOT_EXECUTED_ON_FAILED_TEST_HEAD",
+        "scenarios": 8,
+        "seedsRequiredEach": 500
+      }
+    ]
+  },
+  "observedCI": {
+    "head": "8a1d6d31b8164bd3de7689f5e196d287965a68a5",
+    "run": 37122453711,
+    "number": 923,
+    "status": "completed",
+    "conclusion": "failure",
+    "tests": 1408,
+    "passed": 1406,
+    "failed": 2,
+    "skipped": 0,
+    "failure": "Both expedition routes reached RUN_CLEAR but had0 Seer activations. Required actual effect assertion failed.",
+    "stress500": "NOT_EXECUTED; needs:test failed",
+    "hardFailureCount": "NOT_MEASURED_FOR_FINAL500"
+  },
+  "completionFlags": {
+    "PVE_CONTENT_005C_FINAL_ACCEPTED": false,
+    "MERGE_RECOMMENDED": false,
+    "READY_FOR_PVE_CONTENT_005D_DESIGN": false
   }
 }
