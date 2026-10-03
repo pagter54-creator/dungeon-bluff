@@ -281,16 +281,28 @@ export function activateSeerImmediateSkill(run,player,skillData=null){
   if(player.characterId!=='prophet')return null;
   const c=run.combat,priv=privateFor(run,player),s=scopedSeerState(run,player),before=Math.max(0,Number(player.publicResources.revelation)||0);
   if(before<1){const e=new Error('계시가 없습니다.');e.code='INSUFFICIENT_RESOURCE';throw e;}
+  // Validate all user-supplied choices before consuming Revelation so rejected requests are transactional.
+  if(owned(player,'aug-171')&&!normalizePrediction(skillData?.prediction,run)){
+    const e=new Error('불길한 예언은 prediction.type을 명시해야 합니다.');e.code='INVALID_SKILL_REQUEST';throw e;
+  }
+  let requestedAllyIds=[];
+  if(owned(player,'aug-161')){
+    requestedAllyIds=[...(skillData?.target_player_ids||skillData?.targetPlayerIds||[])];
+    const first=String(skillData?.target_player_id||skillData?.targetPlayerId||requestedAllyIds[0]||'');
+    if(first&&!requestedAllyIds.includes(first))requestedAllyIds.unshift(first);
+    if(!requestedAllyIds.length){const e=new Error('운명 조작자는 복구할 아군을 지정해야 합니다.');e.code='INVALID_SKILL_REQUEST';throw e;}
+    const firstTarget=playerById(run,requestedAllyIds[0]);
+    if(!firstTarget||firstTarget.playerId===player.playerId||firstTarget.status==='DOWNED'||!eligibleSpent(run,firstTarget).length){
+      const e=new Error('대상 아군의 현재 사이클에 복구 가능한 사용 카드가 없습니다.');e.code='SKILL_NOT_READY';throw e;
+    }
+  }
   player.publicResources.revelation=before-1;s.activationTurn=c.turn;s.activationSerial=(s.activationSerial||0)+1;s.activationResolvedTurn=null;
   const rootActionId=`skill:${c.id}:${c.turn}:${player.playerId}:revelation:${s.activationSerial}`;
   telemetry(run,'SEER_BASE','ON_SKILL_USE',true,{revelationSpent:1});
   const event={type:'REVELATION_USED',playerId:player.playerId,turn:c.turn,revelationBefore:before,revelationAfter:player.publicResources.revelation,rootActionId,sourceEffectId:'SEER_BASE'};
   let recovered=[];
   if(owned(player,'aug-161')){
-    const requested=[...(skillData?.target_player_ids||skillData?.targetPlayerIds||[])];
-    const first=String(skillData?.target_player_id||skillData?.targetPlayerId||requested[0]||'');
-    if(first&&!requested.includes(first))requested.unshift(first);
-    if(!requested.length){const e=new Error('운명 조작자는 복구할 아군을 지정해야 합니다.');e.code='INVALID_SKILL_REQUEST';throw e;}
+    const requested=[...requestedAllyIds];
     const maxTargets=owned(player,'aug-168')&&claim(run,player,'aug-168','ONCE_PER_COMBAT',{rootActionId,revelationSerial:s.activationSerial},'double')?2:1;
     const targets=[];
     for(const id of requested){const t=playerById(run,id);if(t&&t.playerId!==player.playerId&&t.status!=='DOWNED'&&!targets.includes(t))targets.push(t);if(targets.length>=maxTargets)break;}
