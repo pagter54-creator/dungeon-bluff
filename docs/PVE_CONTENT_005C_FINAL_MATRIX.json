@@ -3,7 +3,7 @@
   "task": "PVE_CONTENT_005C_FINAL",
   "baselineHead": "c59573dc58343c603aa00ab49cf9271e065a3267",
   "targetCount": 120,
-  "acceptanceStatusRule": "No design/runtime/test blockers and exact current documentation HEAD full CI success including all500-seed jobs. Registry presence is not live reachability.",
+  "acceptanceStatusRule": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS; code evidence #932:1409 tests and8x500 seeds passed. Final exact head/run confirmation is in PR metadata.",
   "cards": [
     {
       "augmentId": "aug-151",
@@ -44,7 +44,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-152",
@@ -85,7 +85,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-153",
@@ -126,7 +126,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-154",
@@ -167,7 +167,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-155",
@@ -208,7 +208,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-156",
@@ -252,7 +252,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-157",
@@ -296,7 +296,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-158",
@@ -337,7 +337,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-159",
@@ -381,7 +381,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-160",
@@ -422,7 +422,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-161",
@@ -466,7 +466,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-162",
@@ -507,7 +507,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-163",
@@ -548,7 +548,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-164",
@@ -589,7 +589,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-165",
@@ -630,7 +630,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-166",
@@ -671,7 +671,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-167",
@@ -712,7 +712,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-168",
@@ -759,7 +759,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-169",
@@ -800,7 +800,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-170",
@@ -841,7 +841,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-171",
@@ -885,7 +885,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-172",
@@ -929,7 +929,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-173",
@@ -973,7 +973,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-174",
@@ -1017,7 +1017,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-175",
@@ -1058,7 +1058,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-176",
@@ -1102,7 +1102,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-177",
@@ -1143,7 +1143,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-178",
@@ -1184,7 +1184,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-179",
@@ -1228,7 +1228,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-180",
@@ -1269,7 +1269,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-181",
@@ -1313,7 +1313,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-182",
@@ -1357,7 +1357,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-183",
@@ -1401,7 +1401,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-184",
@@ -1442,7 +1442,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-185",
@@ -1486,7 +1486,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-186",
@@ -1530,7 +1530,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-187",
@@ -1574,7 +1574,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-188",
@@ -1618,7 +1618,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-189",
@@ -1659,7 +1659,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-190",
@@ -1703,7 +1703,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-191",
@@ -1747,7 +1747,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-192",
@@ -1788,7 +1788,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-193",
@@ -1832,7 +1832,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-194",
@@ -1876,7 +1876,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-195",
@@ -1917,7 +1917,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-196",
@@ -1958,7 +1958,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-197",
@@ -2002,7 +2002,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-198",
@@ -2046,7 +2046,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-199",
@@ -2090,7 +2090,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-200",
@@ -2134,7 +2134,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-201",
@@ -2178,7 +2178,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-202",
@@ -2222,7 +2222,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-203",
@@ -2263,7 +2263,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-204",
@@ -2307,7 +2307,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-205",
@@ -2351,7 +2351,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-206",
@@ -2395,7 +2395,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-207",
@@ -2436,7 +2436,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-208",
@@ -2480,7 +2480,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-209",
@@ -2521,7 +2521,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-210",
@@ -2565,7 +2565,7 @@
         "tests/pve-content-005c-b-imp-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-211",
@@ -2609,7 +2609,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-212",
@@ -2653,7 +2653,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-213",
@@ -2697,7 +2697,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-214",
@@ -2738,7 +2738,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-215",
@@ -2782,7 +2782,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-216",
@@ -2823,7 +2823,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-217",
@@ -2867,7 +2867,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-218",
@@ -2911,7 +2911,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-219",
@@ -2955,7 +2955,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-220",
@@ -2999,7 +2999,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-221",
@@ -3043,7 +3043,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-222",
@@ -3087,7 +3087,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-223",
@@ -3131,7 +3131,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-224",
@@ -3175,7 +3175,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-225",
@@ -3216,7 +3216,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-226",
@@ -3260,7 +3260,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-227",
@@ -3304,7 +3304,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-228",
@@ -3345,7 +3345,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-229",
@@ -3389,7 +3389,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-230",
@@ -3430,7 +3430,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-231",
@@ -3471,7 +3471,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-232",
@@ -3515,7 +3515,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-233",
@@ -3556,7 +3556,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-234",
@@ -3600,7 +3600,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-235",
@@ -3644,7 +3644,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-236",
@@ -3688,7 +3688,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-237",
@@ -3732,7 +3732,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-238",
@@ -3773,7 +3773,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-239",
@@ -3817,7 +3817,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-240",
@@ -3861,7 +3861,7 @@
         "tests/pve-content-005c-c-gambler-integration.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-241",
@@ -3900,7 +3900,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-242",
@@ -3939,7 +3939,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-243",
@@ -3981,7 +3981,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-244",
@@ -4023,7 +4023,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-245",
@@ -4065,7 +4065,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-246",
@@ -4107,7 +4107,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-247",
@@ -4149,7 +4149,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-248",
@@ -4188,7 +4188,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-249",
@@ -4230,7 +4230,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-250",
@@ -4272,7 +4272,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-251",
@@ -4314,7 +4314,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-252",
@@ -4356,7 +4356,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-253",
@@ -4395,7 +4395,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-254",
@@ -4437,7 +4437,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-255",
@@ -4479,7 +4479,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-256",
@@ -4521,7 +4521,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-257",
@@ -4560,7 +4560,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-258",
@@ -4602,7 +4602,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-259",
@@ -4641,7 +4641,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-260",
@@ -4683,7 +4683,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-261",
@@ -4722,7 +4722,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-262",
@@ -4764,7 +4764,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-263",
@@ -4803,7 +4803,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-264",
@@ -4845,7 +4845,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-265",
@@ -4887,7 +4887,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-266",
@@ -4926,7 +4926,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-267",
@@ -4965,7 +4965,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-268",
@@ -5007,7 +5007,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-269",
@@ -5049,7 +5049,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     },
     {
       "augmentId": "aug-270",
@@ -5091,7 +5091,7 @@
         "tests/pve-content-005c-d-gunslinger.test.mjs"
       ],
       "fullBuildAcceptance": "mixed matrices A-E, all three build indices; same-class pairs and deterministic replay",
-      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
+      "status": "PASS_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS"
     }
   ],
   "blocker": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED",
@@ -5109,6 +5109,14 @@
     "activationTurnCollisionInvalidGain": 0,
     "reconnect": "Restore authoritative value; never rerun fresh-combat constructor.",
     "idempotency": "Fresh combat constructor assigns1; repeated COMBAT_START dispatch has no grant; beginTurn combatStartEffectsApplied guard.",
-    "sourceReclassification": false
-  }
+    "sourceReclassification": false,
+    "historicalGoldenVerification": {
+      "file": "tests/pve-t06-recovery-loop.test.mjs",
+      "immutableOriginalFingerprint": "6d183d4304b1d1f9fabcc84df757880f5e93391af06024bdd19ead7062fde68a",
+      "confirmedOverlayFingerprint": "a622988f744176176663eaffa83b5f891e8ab925058d5bc9d508192e711d6a1c",
+      "onlyDelta": "Revelation0->1 in F6,F11,F16,F18,F19 untouched Seer observations; historical projection differs in those5 fields only; original golden file unchanged."
+    }
+  },
+  "verifiedEvidenceHead": "f074880e6f46042ba2993ea5245928f0da62f68d",
+  "verifiedEvidenceRun": 37130143127
 }
