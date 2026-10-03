@@ -6,7 +6,7 @@ import {EXECUTABLE_AUGMENT_RUNTIME} from '../supabase/functions/game-api/pve/aug
 import {GAMBLER_CONTRACTS,GAMBLER_CONTRACT_IDS} from '../supabase/functions/game-api/pve/gambler-contracts.js';
 import {
   freshGamblerState,normalizeGamblerState,drawGamblerHand,settleGamblerHand,setGamblerDrawPreference,
-  prepareGamblerAllIn,finalizeGamblerAllIn,gamblerSetDamage,applyGamblerValidated,initializeGamblerCombat,prepareGamblerForcedAutoSubmission
+  prepareGamblerAllIn,finalizeGamblerAllIn,gamblerSetDamage,applyGamblerValidated,initializeGamblerCombat,prepareGamblerForcedAutoSubmission,consumeGamblerLuck
 } from '../supabase/functions/game-api/pve/gambler.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 import {useRewardGamblerLuck} from '../supabase/functions/game-api/pve/rooms.js';
@@ -386,7 +386,7 @@ test('005C-C Gambler telemetry is retry-safe for All-In attempt success damage a
   finalizeGamblerAllIn(x.run,x.p,x.state,r);finalizeGamblerAllIn(x.run,x.p,x.state,retry);
   assert.equal(x.state.telemetry.allInSuccess,1);
   x.state.luck=1;
-  assert.equal((await import('../supabase/functions/game-api/pve/gambler.js')).consumeGamblerLuck(x.run,x.p,x.state,'luck-retry'),true);
-  assert.equal((await import('../supabase/functions/game-api/pve/gambler.js')).consumeGamblerLuck(x.run,x.p,x.state,'luck-retry'),false);
+  assert.equal(consumeGamblerLuck(x.run,x.p,x.state,'luck-retry'),true);
+  assert.equal(consumeGamblerLuck(x.run,x.p,x.state,'luck-retry'),false);
   assert.equal(x.state.telemetry.luckUsed,1);
 });
