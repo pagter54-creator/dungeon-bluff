@@ -213,6 +213,13 @@ export function onImpTurnEnd(run,p){
   s.markedThisTurn=[];s.mischiefValidTurn=[];
   const t=turn(run);const r=root(run);for(const [k,m] of Object.entries(r.mischief))if(m.ownerId===p.playerId&&m.expiryTurn<t)delete r.mischief[k];
 }
+export function cleanupImpRoom(run){
+  const r=root(run),roomId=run.currentRoomNodeId||run.roomState?.id||null;
+  if(!roomId)return;
+  for(const k of Object.keys(r.processedRoots))if(k.includes(':'+roomId+':'))delete r.processedRoots[k];
+  r.buffs=r.buffs.filter(b=>b.combatId!=null);
+  for(const k of Object.keys(r.mischief))if(!r.mischief[k].combatId)delete r.mischief[k];
+}
 export function cleanupImpCombat(run,p){
   if(p.characterId!=='imp')return;const r=root(run),combatId=run.combat?.id;
   for(const k of Object.keys(r.mischief))if(r.mischief[k].ownerId===p.playerId||r.mischief[k].combatId===combatId)delete r.mischief[k];
