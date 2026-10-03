@@ -151,6 +151,17 @@ test('005C-C aug-230 owner can choose any three ordinary numbers and guarantee o
   assert.equal(x.state.aug230UsedShuffle,true);
 });
 
+
+test('005C-C full Card Counter build resolves aug-230 then aug-228 before the same first draw',()=>{
+  const x=fixture(['aug-221','aug-222','aug-223','aug-224','aug-225','aug-226','aug-227','aug-228','aug-229','aug-230']);
+  assert.deepEqual(drawGamblerHand(x.run,x.p,x.state),[]);assert.equal(x.state.drawChoicePending,'AUG_230');
+  assert.deepEqual(setGamblerDrawPreference(x.run,x.p,x.state,[3,4,5]),[]);assert.equal(x.state.drawChoicePending,'AUG_228');
+  const drawn=setGamblerDrawPreference(x.run,x.p,x.state,'LOW');assert.equal(drawn.length,2);
+  assert.equal(x.state.aug230UsedShuffle,true);assert.equal(x.state.aug228UsedShuffle,true);
+  const values=x.state.remainingCardIds.map(id=>x.p.cardPool.find(card=>card.id===id).baseNumber);
+  assert.ok(values.some(v=>[3,4,5].includes(v)));assert.ok(values.some(v=>[1,2,3].includes(v)));
+});
+
 test('005C-C aug-211 Reward Luck is server-authoritative, once-only, and closes after confirmation',()=>{
   const x=fixture(['aug-211']);x.run.phase='REWARD_ROOM';x.state.luck=1;
   x.run.roomState={type:'REWARD_ROOM',attempt:1,pickOrder:['p0'],privateByPlayer:{p0:x.state},gamblerLuckWindows:{},relicIds:['r1'],picks:{}};
