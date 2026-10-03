@@ -74,7 +74,7 @@ export function resolveGunnerSelected(run,p,r,submission,events=[]){
     p.publicResources.fullBurstReady=false;
     if(r.valid){
       r.followUpCardIds=priv.remainingCardIds.filter(id=>id!==r.cardInstanceId);
-      r.gunnerExtraCount=r.followUpCardIds.length;s.telemetry.burstSuccess++;s.telemetry.derivedCardsUsed+=r.followUpCardIds.length;
+      r.gunnerExtraCount=r.followUpCardIds.length;r.gunnerExtraCountAtActivation=activation.remainingCardIds?.length??r.gunnerExtraCount;s.telemetry.burstSuccess++;s.telemetry.derivedCardsUsed+=r.followUpCardIds.length;
       p.publicResources.burstReadyCycle=cycle(run,p)+(owns(p,'aug-261')||owns(p,'aug-269')?1:2);
       s.afterBurstCycle=cycle(run,p)+1;s.newCycleFirstValidUsed=false;
       if(owns(p,'aug-266')){s.output=Math.min(3,s.output+1);fire(s,'aug-266');}
@@ -107,7 +107,7 @@ export function gunnerPenetration(run,p,r,defense){
   return 0;
 }
 export function gunnerExtraComponent(run,p,r){
-  if(run.phase!=='COMBAT'||!r.valid||r.fullBurstOutcome!=='SUCCESS'||r.gunnerExtraCount!==3||!owns(p,'aug-248'))return null;
+  if(run.phase!=='COMBAT'||!r.valid||r.fullBurstOutcome!=='SUCCESS'||r.gunnerExtraCountAtActivation!==3||!owns(p,'aug-248'))return null;
   const s=gunnerState(run,p),key=root(run,p,r)+':component';
   if(s.applied[key])return null;if(!once(run,p,s,'aug-248'))return null;
   s.applied[key]=true;fire(s,'aug-248');s.telemetry.burstDamage+=5;
@@ -149,7 +149,8 @@ export function applyGunnerRuntime(run,trigger,ctx={}){
       if(owns(p,'aug-251')){if(!s.precisionShot.armed)throw new Error('PRECISION_SHOT_UNAVAILABLE');s.precisionShot.activationId=root(run,p,r);}
       else{
         const forced=s.blockedTurn===turn(run)&&owns(p,'aug-270')&&once(run,p,s,'aug-270');
-        s.activation={rootActionId:root(run,p,r),cycleId:cycle(run,p),heatBefore:s.overheat,forced};
+        const remainingAtActivation=(run.combat?.privateByPlayer?.[p.playerId]?.remainingCardIds||[]).filter(id=>id!==r?.cardInstanceId);
+        s.activation={rootActionId:root(run,p,r),cycleId:cycle(run,p),remainingCardIds:[...remainingAtActivation],heatBefore:s.overheat,forced};
         markGunnerBurstPhase(run,p,r,'BURST_ACTIVATION');
         s.burstUsedTurn=turn(run);if(owns(p,'aug-261')){heat(run,p,s,1);fire(s,'aug-261');}
       }
