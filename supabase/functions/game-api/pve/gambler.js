@@ -143,13 +143,14 @@ export function drawGamblerHand(run,player,state,count=2){
   const required=requiredDrawChoice(player,state);
   if(required&&!state.drawPreference){state.drawChoicePending=required;state.predictedNumbers=predictedFromDeck(player,state);return [];}
   applyDrawGuarantee(player,state);
+  const predictionBefore=[...predictedFromDeck(player,state)];
   const drawn=[];
   while(state.remainingCardIds.length<count){
     const cardId=drawOne(run,player,state);
     if(!cardId)break;
     state.remainingCardIds.push(cardId);drawn.push(cardId);
   }
-  if(drawn.length){state.firstDrawAfterShuffle=false;state.drawPreference=null;state.predictedNumbers=predictedFromDeck(player,state);}
+  if(drawn.length){state.firstDrawAfterShuffle=false;state.drawPreference=null;state.currentPrediction=predictionBefore;state.predictedNumbers=predictedFromDeck(player,state);}
   return drawn;
 }
 function registered(player,state,value){
@@ -201,7 +202,6 @@ export function settleGamblerHand(run,player,state,selectedId,finalNumber,{rootA
     }
   }
   state.remainingCardIds=[];state.spentCardIds=[];
-  if(player.augments?.includes('aug-211')&&(used?.baseNumber===6||used?.baseNumber===7))addGamblerLuck(run,player,state,rootActionId||`special:${state.drawCount}`);
   if(Number.isInteger(finalNumber)&&finalNumber>=1&&finalNumber<=5){
     for(const [value,key,needed] of [[6,'sixProgress',3],[7,'sevenProgress',5]]){
       if(registered(player,state,value)>=2){state[key]=[];continue;}
@@ -252,6 +252,11 @@ export function applyGamblerValidated(run,player,state,resolved){
   }
   const counterWasArmed=Boolean(state.cardCounterArmed);
   const sequenceWasArmed=Boolean(state.sequenceArmed);
+  if(player.augments?.includes('aug-220'))bonus+=Math.max(0,Math.min(4,Number(state.fortuneStack)||0));
+  if(state.weakenedBorrowedIds.includes(resolved?.cardInstanceId)){resolved.gamblerDamagePenalty=(Number(resolved.gamblerDamagePenalty)||0)+1;state.weakenedBorrowedIds=state.weakenedBorrowedIds.filter(id=>id!==resolved.cardInstanceId);}
+  if(value>=1&&value<=5&&state.luckDamageArmed){bonus+=1;state.luckDamageArmed=false;}
+  if(value>=1&&value<=5&&player.augments?.includes('aug-223')&&state.discardMemoryNumber===value&&onceTurn('aug-223'))bonus+=1;
+  if(value>=1&&value<=5&&player.augments?.includes('aug-224')&&Array.isArray(state.currentPrediction)&&state.currentPrediction.includes(value)&&onceTurn('aug-224'))bonus+=1;
   if(counterWasArmed){bonus+=2;state.cardCounter=0;state.cardCounterArmed=false;state.countedOrdinary=[];}
   if(sequenceWasArmed){bonus+=3;state.sequenceArmed=false;state.validOrdinaryHistory=[];}
   if(value===6){
@@ -263,12 +268,21 @@ export function applyGamblerValidated(run,player,state,resolved){
     if(player.augments?.includes('aug-219')&&!state.aug219Used){bonus+=7;state.aug219Used=true;}
   }
   if([6,7].includes(value)){
+    if(player.augments?.includes('aug-211'))addGamblerLuck(run,player,state,`valid:${run.combat?.id||run.currentRoomNodeId||'room'}:${turn}:${resolved.cardInstanceId}`);
+    if(player.augments?.includes('aug-216')&&state.aug216Cycle!==state.shuffleCount){state.specialCharge=(Number(state.specialCharge)||0)+1;state.aug216Cycle=state.shuffleCount;}
     if(player.augments?.includes('aug-217')&&state.lastValidSpecial&&state.lastValidSpecial!==value&&onceTurn('aug-217'))bonus+=3;
+    if(player.augments?.includes('aug-220')){
+      state.fortuneOrdinarySeen=Array.isArray(state.fortuneOrdinarySeen)?state.fortuneOrdinarySeen:[];
+      if(state.fortuneLastSpecial&&state.fortuneLastSpecial!==value&&state.fortuneOrdinarySeen.length>=3)state.fortuneStack=Math.min(4,(Number(state.fortuneStack)||0)+1);
+      state.fortuneLastSpecial=value;
+    }
     state.lastValidSpecial=value;
   }else if(value>=1&&value<=5){
     if(player.augments?.includes('aug-215')&&[6,7].includes(state.lastValidCardValue)&&onceTurn('aug-215'))bonus+=2;
     state.validOrdinaryHistory.push(value);if(state.validOrdinaryHistory.length>8)state.validOrdinaryHistory.shift();
     if(!state.shuffleOrdinarySeen.includes(value))state.shuffleOrdinarySeen.push(value);
+    state.fortuneOrdinarySeen=Array.isArray(state.fortuneOrdinarySeen)?state.fortuneOrdinarySeen:[];if(!state.fortuneOrdinarySeen.includes(value))state.fortuneOrdinarySeen.push(value);
+    let countingCombo=null;
     if(player.augments?.includes('aug-214')){
       state.aug214Run=Array.isArray(state.aug214Run)?state.aug214Run:[];
       if(!state.aug214Run.includes(value))state.aug214Run.push(value);else state.aug214Run=[value];
@@ -277,7 +291,7 @@ export function applyGamblerValidated(run,player,state,resolved){
     if(player.augments?.includes('aug-221')){
       state.countedOrdinary=Array.isArray(state.countedOrdinary)?state.countedOrdinary:[];
       if(!state.countedOrdinary.includes(value)){state.countedOrdinary.push(value);state.cardCounter=Math.min(3,(Number(state.cardCounter)||0)+1);}
-      if(state.cardCounter>=3)state.cardCounterArmed=true;
+      if(state.cardCounter>=3){state.cardCounterArmed=true;countingCombo='COUNTER3';}
     }
     if(player.augments?.includes('aug-222')&&onceTurn('aug-222')){
       const ids=[...(state.drawPileIds||[]),...(state.remainingCardIds||[])];
@@ -285,12 +299,13 @@ export function applyGamblerValidated(run,player,state,resolved){
       if(copies>=2)bonus+=1;
     }
     if(player.augments?.includes('aug-225')){
-      const h=state.validOrdinaryHistory.slice(-3);if(h.length===3&&Math.abs(h[1]-h[0])===1&&h[2]-h[1]===h[1]-h[0])state.sequenceArmed=true;
+      const h=state.validOrdinaryHistory.slice(-3);if(h.length===3&&Math.abs(h[1]-h[0])===1&&h[2]-h[1]===h[1]-h[0]){state.sequenceArmed=true;countingCombo='SEQUENCE3';}
     }
     if(player.augments?.includes('aug-226')&&onceTurn('aug-226')){
-      const h=state.validOrdinaryHistory.slice(-5);if(h.length===5){const counts=Object.values(h.reduce((m,n)=>(m[n]=(m[n]||0)+1,m),{})).sort((a,b)=>b-a);if(counts.length===4&&counts[0]===2)bonus+=2;}
+      const h=state.validOrdinaryHistory.slice(-5);if(h.length===5){const counts=Object.values(h.reduce((m,n)=>(m[n]=(m[n]||0)+1,m),{})).sort((a,b)=>b-a);if(counts.length===4&&counts[0]===2){bonus+=2;countingCombo='FULL_HOUSE';}}
     }
-    if(player.augments?.includes('aug-227')&&state.shuffleOrdinarySeen.length===5)state.fiveMemoryArmed=true;
+    if(player.augments?.includes('aug-227')&&state.shuffleOrdinarySeen.length===5){state.fiveMemoryArmed=true;countingCombo='FIVE_MEMORY';}
+    if(countingCombo&&player.augments?.includes('aug-229')&&countingCombo!==state.lastCountingCombo&&onceTurn('aug-229')){bonus+=3;state.lastCountingCombo=countingCombo;}
   }
   if(state.fiveMemoryArmed&&[6,7].includes(value)){bonus+=4;state.fiveMemoryArmed=false;}
   resolved.gamblerBonusDamage=(Number(resolved.gamblerBonusDamage)||0)+bonus;
@@ -300,8 +315,9 @@ export function applyGamblerValidated(run,player,state,resolved){
 }
 
 export function gamblerSetDamage(run,player,state,resolved,damage){
-  const validatedBonus=Math.max(0,Number(resolved?.gamblerBonusDamage)||0);
-  if(!resolved?.allIn||!player.augments?.includes('aug-231'))return Math.max(0,Number(damage)||0)+validatedBonus;
+  const validatedBonus=Number(resolved?.gamblerBonusDamage)||0;
+  const penalty=Math.max(0,Number(resolved?.gamblerDamagePenalty)||0);
+  if(!resolved?.allIn||!player.augments?.includes('aug-231'))return Math.max(0,(Number(damage)||0)+validatedBonus-penalty);
   const key=`all-in-damage:${resolved.allInRootActionId}`;
   if(Number.isFinite(state.processedActions[key]))return state.processedActions[key];
   let amount=Math.max(0,Number(resolved.allInSum)||0);
@@ -311,7 +327,7 @@ export function gamblerSetDamage(run,player,state,resolved,damage){
   const streak=Math.max(0,Math.min(4,Number(state.allInWinStreak)||0));
   if(player.augments.includes('aug-239'))amount+=streak;
   if(player.augments.includes('aug-240')&&!state.houseUsed){amount+=8;state.houseUsed=true;}
-  amount+=validatedBonus;
+  amount=Math.max(0,amount+validatedBonus-penalty);
   state.processedActions[key]=amount;
   boundedHistory(state,{type:'ALL_IN_DAMAGE',turn:run.combat?.turn||0,rootActionId:resolved.allInRootActionId,amount});
   return amount;
