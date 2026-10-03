@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "task": "PVE_CONTENT_005Q_DESIGN_D",
+  "designOnly": true,
+  "decisions": [
+    {
+      "decisionId": "D01",
+      "selectedOption": "USER_CUSTOM",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "raw": "전투 당 1회 처음 파쇄가 3까지 쌓인 적을 향한 공격은 중복으로 무효처리 되지 않음.",
+      "ruleId": "FIRST_SHATTER_3_ATTACK_COLLISION_PROTECTION",
+      "affected": [
+        "aug-287"
+      ],
+      "confirmedRule": {
+        "shatterThreshold": 3,
+        "thresholdOccurrence": "FIRST_REACH_IN_COMBAT",
+        "onceScope": "ONCE_PER_COMBAT",
+        "effect": "Prevent collision-based invalidation of the attack against the enemy identified by the first Shatter 3 threshold occurrence."
+      },
+      "sourceClassification": "USER_CONFIRMED",
+      "replacesProposedBenefitOptions": true,
+      "doesNotReclassifyBetaV01AsSourceExplicit": true,
+      "runtimeImplemented": false,
+      "interpretationBoundary": "The user confirmed the effect identity, threshold and combat scope. Selection among simultaneous allied attacks and reservation ordering must be specified in the subsequent complete contract; this decision record does not silently choose them."
+    }
+  ],
+  "remainingDecisionBundles": [
+    "D02",
+    "D03",
+    "D04"
+  ],
+  "readyForRuntime": false
+}
