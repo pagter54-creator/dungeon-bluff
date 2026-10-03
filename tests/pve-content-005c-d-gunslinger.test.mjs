@@ -269,3 +269,13 @@ test('005C-D immutable source projection and all 30 actual UI descriptions match
  const other=projectRun(x.run,'p1');assert.equal(other.players[0].publicResources.overheat,3);assert.equal(other.players[0].publicResources.burstOutput,2);
  assert.equal(other.privateGunnerState,undefined);assert.equal(other.players[0].cardPool.some(c=>c.id),false);
 });
+
+test('005C-D aug248 uses activation-time remaining count even when an ally recovery changes current magazine',()=>{
+ const x=fixture(['aug-241','aug-248']),spent=x.priv.remainingCardIds.pop();x.priv.spentCardIds.push(spent);
+ const r={playerId:'p0',cardInstanceId:x.priv.remainingCardIds[0],finalNumber:1,valid:true};
+ applyOwnedEffects(x.run,'ON_SKILL_USE',{player:x.p,resolved:r});
+ x.priv.spentCardIds=[];x.priv.remainingCardIds.push(spent);
+ resolveGunnerSelected(x.run,x.p,r,{skillIntent:true});
+ assert.equal(r.gunnerExtraCount,3);assert.equal(r.gunnerExtraCountAtActivation,2);
+ assert.equal(gunnerExtraComponent(x.run,x.p,r),null);assert.equal(x.s.telemetry.augment['aug-248'],undefined);
+});
