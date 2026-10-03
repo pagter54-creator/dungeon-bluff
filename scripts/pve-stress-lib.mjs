@@ -1109,7 +1109,7 @@ export function t05GoldenComparable(result){
         postStealNumber:h.postStealNumber,finalNumber:h.finalNumber,
         collisionGroup:h.collisionGroup,collisionImmune:h.collisionImmune,valid:h.valid,damage:h.damage
       })),
-      events:f.events,ownershipStable:f.ownershipStable
+      events:(f.events||[]).map(event=>{const {sourcePlayerId,sourceAugmentId,victimPlayerId,requestedAmount,actualAmount,rootActionId,chainDepth,...legacy}=event;return legacy;}),ownershipStable:f.ownershipStable
     }))
   };
 }
