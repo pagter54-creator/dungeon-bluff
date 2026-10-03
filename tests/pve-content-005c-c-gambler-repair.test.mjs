@@ -269,7 +269,7 @@ test('005C-C actual positive/negative effect matrix covers aug-211..240 30/30',(
   runCase('aug-222',()=>{
     const x=fixture(['aug-222']),ones=x.p.cardPool.filter(c=>c.baseNumber===1);x.state.remainingCardIds=[ones[0].id];x.state.drawPileIds=[ones[1].id,...x.state.drawPileIds.filter(id=>!ones.some(c=>c.id===id))];assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor(ones[0].id,1,true)),1);
   },()=>{
-    const x=fixture(['aug-222']),one=x.p.cardPool.find(c=>c.baseNumber===1);x.state.remainingCardIds=[one.id];x.state.drawPileIds=x.state.drawPileIds.filter(id=>x.p.cardPool.find(c=>c.id===id)?.baseNumber!==1);assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor(one.id,1,true)),0);
+    const x=fixture(['aug-222']),ones=x.p.cardPool.filter(c=>c.baseNumber===1),one=ones[0];x.state.remainingCardIds=[one.id];x.state.drawPileIds=x.state.drawPileIds.filter(id=>!ones.some(c=>c.id===id));x.state.discardPileIds=[ones[1].id];assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor(one.id,1,true)),0);
   });
   runCase('aug-223',()=>{const x=fixture(['aug-223']);x.state.discardMemoryNumber=2;assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('m',2,true)),1);},
     ()=>{const x=fixture(['aug-223']);x.state.discardMemoryNumber=2;assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('m',3,true)),0);});
