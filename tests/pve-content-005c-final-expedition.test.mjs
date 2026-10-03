@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {buildInitialPveRun,handlePveAction} from '../supabase/functions/game-api/pve/api.js';
 import {connectedNodeIds} from '../supabase/functions/game-api/pve/map.js';
 
+import {AUGMENT_BY_ID} from '../supabase/functions/game-api/pve/augment-catalog.js';
 const json=(body,status=200)=>({body,status});
 const actionId=n=>'f0000000-0000-4000-8000-'+String(n).padStart(12,'0');
 function adminFor(initial){
@@ -14,7 +15,7 @@ function adminFor(initial){
       if(name==='pve_try_commit'){
         if(args.p_expected!==version)return {data:{conflict:true,version,state:structuredClone(state)},error:null};
         version++;state=structuredClone(args.p_state);state.version=version;
-        if(state.phase==='COMBAT'){state.combat.monster.hp=1;for(const p of state.players){p.hp=p.maxHp;p.status='ACTIVE';}state.flame=state.maxFlame;state.combat.pendingDownPlayerIds=[];}
+        if(state.phase==='COMBAT'){state.combat.monster.hp=state.combat.turn<3?999:1;state.combat.monster.intent={type:'CHARGE',payload:{},telegraphText:'fixture wait'};for(const p of state.players){p.hp=p.maxHp;p.status='ACTIVE';}state.flame=state.maxFlame;state.combat.pendingDownPlayerIds=[];}
         return {data:{version,state:structuredClone(state)},error:null};
       }
       if(name==='pve_settle_rewards')return {data:{settled:true,paid_gold:state.phase==='RUN_CLEAR'?state.players[0].runGold:0,rp_delta:0},error:null};
@@ -37,7 +38,10 @@ for(const [partyName,classes,equipped] of [
 ])test('005C FINAL '+partyName+' actual expedition crosses Floor1/2/3 with two reconnects to RUN_CLEAR',async()=>{
   const members=classes.map((character_id,i)=>({id:'p'+i,user_id:i===0?'u0':undefined,member_type:i===0?'human':'ai',character_id,seat_index:i,display_name:'005B '+i}));
   const initial=buildInitialPveRun({room:{id:'20000000-0000-4000-8000-000000000002'},members},{seed:'005c-final-full-expedition-route',depthCount:8});
-  for(let i=0;i<initial.players.length;i++)initial.players[i].augments.push(...equipped[i]);
+  for(let i=0;i<initial.players.length;i++){
+    initial.players[i].augments.push(...equipped[i]);initial.players[i].augmentBuild=AUGMENT_BY_ID[equipped[i][0]].build;
+    initial.players[i].persistentCharacterState.augmentTiers=[...new Set(equipped[i].map(id=>AUGMENT_BY_ID[id].tier))];
+  }
   const admin=adminFor(initial);let n=1000,run=await call(admin,'getState',0),floors=[],reconnects=[],revelationActivations=0;
   for(let guard=0;guard<700&&!['RUN_CLEAR','RUN_FAILED'].includes(run.phase);guard++){
     if(run.phase==='MAP_VOTE'){
