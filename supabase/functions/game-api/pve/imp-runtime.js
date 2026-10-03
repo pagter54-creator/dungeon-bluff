@@ -119,7 +119,7 @@ export function applyImpPreCollisionSteal(run,cards,events=[]){
   const imps=run.players.filter(p=>p.characterId==='imp'&&p.status!=='DOWNED'&&cardByPlayer(cards,p.playerId)).sort((a,b)=>a.seat-b.seat||a.playerId.localeCompare(b.playerId));
   for(const imp of imps){
     const actor=cardByPlayer(cards,imp.playerId),priv=run.combat?.privateByPlayer?.[imp.playerId],pending=priv?.impSubmission?.turn===turn(run)?priv.impSubmission:{spent:0};
-    const rootActionId=`steal:${run.combat?.id||run.id}:${turn(run)}:${imp.playerId}`;
+    const rootActionId=`steal:${run.combat?.id||run.currentRoomNodeId||run.roomState?.id||run.id}:${turn(run)}:${imp.playerId}`;
     if(root(run).processedRoots[rootActionId])continue;
     root(run).processedRoots[rootActionId]=true;
     actor.stolenNumberSpent=Math.max(0,Number(pending?.spent)||0);actor.workingNumber+=actor.stolenNumberSpent;
