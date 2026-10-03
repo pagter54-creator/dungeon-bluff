@@ -12,6 +12,7 @@ import {
   SEER_HANDLER_IDS,assertSeerHandler,recoverSeerPhysicalCard,applySeerRuntime,scopedSeerState
 } from '../supabase/functions/game-api/pve/seer-runtime.js';
 import {resourceMax} from '../supabase/functions/game-api/pve/resources.js';
+import {PVE_EXECUTABLE_AUGMENT_UI} from '../src/pve-ui-catalog.js';
 
 const aid=n=>'aug-'+String(n).padStart(3,'0');
 function fixture(augments=[]){
@@ -174,6 +175,24 @@ for(const id of SEER_CONTRACT_IDS)test('005C-A positive runtime registration '+i
   const rt=EXECUTABLE_AUGMENT_RUNTIME[id];
   assert.equal(rt.executable,true);assert.ok(rt.specialHandlers.includes('SEER_V02'));
   assert.equal(rt.candidatePool.classId,'prophet');
+});
+
+test('005C-A tooltip parity is exact for aug-151..180 and all contracts retain explicit room matrices',()=>{
+  for(const id of SEER_CONTRACT_IDS){
+    const contract=SEER_CONTRACTS[id],ui=PVE_EXECUTABLE_AUGMENT_UI[id];
+    assert.ok(ui,id);assert.equal(ui.description,contract.tooltip,id);
+    assert.deepEqual(Object.keys(contract.roomApplicability).sort(),['COMBAT','EVENT','REST','REWARD','SHOP'].sort(),id);
+    assert.ok(Object.values(contract.roomApplicability).every(v=>typeof v==='boolean'),id);
+  }
+});
+
+test('005C-A combat-only recovered-card effects do not fire in EVENT room',()=>{
+  const {run,p}=fixture(['aug-151']);const id=moveToSpent(run,p,2);
+  recoverSeerPhysicalCard(run,p,p,id,{sourceAugmentId:'SEER_BASE_REVELATION',rootActionId:'room-isolation'});
+  p.publicResources.revelation=0;run.phase='EVENT';
+  const resolved={playerId:p.playerId,cardInstanceId:id,workingNumber:2,finalNumber:2,valid:true};
+  applySeerRuntime(run,'CARD_VALIDATED',{player:p,resolved,cards:[resolved],rootActionId:'room-event'});
+  assert.equal(p.publicResources.revelation,0);
 });
 
 test('005C-A reconnect preserves Revelation, recovery provenance, once ledger and prediction state',()=>{
