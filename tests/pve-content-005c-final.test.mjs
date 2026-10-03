@@ -19,6 +19,7 @@ import {initializeImpCombat,cleanupImpCombat,applyImpCardValidated,applyImpBefor
 import {cleanupGamblerCombat} from '../supabase/functions/game-api/pve/gambler.js';
 import {applyOwnedEffects} from '../supabase/functions/game-api/pve/effects.js';
 import {activateImmediateCharacterSkill} from '../supabase/functions/game-api/pve/characters.js';
+import {gunnerState} from '../supabase/functions/game-api/pve/gunner-runtime.js';
 const contracts={...SEER_CONTRACTS,...IMP_CONTRACTS,...GAMBLER_CONTRACTS,...GUNNER_CONTRACTS};
 const ids=Array.from({length:120},(_,i)=>'aug-'+String(151+i).padStart(3,'0'));
 const classes=['prophet','imp','gambler','gunner'];
@@ -224,4 +225,15 @@ test('005C FINAL legacy stale combat state cannot leak Seer prediction damage or
   const impResolved={playerId:'p1',valid:true,finalNumber:5,stealTotal:2,stealTargetCount:2},impDamage={amount:5};
   assert.equal(applyImpBeforeDamage(run,{player:imp,resolved:impResolved,damage:impDamage}),0);assert.equal(impDamage.amount,5);
  }
+});
+
+test('005C FINAL old partial Gunner snapshot fills missing fields and preserves armed/Heat/once values',()=>{
+ const run=make(['gunner','prophet','imp','gambler']),p=run.players[0];
+ run.augmentFramework.cardState['p0:gunner']={ownerId:'p0',combatId:run.combat.id,overheat:2,precisionShot:{armed:false},once:{'aug-270:combat':true},telemetry:{burstAttempts:7}};
+ const restored=structuredClone(run),owner=restored.players[0],s=gunnerState(restored,owner);
+ assert.equal(s.overheat,2);assert.equal(s.precisionShot.armed,false);assert.equal(s.precisionShot.activationId,null);
+ assert.equal(s.once['aug-270:combat'],true);assert.equal(s.telemetry.burstAttempts,7);assert.deepEqual(s.applied,{});
+ assert.equal(s.aug253.preservationUsedThisCombat,false);
+ applyOwnedEffects(restored,'TURN_START',{player:owner});assert.equal(s.overheat,2);
+ assert.deepEqual(projectRun(restored,'p0').privateGunnerState,s);
 });
