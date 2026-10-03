@@ -89,7 +89,8 @@ function selectRecoveryCard(run,owner,target,ids,skillData={},mode='BASE'){
   const direct=String(skillData?.recover_card_id||skillData?.recoverCardId||skillData?.ally_recover_card_id||skillData?.allyRecoverCardId||'');
   if(mode==='SELF'&&owned(owner,'aug-152'))candidates=seededCandidates(run,owner,target,ids,2,'aug-152');
   if(mode==='ALLY'&&(owned(owner,'aug-162')||owned(owner,'aug-169')))candidates=seededCandidates(run,owner,target,ids,2,owned(owner,'aug-169')?'aug-169':'aug-162');
-  if(direct&&candidates.includes(direct))return {cardId:direct,candidates};
+  const selectorEnabled=mode==='SELF'?(owned(owner,'aug-152')||owned(owner,'aug-158')):(owned(owner,'aug-162')||owned(owner,'aug-169'));
+  if(selectorEnabled&&direct&&candidates.includes(direct))return {cardId:direct,candidates};
   if(mode==='SELF'&&owned(owner,'aug-158')&&direct&&ids.includes(direct))return {cardId:direct,candidates:ids};
   return {cardId:candidates[0],candidates};
 }
