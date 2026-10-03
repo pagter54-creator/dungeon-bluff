@@ -145,7 +145,8 @@ test('T09 fixtures are deterministic for the same seed',()=>{
 test('T09 semantic golden locks fixtures and the full compact resource timeline',()=>{
   const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/pve-stress-t09-golden.json',import.meta.url),'utf8'));
   const result=replayScenario('T09','smoke:T09:0000');
-  assert.deepEqual(t09GoldenComparable(result),golden);
+  const actual=t09GoldenComparable(result);
+  try{assert.deepEqual(actual,golden);}catch(error){console.log('T09_GOLDEN_ACTUAL='+JSON.stringify(actual));throw error;}
 });
 
 test('T09 stress replay reproduces the complete resource timeline',()=>{
