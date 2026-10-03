@@ -1,6 +1,6 @@
 import {choose} from './rng.js';
 import {persistCardCycles} from './card-cycle.js';
-import {drawGamblerHand,settleGamblerHand,prepareGamblerAllIn,gamblerSetDamage,finalizeGamblerAllIn} from './gambler.js';
+import {drawGamblerHand,settleGamblerHand,prepareGamblerAllIn,gamblerSetDamage,finalizeGamblerAllIn,applyGamblerValidated} from './gambler.js';
 import {
   onTurnStartCharacter,onCycleStartCharacter,onTurnEndCharacter,selfModifyCard,collisionImmunity,onValidAttack,
   isCardSelectableForCharacter,validateCharacterSkillIntent,resolvePostCollisionCharacter,resolvePostCollisionEffects,resolveGuardianWallCollisions,
@@ -225,7 +225,7 @@ export function resolveBasicTurn(run){
   const validCards=cards.filter(x=>x.valid),lowestNumber=validCards.length?Math.min(...validCards.map(x=>x.finalNumber)):null;
   const lowestCards=validCards.filter(x=>x.finalNumber===lowestNumber);
   for(const rc of cards)rc.soloLowest=Boolean(rc.valid&&lowestCards.length===1&&lowestCards[0]===rc);
-  for(const rc of cards){const p=playerFor(run,rc.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player:p,resolved:rc,cards,events});applyImpCardValidated(run,{player:p,resolved:rc,cards,events});resolvePostCollisionCharacter(run,rc,c.turnSubmissions[rc.playerId],events);}
+  for(const rc of cards){const p=playerFor(run,rc.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player:p,resolved:rc,cards,events});applyImpCardValidated(run,{player:p,resolved:rc,cards,events});if(p.characterId==='gambler')applyGamblerValidated(run,p,c.privateByPlayer[p.playerId],rc);resolvePostCollisionCharacter(run,rc,c.turnSubmissions[rc.playerId],events);}
   attachValidity(cards);
   for(const rc of cards){const p=playerFor(run,rc.playerId);if(p?.characterId==='gambler')finalizeGamblerAllIn(run,p,c.privateByPlayer[p.playerId],rc);}
   applyMonsterCardRules(run,cards,events);
