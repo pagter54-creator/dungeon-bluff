@@ -1,3 +1,4 @@
+import {resolveMartial,cleanupMartial} from './martial-runtime.js';
 import {ensureGunnerMagazine,resolveGunnerSelected} from './gunner-runtime.js';
 import {grantAugmentExp} from './augment-framework.js';
 import {choose} from './rng.js';
@@ -515,31 +516,7 @@ export function resolvePostCollisionCharacter(run,resolved,submission,events=[])
       if(after>=need){player.publicResources.acrobaticsReady=true;events.push({type:'ACROBATICS_RECHARGED',playerId:player.playerId,progress:after,required:need,reason:'VALID_ATTACKS'});}
     }
   }
-  if(player.characterId==='martial_artist'){
-    const before=Math.max(0,Number(player.publicResources.combo)||0),previous=Number.isFinite(Number(player.publicResources.lastSubmittedNumber))?Number(player.publicResources.lastSubmittedNumber):null;
-    if(player.augments.includes('aug-291')&&submission.skillIntent){
-      if(priv)priv.finisherUsedCycle=priv.cycleIndex||1;
-      resolved.skillUsed='one_hit_kill';resolved.finisherComboBefore=before;
-      if(resolved.valid){
-        const per=Math.max(0,Number(runtimeConfig('aug-291').bonusDamagePerCombo)||2);
-        resolved.finisherComboConsumed=before;resolved.finisherBonusDamage=before*per;player.publicResources.combo=0;resolved.finisherOutcome='SUCCESS';
-        events.push({type:'ONE_HIT_KILL_CONSUMED',playerId:player.playerId,comboConsumed:before,bonusDamage:resolved.finisherBonusDamage,comboAfter:0});
-      }else{
-        resolved.finisherComboConsumed=0;resolved.finisherBonusDamage=0;resolved.finisherOutcome=resolved.invalidReason==='COLLISION'?'FAIL_COLLISION':'FAIL_INVALID';
-        player.publicResources.combo=before;
-        events.push({type:'ONE_HIT_KILL_FAILED',playerId:player.playerId,comboPreserved:before,reason:resolved.invalidReason||'INVALID'});
-      }
-    }else if(resolved.invalidReason==='COLLISION'){
-      if(!player.augments.includes('aug-291'))player.publicResources.combo=0;
-      player.score=(Number(player.score)||0)-1;
-      events.push({type:'MARTIAL_COLLISION_SCORE_LOST',playerId:player.playerId,amount:1,score:player.score});
-    }else if(resolved.valid){
-      if(previous!=null&&resolved.finalNumber>previous)player.publicResources.combo=Math.min(resourceMax(player,'combo',3),before+1);
-      resolved.martialComboBonus=Math.max(0,Number(player.publicResources.combo)||0);
-    }
-    resolved.comboBefore=before;resolved.comboAfter=Math.max(0,Number(player.publicResources.combo)||0);resolved.previousSubmittedNumber=previous;
-    player.publicResources.lastSubmittedNumber=resolved.finalNumber;
-  }
+  if(player.characterId==='martial_artist')resolveMartial(run,player,resolved,submission,events);
   if(player.characterId==='demon_swordsman'&&!player.augments.includes('aug-351')&&submission.skillIntent&&resolved.valid){
     const level=Math.max(0,Number(player.publicResources.ghostSlashLevel)||0);
     resolved.skillUsed='ghost_slash';resolved.ghostSlashBonusDamage=level+1;player.publicResources.ghostSlashReady=false;
@@ -567,6 +544,7 @@ export function baseDamageForCharacter(player,resolved){
   return damage;
 }
 export function onCombatEndCharacter(player,run=null){
+  if(run)cleanupMartial(run,player);
   if(player.characterId==='prophet'&&run)cleanupSeerCombat(run,player);
   if(player.characterId==='imp'&&run)cleanupImpCombat(run,player);
   const priv=run?.combat?.privateByPlayer?.[player.playerId];

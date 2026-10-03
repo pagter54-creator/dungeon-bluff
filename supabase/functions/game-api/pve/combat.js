@@ -1,3 +1,4 @@
+import {prepareMartialCollision,martialPacket,afterMartialDamage} from './martial-runtime.js';
 import {gunnerPenetration,gunnerExtraComponent,gunnerState,markGunnerBurstPhase,syncGunnerMagazine} from './gunner-runtime.js';
 import {choose} from './rng.js';
 import {persistCardCycles} from './card-cycle.js';
@@ -231,6 +232,7 @@ export function resolveBasicTurn(run){
   for(const group of groups.values()){
     if(group.length>1)for(const rc of group)if(!rc.collisionImmune){rc.valid=false;rc.invalidReason='COLLISION';}
   }
+  prepareMartialCollision(run,cards,events);
   resolveGuardianWallCollisions(run,cards,groups,events);
   assignVampireThralls(run,cards,groups,events);
   c.phase='POST_COLLISION_EFFECTS';phaseTrace.push(c.phase);
@@ -259,7 +261,7 @@ export function resolveBasicTurn(run){
       followUpDamage:followUp?(Number(packet.amount)||0):0,modifierIds:[...modifierIds]};
   };
   for(const rc of cards.filter(x=>x.valid)){
-    const player=playerFor(run,rc.playerId),engraving=Number(player.engravings?.[String(rc.finalNumber)])||0;
+    const player=playerFor(run,rc.playerId),martial=martialPacket(run,player,rc,defense),engraving=Number(player.engravings?.[String(rc.finalNumber)])||0;
     const classBonus=(player.characterId==='berserker'?1:0)+(player.characterId==='martial_artist'?Math.max(0,Number(rc.martialComboBonus)||0):0);
     const augmentBonus=Math.max(0,Number(rc.crushBonusDamage)||0)+Math.max(0,Number(rc.revengeBonusDamage)||0)+Math.max(0,Number(rc.finisherBonusDamage)||0)+Math.max(0,Number(rc.bloodFrenzyBonusDamage)||0)+Math.max(0,Number(rc.ghostSlashBonusDamage)||0);
     const modifierIds=[
@@ -274,10 +276,10 @@ export function resolveBasicTurn(run){
     const knightArmorPenetration=player.characterId==='warrior'&&player.augments.includes('aug-052')&&Number(rc.crushedCardCount)>0?Math.min(1,defense):0;
     const roguePoisonPenetration=rogueArmorPenetration(run,player,rc,Math.max(0,defense-knightArmorPenetration));
     const gunnerArmorPenetration=gunnerPenetration(run,player,rc,Math.max(0,defense-knightArmorPenetration-roguePoisonPenetration));
-    const armorPenetration=Math.min(defense,knightArmorPenetration+roguePoisonPenetration+gunnerArmorPenetration);
+    const armorPenetration=Math.min(defense,knightArmorPenetration+roguePoisonPenetration+gunnerArmorPenetration+martial.penetration);
     if(knightArmorPenetration)modifierIds.push('AUG_052_ARMOR_PENETRATION');
     if(roguePoisonPenetration)modifierIds.push('ROGUE_POISON_DEFENSE');
-    const ordinaryAmount=Math.max(0,baseDamageForCharacter(player,rc)+engraving-Math.max(0,defense-armorPenetration)-(rc.monsterDamagePenalty||0));
+    const ordinaryAmount=Math.max(0,baseDamageForCharacter(player,rc)+engraving+martial.bonus-Math.max(0,martial.defense-armorPenetration)-(rc.monsterDamagePenalty||0));
     const resolvedAmount=player.characterId==='gambler'?gamblerSetDamage(run,player,c.privateByPlayer[player.playerId],rc,ordinaryAmount):ordinaryAmount;
     let primary=burstPacket({sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,amount:resolvedAmount,armorPenetration,tags:[...(rc.allIn?['ALL_IN','SET_DAMAGE']:['BASE_CARD'])],followUp:false},
       {resolved:rc,player,baseNumber:rc.finalNumber,baseDamage:rc.finalNumber,classBonus,augmentBonus,modifierIds});
@@ -301,6 +303,7 @@ export function resolveBasicTurn(run){
       if(extraQueued.length){const error=new Error('Tier-I Full Burst follow-up이 추가 follow-up을 재귀 생성했습니다.');error.code='RECURSIVE_FOLLOW_UP';throw error;}
       packet.amount=Math.max(0,damage.amount);packet.followUpDamage=packet.amount;packets.push(packet);
     }
+    if(martial.extra>0)packets.push(burstPacket({sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,amount:martial.extra,extraDamageComponent:true,tags:['MARTIAL_EXTRA_DAMAGE_COMPONENT'],followUp:false},{resolved:rc,player,baseDamage:0,modifierIds:['MARTIAL_EXTRA_DAMAGE_COMPONENT']}));
     if(player.characterId==='gunner'){
       const component=gunnerExtraComponent(run,player,rc);
       if(component)packets.push(burstPacket({...component,sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,tags:['AUG_248_EXTRA_DAMAGE_COMPONENT'],followUp:false},{resolved:rc,player,baseDamage:0,modifierIds:['aug-248']}));
@@ -329,6 +332,7 @@ export function resolveBasicTurn(run){
   });
   for(const packet of packets.filter(packet=>!packet.extraDamageComponent)){const p=playerFor(run,packet.sourcePlayerId),resolved=cards.find(x=>x.playerId===packet.sourcePlayerId);applyOwnedEffects(run,'AFTER_DAMAGE',{player:p,resolved,damage:{amount:packet.amount},followUp:packet.followUp,packet,events:[]});}
   for(const rc of cards)if(rc.valid)onValidAttack(playerFor(run,rc.playerId),run,rc,events);
+  for(const rc of cards)afterMartialDamage(run,playerFor(run,rc.playerId),rc);
   c.phase='POST_PLAYER_ATTACK';phaseTrace.push(c.phase);
   for(const rc of cards.filter(x=>x.valid))applyPostPlayerAttackCharacter(run,rc,events);
   for(const rc of cards.filter(x=>x.burstMisfire)){
