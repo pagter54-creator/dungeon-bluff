@@ -135,6 +135,8 @@ test('aug-162 ally recovery selector exposes two eligible candidates and selecte
   const {run,p}=fixture(['aug-161','aug-162']);const ally=run.players[1],a=moveToSpent(run,ally,1),b=moveToSpent(run,ally,2);p.publicResources.revelation=1;
   const e=activateImmediateCharacterSkill(run,p,{target_player_id:'p1',ally_recover_card_id:a});assert.equal(e.recoveredCardId,a);
   assert.deepEqual(new Set(priv(run,p).seerRecoveryCandidates.candidateIds),new Set([a,b]));
+  const n=fixture(['aug-161','aug-162']),na=n.run.players[1];moveToSpent(n.run,na,1);n.p.publicResources.revelation=1;
+  activateImmediateCharacterSkill(n.run,n.p,{target_player_id:'p1'});assert.equal(priv(n.run,n.p).seerRecoveryCandidates.candidateIds.length,1);
 });
 
 test('aug-163 ally recovery chains exactly one eligible own BASE recovery per cycle',()=>{
@@ -240,6 +242,9 @@ test('aug-178 high prediction success sets foresight 3 and grants each living pl
   const {run,p}=fixture(['aug-171','aug-178']);run.combat.turn=2;arm(run,p,{type:'EXACT_PLAYER_NUMBER',number:2,targetPlayerId:'p1'});
   const c=ctx(p,remaining(run,p,1),1,{cards:[{playerId:'p0',valid:true,finalNumber:1},{playerId:'p1',valid:true,finalNumber:2}],rootActionId:'178-hit'});applySeerRuntime(run,'CARD_VALIDATED',c);
   assert.equal(scopedSeerState(run,p).foresight,3);const buffs=run.augmentFramework.seer.buffs.filter(x=>x.sourceAugmentId==='aug-178');assert.equal(buffs.length,4);assert.ok(buffs.every(x=>x.amount===1&&x.uses===1));
+  run.combat.turn=3;arm(run,p,{type:'EXACT_PLAYER_NUMBER',number:3,targetPlayerId:'p1'});
+  applySeerRuntime(run,'CARD_VALIDATED',ctx(p,remaining(run,p,1),1,{cards:[{playerId:'p1',valid:true,finalNumber:3}],rootActionId:'178-second'}));
+  assert.equal(run.augmentFramework.seer.buffs.filter(x=>x.sourceAugmentId==='aug-178').length,4);
 });
 
 test('aug-179 third consecutive prediction success grants every living player one +2 next-valid buff',()=>{
