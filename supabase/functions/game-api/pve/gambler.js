@@ -176,6 +176,7 @@ export function setGamblerDrawPreference(run,player,state,choice){
   }
   state.drawPreference={source,values};
   applyDrawGuarantee(player,state);
+  recordGamblerAugmentTelemetry(state,source,`draw-choice:${state.shuffleCount}:${source}`,true);
   boundedHistory(state,{type:'DRAW_CHOICE',turn:run.combat?.turn||0,source,values:[...values]});
   return drawGamblerHand(run,player,state);
 }
@@ -280,7 +281,7 @@ export function settleGamblerHand(run,player,state,selectedId,finalNumber,{rootA
   }else if(state.drawPenaltyTurns>0){
     nextDrawCount=1;state.drawPenaltyTurns--;
   }
-  if(hasGamblerAugment(run,player,'aug-233')&&state.allInFailedThisTurn&&!state.insuranceUsed){nextDrawCount=2;state.insuranceUsed=true;state.drawPenaltyTurns=0;state.forcedAutoSubmitNext=false;}
+  if(hasGamblerAugment(run,player,'aug-233')&&state.allInFailedThisTurn&&!state.insuranceUsed){nextDrawCount=2;state.insuranceUsed=true;state.drawPenaltyTurns=0;state.forcedAutoSubmitNext=false;recordGamblerAugmentTelemetry(state,'aug-233',actionKey||`insurance:${run.combat?.turn||0}`,true);}
   state.allInFailedThisTurn=false;
   if(wasAllIn)state.pendingAllIn=null;
   if(nextDrawCount>0)drawGamblerHand(run,player,state,nextDrawCount);
@@ -322,7 +323,10 @@ export function prepareGamblerAllIn(run,player,state,submission,resolved){
     resolved.allIn=true;resolved.allInRootActionId=rootActionId;resolved.allInCardIds=[...cardIds];resolved.allInValues=[...values];
     resolved.allInSum=state.pendingAllIn.sum;resolved.doubleDownSecond=doubleDownSecond;resolved.allAssets=allAssets;resolved.gamblerBorrowBonus=borrowBonus;
   }
-  state.telemetry.allInAttempt++;
+  state.telemetry.allInAttempt++;recordGamblerAugmentTelemetry(state,'aug-231',rootActionId,true);
+  if(doubleDownSecond)recordGamblerAugmentTelemetry(state,'aug-235',rootActionId,true);
+  if(borrowedCardId)recordGamblerAugmentTelemetry(state,'aug-236',rootActionId,true);
+  if(allAssets)recordGamblerAugmentTelemetry(state,'aug-238',rootActionId,true);
   boundedHistory(state,{type:'ALL_IN_ATTEMPT',turn,rootActionId,cardIds:[...cardIds],judgmentCardId:judgmentId});
   return state.pendingAllIn;
 }
@@ -417,12 +421,12 @@ export function gamblerSetDamage(run,player,state,resolved,damage){
   if(Number.isFinite(state.processedActions[key]))return state.processedActions[key];
   let amount=Math.max(0,Number(resolved.allInSum)||0)+(resolved.allAssets?4:0)+(Number(resolved.gamblerBorrowBonus)||0);
   const values=resolved.allInValues||[];
-  if(hasGamblerAugment(run,player,'aug-232'))amount+=Math.max(...[0,...(resolved.allInSum>=10?[4]:resolved.allInSum>=8?[2]:[])]);
-  if(hasGamblerAugment(run,player,'aug-234')&&values.length===2&&values.every(v=>v<=3))amount+=1;
-  if(hasGamblerAugment(run,player,'aug-235')&&resolved.doubleDownSecond)amount+=2;
+  if(hasGamblerAugment(run,player,'aug-232')){const v=Math.max(...[0,...(resolved.allInSum>=10?[4]:resolved.allInSum>=8?[2]:[])]);if(v){amount+=v;recordGamblerAugmentTelemetry(state,'aug-232',key,true);}}
+  if(hasGamblerAugment(run,player,'aug-234')&&values.length===2&&values.every(v=>v<=3)){amount+=1;recordGamblerAugmentTelemetry(state,'aug-234',key,true);}
+  if(hasGamblerAugment(run,player,'aug-235')&&resolved.doubleDownSecond){amount+=2;recordGamblerAugmentTelemetry(state,'aug-235',key,true);}
   const streak=Math.max(0,Math.min(4,Number(state.allInWinStreak)||0));
-  if(hasGamblerAugment(run,player,'aug-239'))amount+=streak;
-  if(hasGamblerAugment(run,player,'aug-240')&&!state.houseUsed){amount+=8;state.houseUsed=true;}
+  if(hasGamblerAugment(run,player,'aug-239')&&streak){amount+=streak;recordGamblerAugmentTelemetry(state,'aug-239',key,true);}
+  if(hasGamblerAugment(run,player,'aug-240')&&!state.houseUsed){amount+=8;state.houseUsed=true;recordGamblerAugmentTelemetry(state,'aug-240',key,true);}
   amount=Math.max(0,amount+validatedBonus-penalty);
   state.processedActions[key]=amount;state.telemetry.allInDamage+=amount;
   boundedHistory(state,{type:'ALL_IN_DAMAGE',turn:run.combat?.turn||0,rootActionId:resolved.allInRootActionId,amount});
@@ -432,7 +436,7 @@ export function finalizeGamblerActualDamage(run,player,state,resolved,actualDama
   normalizeGamblerState(run,player,state);
   if(!resolved?.allIn||!resolved?.valid||!hasGamblerAugment(run,player,'aug-237')||state.aug237Used||Number(actualDamage)<8)return false;
   const key=`aug-237:actual:${resolved.allInRootActionId}`;if(state.processedActions[key])return false;
-  state.processedActions[key]=true;state.aug237Used=true;
+  state.processedActions[key]=true;state.aug237Used=true;recordGamblerAugmentTelemetry(state,'aug-237',key,true);
   if(state.pendingAllIn?.rootActionId===resolved.allInRootActionId)state.pendingAllIn.aug237Reduced=true;
   resolved.aug237Reduced=true;return true;
 }
@@ -443,13 +447,13 @@ export function finalizeGamblerAllIn(run,player,state,resolved){
   state.processedActions[key]=true;
   if(resolved.valid){
     state.telemetry.allInSuccess++;
-    state.allInWinStreak=hasGamblerAugment(run,player,'aug-239')?Math.min(4,(Number(state.allInWinStreak)||0)+1):0;
-    if(hasGamblerAugment(run,player,'aug-235')){if(resolved.doubleDownSecond)state.doubleDownReady=false;else state.doubleDownReady=true;}
+    state.allInWinStreak=hasGamblerAugment(run,player,'aug-239')?Math.min(4,(Number(state.allInWinStreak)||0)+1):0;if(hasGamblerAugment(run,player,'aug-239'))recordGamblerAugmentTelemetry(state,'aug-239',key,true);
+    if(hasGamblerAugment(run,player,'aug-235')){if(resolved.doubleDownSecond)state.doubleDownReady=false;else state.doubleDownReady=true;recordGamblerAugmentTelemetry(state,'aug-235',key,true);}
   }
   else{
     state.allInWinStreak=0;state.allInFailedThisTurn=true;
     if(hasGamblerAugment(run,player,'aug-240')&&!state.houseUsed){
-      state.houseUsed=true;player.hp-=1;run.combat&&(run.combat.pendingDownPlayerIds||=[]);
+      state.houseUsed=true;player.hp-=1;recordGamblerAugmentTelemetry(state,'aug-240',key,true);run.combat&&(run.combat.pendingDownPlayerIds||=[]);
       if(run.combat&&player.hp<=0&&!run.combat.pendingDownPlayerIds.includes(player.playerId))run.combat.pendingDownPlayerIds.push(player.playerId);
     }
   }
