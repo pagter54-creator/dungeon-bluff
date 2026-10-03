@@ -10,7 +10,7 @@ import {submitCard,resolveBasicTurn,beginTurn} from './combat.js';
 import {activateImmediateCharacterSkill} from './characters.js';
 import {chooseAugment} from './augments.js';
 import {applyOwnedEffects} from './effects.js';
-import {enterRestRoom,applyRestChoice,enterShopRoom,reserveShopCard,cancelShopCardReservation,confirmShopCard,buyShopRelic,finishShop,enterRewardRoom,activateRewardSkill,submitRewardCard,resolveRewardAttempt,chooseRewardRelic,roomReady,expireShopReservations} from './rooms.js';
+import {enterRestRoom,applyRestChoice,enterShopRoom,reserveShopCard,cancelShopCardReservation,confirmShopCard,buyShopRelic,finishShop,enterRewardRoom,activateRewardSkill,submitRewardCard,resolveRewardAttempt,chooseRewardRelic,useRewardGamblerLuck,roomReady,expireShopReservations} from './rooms.js';
 import {enterEventRoom,chooseEventOption,submitEventCard} from './events.js';
 import {F1_RELIC_DEFINITIONS,F1_MONSTER_DEFINITIONS,selectF1Monster,markF1MonsterUsed} from './content-f1.js';
 import {installRelicCatalog} from './relics.js';
@@ -257,6 +257,9 @@ export async function handlePveAction({admin,user,body,json}){
     if(typeof body.card_instance_id!=='string')return fail(json,'card_instance_id가 필요합니다.');
     submitRewardCard(run,me.playerId,body.card_instance_id,body.skill_intent===true,body.skill_data??null);
     resolveRewardAttempt(run);
+  } else if(action==='pve.rewardUseGamblerLuck'){
+    if(body.mode!=='ATTACK'&&body.mode!=='SPECIAL')return fail(json,'mode는 ATTACK 또는 SPECIAL이어야 합니다.');
+    useRewardGamblerLuck(run,me.playerId,body.mode,actionId);
   } else if(action==='pve.rewardChooseRelic'){
     if(typeof body.relic_id!=='string')return fail(json,'relic_id가 필요합니다.');
     chooseRewardRelic(run,me.playerId,body.relic_id);
