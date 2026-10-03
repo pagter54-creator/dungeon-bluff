@@ -2,7 +2,7 @@
 const has=(p,n)=>p.augments?.includes('aug-'+n);
 export const martialCap=p=>has(p,292)?5:has(p,271)?4:3;
 export function martialState(run,p){
-  run.augmentFramework||={};run.augmentFramework.cardState||={};
+  run.augmentFramework||={once:{},statuses:[],delayed:[],grants:{},acquired:{},temporary:[],telemetry:[],recoveryCounts:{},sequence:0};run.augmentFramework.cardState||={};
   const key=p.playerId+':martial';
   let s=run.augmentFramework.cardState[key];
   if(!s||s.combatId!==run.combat.id)s=run.augmentFramework.cardState[key]={combatId:run.combat.id,guards:{},lastTurn:null,results:{},exaltation:0,qi:0,maxStreak:0,heldTurns:0,consumed:0,nextPair:2,pending:null,reservation:null,reservationClaimed:false,metrics:{}};
@@ -55,7 +55,7 @@ export function resolveMartial(run,p,rc,submission={},events=[]){
  else if(before>=2&&has(p,276)&&claim(run,p,276,'CYCLE'))combo=Math.max(0,before-1);
  else combo=0;
  p.score=(Number(p.score)||0)-1;events.push({type:'MARTIAL_COLLISION_SCORE_LOST',playerId:p.playerId,amount:1,score:p.score});
- if(has(p,278))s.exaltation=Math.max(0,s.exaltation-1);
+ if(has(p,278))s.exaltation=Math.max(0,s.exaltation-1);else if(has(p,275))s.exaltation=0;
  }
  if(!rc.valid&&rc.invalidReason!=='COLLISION'&&has(p,274)&&claim(run,p,274))arm(run,p,1,root);
  if(finisher){
@@ -71,6 +71,7 @@ export function resolveMartial(run,p,rc,submission={},events=[]){
  let restored=has(p,297)&&before>=1?1:0;
  if(has(p,300)&&claim(run,p,300,'CYCLE'))restored=Math.max(restored,Math.ceil(before/2));
  rc.martialRestore=restored;
+ events.push({type:'ONE_HIT_KILL_CONSUMED',playerId:p.playerId,comboConsumed:before,bonusDamage:rc.finisherBonusDamage??bonus,comboAfter:0});
  }
  }else if(normal){
  if(rising)combo=Math.min(cap,before+1);
