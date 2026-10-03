@@ -100,8 +100,15 @@
   "blockers": [],
   "ci": {
     "finalDocumentationHeadRequired": true,
-    "status": "PENDING_FINAL_HEAD_GATE"
+    "status": "FINAL_CLOSEOUT_COMMIT",
+    "priorDocumentationGate": {
+      "runId": 37096042703,
+      "status": "completed",
+      "conclusion": "success",
+      "head": "74b0fe7fb278e5f39836b2f56fa12ede59496bf1"
+    },
+    "requirement": "This audit-finalizing commit must itself receive Project Checks completed/success."
   },
-  "IMP_RUNTIME_COMPLETE": false,
-  "READY_FOR_PVE_CONTENT_005C_C_GAMBLER": false
+  "IMP_RUNTIME_COMPLETE": true,
+  "READY_FOR_PVE_CONTENT_005C_C_GAMBLER": true
 }
