@@ -12,7 +12,8 @@ const root=run=>{
   return run.augmentFramework.imp||=( {state:{},once:{},mischief:{},buffs:[],telemetry:[],processedRoots:{}} );
 };
 export function scopedImpState(run,p){
-  const r=root(run);return r.state[p.playerId]||=( {greed:0,markedThisTurn:[],mischiefValidTurn:[],excitement:0} );
+  const r=root(run),s=r.state[p.playerId]||={};
+  s.greed??=0;s.markedThisTurn??=[];s.mischiefValidTurn??=[];s.excitement??=0;return s;
 }
 export function impRoomAllowed(run,id){
   const c=IMP_CONTRACTS[id],rt=roomType(run);return Boolean(c&&rt&&c.roomApplicability?.[rt]);
