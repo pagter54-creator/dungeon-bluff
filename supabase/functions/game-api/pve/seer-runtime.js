@@ -355,8 +355,10 @@ function processRecoveredUse(run,ctx){
   if(!prov||!ctx.resolved?.valid)return [];
   const owner=playerById(run,prov.recoveredByPlayerId);if(!owner)return [];
   const results=[],turn=currentTurn(run),target=ctx.player;
+  const recoveredUseRoot=actionRoot(run,target,ctx);
+  if(!customClaim(run,owner,'SEER_RECOVERED_USE',recoveredUseRoot+':'+cardId))return results;
   prov.usedValidCount=(prov.usedValidCount||0)+1;prov.lastValidTurn=turn;
-  const self=owner.playerId===target.playerId,sourceCtx={...ctx,rootActionId:actionRoot(run,target,ctx)};
+  const self=owner.playerId===target.playerId,sourceCtx={...ctx,rootActionId:recoveredUseRoot};
   if(self&&owned(owner,'aug-151')&&roomAllowed(run,'aug-151')&&claim(run,owner,'aug-151','ONCE_PER_COMBAT',sourceCtx,'refund')){
     gainRevelation(run,owner,1,'aug-151',ctx,'RECOVERED_CARD_VALID');results.push({augmentId:'aug-151',applied:true});
   }
