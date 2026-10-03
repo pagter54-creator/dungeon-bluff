@@ -2,7 +2,7 @@ import {adventurerShopPrice} from './adventurer-runtime.js';
 import {choose,drawIndex} from './rng.js';
 import {selfModifyCard,collisionImmunity,resolveGuardianWallCollisions,isCardSelectableForCharacter,validateCharacterSkillIntent,onCycleStartCharacter,onTurnStartCharacter,onTurnEndCharacter,initializeCombatCharacter,baseDamageForCharacter} from './characters.js';
 import {restoreCardCycle,persistCardCycles} from './card-cycle.js';
-import {drawGamblerHand,settleGamblerHand,prepareGamblerAllIn,gamblerSetDamage,finalizeGamblerAllIn,applyGamblerValidated} from './gambler.js';
+import {drawGamblerHand,settleGamblerHand,prepareGamblerAllIn,gamblerSetDamage,finalizeGamblerAllIn,applyGamblerValidated,consumeGamblerLuck} from './gambler.js';
 import {initializeNumberHistories,recordSelfModification,applyPreCollisionSwap,applyPreCollisionSteal,finalizeNumbers,attachCollisionGroups,attachValidity,assignVampireThralls,validateNumberMutationState} from './number-mutation.js';
 import {applyOwnedEffects} from './effects.js';
 import {cleanupAugmentScope} from './augment-framework.js';
@@ -201,6 +201,34 @@ function tieOrdered(run,cards){
   }
   return out;
 }
+
+function refreshRewardLuckWindow(run){
+  const room=run.roomState;if(room?.type!=='REWARD_ROOM')return null;
+  room.gamblerLuckWindows ||= {};
+  const playerId=room.pickOrder?.[0];if(!playerId)return null;
+  const p=playerFor(run,playerId),state=room.privateByPlayer?.[playerId];
+  if(p?.characterId!=='gambler'||!p.augments?.includes('aug-211')||!state||state.luck<=0)return null;
+  const existing=room.gamblerLuckWindows[playerId];
+  if(existing?.phase==='CONFIRMED'||existing?.phase==='CONSUMED')return existing;
+  const window=existing||{phase:'LUCK_AVAILABLE',presentationKey:`reward:${run.currentRoomNodeId}:${room.attempt}:${playerId}`,usedMode:null};
+  room.gamblerLuckWindows[playerId]=window;
+  return window;
+}
+export function useRewardGamblerLuck(run,playerId,mode,rootActionId=''){
+  if(run.phase!=='REWARD_ROOM'||run.roomState?.type!=='REWARD_ROOM')throw new Error('현재 보상방이 아닙니다.');
+  const room=run.roomState;if(room.pickOrder?.[0]!==playerId)throw new Error('보상이 제시된 자신의 선택 차례에만 행운을 사용할 수 있습니다.');
+  const p=playerFor(run,playerId),state=room.privateByPlayer?.[playerId];
+  if(p?.characterId!=='gambler'||!p.augments?.includes('aug-211'))throw new Error('행운 증강을 보유한 도박사만 사용할 수 있습니다.');
+  const window=refreshRewardLuckWindow(run);
+  if(!window||window.phase!=='LUCK_AVAILABLE')throw new Error('현재 행운 사용 창이 아닙니다.');
+  if(mode!=='ATTACK'&&mode!=='SPECIAL')throw new Error('행운 사용 방식을 선택해 주세요.');
+  const actionKey=rootActionId||`${window.presentationKey}:${mode}`;
+  if(!consumeGamblerLuck(run,p,state,actionKey))return false;
+  if(mode==='ATTACK')state.luckDamageArmed=true;
+  else state.specialCharge=(Number(state.specialCharge)||0)+1;
+  window.phase='CONSUMED';window.usedMode=mode;window.actionKey=actionKey;
+  return true;
+}
 function autoAssignRemaining(run,playerIds){
   const room=run.roomState;
   for(const playerId of playerIds){
@@ -214,9 +242,11 @@ function autoResolveAiPickers(run){
   const room=run.roomState;
   while(room.pickOrder.length){
     const pid=room.pickOrder[0],p=playerFor(run,pid);if(p.memberType!=='ai')break;
+    refreshRewardLuckWindow(run);if(room.gamblerLuckWindows?.[pid]?.phase==='LUCK_AVAILABLE')useRewardGamblerLuck(run,pid,'ATTACK',`reward-ai-luck:${run.currentRoomNodeId}:${pid}`);
     const candidates=room.relicIds.filter(id=>!p.relics.includes(id));const source=candidates.length?candidates:room.relicIds;if(!source.length){room.pickOrder.shift();continue;}
     const relicId=choose(run,source,`reward-ai-pick:${run.currentRoomNodeId}:${pid}`);
-    p.relics.push(relicId);room.picks[pid]=relicId;room.relicIds=room.relicIds.filter(x=>x!==relicId);room.pickOrder.shift();
+    const luckWindow=room.gamblerLuckWindows?.[pid];if(luckWindow)luckWindow.phase='CONFIRMED';
+    p.relics.push(relicId);room.picks[pid]=relicId;room.relicIds=room.relicIds.filter(x=>x!==relicId);room.pickOrder.shift();refreshRewardLuckWindow(run);
   }
   if(!room.pickOrder.length&&!room.resolved)autoAssignRemaining(run,room.invalidPlayerIds||[]);
 }
@@ -283,6 +313,7 @@ export function resolveRewardAttempt(run){
   room.invalidPlayerIds=run.players.filter(p=>!valid.some(c=>c.playerId===p.playerId)).map(p=>p.playerId);
   const ranked=tieOrdered(run,valid);
   room.pickOrder=ranked.map(c=>c.playerId);
+  refreshRewardLuckWindow(run);
   for(const card of ranked)applyOwnedEffects(run,'REWARD_RANKED',{player:playerFor(run,card.playerId),resolved:card,rank:ranked.indexOf(card),addCandidate:()=>{
     const candidates=relicPool(run.relicCatalog||[],'GENERAL').filter(x=>!room.relicIds.includes(x.id)&&!run.players.some(p=>p.relics.includes(x.id)));
     if(!candidates.length)return false;
@@ -296,7 +327,9 @@ export function chooseRewardRelic(run,playerId,relicId){
   const room=run.roomState;if(room.pickOrder[0]!==playerId)throw new Error('현재 유물 선택 차례가 아닙니다.');
   const p=playerFor(run,playerId);if(!room.relicIds.includes(relicId))throw new Error('남아 있는 유물만 선택할 수 있습니다.');
   if(p.relics.includes(relicId))throw new Error('동일 유물을 중복 보유할 수 없습니다.');
+  const luckWindow=room.gamblerLuckWindows?.[playerId];if(luckWindow&&luckWindow.phase!=='CONFIRMED')luckWindow.phase='CONFIRMED';
   p.relics.push(relicId);room.picks[playerId]=relicId;room.relicIds=room.relicIds.filter(x=>x!==relicId);room.pickOrder.shift();
+  refreshRewardLuckWindow(run);
   autoResolveAiPickers(run);
   if(!room.pickOrder.length&&!room.resolved)autoAssignRemaining(run,room.invalidPlayerIds||[]);
 }
