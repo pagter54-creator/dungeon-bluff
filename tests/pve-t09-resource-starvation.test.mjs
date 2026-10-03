@@ -83,8 +83,7 @@ test('T09 F6 Revelation consumes one and deterministically recovers an existing 
   assert.equal(f.recoveredCardId,f.expectedCardId);
   assert.equal(f.revelationAfterUse,0);
   assert.equal(f.ownershipStable,true);
-  assert.equal(f.peek.selectedNumber,2);
-  assert.equal(f.peek.targetPlayerId,'p0');
+  assert.equal(f.peek,undefined);
 });
 
 test('T09 F7 Revelation use regains one only from same-turn valid result',()=>{
@@ -99,7 +98,7 @@ test('T09 F8 Revelation with no spent card still succeeds and recovery is a no-o
   assert.equal(f.recoveredCardId,null);
   assert.equal(f.revelationAfterUse,0);
   assert.equal(f.spentCountBefore,0);
-  assert.equal(f.peekTarget,'p0');
+  assert.equal(f.peekTarget,null);
 });
 
 test('T09 F9 Gunner final card consumption starts exactly one new 1/2/3 cycle',()=>{
@@ -145,7 +144,12 @@ test('T09 fixtures are deterministic for the same seed',()=>{
 test('T09 semantic golden locks fixtures and the full compact resource timeline',()=>{
   const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/pve-stress-t09-golden.json',import.meta.url),'utf8'));
   const result=replayScenario('T09','smoke:T09:0000');
-  assert.deepEqual(t09GoldenComparable(result),golden);
+  const canonical=value=>{
+    const copy=structuredClone(value);
+    for(const row of copy.fixtures||[]){if(row.id==='F6_SEER_USE_RECOVERY')delete row.peek;if(row.id==='F8_SEER_NO_RECOVERY_TARGET')delete row.peekTarget;}
+    return copy;
+  };
+  assert.deepEqual(canonical(t09GoldenComparable(result)),canonical(golden));
 });
 
 test('T09 stress replay reproduces the complete resource timeline',()=>{
@@ -192,16 +196,17 @@ function makePeekRun(){
   return run;
 }
 
-test('T09 Revelation private peek is visible only to the Prophet projection',()=>{
+test('T09 base Revelation keeps READY selected numbers hidden in every projection',()=>{
   const run=makePeekRun();
   activateImmediateCharacterSkill(run,run.players[2]);
   const seer=projectRun(run,'p2'),target=projectRun(run,'p0'),other=projectRun(run,'p1');
-  assert.deepEqual(seer.privateCombat.revelationPeek,{turn:1,targetPlayerId:'p0',selectedNumber:2,recoveredCardId:null});
+  assert.equal(seer.privateCombat.revelationPeek,undefined);
   assert.equal(target.privateCombat.revelationPeek,undefined);
   assert.equal(other.privateCombat.revelationPeek,undefined);
   assert.equal(seer.combat.turnSubmissions,undefined);
   assert.deepEqual(seer.combat.readyPlayerIds,['p0']);
   assert.ok(!Object.hasOwn(seer.players.find(p=>p.playerId==='p0').cardPool[0],'id'));
+  assert.ok(!JSON.stringify(seer).includes('"selectedNumber":2'));
 });
 
 test('T09 remains active after the final T06 scenario is enabled',()=>{
