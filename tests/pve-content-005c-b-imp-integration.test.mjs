@@ -77,12 +77,12 @@ test('005C-B reconnect preserves independent multi-Imp scoped state and Mischief
   scopedImpState(run,run.players[0]).excitement=2;scopedImpState(run,run.players[1]).excitement=1;const snap=structuredClone(run);
   assert.equal(snap.augmentFramework.imp.state.p0.excitement,2);assert.equal(snap.augmentFramework.imp.state.p1.excitement,1);assert.notEqual(snap.augmentFramework.imp.state.p0,snap.augmentFramework.imp.state.p1);
 });
-test('005C executable counts retain 005B, Seer, Imp and add Gambler 30/30 without new Gunslinger runtime',()=>{
+test('005C executable counts retain 005B, Seer, Imp and add Gambler 30/30 with Gunslinger 30/30',()=>{
   const ids=Object.keys(EXECUTABLE_AUGMENT_RUNTIME);
   const range=(a,b)=>ids.filter(id=>{const n=+id.slice(4);return n>=a&&n<=b&&EXECUTABLE_AUGMENT_RUNTIME[id]?.executable===true});
   assert.equal(new Set(range(1,150)).size,150);assert.equal(new Set(range(151,180)).size,30);assert.equal(new Set(range(181,210)).size,30);
-  assert.equal(new Set(range(211,240)).size,30);assert.equal(new Set(range(241,270)).size,1);
-  assert.equal(new Set(range(151,270)).size,91);assert.equal(new Set(range(1,270)).size,241);
+  assert.equal(new Set(range(211,240)).size,30);assert.equal(new Set(range(241,270)).size,30);
+  assert.equal(new Set(range(151,270)).size,120);assert.equal(new Set(range(1,270)).size,270);
 });
 test('005C-B all Imp contracts have executable IMP_V02 handlers and actual runtime entry',()=>{
   for(const id of IMP_CONTRACT_IDS){const rt=EXECUTABLE_AUGMENT_RUNTIME[id];assert.equal(rt?.executable,true,id);assert.ok(rt.specialHandlers?.includes('IMP_V02'),id);}
