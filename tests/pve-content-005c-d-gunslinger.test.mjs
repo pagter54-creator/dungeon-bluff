@@ -1,4 +1,6 @@
 import test from 'node:test';
+import fs from 'node:fs';
+import {PVE_EXECUTABLE_AUGMENT_UI} from '../src/pve-ui-catalog.js';
 import assert from 'node:assert/strict';
 import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/pve/model.js';
 import {applyOwnedEffects} from '../supabase/functions/game-api/pve/effects.js';
@@ -118,7 +120,7 @@ for(const build of ['전탄 난사','정밀 사수','과열 기관'])for(const f
    for(let t=0;t<8;t++){
     for(const p of x.run.players){
      const priv=x.run.combat.privateByPlayer[p.playerId];
-     if(!x.run.combat.turnSubmissions[p.playerId])submitCard(x.run,p.playerId,t===0&&p.playerId==='p0'?priv.remainingCardIds.at(-1):priv.remainingCardIds[0],p.playerId==='p0'&&p.publicResources.fullBurstReady===true);
+     if(!x.run.combat.turnSubmissions[p.playerId])submitCard(x.run,p.playerId,t===0&&['p0','p2'].includes(p.playerId)?priv.remainingCardIds.at(-1):priv.remainingCardIds[0],p.playerId==='p0'&&p.publicResources.fullBurstReady===true);
     }
     x.run.combat.monster.intent={type:'CHARGE',payload:{}};
     const result=resolveBasicTurn(x.run);assert.equal(result.cards.length,4);
@@ -250,4 +252,20 @@ test('005C-D combat initialization retry preserves armed flags and RUN output su
 test('005C-D failed Burst SELF cost never grants Berserker Revenge to another owner',()=>{
  const x=fixture(['aug-241'],'berserker');x.run.players[3].augments=['aug-131'];x.run.players[3].publicResources.revenge=0;
  play(x,{collision:true});assert.equal(x.run.players[3].publicResources.revenge,0);
+});
+
+test('005C-D immutable source projection and all 30 actual UI descriptions match runtime overlays',()=>{
+ const design=JSON.parse(fs.readFileSync(new URL('../docs/PVE_CONTENT_005Q_DESIGN_C.json',import.meta.url),'utf8'));
+ for(const id of GUNNER_CONTRACT_IDS){
+  const contract=GUNNER_CONTRACTS[id];assert.equal(PVE_EXECUTABLE_AUGMENT_UI[id].description,contract.tooltipBetaV02);
+  const source=design.cards.find(c=>c.augmentId===id);
+  assert.equal(contract.augmentId,source.augmentId);assert.equal(contract.name,source.name);
+  if(!['aug-248','aug-253','aug-257'].includes(id))assert.deepEqual(contract,source);
+ }
+ for(const id of ['aug-248','aug-253'])assert.equal(GUNNER_CONTRACTS[id].executionRuleSource,'USER_CONFIRMED_005C_D_PATCH');
+ assert.equal(GUNNER_CONTRACTS['aug-248'].damageTaxonomy,'EXTRA_DAMAGE_COMPONENT');
+ assert.ok(!GUNNER_CONTRACTS['aug-253'].runtimePrimitivesRequired.includes('MODIFY_INCOMING_DAMAGE'));
+ const x=fixture(['aug-261','aug-266']);x.s.overheat=3;x.s.output=2;
+ const other=projectRun(x.run,'p1');assert.equal(other.players[0].publicResources.overheat,3);assert.equal(other.players[0].publicResources.burstOutput,2);
+ assert.equal(other.privateGunnerState,undefined);assert.equal(other.players[0].cardPool.some(c=>c.id),false);
 });
