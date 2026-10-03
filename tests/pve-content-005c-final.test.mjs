@@ -14,7 +14,10 @@ import {GUNNER_CONTRACTS} from '../supabase/functions/game-api/pve/gunner-contra
 import {PVE_EXECUTABLE_AUGMENT_UI} from '../src/pve-ui-catalog.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 import {setGamblerDrawPreference} from '../supabase/functions/game-api/pve/gambler.js';
-import {cleanupSeerCombat,scopedSeerState} from '../supabase/functions/game-api/pve/seer-runtime.js';
+import {cleanupSeerCombat,scopedSeerState,applySeerRuntime} from '../supabase/functions/game-api/pve/seer-runtime.js';
+import {initializeImpCombat,cleanupImpCombat} from '../supabase/functions/game-api/pve/imp-runtime.js';
+import {cleanupGamblerCombat} from '../supabase/functions/game-api/pve/gambler.js';
+import {applyOwnedEffects} from '../supabase/functions/game-api/pve/effects.js';
 const contracts={...SEER_CONTRACTS,...IMP_CONTRACTS,...GAMBLER_CONTRACTS,...GUNNER_CONTRACTS};
 const ids=Array.from({length:120},(_,i)=>'aug-'+String(151+i).padStart(3,'0'));
 const classes=['prophet','imp','gambler','gunner'];
@@ -167,4 +170,35 @@ test('005C FINAL Seer completed combat claims expire per owner before serial reu
  assert.equal(run.augmentFramework.seer.applied['p0:aug-169:revelation:1:valid-bonus'],undefined);
  assert.equal(run.augmentFramework.seer.applied['p1:aug-169:revelation:1:valid-bonus'],true);
  assert.equal(scopedSeerState(run,run.players[0]).activationSerial,0);
+});
+
+test('005C FINAL stale prediction cancels on origin combat/room change and cannot resolve in Event',()=>{
+ for(const mode of ['COMBAT','ROOM','EVENT']){
+  const run=make(['prophet','imp','gambler','gunner']),p=run.players[0],s=scopedSeerState(run,p);
+  p.augments=['aug-171'];s.prediction={id:'stale',status:'ARMED',type:'NUMBER_VALID',number:1,targetTurn:run.combat.turn,originCombatId:run.combat.id,originRoomId:run.currentRoomNodeId};
+  if(mode==='COMBAT')run.combat.id='new';if(mode==='ROOM')run.currentRoomNodeId='new';if(mode==='EVENT')run.phase='EVENT';
+  const before=p.growthExp;
+  applySeerRuntime(run,'CARD_VALIDATED',{player:p,resolved:{valid:true,finalNumber:1},cards:[{playerId:p.playerId,valid:true,finalNumber:1}]});
+  assert.equal(s.prediction.status,'CANCELLED');assert.equal(s.foresight,0);assert.equal(p.growthExp,before);
+ }
+});
+test('005C FINAL repeated 80 combats clear transient ledgers and retain only bounded diagnostics',()=>{
+ const run=make(['prophet','imp','gambler','gunner']);
+ run.players[1].augments=['aug-198'];
+ for(let combat=0;combat<80;combat++){
+  run.combat.id='repeat-'+combat;
+  for(let n=0;n<30;n++)initializeImpCombat(run,run.players[1]);
+  run.combat.privateByPlayer.p2.processedActions['old:'+combat]=true;
+  run.augmentFramework.seer||={recoveredCards:{},buffs:[],applied:{},sequence:0};
+  run.augmentFramework.seer.applied['p0:old:'+combat]=true;
+  cleanupSeerCombat(run,run.players[0]);cleanupImpCombat(run,run.players[1]);cleanupGamblerCombat(run,run.players[2]);
+  applyOwnedEffects(run,'COMBAT_END',{player:run.players[3]});
+  assert.equal(Object.keys(run.augmentFramework.seer.applied).length,0);
+  assert.equal(Object.keys(run.augmentFramework.imp.mischief).length,0);
+  assert.equal(Object.keys(run.combat.privateByPlayer.p2.processedActions).length,0);
+  assert.equal(Object.keys(run.augmentFramework.cardState['p3:gunner'].burstActions).length,0);
+  assert.ok(run.combat.privateByPlayer.p2.history.length<=48);
+  assert.ok(run.augmentFramework.imp.telemetry.length<=2048);assert.ok(run.augmentFramework.telemetry.length<=2048);
+ }
+ assert.equal(run.augmentFramework.telemetryTotals['aug-198:COMBAT_START'].triggerCount,2400);
 });
