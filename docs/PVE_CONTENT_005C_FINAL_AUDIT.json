@@ -187,7 +187,7 @@
         "F3_MAP_ENTRY"
       ],
       "usesRealApi": true,
-      "fixture": "Test-only committed combat snapshots set enemyHP1 and refill HP/Flame. This checks routing/runtime/serialization, not natural balance clearability.",
+      "fixture": "Test-only commit adapter sets enemyHP999 before turn3, thenHP1, passive intent and full partyHP/Flame. Starting owned augment stages/build are pinned. At least three actual combat turns allow required real Seer recovery/aug151 success. Checks routing/runtime/serialization, not natural balance clearability.",
       "productionEffect": false
     },
     "settlement": {
