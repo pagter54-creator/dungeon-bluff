@@ -1,3 +1,4 @@
+import {gunnerPenetration,gunnerExtraComponent,gunnerState} from './gunner-runtime.js';
 import {choose} from './rng.js';
 import {persistCardCycles} from './card-cycle.js';
 import {drawGamblerHand,settleGamblerHand,prepareGamblerAllIn,gamblerSetDamage,finalizeGamblerActualDamage,finalizeGamblerAllIn,applyGamblerValidated,initializeGamblerCombat,cleanupGamblerCombat,prepareGamblerForcedAutoSubmission} from './gambler.js';
@@ -264,7 +265,8 @@ export function resolveBasicTurn(run){
     ];
     const knightArmorPenetration=player.characterId==='warrior'&&player.augments.includes('aug-052')&&Number(rc.crushedCardCount)>0?Math.min(1,defense):0;
     const roguePoisonPenetration=rogueArmorPenetration(run,player,rc,Math.max(0,defense-knightArmorPenetration));
-    const armorPenetration=Math.min(defense,knightArmorPenetration+roguePoisonPenetration);
+    const gunnerArmorPenetration=gunnerPenetration(run,player,rc,Math.max(0,defense-knightArmorPenetration-roguePoisonPenetration));
+    const armorPenetration=Math.min(defense,knightArmorPenetration+roguePoisonPenetration+gunnerArmorPenetration);
     if(knightArmorPenetration)modifierIds.push('AUG_052_ARMOR_PENETRATION');
     if(roguePoisonPenetration)modifierIds.push('ROGUE_POISON_DEFENSE');
     const ordinaryAmount=Math.max(0,baseDamageForCharacter(player,rc)+engraving-Math.max(0,defense-armorPenetration)-(rc.monsterDamagePenalty||0));
@@ -286,9 +288,13 @@ export function resolveBasicTurn(run){
       let packet=burstPacket({sourcePlayerId:rc.playerId,sourceCardId:extra.id,numberUsed:extra.baseNumber,amount:Math.max(0,extra.baseNumber+(Number(player.engravings?.[String(extra.baseNumber)])||0)-defense),tags:['FOLLOW_UP'],followUp:true},
         {resolved:rc,player,followUp:true,parentDamageEventId:primary.damageEventId,baseNumber:extra.baseNumber,baseDamage:extra.baseNumber});
       const damage={amount:packet.amount},extraQueued=[];
-      applyOwnedEffects(run,'BEFORE_DAMAGE',{player,resolved:rc,damage,followUps:extraQueued,followUp:true,events:[]});
+      applyOwnedEffects(run,'BEFORE_DAMAGE',{player,resolved:rc,damage,followUps:extraQueued,followUp:true,sourceCardId:extra.id,events:[]});
       if(extraQueued.length){const error=new Error('Tier-I Full Burst follow-up이 추가 follow-up을 재귀 생성했습니다.');error.code='RECURSIVE_FOLLOW_UP';throw error;}
       packet.amount=Math.max(0,damage.amount);packet.followUpDamage=packet.amount;packets.push(packet);
+    }
+    if(player.characterId==='gunner'){
+      const component=gunnerExtraComponent(run,player,rc);
+      if(component)packets.push(burstPacket({...component,sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,tags:['AUG_248_EXTRA_DAMAGE_COMPONENT'],followUp:false},{resolved:rc,player,baseDamage:0,modifierIds:['aug-248']}));
     }
   }
   c.monster.defense=0;
@@ -311,14 +317,14 @@ export function resolveBasicTurn(run){
     numberHistories:cards.map(card=>structuredClone(card.numberHistory)),
     mutationEvents:structuredClone(mutationEvents)
   });
-  for(const packet of packets){const p=playerFor(run,packet.sourcePlayerId),resolved=cards.find(x=>x.playerId===packet.sourcePlayerId);applyOwnedEffects(run,'AFTER_DAMAGE',{player:p,resolved,damage:{amount:packet.amount},followUp:packet.followUp,packet,events:[]});}
+  for(const packet of packets.filter(packet=>!packet.extraDamageComponent)){const p=playerFor(run,packet.sourcePlayerId),resolved=cards.find(x=>x.playerId===packet.sourcePlayerId);applyOwnedEffects(run,'AFTER_DAMAGE',{player:p,resolved,damage:{amount:packet.amount},followUp:packet.followUp,packet,events:[]});}
   for(const rc of cards)if(rc.valid)onValidAttack(playerFor(run,rc.playerId),run,rc,events);
   c.phase='POST_PLAYER_ATTACK';phaseTrace.push(c.phase);
   for(const rc of cards.filter(x=>x.valid))applyPostPlayerAttackCharacter(run,rc,events);
   for(const rc of cards.filter(x=>x.burstMisfire)){
     const p=playerFor(run,rc.playerId);
-    p.hp-=1;
-    events.push({type:'FULL_BURST_MISFIRE',playerId:p.playerId,amount:1,hp:p.hp});
+    const before=p.hp;p.hp=Math.max(0,p.hp-1);gunnerState(run,p).telemetry.failureSelfDamage+=before-p.hp;
+    events.push({type:'FULL_BURST_MISFIRE',playerId:p.playerId,amount:before-p.hp,hp:p.hp,source:'GUNSLINGER_FULL_BURST_FAILURE',damageType:'SELF',canDown:true,minHP:0,timing:'POST_PLAYER_ATTACK'});
   }
   resolveF2AfterDamage(run,events,applyMonsterDamage);
   resolveF3AfterDamage(run,events,applyMonsterDamage);
