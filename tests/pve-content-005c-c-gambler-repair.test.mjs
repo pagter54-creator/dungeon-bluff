@@ -500,3 +500,23 @@ test('005C-C history normalization is bounded and duplicate physical zone IDs ar
   normalizeGamblerState(x.run,x.p,x.state);assert.equal(x.state.history.length,48);assert.equal(x.state.history[0].i,52);
   x.state.remainingCardIds=[x.state.drawPileIds[0]];assert.throws(()=>normalizeGamblerState(x.run,x.p,x.state),/GAMBLER_ZONE_INTEGRITY/);
 });
+
+test('005C-C duplicate settlement consumes/draws/unlocks exactly once and preserves every physical ID',()=>{
+  const x=fixture(['aug-231']),[a]=setHand(x,[2,5]),r=resolvedFor(a,2,true);
+  prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);finalizeGamblerAllIn(x.run,x.p,x.state,r);
+  gamblerSetDamage(x.run,x.p,x.state,r,2);
+  assert.equal(settleGamblerHand(x.run,x.p,x.state,a,2,{rootActionId:'same-settlement'}),true);
+  const before=structuredClone(x.state),pool=structuredClone(x.p.cardPool);
+  assert.equal(settleGamblerHand(x.run,x.p,x.state,a,2,{rootActionId:'same-settlement'}),false);
+  assert.deepEqual(x.state,before);assert.deepEqual(x.p.cardPool,pool);
+  const ids=[...x.state.drawPileIds,...x.state.remainingCardIds,...x.state.discardPileIds,...x.state.vanishedCardIds];
+  assert.equal(ids.length,new Set(ids).size);assert.deepEqual(new Set(ids),new Set(pool.map(c=>c.id)));
+});
+
+test('005C-C immutable DESIGN-C projection and runtime tooltip overlay match structured effects',()=>{
+  const design=JSON.parse(fs.readFileSync(new URL('../docs/PVE_CONTENT_005Q_DESIGN_C.json',import.meta.url),'utf8'));
+  for(const id of GAMBLER_CONTRACT_IDS)assert.deepEqual(GAMBLER_CONTRACTS[id],design.cards.find(c=>c.augmentId===id),id);
+  assert.equal(EXECUTABLE_AUGMENT_RUNTIME['aug-237'].tooltipBetaV02,'올인 성공 공격의 실제 피해가 8 이상이면 다음 드로우 페널티를 1턴 줄입니다(최소 0턴). 전투당 1회.');
+  const ids=Object.keys(EXECUTABLE_AUGMENT_RUNTIME).filter(id=>EXECUTABLE_AUGMENT_RUNTIME[id].executable===true);
+  assert.equal(ids.length,247);assert.equal(ids.filter(id=>Number(id.slice(4))<=270).length,241);
+});
