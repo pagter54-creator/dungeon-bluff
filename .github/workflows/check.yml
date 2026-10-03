@@ -243,3 +243,39 @@ jobs:
 
       - name: Competitive production remote smoke
         run: npm run pve:production:smoke -- --mode competitive
+
+  martial_005d_verification:
+    name: 005D A targeted runtime verification
+    if: github.event_name == 'pull_request' && github.head_ref == 'feat/pve-content-005d-a-martial'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Verify Martial actual behavior and integration
+        run: node --test tests/pve-content-005d-a-martial.test.mjs
+      - name: Run project checks
+        run: npm run check
+      - name: Run existing PVE smoke
+        run: npm run pve:stress:smoke
+      - name: Verify T02 100 seeds
+        run: npm run pve:stress:balance -- --scenario T02 --output artifacts/pve-stress-005d-a/T02
+      - name: Verify T05 100 seeds
+        run: npm run pve:stress:balance -- --scenario T05 --output artifacts/pve-stress-005d-a/T05
+      - name: Verify T06 100 seeds
+        run: npm run pve:stress:balance -- --scenario T06 --output artifacts/pve-stress-005d-a/T06
+      - name: Upload runtime verification reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pve-005d-a-verification-${{ github.event.pull_request.head.sha }}
+          path: artifacts/pve-stress-005d-a/
+          if-no-files-found: warn
