@@ -53,6 +53,8 @@ export function resolveGunnerSelected(run,p,r,submission,events=[]){
   if(owns(p,'aug-251')&&isActivation){
     r.precisionShot=true;r.skillUsed='precision_shot';
     s.precisionShot.armed=false;s.precisionShot.activationId=root(run,p,r);
+    // A retried preserved use is consumed normally; the combat once flag remains spent.
+    s.aug253.preservedForCycleId=null;
     if(r.valid){
       s.telemetry.precisionTriggers++;fire(s,'aug-251');
       if(owns(p,'aug-256')){r.gunnerWeaknessBonus=s.weakness;s.weakness=Math.min(3,s.weakness+1);fire(s,'aug-256');}
