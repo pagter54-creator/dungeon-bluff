@@ -33,7 +33,7 @@ test('005C-A full build 운명 조작자 preserves ally physical identity, pre-c
   const {run,p}=make(undefined,['aug-161','aug-163','aug-166','aug-170']),ally=run.players[1];
   const own=spend(run,p,4),aid=spend(run,ally,2);p.publicResources.revelation=1;
   const e=activateImmediateCharacterSkill(run,p,{target_player_id:'p1',ally_number_delta:1});assert.equal(e.recoveredCardId,aid);assert.ok(pv(run,p).remainingCardIds.includes(own));
-  submitCard(run,'p0',idFor(run,p,1));submitCard(run,'p1',aid);submitCard(run,'p2',idFor(run,run.players[2],4));submitCard(run,'p3',idFor(run,run.players[3],5));
+  submitCard(run,'p0',idFor(run,p,5));submitCard(run,'p1',aid);submitCard(run,'p2',idFor(run,run.players[2],2));submitCard(run,'p3',idFor(run,run.players[3],4));
   const out=resolveBasicTurn(run),a=out.cards.find(x=>x.playerId==='p1');
   assert.equal(a.finalNumber,3);assert.equal(a.valid,true);assert.ok((a.seerRuntimeBonus||0)>=2);
   const damage={amount:1},r=resolved(p,idFor(run,p,1),1);applySeerRuntime(run,'BEFORE_DAMAGE',{player:p,resolved:r,damage,rootActionId:'owner-shared'});
