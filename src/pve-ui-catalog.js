@@ -476,10 +476,6 @@ export const PVE_EXECUTABLE_AUGMENT_UI=Object.freeze({
   "aug-208": {"build":"장난의 연쇄","description":"대상 전원의 다음 유효 공격 추가 피해 +2. 각 대상 1회 발동 후 소멸."},
   "aug-209": {"build":"장난의 연쇄","description":"장난 성공 시 다음 유효 공격 +5 피해. 재슬쩍 폭발 시 피해 2. 장난 1턴 지속."},
   "aug-210": {"build":"장난의 연쇄","description":"조건 1회당 스택 +1(최대 4); 스택 1당 관련 효과 +1 피해 상당. 전투 종료 시 초기화; 별도 유지 카드 제외."},
-  "aug-241": {
-    "build": "전탄 난사",
-    "description": "총잡이 카드 구성이 1·2·2·3으로 확장됩니다."
-  },
   "aug-291": {
     "build": "일격필살",
     "description": "연계 수치마다 추가 피해를 얻는 필살 공격을 주기당 한 번 사용할 수 있습니다."
