@@ -19,7 +19,7 @@ GitHub 직접 수정. [Draft PR #23](https://github.com/pagter54-creator/dungeon
 |1|branch / PR|feat/pve-content-005c-final / Draft PR #23|
 |2|baseline HEAD|c59573dc58343c603aa00ab49cf9271e065a3267; PR22 #887 completed/success 및 두 완료 flag 확인|
 |3|final HEAD|현재 문서를 포함한 최신 PR HEAD. SHA와 동일 HEAD의 CI 결과는 PR 본문에 확정 기록(본문 수정은 새 커밋을 만들지 않음).|
-|4|changed files|워크플로1, runtime 결함 수정4, FINAL 테스트3, FINAL 문서3. GitHub diff 기준.|
+|4|changed files|워크플로1, runtime 결함 수정5, FINAL 테스트3, FINAL 문서3. GitHub diff 기준.|
 |5|target augment count|aug-151~270 /120|
 |6|registered count|120|
 |7|executable count|120|
@@ -60,7 +60,7 @@ GitHub 직접 수정. [Draft PR #23](https://github.com/pagter54-creator/dungeon
 |42|failure path|기존005-006 Flame0+전원DOWN→RUN_FAILED 및 SQL REWARD-PVE-02 Gold0/RP불변/정산 once.|
 |43|boss kill + wipe priority|기존CONTENT003 final boss 사망 동시 전원wipe/Flame0→RUN_FAILED 우선, finalSummary없음.|
 |44|abandon path|실제 SQL REWARD-PVE-03 및 last-human departure ABANDONED Gold0/RP불변/once.|
-|45|npm test|최종 HEAD 검사 게이트. 예상1406개(기준1125 + FINAL281), 실제 수치는 CI log/PR 본문.|
+|45|npm test|최종 HEAD 검사 게이트. 예상1408개(기준1125 + FINAL283), 실제 수치는 CI log/PR 본문.|
 |46|npm run check|최종 HEAD Project Checks test job 필수.|
 |47|stress smoke|기존 npm run pve:stress:smoke 필수.|
 |48|final500 stress|T00/T02/T03/T04/T05/T06/T09/T14 각500(총4000seed). 기존 npm run pve:stress:full 사용, test성공 후8 job 실행.|
@@ -68,7 +68,7 @@ GitHub 직접 수정. [Draft PR #23](https://github.com/pagter54-creator/dungeon
 |50|stress warnings|실제 보고서 warning을 BALANCE_WARNING_005C_FINAL로 기록. 수정·튜닝 없이 비차단 처리.|
 |51|performance sanity|effect dispatch는 소유 augment/relic 기준; trigger당120장 전체 조회 없음. 기존 turn/action ceiling 및500seed 실행. 이 작업은 성능 benchmark 자체를 주장하지 않음.|
 |52|memory/state sanity|Gambler history<=48, 반복80 combat2400 이벤트 후 diagnostic<=2048, 누적count2400유지; 완료 prediction/Mischief/Burst/custom claim/action receipt 정리.|
-|53|backward compatibility|기존 missing array/counter/zone normalize 및 전체직업 reconnect 유지; missing legacy origin은 허용하고 명시적 mismatch만취소.|
+|53|backward compatibility|실제 Gunner/Seer/Imp partial snapshot 필드 복원 검사 + 기존 Gambler normalize 및 전체직업 reconnect. Heat/armed/once/stack 보존; 명시적 origin mismatch만취소.|
 |54|005B regression|aug-001~150 executable150 및 기존 전체 테스트, 고정T02/T06 등 회귀.|
 |55|global aug-001~270 registry|270 unique executable, 결측/중복0.|
 |56|all390 informational count|276 executable. 기존 범위 밖6장은005C count에 합산하지 않음; 신규271+구현0.|
@@ -93,5 +93,7 @@ GitHub 직접 수정. [Draft PR #23](https://github.com/pagter54-creator/dungeon
 - 예언 origin combat/room mismatch를 취소하고, 선언된 source room 밖의 Seer/Imp 전투 보너스를 차단했습니다.
 - 완료된 Gambler combat receipt를 제거하면서 모든물리 zone/ID/해금/이력을 유지했습니다.
 - Seer/Imp 진단행을 bounded하게 유지하며 실제 trigger/success 누적합계를 보존했습니다.
+
+- 오래된 Gunner/Seer/Imp 부분 snapshot에 빠진 새 필드를 기본값으로 복원하면서 기존Heat/armed/once/counter/stack은 보존했습니다.
 
 aug248/253의 명시적 사용자 규칙은 변경하지 않았습니다. 상술한 모든 조건부 결과는 최종 HEAD CI gate가 증명할 때만 완료로 평가합니다.
