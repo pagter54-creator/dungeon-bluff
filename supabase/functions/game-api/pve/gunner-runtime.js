@@ -121,7 +121,9 @@ export function applyGunnerRuntime(run,trigger,ctx={}){
     if(trigger==='COMBAT_START'){
       if(s.combatId===run.combat?.id)continue;
       const persistent=s.output269,telemetry=s.telemetry;delete run.augmentFramework.cardState[p.playerId+':gunner'];
-      const fresh=gunnerState(run,p);fresh.combatId=run.combat?.id;fresh.output269=persistent;fresh.telemetry=telemetry;ensureGunnerMagazine(run,p);continue;
+      const fresh=gunnerState(run,p);fresh.combatId=run.combat?.id;fresh.output269=persistent;fresh.telemetry=telemetry;
+      if(p.persistentCharacterState.gunnerMagazineOverridePending){fire(fresh,'aug-241');delete p.persistentCharacterState.gunnerMagazineOverridePending;}
+      ensureGunnerMagazine(run,p);continue;
     }
     if(trigger==='COMBAT_END'){
       s.overheat=0;s.accuracy=0;s.weakness=0;s.output=0;s.precisionSetup=false;s.activation=null;s.precisionShot={armed:false,activationId:null};s.once={};s.applied={};s.burstActions={};s.blockedTurn=null;s.blockedResolvedTurn=null;s.burstUsedTurn=null;s.previousFinal=null;s.setupSeenCycle=false;s.nextBurstBonus=0;s.afterBurstCycle=null;s.aug253={preservationUsedThisCombat:false,preservedForCycleId:null};continue;
