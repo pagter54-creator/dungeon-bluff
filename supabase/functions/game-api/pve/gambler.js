@@ -177,7 +177,7 @@ export function applyGamblerValidated(run,player,state,resolved){
   state.validOrdinaryHistory=Array.isArray(state.validOrdinaryHistory)?state.validOrdinaryHistory:[];
   state.shuffleOrdinarySeen=Array.isArray(state.shuffleOrdinarySeen)?state.shuffleOrdinarySeen:[];
   let bonus=0;
-  const onceTurn=(id)=>{const k=\`\${id}:turn:\${turn}\`;if(state.runtimeOnce[k])return false;state.runtimeOnce[k]=true;return true;};
+  const onceTurn=(id)=>{const k=`${id}:turn:${turn}`;if(state.runtimeOnce[k])return false;state.runtimeOnce[k]=true;return true;};
   if(!valid){
     if(resolved?.allIn)state.allInFailedThisTurn=true;
     return 0;
