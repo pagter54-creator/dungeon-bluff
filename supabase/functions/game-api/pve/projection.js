@@ -21,6 +21,14 @@ export function projectRun(run,viewerPlayerId){
   if(!out.combat&&run.cardCycles?.[viewerPlayerId])out.privateCombat=structuredClone(run.cardCycles[viewerPlayerId]);
   if(out.combat?.monster){delete out.combat.monster.mechanic;delete out.combat.monster.behaviorState;delete out.combat.monster.pattern;}
 
+  // DESIGN-C public class resources exclude physical magazine/activation identities.
+  if(run.phase==='COMBAT')for(const player of out.players||[]){
+    if(player.characterId!=='gunner')continue;
+    const state=run.augmentFramework?.cardState?.[player.playerId+':gunner'];if(!state)continue;
+    if(player.augments?.includes('aug-261'))player.publicResources.overheat=state.overheat;
+    if(player.augments?.includes('aug-266'))player.publicResources.burstOutput=state.output;
+    if(player.augments?.includes('aug-253'))player.publicResources.precisionShotPreserved=state.aug253.preservedForCycleId!==null;
+  }
   // Gambler aggregate pile counts/composition may be public; exact order, identities and history stay owner-only.
   for(const player of out.players||[]){
     if(player.characterId!=='gambler')continue;
