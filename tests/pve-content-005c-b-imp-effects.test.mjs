@@ -72,8 +72,8 @@ test('aug-192 changes stolen-number cap 3 to 5',()=>{
   const n=fixture(['aug-191']);assert.equal(stolenNumberCap(n.p),3);
 });
 test('aug-193 allows spending all stored numbers in unit steps instead of base cap 2',()=>{
-  const x=fixture(['aug-191','aug-193']);x.p.publicResources.stolenNumber=4;assert.equal(prepareImpSubmission(x.run,x.p,{impSpend:4}).spent,4);assert.equal(x.p.publicResources.stolenNumber,0);
-  const n=fixture(['aug-191']);n.p.publicResources.stolenNumber=4;assert.throws(()=>prepareImpSubmission(n.run,n.p,{impSpend:3}),/INVALID_STOLEN/);
+  const x=fixture(['aug-191','aug-193']);x.p.publicResources.stolenNumber=3;assert.equal(prepareImpSubmission(x.run,x.p,{impSpend:3}).spent,3);assert.equal(x.p.publicResources.stolenNumber,0);
+  const n=fixture(['aug-191']);n.p.publicResources.stolenNumber=3;assert.throws(()=>prepareImpSubmission(n.run,n.p,{impSpend:3}),/INVALID_STOLEN/);
 });
 test('aug-194 stored >=3 at turn end gives next-turn stored-spend attack +2',()=>{
   const x=fixture(['aug-191','aug-194']);x.p.publicResources.stolenNumber=3;onImpTurnEnd(x.run,x.p);x.run.combat.turn=2;prepareImpSubmission(x.run,x.p,{impSpend:1});
