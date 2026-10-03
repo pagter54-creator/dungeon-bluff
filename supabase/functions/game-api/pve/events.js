@@ -99,7 +99,7 @@ export function resolveEventTurn(run){
   assignVampireThralls(run,cards,groups,effects);
   for(const card of cards)applyOwnedEffects(run,'POST_COLLISION',{player:playerFor(run,card.playerId),resolved:card,submission:room.turnSubmissions[card.playerId],privateState:room.privateByPlayer[card.playerId]});
   attachValidity(cards);
-  for(const card of cards){const player=playerFor(run,card.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player,resolved:card,privateState:room.privateByPlayer[card.playerId]});applyImpCardValidated(run,{player,resolved:card,cards,events});}
+  for(const card of cards){const player=playerFor(run,card.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player,resolved:card,privateState:room.privateByPlayer[card.playerId]});applyImpCardValidated(run,{player,resolved:card,cards,events:effects});}
   validateNumberMutationState(run,cards,mutationEvents);
   for(const card of cards){
     const state=room.privateByPlayer[card.playerId];
