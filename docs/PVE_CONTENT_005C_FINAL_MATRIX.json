@@ -44,8 +44,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-152",
@@ -86,8 +85,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-153",
@@ -128,8 +126,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-154",
@@ -170,8 +167,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-155",
@@ -212,8 +208,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-156",
@@ -257,8 +252,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-157",
@@ -302,8 +296,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-158",
@@ -344,8 +337,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-159",
@@ -389,8 +381,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-160",
@@ -431,8 +422,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-161",
@@ -476,8 +466,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-162",
@@ -518,8 +507,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-163",
@@ -560,8 +548,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-164",
@@ -602,8 +589,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-165",
@@ -644,8 +630,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-166",
@@ -686,8 +671,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-167",
@@ -728,8 +712,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-168",
@@ -776,8 +759,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-169",
@@ -818,8 +800,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-170",
@@ -860,8 +841,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-171",
@@ -905,8 +885,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-172",
@@ -950,8 +929,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-173",
@@ -995,8 +973,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-174",
@@ -1040,8 +1017,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-175",
@@ -1082,8 +1058,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-176",
@@ -1127,8 +1102,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-177",
@@ -1169,8 +1143,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-178",
@@ -1211,8 +1184,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-179",
@@ -1256,8 +1228,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-180",
@@ -1298,8 +1269,7 @@
         "tests/pve-content-005c-a-seer-integration.test.mjs"
       ],
       "fullBuildAcceptance": "Owned-build deterministic replay and seeded individual effect tests exist; fresh live activation cannot bootstrap from Revelation0.",
-      "status": "DESIGN_BLOCKED",
-      "blockerId": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+      "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     },
     {
       "augmentId": "aug-181",
@@ -5124,5 +5094,21 @@
       "status": "REQUIRES_CURRENT_HEAD_SUCCESS"
     }
   ],
-  "blocker": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED"
+  "blocker": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED",
+  "userConfirmedRuntimeOverlay": {
+    "executionRuleSource": "USER_CONFIRMED_005C_FINAL_PATCH",
+    "ruleId": "SEER_COMBAT_START_REVELATION_1",
+    "trigger": "COMBAT_START",
+    "effect": "SET_INITIAL_RESOURCE",
+    "resource": "Revelation",
+    "initialValue": 1,
+    "max": 3,
+    "carryOver": false,
+    "ordinaryValidAttackGain": false,
+    "activationTurnValidGain": 1,
+    "activationTurnCollisionInvalidGain": 0,
+    "reconnect": "Restore authoritative value; never rerun fresh-combat constructor.",
+    "idempotency": "Fresh combat constructor assigns1; repeated COMBAT_START dispatch has no grant; beginTurn combatStartEffectsApplied guard.",
+    "sourceReclassification": false
+  }
 }
