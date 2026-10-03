@@ -20,12 +20,12 @@ function makeRun(characterId='mage'){
 
 test('CONTENT-005A enumerates 390 stable conceptual slots and measures actual coverage',()=>{
   assert.equal(new Set(Array.from({length:390},(_,i)=>id(i+1))).size,390);
-  assert.equal(AUGMENT_DEFINITIONS.length,275);
+  assert.equal(AUGMENT_DEFINITIONS.length,305);
   const ids=AUGMENT_DEFINITIONS.map(x=>x.id);
   assert.equal(new Set(ids).size,ids.length);
   assert.ok(Object.keys(EXECUTABLE_AUGMENT_RUNTIME).length>=19);
   assert.equal(AUGMENT_DEFINITIONS.filter(x=>x.executable===true).length,Object.keys(EXECUTABLE_AUGMENT_RUNTIME).length);
-  assert.equal(390-AUGMENT_DEFINITIONS.length,115);
+  assert.equal(390-AUGMENT_DEFINITIONS.length,85);
   for(const def of AUGMENT_DEFINITIONS){
     const n=Number(def.id.slice(4)),expected=slot(n);
     assert.ok(n>=1&&n<=390,def.id);
@@ -109,9 +109,8 @@ test('CONTENT-005A every class candidate pool excludes data-only and missing slo
   for(const classId of classes){
     const run=makeRun(classId),player=run.players[0];player.growthExp=800;
     const due=dueAugmentTiers(player);
-    assert.deepEqual(due,classId==='gambler'?[]:[1],classId);
+    assert.deepEqual(due,[1],classId);
     const began=beginAugmentChoices(run,'ROOM_RESULT');
-    if(classId==='gambler'){assert.equal(began,false);continue;}
     assert.equal(began,true,classId);
     const offer=run.augmentChoice.offersByPlayer.p0;
     assert.ok(offer.length>=1&&offer.length<=3,classId);
