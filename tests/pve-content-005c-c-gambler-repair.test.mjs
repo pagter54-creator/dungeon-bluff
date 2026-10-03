@@ -166,7 +166,7 @@ test('005C-C full Card Counter build resolves aug-230 then aug-228 before the sa
 
 test('005C-C aug-211 Reward Luck is server-authoritative, once-only, and closes after confirmation',()=>{
   const x=fixture(['aug-211']);x.run.phase='REWARD_ROOM';x.state.luck=1;
-  x.run.roomState={type:'REWARD_ROOM',attempt:1,pickOrder:['p0'],privateByPlayer:{p0:x.state},gamblerLuckWindows:{},relicIds:['r1'],picks:{}};
+  x.run.roomState={type:'REWARD_ROOM',attempt:1,pickOrder:['p0'],privateByPlayer:{...x.run.combat.privateByPlayer,p0:x.state},gamblerLuckWindows:{},relicIds:['r1'],picks:{}};
   assert.equal(useRewardGamblerLuck(x.run,'p0','ATTACK','luck-action'),true);
   assert.equal(x.state.luck,0);assert.equal(x.state.luckDamageArmed,true);
   assert.equal(useRewardGamblerLuck(x.run,'p0','ATTACK','luck-action'),false);
@@ -462,7 +462,7 @@ test('005C-C owner ally spectator projection strips partner IDs/values in combat
 
 test('005C-C Reward Luck reconnect persists chosen benefit and closes window without reroll',()=>{
   const x=fixture(['aug-211']);x.run.phase='REWARD_ROOM';x.state.luck=1;
-  x.run.roomState={type:'REWARD_ROOM',attempt:1,pickOrder:['p0','p1'],privateByPlayer:{p0:x.state},gamblerLuckWindows:{},relicIds:['r1','r2'],picks:{}};
+  x.run.roomState={type:'REWARD_ROOM',attempt:1,pickOrder:['p0','p1'],privateByPlayer:{...x.run.combat.privateByPlayer,p0:x.state},gamblerLuckWindows:{},relicIds:['r1','r2'],picks:{}};
   const before=structuredClone(x.run.roomState.relicIds);
   assert.equal(useRewardGamblerLuck(x.run,'p0','SPECIAL','reconnect-luck'),true);
   assert.equal(x.run.cardCycles.p0.specialCharge,1);assert.equal(x.run.cardCycles.p0.luck,0);
