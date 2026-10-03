@@ -146,7 +146,7 @@
   "productionUnchanged": true,
   "balancePolicy": "NO_TUNING_NO_GOLDEN_CHANGES",
   "evidence": {
-    "runtimeHead": "c8da6966a2e6247bc81a8ef249c0e5a93bbfe0bc",
+    "runtimeHead": "ac6ebf2f89c7f520bd1e99d58e0ce55b0e901a6a",
     "previousTestsChecksSmokeRun": 37116197455,
     "previousRunNumber": 870,
     "finalHead": "CURRENT_DOCUMENTATION_HEAD",
@@ -194,5 +194,5 @@
     "aug-253": "Restored activation consumption clears preservedForCycleId immediately, keeps preservationUsedThisCombat=true; root retry restores resolved fields without rearming.",
     "aug-248": "Remaining count is snapshotted at ON_SKILL_USE; an ally recovery between activation and selected resolution cannot satisfy the three-card predicate retroactively."
   },
-  "roomIsolationDetails": "New Reward submissions reject Gunslinger skills; the legacy resolution branch is removed so older saved intents also cannot generate Burst damage, remaining uses, cooldown mutation or misfire."
+  "roomIsolationDetails": "New Reward submissions reject Gunslinger skills; the legacy resolution branch is removed so older saved intents also cannot generate Burst damage, remaining uses, cooldown mutation or misfire. Saved-intent regression compares normal Reward outcome, including canonical room-exit cleanup."
 }
