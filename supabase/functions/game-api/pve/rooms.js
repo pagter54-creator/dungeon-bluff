@@ -8,7 +8,7 @@ import {applyOwnedEffects} from './effects.js';
 import {cleanupAugmentScope} from './augment-framework.js';
 import {relicPool} from './relics.js';
 import {clearCombatResourcesForPlayers} from './resources.js';
-import {prepareImpSubmission,applyImpCardValidated,applyImpBeforeDamage} from './imp-runtime.js';
+import {prepareImpSubmission,applyImpCardValidated,applyImpBeforeDamage,cleanupImpRoom} from './imp-runtime.js';
 
 const CARD_RESERVATION_MS=20_000;
 const playerFor=(run,id)=>run.players.find(p=>p.playerId===id);
@@ -18,6 +18,7 @@ const allIds=run=>run.players.map(p=>p.playerId);
 
 function finishRoom(run){
   for(const player of run.players)applyOwnedEffects(run,'ROOM_END',{player});
+  cleanupImpRoom(run);
   cleanupAugmentScope(run,'ROOM');
   clearCombatResourcesForPlayers(run.players);
   run.phase='ROOM_RESULT';
