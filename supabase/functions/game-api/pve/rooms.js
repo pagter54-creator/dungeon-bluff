@@ -216,7 +216,7 @@ function refreshRewardLuckWindow(run){
 }
 export function useRewardGamblerLuck(run,playerId,mode,rootActionId=''){
   if(run.phase!=='REWARD_ROOM'||run.roomState?.type!=='REWARD_ROOM')throw new Error('현재 보상방이 아닙니다.');
-  const room=run.roomState;if(room.pickOrder?.[0]!==playerId)throw new Error('보상이 제시된 자신의 선택 차례에만 행운을 사용할 수 있습니다.');
+  const room=run.roomState;if(room.pickOrder?.[0]!==playerId)return false;
   const p=playerFor(run,playerId),state=room.privateByPlayer?.[playerId];
   if(p?.characterId!=='gambler'||!p.augments?.includes('aug-211'))throw new Error('행운 증강을 보유한 도박사만 사용할 수 있습니다.');
   const window=refreshRewardLuckWindow(run);
