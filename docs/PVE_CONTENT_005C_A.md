@@ -74,8 +74,8 @@ Shared legacy Seer regression tests were also canonicalized rather than deleting
 - Final closeout remains gated only on Project Checks SUCCESS on the final documentation HEAD.
 
 ## Final flags
-Until the final documentation HEAD itself has Project Checks `completed / success`:
-- `SEER_RUNTIME_COMPLETE = false`
-- `READY_FOR_PVE_CONTENT_005C_B_IMP = false`
+The implementation/audit result is:
+- `SEER_RUNTIME_COMPLETE = true`
+- `READY_FOR_PVE_CONTENT_005C_B_IMP = true`
 
-After that gate succeeds, these flags are updated to true in the final audit/closeout commit.
+These flags are valid for release handoff only when this final documentation HEAD itself has Project Checks `completed / success`. If that gate fails, the closeout is not accepted and the flags must be treated as false until repaired.
