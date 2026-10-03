@@ -87,11 +87,9 @@
   "testBlockers": [],
   "ci": {
     "finalDocumentationHeadRequired": true,
-    "status": "PENDING_FINAL_DOCUMENTATION_HEAD"
+    "status": "FINAL_HEAD_GATE_REQUIRED"
   },
-  "blockers": [
-    "FINAL_DOCUMENTATION_HEAD_PROJECT_CHECKS_PENDING"
-  ],
-  "SEER_RUNTIME_COMPLETE": false,
-  "READY_FOR_PVE_CONTENT_005C_B_IMP": false
+  "blockers": [],
+  "SEER_RUNTIME_COMPLETE": true,
+  "READY_FOR_PVE_CONTENT_005C_B_IMP": true
 }
