@@ -57,6 +57,7 @@ export function normalizeGamblerState(run,player,state){
   state.weakenedBorrowedIds=Array.isArray(state.weakenedBorrowedIds)?state.weakenedBorrowedIds:[];
   state.drawPreference=state.drawPreference||null;
   state.drawChoicePending=state.drawChoicePending||null;
+  state.guaranteedDrawIds=Array.isArray(state.guaranteedDrawIds)?state.guaranteedDrawIds.filter(id=>all.has(id)):[];
   state.drawPenaltyTurns=Math.max(0,Number(state.drawPenaltyTurns)||0);
   state.doubleDownReady=Boolean(state.doubleDownReady);
   state.forcedAutoSubmitNext=Boolean(state.forcedAutoSubmitNext);
@@ -82,7 +83,7 @@ export function freshGamblerState(player){
   return {playerId:player.playerId,cycleIndex:0,usesStandardCycle:false,remainingCardIds:[],spentCardIds:[],
     drawPileIds:player.cardPool.map(card=>card.id),discardPileIds:[],vanishedCardIds:[],
     sixProgress:[],sevenProgress:[],drawCount:0,shuffleCount:0,unlockSerial:0,luck:0,specialCharge:0,
-    history:[],processedActions:{},pendingAllIn:null,runtimeOnce:{},validOrdinaryHistory:[],shuffleOrdinarySeen:[],countedOrdinary:[],aug214Run:[],predictedNumbers:[],weakenedBorrowedIds:[],drawPreference:null,drawChoicePending:null,drawPenaltyTurns:0,doubleDownReady:false,forcedAutoSubmitNext:false,aug237Used:false,aug238Used:false,telemetry:{drawCount:0,vanishCount:0,reshuffleCount:0,luckUsed:0,allInAttempt:0,allInSuccess:0,allInDamage:0,augment:{}},firstDrawAfterShuffle:false,deckInitialized:false};
+    history:[],processedActions:{},pendingAllIn:null,runtimeOnce:{},validOrdinaryHistory:[],shuffleOrdinarySeen:[],countedOrdinary:[],aug214Run:[],predictedNumbers:[],weakenedBorrowedIds:[],drawPreference:null,drawChoicePending:null,guaranteedDrawIds:[],drawPenaltyTurns:0,doubleDownReady:false,forcedAutoSubmitNext:false,aug237Used:false,aug238Used:false,telemetry:{drawCount:0,vanishCount:0,reshuffleCount:0,luckUsed:0,allInAttempt:0,allInSuccess:0,allInDamage:0,augment:{}},firstDrawAfterShuffle:false,deckInitialized:false};
 }
 export function initializeGamblerCombat(run,player,state){
   normalizeGamblerState(run,player,state);
@@ -111,7 +112,7 @@ function reshuffle(run,player,state){
   state.shuffleOrdinarySeen=[];state.fiveMemoryArmed=false;
   state.sequenceArmed=false;
   state.aug228UsedShuffle=false;state.aug230UsedShuffle=false;
-  state.firstDrawAfterShuffle=true;state.drawPreference=null;state.drawChoicePending=null;
+  state.firstDrawAfterShuffle=true;state.drawPreference=null;state.drawChoicePending=null;state.guaranteedDrawIds=[];
   boundedHistory(state,{type:'SHUFFLE',turn:run.combat?.turn||run.roomState?.turn||0,shuffleCount:state.shuffleCount});
   return true;
 }
@@ -131,16 +132,24 @@ function requiredDrawChoice(run,player,state){
 function applyDrawGuarantee(player,state){
   if(!state.firstDrawAfterShuffle||!state.drawPreference)return;
   const values=state.drawPreference.values||[];
-  const firstTwo=state.drawPileIds.slice(0,2);
   const match=id=>values.includes(player.cardPool.find(c=>c.id===id)?.baseNumber);
-  if(values.length&&!firstTwo.some(match)){
+  state.guaranteedDrawIds=Array.isArray(state.guaranteedDrawIds)?state.guaranteedDrawIds:[];
+  let guaranteedId=state.drawPileIds.slice(0,2).find(match)||null;
+  if(values.length&&!guaranteedId){
     const idx=state.drawPileIds.findIndex(match);
-    if(idx>=0){const target=Math.min(1,state.drawPileIds.length-1);[state.drawPileIds[target],state.drawPileIds[idx]]=[state.drawPileIds[idx],state.drawPileIds[target]];}
+    if(idx>=0){
+      const targets=[0,1].filter(i=>i<state.drawPileIds.length);
+      const target=targets.find(i=>!state.guaranteedDrawIds.includes(state.drawPileIds[i]))??targets[targets.length-1]??0;
+      [state.drawPileIds[target],state.drawPileIds[idx]]=[state.drawPileIds[idx],state.drawPileIds[target]];
+      guaranteedId=state.drawPileIds[target]||null;
+    }
   }
+  if(guaranteedId&&!state.guaranteedDrawIds.includes(guaranteedId))state.guaranteedDrawIds.push(guaranteedId);
   if(state.drawPreference.source==='aug-228')state.aug228UsedShuffle=true;
   if(state.drawPreference.source==='aug-230')state.aug230UsedShuffle=true;
-  state.drawChoicePending=null;
+  state.drawChoicePending=null;state.drawPreference=null;
 }
+
 export function setGamblerDrawPreference(run,player,state,choice){
   normalizeGamblerState(run,player,state);
   const required=requiredDrawChoice(run,player,state);
@@ -179,7 +188,7 @@ export function drawGamblerHand(run,player,state,count=2){
     if(!cardId)break;
     state.remainingCardIds.push(cardId);drawn.push(cardId);
   }
-  if(drawn.length){state.firstDrawAfterShuffle=false;state.drawPreference=null;state.currentPrediction=predictionBefore;state.predictedNumbers=predictedFromDeck(player,state);}
+  if(drawn.length){state.firstDrawAfterShuffle=false;state.drawPreference=null;state.guaranteedDrawIds=[];state.currentPrediction=predictionBefore;state.predictedNumbers=predictedFromDeck(player,state);}
   return drawn;
 }
 function registered(player,state,value){
