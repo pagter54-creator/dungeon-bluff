@@ -110,7 +110,7 @@ test('005C-D owner-only magazine/activation/once state survives reconnect at Hea
 });
 
 for(const build of ['전탄 난사','정밀 사수','과열 기관'])for(const fourth of ['mage','warrior','gambler']){
- test('005C-D full '+build+' build with Seer Imp '+fourth preserves one collision participant and deterministic state',()=>{
+ test('005C-D full '+build+' build with Seer Imp '+fourth+' preserves one collision participant and deterministic state',()=>{
   const ids=GUNNER_CONTRACT_IDS.filter(id=>GUNNER_CONTRACTS[id].archetype===build);
   const a=fixture(ids,fourth),b=fixture(ids,fourth);
   for(const x of [a,b]){
