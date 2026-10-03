@@ -207,9 +207,9 @@ function refreshRewardLuckWindow(run){
   room.gamblerLuckWindows ||= {};
   const playerId=room.pickOrder?.[0];if(!playerId)return null;
   const p=playerFor(run,playerId),state=room.privateByPlayer?.[playerId];
-  if(p?.characterId!=='gambler'||!p.augments?.includes('aug-211')||!state||state.luck<=0)return null;
   const existing=room.gamblerLuckWindows[playerId];
   if(existing?.phase==='CONFIRMED'||existing?.phase==='CONSUMED')return existing;
+  if(p?.characterId!=='gambler'||!p.augments?.includes('aug-211')||!state||state.luck<=0)return null;
   const window=existing||{phase:'LUCK_AVAILABLE',presentationKey:`reward:${run.currentRoomNodeId}:${room.attempt}:${playerId}`,usedMode:null};
   room.gamblerLuckWindows[playerId]=window;
   return window;
