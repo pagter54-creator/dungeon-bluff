@@ -4,6 +4,7 @@ import {ROGUE_CONTRACTS} from './rogue-contracts.js';
 import {MAGE_CONTRACTS} from './mage-contracts.js';
 import {BERSERKER_CONTRACTS} from './berserker-contracts.js';
 import {SEER_CONTRACTS} from './seer-contracts.js';
+import {IMP_CONTRACTS} from './imp-contracts.js';
 export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
   'aug-001':{
     ...ADVENTURER_CONTRACTS['aug-001'],
@@ -168,22 +169,6 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
     config:{collisionHealCapMode:'MAX_HP',revengeMax:1,revengeBonusDamage:2},
     effects:[]
   },
-  'aug-181':{
-    executable:true,
-    source:'BETA_v0.1',
-    specialHandlers:['BOLD_STEAL'],
-    effects:[
-      {
-        id:'aug-181-bold-steal-damage',
-        trigger:'BEFORE_DAMAGE',
-        priority:55,
-        condition:{path:'resolved.stealTargetCount',gte:2},
-        operations:[{type:'MODIFY_DAMAGE',amount:2}],
-        maxTriggers:1,resetScope:'TURN',
-        tags:['T05','NUMBER_MUTATION']
-      }
-    ]
-  },
   'aug-241':{
     executable:true,
     source:'BETA_v0.1',
@@ -261,6 +246,7 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
   ...Object.fromEntries(Object.entries(MAGE_CONTRACTS).filter(([id])=>!['aug-091','aug-101','aug-111'].includes(id)).map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['MAGE_V02']}])) ,
   ...Object.fromEntries(Object.entries(BERSERKER_CONTRACTS).filter(([id])=>!['aug-121','aug-131'].includes(id)).map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['BERSERKER_V02']}])) ,
   ...Object.fromEntries(Object.entries(SEER_CONTRACTS).map(([id,contract])=>[id,{...contract,...(id==='aug-161'?{config:{recoverCount:1,targetMode:'EXPLICIT_ALLY',recoverableSources:['BASE'],excludeTemporary:true}}:{}),effects:[],specialHandlers:['SEER_V02']}])) ,
+  ...Object.fromEntries(Object.entries(IMP_CONTRACTS).map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['IMP_V02']}])) ,
 });
 
 export function executableAugmentRuntime(augmentId){return EXECUTABLE_AUGMENT_RUNTIME[augmentId]||null;}
