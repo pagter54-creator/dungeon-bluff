@@ -20,12 +20,12 @@ function makeRun(characterId='mage'){
 
 test('CONTENT-005A enumerates 390 stable conceptual slots and measures actual coverage',()=>{
   assert.equal(new Set(Array.from({length:390},(_,i)=>id(i+1))).size,390);
-  assert.equal(AUGMENT_DEFINITIONS.length,334);
+  assert.equal(AUGMENT_DEFINITIONS.length,362);
   const ids=AUGMENT_DEFINITIONS.map(x=>x.id);
   assert.equal(new Set(ids).size,ids.length);
   assert.ok(Object.keys(EXECUTABLE_AUGMENT_RUNTIME).length>=19);
   assert.equal(AUGMENT_DEFINITIONS.filter(x=>x.executable===true).length,Object.keys(EXECUTABLE_AUGMENT_RUNTIME).length);
-  assert.equal(390-AUGMENT_DEFINITIONS.length,56);
+  assert.equal(390-AUGMENT_DEFINITIONS.length,28);
   for(const def of AUGMENT_DEFINITIONS){
     const n=Number(def.id.slice(4)),expected=slot(n);
     assert.ok(n>=1&&n<=390,def.id);

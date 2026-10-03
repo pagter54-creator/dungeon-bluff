@@ -1,0 +1,29 @@
+{
+  "task": "PVE_CONTENT_005D_B",
+  "registered": 30,
+  "executable": 30,
+  "candidateReachable": 30,
+  "positive": 30,
+  "conditionNegative": 30,
+  "wrongRoomNegative": 30,
+  "acquisition": 30,
+  "fullBuilds": 3,
+  "stageProgressionBuilds": 3,
+  "testsPrepared": 175,
+  "inMemoryRepositoryModuleCheck": {
+    "pass": 175,
+    "fail": 0,
+    "limitation": "Supplemental in-memory module checks use deterministic UUID and clone shims; required GitHub Node CI remains authoritative."
+  },
+  "sourceIntegrity": {
+    "modifiedBETA": 0,
+    "modified005R": 0,
+    "modifiedDESIGN": 0,
+    "modifiedGolden": 0
+  },
+  "flags": {
+    "VAMPIRE_RUNTIME_COMPLETE": false,
+    "READY_FOR_PVE_CONTENT_005D_C_GHOST": false
+  },
+  "status": "PREPARED_WAITING_FOR_A_FINAL_HEAD_CI"
+}

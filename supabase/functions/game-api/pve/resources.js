@@ -22,6 +22,8 @@ export const PVE_RESOURCE_DEFS=Object.freeze({
   revelation:{resetScope:'COMBAT',baseMax:3},
   revenge:{resetScope:'COMBAT',baseMax:1},
   blood:{resetScope:'COMBAT',baseMax:6},
+  pact:{resetScope:'COMBAT',baseMax:3},
+  vampireProtection:{resetScope:'COMBAT',baseMax:1},
   guardianTargetPlayerId:{resetScope:'COMBAT'},
   combo:{resetScope:'COMBAT',baseMax:3},
   lastSubmittedNumber:{resetScope:'COMBAT'},
@@ -47,6 +49,8 @@ export const PVE_PERSISTENT_STATE_DEFS=Object.freeze({
 
 export function resourceDefinition(resource){return PVE_RESOURCE_DEFS[resource]||null;}
 export function resourceMax(player,resource,fallback=Infinity){
+  if(resource==='blood'&&(player?.augments?.includes('aug-324')||player?.augments?.includes('aug-328')))return 8;
+  if(resource==='dominance'&&player?.augments?.includes('aug-308'))return 4;
   if(resource==='stolenNumber'){
     if(player?.augments?.includes('aug-198'))return 7;
     if(player?.augments?.includes('aug-192'))return 5;
