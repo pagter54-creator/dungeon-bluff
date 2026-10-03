@@ -164,7 +164,7 @@ function inspectReadyAlly(run,owner,{seeded=false,sourceAugmentId='SEER_BASE_REV
   const sub=run.combat.turnSubmissions[target.playerId],card=target.cardPool.find(c=>c.id===sub.cardInstanceId);
   if(!card)return null;
   const priv=privateFor(run,owner);
-  const value={turn:run.combat.turn,targetPlayerId:target.playerId,selectedNumber:card.baseNumber,sourceAugmentId};
+  const value={turn:run.combat.turn,targetPlayerId:target.playerId,selectedNumber:card.baseNumber,recoveredCardId:null};
   if(priv)priv.revelationPeek=value;
   telemetry(run,sourceAugmentId,'INSPECTION',true,{inspectionCount:1,targetPlayerId:target.playerId});
   return value;
@@ -322,6 +322,8 @@ export function activateSeerImmediateSkill(run,player,skillData=null){
   const prediction=declarePrediction(run,player,skillData,rootActionId);
   if(prediction)event.predictionId=prediction.id;
   event.recoveredCount=recovered.length;event.recoveredPlayerIds=recovered.map(x=>x.targetPlayerId);
+  event.recoveredCardId=recovered.length===1?recovered[0].cardInstanceId:null;
+  event.targetPlayerId=priv?.revelationPeek?.targetPlayerId??(recovered.length===1?recovered[0].targetPlayerId:null);
   c.pendingSkillEvents||=[];c.pendingSkillEvents.push(event);
   return event;
 }
