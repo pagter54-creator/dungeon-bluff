@@ -199,7 +199,7 @@ test('aug-171 schedules next-turn prediction with origin/expiry and resolves onc
 test('aug-172 correct collision prediction creates one owner next-valid +1 buff; failed prediction creates none',()=>{
   const {run,p}=fixture(['aug-171','aug-172']);run.combat.turn=2;arm(run,p,{type:'COLLISION'});
   const c=ctx(p,remaining(run,p,2),2,{cards:[{playerId:'p0',valid:true,finalNumber:2},{playerId:'p1',valid:false,finalNumber:1,invalidReason:'COLLISION'}],rootActionId:'172-hit'});applySeerRuntime(run,'CARD_VALIDATED',c);
-  const d=ctx(p,remaining(run,p,3),3,{rootActionId:'172-dmg'});applySeerRuntime(run,'BEFORE_DAMAGE',d);assert.equal(d.damage.amount,4);
+  const d=ctx(p,remaining(run,p,3),3,{rootActionId:'172-dmg'});applySeerRuntime(run,'BEFORE_DAMAGE',d);assert.equal(d.damage.amount,5);assert.ok(d.resolved.seerModifierIds.includes('aug-172'));assert.ok(d.resolved.seerModifierIds.includes('aug-171'));
   const n=fixture(['aug-171','aug-172']);n.run.combat.turn=2;arm(n.run,n.p,{type:'COLLISION'});const nc=ctx(n.p,remaining(n.run,n.p,2),2,{cards:[{playerId:'p0',valid:true,finalNumber:2},{playerId:'p1',valid:true,finalNumber:1}],rootActionId:'172-miss'});applySeerRuntime(n.run,'CARD_VALIDATED',nc);assert.equal((n.run.augmentFramework?.seer?.buffs||[]).length,0);
 });
 
@@ -252,7 +252,7 @@ test('aug-179 third consecutive prediction success grants every living player on
 test('aug-180 third distinct prediction type grants all players EXP +2 and owner next-valid +4 once/combat',()=>{
   const {run,p}=fixture(['aug-171','aug-180']);run.combat.turn=2;const s=scopedSeerState(run,p);s.predictionSuccessTypes=['COLLISION','NO_COLLISION'];arm(run,p,{type:'NUMBER_VALID',number:1});
   const before=run.players.map(x=>x.growthExp);const c=ctx(p,remaining(run,p,1),1,{cards:[{playerId:'p0',valid:true,finalNumber:1}],rootActionId:'180-hit'});applySeerRuntime(run,'CARD_VALIDATED',c);
-  assert.deepEqual(run.players.map((x,i)=>x.growthExp-before[i]),[2,2,2,2]);const d=ctx(p,remaining(run,p,2),2,{rootActionId:'180-dmg'});applySeerRuntime(run,'BEFORE_DAMAGE',d);assert.equal(d.damage.amount,6);
+  assert.deepEqual(run.players.map((x,i)=>x.growthExp-before[i]),[2,2,2,2]);const d=ctx(p,remaining(run,p,2),2,{rootActionId:'180-dmg'});applySeerRuntime(run,'BEFORE_DAMAGE',d);assert.equal(d.damage.amount,7);assert.ok(d.resolved.seerModifierIds.includes('aug-180'));assert.ok(d.resolved.seerModifierIds.includes('aug-171'));
   const n=fixture(['aug-171','aug-180']);n.run.combat.turn=2;scopedSeerState(n.run,n.p).predictionSuccessTypes=['COLLISION'];arm(n.run,n.p,{type:'NUMBER_VALID',number:1});const nb=n.run.players.map(x=>x.growthExp);applySeerRuntime(n.run,'CARD_VALIDATED',ctx(n.p,remaining(n.run,n.p,1),1,{cards:[{playerId:'p0',valid:true,finalNumber:1}],rootActionId:'180-no'}));assert.deepEqual(n.run.players.map((x,i)=>x.growthExp-nb[i]),[0,0,0,0]);
 });
 
