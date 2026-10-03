@@ -166,8 +166,72 @@ export function prepareGamblerAllIn(run,player,state,submission,resolved){
   if(resolved){resolved.allIn=true;resolved.allInRootActionId=rootActionId;resolved.allInCardIds=[judgmentId,partnerId];resolved.allInValues=[judgment.baseNumber,partner.baseNumber];resolved.allInSum=judgment.baseNumber+partner.baseNumber;}
   return state.pendingAllIn;
 }
+
+export function applyGamblerValidated(run,player,state,resolved){
+  if(player.characterId!=='gambler')return 0;
+  normalizeGamblerState(run,player,state);
+  const turn=run.combat?.turn||run.roomState?.attempt||0;
+  const value=Number(resolved?.baseNumber);
+  const valid=Boolean(resolved?.valid);
+  state.runtimeOnce||={};
+  state.validOrdinaryHistory=Array.isArray(state.validOrdinaryHistory)?state.validOrdinaryHistory:[];
+  state.shuffleOrdinarySeen=Array.isArray(state.shuffleOrdinarySeen)?state.shuffleOrdinarySeen:[];
+  let bonus=0;
+  const onceTurn=(id)=>{const k=\`\${id}:turn:\${turn}\`;if(state.runtimeOnce[k])return false;state.runtimeOnce[k]=true;return true;};
+  if(!valid){
+    if(resolved?.allIn)state.allInFailedThisTurn=true;
+    return 0;
+  }
+  if(value===6){
+    if(player.augments?.includes('aug-212')&&onceTurn('aug-212')){bonus+=2;state.specialCharge=(Number(state.specialCharge)||0)+1;}
+    if(player.augments?.includes('aug-218')&&onceTurn('aug-218'))bonus+=3;
+  }
+  if(value===7){
+    if(player.augments?.includes('aug-213'))bonus+=4;
+    if(player.augments?.includes('aug-219')&&!state.aug219Used){bonus+=7;state.aug219Used=true;}
+  }
+  if([6,7].includes(value)){
+    if(player.augments?.includes('aug-217')&&state.lastValidSpecial&&state.lastValidSpecial!==value&&onceTurn('aug-217'))bonus+=3;
+    state.lastValidSpecial=value;
+  }else if(value>=1&&value<=5){
+    if(player.augments?.includes('aug-215')&&[6,7].includes(state.lastValidCardValue)&&onceTurn('aug-215'))bonus+=2;
+    state.validOrdinaryHistory.push(value);if(state.validOrdinaryHistory.length>8)state.validOrdinaryHistory.shift();
+    if(!state.shuffleOrdinarySeen.includes(value))state.shuffleOrdinarySeen.push(value);
+    if(player.augments?.includes('aug-214')){
+      state.aug214Run=Array.isArray(state.aug214Run)?state.aug214Run:[];
+      if(!state.aug214Run.includes(value))state.aug214Run.push(value);else state.aug214Run=[value];
+      if(state.aug214Run.length>=3&&!state.aug214TriggeredShuffle){state.specialCharge=(Number(state.specialCharge)||0)+1;state.aug214TriggeredShuffle=true;state.aug214Run=[];}
+    }
+    if(player.augments?.includes('aug-221')){
+      state.countedOrdinary=Array.isArray(state.countedOrdinary)?state.countedOrdinary:[];
+      if(!state.countedOrdinary.includes(value)){state.countedOrdinary.push(value);state.cardCounter=Math.min(3,(Number(state.cardCounter)||0)+1);}
+      if(state.cardCounter>=3)state.cardCounterArmed=true;
+    }
+    if(player.augments?.includes('aug-222')&&onceTurn('aug-222')){
+      const ids=[...(state.drawPileIds||[]),...(state.remainingCardIds||[])];
+      const copies=ids.filter(id=>player.cardPool.find(card=>card.id===id)?.baseNumber===value).length;
+      if(copies>=2)bonus+=1;
+    }
+    if(player.augments?.includes('aug-225')){
+      const h=state.validOrdinaryHistory.slice(-3);if(h.length===3&&Math.abs(h[1]-h[0])===1&&h[2]-h[1]===h[1]-h[0])state.sequenceArmed=true;
+    }
+    if(player.augments?.includes('aug-226')&&onceTurn('aug-226')){
+      const h=state.validOrdinaryHistory.slice(-5);if(h.length===5){const counts=Object.values(h.reduce((m,n)=>(m[n]=(m[n]||0)+1,m),{})).sort((a,b)=>b-a);if(counts.length===4&&counts[0]===2)bonus+=2;}
+    }
+    if(player.augments?.includes('aug-227')&&state.shuffleOrdinarySeen.length===5)state.fiveMemoryArmed=true;
+  }
+  if(state.cardCounterArmed){bonus+=2;state.cardCounter=0;state.cardCounterArmed=false;state.countedOrdinary=[];}
+  if(state.sequenceArmed&&value>=1&&value<=7){bonus+=3;state.sequenceArmed=false;state.validOrdinaryHistory=[];}
+  if(state.fiveMemoryArmed&&[6,7].includes(value)){bonus+=4;state.fiveMemoryArmed=false;}
+  resolved.gamblerBonusDamage=(Number(resolved.gamblerBonusDamage)||0)+bonus;
+  state.lastValidCardValue=value;
+  boundedHistory(state,{type:'VALID',turn,cardInstanceId:resolved.cardInstanceId,value,bonus});
+  return bonus;
+}
+
 export function gamblerSetDamage(run,player,state,resolved,damage){
-  if(!resolved?.allIn||!player.augments?.includes('aug-231'))return damage;
+  const validatedBonus=Math.max(0,Number(resolved?.gamblerBonusDamage)||0);
+  if(!resolved?.allIn||!player.augments?.includes('aug-231'))return Math.max(0,Number(damage)||0)+validatedBonus;
   const key=`all-in-damage:${resolved.allInRootActionId}`;
   if(state.processedActions[key])return damage;
   let amount=Math.max(0,Number(resolved.allInSum)||0);
@@ -177,6 +241,7 @@ export function gamblerSetDamage(run,player,state,resolved,damage){
   const streak=Math.max(0,Math.min(4,Number(state.allInWinStreak)||0));
   if(player.augments.includes('aug-239'))amount+=streak;
   if(player.augments.includes('aug-240')&&!state.houseUsed){amount+=8;state.houseUsed=true;}
+  amount+=validatedBonus;
   state.processedActions[key]=true;
   boundedHistory(state,{type:'ALL_IN_DAMAGE',turn:run.combat?.turn||0,rootActionId:resolved.allInRootActionId,amount});
   return amount;
