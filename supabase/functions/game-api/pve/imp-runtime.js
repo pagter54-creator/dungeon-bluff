@@ -167,7 +167,7 @@ function spreadWeakMischief(run,owner,excludeTargetId,rootActionId){
   telemetry(run,'aug-207','ON_VALID',true,{mischiefGained:1,targetPlayerId:target.playerId});return target;
 }
 export function applyImpCardValidated(run,{player,resolved,cards=[],events=[]}={}){
-  if(!player||!resolved?.valid)return 0;
+  if(run.phase!=='COMBAT'||!player||!resolved?.valid)return 0;
   let bonus=0;const r=root(run),t=turn(run);
   // Consume Mischief owned by any living Imp. Each owner is independent.
   for(const [key,m] of Object.entries({...r.mischief})){
@@ -196,7 +196,7 @@ export function applyImpCardValidated(run,{player,resolved,cards=[],events=[]}={
   return bonus;
 }
 export function applyImpBeforeDamage(run,{player,resolved,damage,followUp=false}={}){
-  if(!player||!resolved?.valid||followUp)return 0;let bonus=0;
+  if(run.phase!=='COMBAT'||!player||!resolved?.valid||followUp)return 0;let bonus=0;
   if(player.characterId==='imp'){
     const d=Number(resolved.stealTargetCount)||0,total=Number(resolved.stealTotal)||0;
     const rule=(id,condition,amount,extra={})=>{if(!owned(player,id)||!impRoomAllowed(run,id))return;const ok=Boolean(condition)&&claim(run,player,id,'damage');const value=ok?(typeof amount==='function'?amount():amount):0;telemetry(run,id,'PRE_DAMAGE',ok,{bonusDamage:value,...extra});if(ok)bonus+=value;};
