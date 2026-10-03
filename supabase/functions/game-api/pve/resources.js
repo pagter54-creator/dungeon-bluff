@@ -18,6 +18,7 @@ export const PVE_RESOURCE_DEFS=Object.freeze({
   dominance:{resetScope:'COMBAT',baseMax:2},
   thrallPlayerId:{resetScope:'COMBAT'},
   greed:{resetScope:'TURN'},
+  stolenNumber:{resetScope:'RUN',baseMax:3},
   revelation:{resetScope:'COMBAT',baseMax:3},
   revenge:{resetScope:'COMBAT',baseMax:1},
   blood:{resetScope:'COMBAT',baseMax:6},
