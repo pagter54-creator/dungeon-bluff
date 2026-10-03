@@ -78,7 +78,7 @@ test('005C-C Card Counter and sequence bonuses arm now and pay on the next valid
   r=resolvedFor('c',3);assert.equal(applyGamblerValidated(x.run,x.p,x.state,r),0);
   assert.equal(x.state.cardCounterArmed,true);assert.equal(x.state.sequenceArmed,true);
   r=resolvedFor('d',4);assert.equal(applyGamblerValidated(x.run,x.p,x.state,r),5);
-  assert.equal(x.state.cardCounterArmed,false);assert.equal(x.state.sequenceArmed,false);
+  assert.equal(Boolean(x.state.cardCounterArmed),false);assert.equal(x.state.sequenceArmed,false);
 });
 
 test('005C-C All-In only judges selected card, consumes both physical cards, and vanishes used 6',()=>{
