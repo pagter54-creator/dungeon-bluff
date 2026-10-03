@@ -267,7 +267,9 @@ function evaluatePrediction(run,owner,ctx){
 export function initializeSeerCombat(player){
   if(player.characterId!=='prophet')return;
   player.publicResources.revelationMax=3;
-  player.publicResources.revelation=0;
+  // USER_CONFIRMED_005C_FINAL_PATCH / SEER_COMBAT_START_REVELATION_1.
+  // Fresh combat construction only: assignment, not gain; reconnect never calls this initializer.
+  player.publicResources.revelation=1;
 }
 export function onSeerTurnStart(run,player){
   if(player.characterId!=='prophet')return;
