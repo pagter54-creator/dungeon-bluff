@@ -248,7 +248,7 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
   ...Object.fromEntries(Object.entries(BERSERKER_CONTRACTS).filter(([id])=>!['aug-121','aug-131'].includes(id)).map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['BERSERKER_V02']}])) ,
   ...Object.fromEntries(Object.entries(SEER_CONTRACTS).map(([id,contract])=>[id,{...contract,...(id==='aug-161'?{config:{recoverCount:1,targetMode:'EXPLICIT_ALLY',recoverableSources:['BASE'],excludeTemporary:true}}:{}),effects:[],specialHandlers:['SEER_V02']}])) ,
   ...Object.fromEntries(Object.entries(IMP_CONTRACTS).map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['IMP_V02']}])) ,
-  ...Object.fromEntries(Object.entries(GAMBLER_CONTRACTS).map(([id,contract])=>[id,{...contract,executable:true,effects:[],specialHandlers:['GAMBLER_V02']}])) ,
+  ...Object.fromEntries(Object.entries(GAMBLER_CONTRACTS).map(([id,contract])=>[id,{...contract,...(id==='aug-237'?{tooltipBetaV02:'올인 성공 공격의 실제 피해가 8 이상이면 다음 드로우 페널티를 1턴 줄입니다(최소 0턴). 전투당 1회.'}:{}),executable:true,effects:[],specialHandlers:['GAMBLER_V02']}])) ,
 });
 
 export function executableAugmentRuntime(augmentId){return EXECUTABLE_AUGMENT_RUNTIME[augmentId]||null;}
