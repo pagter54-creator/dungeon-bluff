@@ -8,7 +8,7 @@ GitHub 직접 수정. [Draft PR #23](https://github.com/pagter54-creator/dungeon
 
 ## 검증의 실제 범위
 
-원정 E2E는 기존 API fixture를 재사용하며, 테스트의 commit adapter가 적HP1/파티HP·Flame복구를 적용합니다. 실제 증강과 판정·직업 state·방/층전환·재접속·최종승리 경로를 검증합니다. 자연밸런스의 원정클리어 가능성을 입증하는 결과로 표시하지 않습니다. 이를 보완하는 혼합005B+005C 파티와 기존 canonical 500seed harness를 함께 실행합니다. 정산 증거는 mock 정산이 아니라 기존 PGlite SQL/API 검사입니다.
+원정 E2E는 기존 API fixture를 재사용하며, 테스트의 commit adapter가 3턴 전 적HP999, 이후HP1/대기 행동/파티HP·Flame복구를 적용합니다. 최소3턴에서 실제 계시 복구와 aug151 성공을 확인하고, 시작 증강의 소유단계/빌드는 고정합니다. 실제 증강과 판정·직업 state·방/층전환·재접속·최종승리 경로를 검증합니다. 자연밸런스의 원정클리어 가능성을 입증하는 결과로 표시하지 않습니다. 이를 보완하는 혼합005B+005C 파티와 기존 canonical 500seed harness를 함께 실행합니다. 정산 증거는 mock 정산이 아니라 기존 PGlite SQL/API 검사입니다.
 
 재생 비교에서 제외되는 필드는 제출 시각 submittedAt뿐입니다. 물리카드/자원/결과/seed counter/once/상태/telemetry는 동일해야 합니다. 진단이벤트는 최신2048행을 유지하고 trigger/success 누적 합계를 보존합니다. 이는 관찰데이터의 보관 범위이며 BETA수치나게임플레이 변경이 아닙니다.
 
