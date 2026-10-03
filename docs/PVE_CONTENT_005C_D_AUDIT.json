@@ -1,0 +1,193 @@
+{
+  "target": 30,
+  "registered": 30,
+  "executable": 30,
+  "dataOnly": 0,
+  "missing": 0,
+  "unsupported": 0,
+  "candidateReachable": 30,
+  "designParity": 30,
+  "effectPositiveCoverage": 30,
+  "negativeCoverage": 30,
+  "tooltipParity": 30,
+  "burstPass": true,
+  "magazinePass": true,
+  "precisionPass": true,
+  "penetrationPass": true,
+  "overheatPass": true,
+  "reconnectPass": true,
+  "idempotencyPass": true,
+  "roomIsolationPass": true,
+  "privacyPass": true,
+  "cleanupPass": true,
+  "recursionPass": true,
+  "initialAudit": {
+    "head": "a4a42f2b75cb036616437f1440564134ab4f614c",
+    "existingExecutable": [
+      "aug-241"
+    ],
+    "missingExecutable": 29,
+    "legacyIntegration": "One unique aug-241 registry entry; existing canonical initial identities retained; middle-cycle acquisition adds one physical 2 without replacement"
+  },
+  "finalAudit": {
+    "MATCH": 30,
+    "VALUE_MISMATCH": 0,
+    "TRIGGER_MISMATCH": 0,
+    "ROOM_MISMATCH": 0,
+    "SEMANTIC_MISMATCH": 0,
+    "MISSING": 0
+  },
+  "stageDistribution": [
+    3,
+    9,
+    9,
+    9
+  ],
+  "archetypes": {
+    "전탄 난사": 10,
+    "정밀 사수": 10,
+    "과열 기관": 10
+  },
+  "c005UniqueExecutable": 120,
+  "globalExecutable001To270": 270,
+  "globalExecutableAll390": 276,
+  "legacyBeyond270Executable": 6,
+  "regressions": {
+    "c005B": 150,
+    "seer": 30,
+    "imp": 30,
+    "gambler": 30
+  },
+  "candidateAudit": {
+    "prophet": 30,
+    "imp": 30,
+    "gambler": 30,
+    "gunner": 30
+  },
+  "fullBuildIntegration": {
+    "archetypes": 3,
+    "mixedCompositions": [
+      "gunner+prophet+imp+mage",
+      "gunner+prophet+imp+warrior",
+      "gunner+prophet+imp+gambler"
+    ],
+    "cases": 9,
+    "turnsPerCase": 8,
+    "deterministicReplays": 2,
+    "actualSuccessRequired": true
+  },
+  "executionRulePatches": {
+    "aug-248": "USER_CONFIRMED_005C_D_PATCH",
+    "aug-253": "USER_CONFIRMED_005C_D_PATCH"
+  },
+  "sourceIntegrity": [
+    {
+      "path": "docs/PVE_CONTENT_005Q_DECISIONS.json",
+      "baseline": "12e1370373c45b29c7680bb8b041b3951e82d6aa",
+      "current": "12e1370373c45b29c7680bb8b041b3951e82d6aa"
+    },
+    {
+      "path": "docs/PVE_CONTENT_005Q_DESIGN_C.json",
+      "baseline": "4b9b2dab17d0a0138abde0aa97a999a39b83a8d4",
+      "current": "4b9b2dab17d0a0138abde0aa97a999a39b83a8d4"
+    },
+    {
+      "path": "docs/PVE_CONTENT_005Q_DESIGN_C.md",
+      "baseline": "b03cf28567907d8bf644b582ab99769371b7f0e0",
+      "current": "b03cf28567907d8bf644b582ab99769371b7f0e0"
+    },
+    {
+      "path": "docs/PVE_CONTENT_005Q_DESIGN_C_AUDIT.json",
+      "baseline": "6a2330db2aaa4a3b918a5ddca3903443881345f7",
+      "current": "6a2330db2aaa4a3b918a5ddca3903443881345f7"
+    },
+    {
+      "path": "docs/PVE_CONTENT_005R.md",
+      "baseline": "98df3fd0a2821857bd0a66f1eafcce8be937c8b5",
+      "current": "98df3fd0a2821857bd0a66f1eafcce8be937c8b5"
+    },
+    {
+      "path": "docs/PVE_CONTENT_005R_CONDITION_AUDIT.json",
+      "baseline": "3334ac50a36a18a931bf2cb6bba43fe653a01406",
+      "current": "3334ac50a36a18a931bf2cb6bba43fe653a01406"
+    },
+    {
+      "path": "docs/PVE_CONTENT_005R_DECISIONS.json",
+      "baseline": "3411c25b9d9a016da0fd089f44970cc9a885d532",
+      "current": "3411c25b9d9a016da0fd089f44970cc9a885d532"
+    },
+    {
+      "path": "docs/PVE_CONTENT_005R_DEPENDENCIES.json",
+      "baseline": "87bbb2f086b05ed237c983e105b38a481c610cc6",
+      "current": "87bbb2f086b05ed237c983e105b38a481c610cc6"
+    },
+    {
+      "path": "docs/PVE_CONTENT_005R_EXECUTABLE_AUDIT.json",
+      "baseline": "c2a51ed39629c363c76a2a3c13c1f7f521c8a1c9",
+      "current": "c2a51ed39629c363c76a2a3c13c1f7f521c8a1c9"
+    },
+    {
+      "path": "docs/pve-augment-beta-005b.json",
+      "baseline": "644b1b6b1193887f09a663a943fcd0629dbf9b8c",
+      "current": "644b1b6b1193887f09a663a943fcd0629dbf9b8c"
+    },
+    {
+      "path": "docs/pve-augment-beta-005c.json",
+      "baseline": "dd591a32cc486d9acddce54b1aba66782bcc5c01",
+      "current": "dd591a32cc486d9acddce54b1aba66782bcc5c01"
+    },
+    {
+      "path": "docs/pve-augment-beta-005d.json",
+      "baseline": "98c975149f7e5ad4af26cb9f560804618b25ad0b",
+      "current": "98c975149f7e5ad4af26cb9f560804618b25ad0b"
+    }
+  ],
+  "stableIdCatalogBlob": "d4f8ca0e0f6b4235e4f995b1575f272aba0fbc15",
+  "productionUnchanged": true,
+  "balancePolicy": "NO_TUNING_NO_GOLDEN_CHANGES",
+  "evidence": {
+    "runtimeHead": "4141c5ca8d47d862f520ff656743b9246e830110",
+    "previousTestsChecksSmokeRun": 37116197455,
+    "previousRunNumber": 870,
+    "finalHead": "CURRENT_DOCUMENTATION_HEAD",
+    "testFile": "tests/pve-content-005c-d-gunslinger.test.mjs",
+    "tests": "npm test",
+    "checks": "npm run check",
+    "smoke": "npm run pve:stress:smoke",
+    "stress": [
+      "T06",
+      "T02",
+      "T00",
+      "T05",
+      "T09",
+      "T04",
+      "T03"
+    ],
+    "stressSeedsPerScenario": 100,
+    "stressGate": "All existing Project Checks stages must succeed on final documentation HEAD; prior runs are not final acceptance"
+  },
+  "BALANCE_WARNING_005C_D": [],
+  "blockers": [],
+  "FRAMEWORK_BLOCKERS": 0,
+  "RUNTIME_BLOCKERS": 0,
+  "TEST_BLOCKERS": 0,
+  "completionGate": {
+    "requiredHead": "CURRENT_DOCUMENTATION_HEAD",
+    "workflow": "Project Checks",
+    "requiredStatus": "completed",
+    "requiredConclusion": "success",
+    "pendingFlags": false,
+    "successFlags": true
+  },
+  "completionFlags": {
+    "GUNSLINGER_RUNTIME_COMPLETE": "Evaluate current documentation HEAD Project Checks: completed/success => true; otherwise false",
+    "READY_FOR_PVE_CONTENT_005C_FINAL": "Same CI gate"
+  },
+  "prPolicy": {
+    "number": 22,
+    "draft": true,
+    "merge": false,
+    "readyForReview": false,
+    "followingPhase": "005C-FINAL is only marked eligible after final CI; no implementation in this PR"
+  }
+}
