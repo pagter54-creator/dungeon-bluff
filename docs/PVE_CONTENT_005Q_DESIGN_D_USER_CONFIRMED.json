@@ -22,7 +22,14 @@
       "replacesProposedBenefitOptions": true,
       "doesNotReclassifyBetaV01AsSourceExplicit": true,
       "runtimeImplemented": false,
-      "interpretationBoundary": "The user confirmed the effect identity, threshold and combat scope. Selection among simultaneous allied attacks and reservation ordering must be specified in the subsequent complete contract; this decision record does not silently choose them."
+      "interpretationBoundary": "The CLOSEOUT request explicitly resolves the target to the owner's attack. Remaining deterministic reservation ordering is BETA_V02_INFERRED in the final contract.",
+      "closeoutIntegration": {
+        "source": "USER_CONFIRMED_CLOSEOUT_REQUEST",
+        "target": "OWNER_MARTIAL_ARTIST_ROOT_ATTACK_ONLY",
+        "excludeOtherAllies": true,
+        "deterministicReservation": "First owner's subsequent primary attack against the firstShatter3enemy; one owner primary card per root. Root retries reuse same reservation.",
+        "reservationConsumption": "Consume on that first attack whether or not it collides; protection suppresses only collision invalidation."
+      }
     },
     {
       "selectedOption": "USER_CONFIRMED",
@@ -195,11 +202,13 @@
           "reserveTrigger": "FIRST_REACH_OF_DOMINANCE_4_IN_COMBAT",
           "reserveGrant": 1,
           "reserveOnceScope": "ONCE_PER_COMBAT",
-          "retriggerAfterDropAndRegain": false
+          "retriggerAfterDropAndRegain": false,
+          "sameResolveExcluded": true,
+          "firstEligibleAttack": "Next distinct eligible primary attack after the Blood Command root resolution has ended; never the already resolving attack in that command turn."
         },
-        "sourcePrecedenceNote": "With aug-308, persistent non-consumed Dominance overrides conflicting Q10/older consume-then-gain mechanics. Q10 remains the reference outside this explicit override.",
-        "unresolvedDetail": "The user specified the NEXT valid attack; this patch does not silently classify the command's already resolving attack as that next attack."
-      }
+        "sourcePrecedenceNote": "With aug-308, persistent non-consumed Dominance overrides conflicting Q10/older consume-then-gain mechanics. Q10 remains the reference outside this explicit override."
+      },
+      "closeoutOrderingSource": "USER_CONFIRMED_CLOSEOUT_REQUEST"
     },
     {
       "selectedOption": "USER_CONFIRMED",
@@ -383,5 +392,5 @@
       "resolvedBy": "D07"
     }
   ],
-  "readinessNote": "All three previously pending policy questions are resolved. The complete 120-card contracts, audit, validator and final-head verification are still required before runtime readiness can be asserted."
+  "readinessNote": "D01-D07 and the CLOSEOUT target/ordering clarifications are reflected by final120 contracts. readyForRuntime in this source artifact remains false because this file records decisions only; final acceptance is gated by audit/validator and exact-head Project Checks in PR24."
 }
