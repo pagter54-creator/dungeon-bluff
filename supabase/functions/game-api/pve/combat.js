@@ -1,6 +1,6 @@
 import {choose} from './rng.js';
 import {persistCardCycles} from './card-cycle.js';
-import {drawGamblerHand,settleGamblerHand} from './gambler.js';
+import {drawGamblerHand,settleGamblerHand,prepareGamblerAllIn,gamblerSetDamage,finalizeGamblerAllIn} from './gambler.js';
 import {
   onTurnStartCharacter,onCycleStartCharacter,onTurnEndCharacter,selfModifyCard,collisionImmunity,onValidAttack,
   isCardSelectableForCharacter,validateCharacterSkillIntent,resolvePostCollisionCharacter,resolvePostCollisionEffects,resolveGuardianWallCollisions,
@@ -58,7 +58,7 @@ function spendResolvedCards(run,cards,events=[]){
     const priv=run.combat.privateByPlayer[rc.playerId];
     const player=playerFor(run,rc.playerId);
     if(player.characterId==='gambler'){
-      settleGamblerHand(run,player,priv,rc.cardInstanceId,rc.finalNumber);
+      settleGamblerHand(run,player,priv,rc.cardInstanceId,rc.finalNumber,{rootActionId:`action:${run.combat.id}:${run.combat.turn}:${rc.playerId}:${rc.cardInstanceId}`});
       delete priv.selectedCardId;delete priv.skillIntent;
       if(run.combat.turnSubmissions[rc.playerId]?.autoSubmitted&&player.status==='STUNNED_NEXT_TURN')player.status='ACTIVE';
       continue;
@@ -201,6 +201,7 @@ export function resolveBasicTurn(run){
   });
   const mutationEvents=[],events=[...(c.pendingSkillEvents||[])];c.pendingSkillEvents=[];
   initializeNumberHistories(cards);
+  for(const rc of cards){const p=playerFor(run,rc.playerId);if(p?.characterId==='gambler')prepareGamblerAllIn(run,p,c.privateByPlayer[p.playerId],c.turnSubmissions[p.playerId],rc);}
   c.phase='PRE_COLLISION_SELF_MODIFY';phaseTrace.push(c.phase);
   for(const rc of cards){const p=playerFor(run,rc.playerId),submission=c.turnSubmissions[rc.playerId];if(submission.skillIntent)applyOwnedEffects(run,'ON_SKILL_USE',{player:p,resolved:rc,submission,privateState:c.privateByPlayer[p.playerId],events});selfModifyCard(p,rc,submission);applyOwnedEffects(run,'PRE_COLLISION_SELF_MODIFY',{player:p,resolved:rc,events});}
   recordSelfModification(cards,mutationEvents);
@@ -226,6 +227,7 @@ export function resolveBasicTurn(run){
   for(const rc of cards)rc.soloLowest=Boolean(rc.valid&&lowestCards.length===1&&lowestCards[0]===rc);
   for(const rc of cards){const p=playerFor(run,rc.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player:p,resolved:rc,cards,events});applyImpCardValidated(run,{player:p,resolved:rc,cards,events});resolvePostCollisionCharacter(run,rc,c.turnSubmissions[rc.playerId],events);}
   attachValidity(cards);
+  for(const rc of cards){const p=playerFor(run,rc.playerId);if(p?.characterId==='gambler')finalizeGamblerAllIn(run,p,c.privateByPlayer[p.playerId],rc);}
   applyMonsterCardRules(run,cards,events);
   c.phase='DAMAGE_BUILD';phaseTrace.push(c.phase);
   const defense=Math.max(0,Number(c.monster.defense)||0);
@@ -259,7 +261,9 @@ export function resolveBasicTurn(run){
     const armorPenetration=Math.min(defense,knightArmorPenetration+roguePoisonPenetration);
     if(knightArmorPenetration)modifierIds.push('AUG_052_ARMOR_PENETRATION');
     if(roguePoisonPenetration)modifierIds.push('ROGUE_POISON_DEFENSE');
-    let primary=burstPacket({sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,amount:Math.max(0,baseDamageForCharacter(player,rc)+engraving-Math.max(0,defense-armorPenetration)-(rc.monsterDamagePenalty||0)),armorPenetration,tags:['BASE_CARD'],followUp:false},
+    const ordinaryAmount=Math.max(0,baseDamageForCharacter(player,rc)+engraving-Math.max(0,defense-armorPenetration)-(rc.monsterDamagePenalty||0));
+    const resolvedAmount=player.characterId==='gambler'?gamblerSetDamage(run,player,c.privateByPlayer[player.playerId],rc,ordinaryAmount):ordinaryAmount;
+    let primary=burstPacket({sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,amount:resolvedAmount,armorPenetration,tags:[...(rc.allIn?['ALL_IN','SET_DAMAGE']:['BASE_CARD'])],followUp:false},
       {resolved:rc,player,baseNumber:rc.finalNumber,baseDamage:rc.finalNumber,classBonus,augmentBonus,modifierIds});
     const primaryDamage={amount:primary.amount},queued=[];
     applyOwnedEffects(run,'BEFORE_DAMAGE',{player,resolved:rc,damage:primaryDamage,followUps:queued,followUp:false,events:[]});
