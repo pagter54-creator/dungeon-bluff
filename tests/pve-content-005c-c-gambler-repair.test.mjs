@@ -342,3 +342,51 @@ test('005C-C actual positive/negative effect matrix covers aug-211..240 30/30',(
   assert.deepEqual([...covered].sort(),expected);
   assert.deepEqual([...negative].sort(),expected);
 });
+
+
+test('005C-C physical 6 and unlocked 7 both move HAND to VANISHED and never re-enter reshuffle',()=>{
+  const a=fixture(),six=a.p.cardPool.find(card=>card.baseNumber===6).id;
+  const ordinary=a.p.cardPool.find(card=>card.baseNumber===1).id;
+  a.state.remainingCardIds=[six,ordinary];a.state.drawPileIds=a.p.cardPool.filter(card=>![six,ordinary].includes(card.id)).map(card=>card.id);a.state.deckInitialized=true;
+  settleGamblerHand(a.run,a.p,a.state,six,6,{rootActionId:'six-vanish'});
+  assert.ok(a.state.vanishedCardIds.includes(six));assert.ok(!a.state.discardPileIds.includes(six));
+
+  const b=fixture();b.state.sevenProgress=[1,2,3,4];
+  const five=b.p.cardPool.find(card=>card.baseNumber===5).id,other=b.p.cardPool.find(card=>card.baseNumber===1).id;
+  b.state.remainingCardIds=[five,other];b.state.drawPileIds=b.p.cardPool.filter(card=>![five,other].includes(card.id)).map(card=>card.id);b.state.deckInitialized=true;
+  settleGamblerHand(b.run,b.p,b.state,five,5,{rootActionId:'unlock-seven'});
+  const seven=b.p.cardPool.find(card=>card.baseNumber===7);assert.ok(seven);assert.ok(b.state.discardPileIds.includes(seven.id));
+  const partner=b.state.remainingCardIds[0]||b.p.cardPool.find(card=>card.baseNumber===2).id;
+  b.state.remainingCardIds=[seven.id,partner];b.state.drawPileIds=b.state.drawPileIds.filter(id=>id!==partner&&id!==seven.id);b.state.discardPileIds=b.state.discardPileIds.filter(id=>id!==seven.id&&id!==partner);
+  settleGamblerHand(b.run,b.p,b.state,seven.id,7,{rootActionId:'seven-vanish'});
+  assert.ok(b.state.vanishedCardIds.includes(seven.id));assert.ok(!b.state.discardPileIds.includes(seven.id));
+  b.state.drawPileIds=[];drawGamblerHand(b.run,b.p,b.state);
+  assert.ok(!b.state.drawPileIds.includes(seven.id));assert.ok(!b.state.remainingCardIds.includes(seven.id));
+});
+
+test('005C-C reconnect clone preserves exact zones history counters pending All-In and draw choice state',()=>{
+  const x=fixture(['aug-231','aug-230']);drawGamblerHand(x.run,x.p,x.state);
+  if(x.state.drawChoicePending==='AUG_230')setGamblerDrawPreference(x.run,x.p,x.state,[1,3,5]);
+  const judgment=x.state.remainingCardIds[0],value=x.p.cardPool.find(card=>card.id===judgment).baseNumber,resolved=resolvedFor(judgment,value,true);
+  prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:judgment},resolved);
+  x.state.sixProgress=[1,2];x.state.sevenProgress=[1,2,3];x.state.cardCounter=2;
+  const snap=structuredClone(x.run),before=x.run.combat.privateByPlayer.p0,after=snap.combat.privateByPlayer.p0;
+  for(const key of ['drawPileIds','remainingCardIds','discardPileIds','vanishedCardIds','history','sixProgress','sevenProgress','pendingAllIn','telemetry'])assert.deepEqual(after[key],before[key],key);
+  assert.equal(after.unlockSerial,before.unlockSerial);assert.equal(after.drawCount,before.drawCount);assert.equal(after.shuffleCount,before.shuffleCount);
+});
+
+test('005C-C Gambler telemetry is retry-safe for All-In attempt success damage and Luck spend',()=>{
+  const x=fixture(['aug-231']);initializeGamblerCombat(x.run,x.p,x.state);
+  const [judgment]=setHand(x,[2,5]),r=resolvedFor(judgment,2,true);
+  prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:judgment},r);
+  const retry=resolvedFor(judgment,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:judgment},retry);
+  assert.equal(x.state.telemetry.allInAttempt,1);
+  const damage=gamblerSetDamage(x.run,x.p,x.state,r,2);assert.equal(gamblerSetDamage(x.run,x.p,x.state,retry,2),damage);
+  assert.equal(x.state.telemetry.allInDamage,damage);
+  finalizeGamblerAllIn(x.run,x.p,x.state,r);finalizeGamblerAllIn(x.run,x.p,x.state,retry);
+  assert.equal(x.state.telemetry.allInSuccess,1);
+  x.state.luck=1;
+  assert.equal((await import('../supabase/functions/game-api/pve/gambler.js')).consumeGamblerLuck(x.run,x.p,x.state,'luck-retry'),true);
+  assert.equal((await import('../supabase/functions/game-api/pve/gambler.js')).consumeGamblerLuck(x.run,x.p,x.state,'luck-retry'),false);
+  assert.equal(x.state.telemetry.luckUsed,1);
+});
