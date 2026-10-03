@@ -18,6 +18,7 @@ import {cleanupSeerCombat,scopedSeerState,applySeerRuntime} from '../supabase/fu
 import {initializeImpCombat,cleanupImpCombat} from '../supabase/functions/game-api/pve/imp-runtime.js';
 import {cleanupGamblerCombat} from '../supabase/functions/game-api/pve/gambler.js';
 import {applyOwnedEffects} from '../supabase/functions/game-api/pve/effects.js';
+import {activateImmediateCharacterSkill} from '../supabase/functions/game-api/pve/characters.js';
 const contracts={...SEER_CONTRACTS,...IMP_CONTRACTS,...GAMBLER_CONTRACTS,...GUNNER_CONTRACTS};
 const ids=Array.from({length:120},(_,i)=>'aug-'+String(151+i).padStart(3,'0'));
 const classes=['prophet','imp','gambler','gunner'];
@@ -48,6 +49,13 @@ function turns(run,count){
   assert.equal(run.phase,'COMBAT');
   for(const p of run.players){
    const st=run.combat.privateByPlayer[p.playerId];
+   if(p.characterId==='prophet'&&!run.combat.turnSubmissions[p.playerId]&&p.publicResources.revelation>0){
+    if(p.augments.includes('aug-171'))activateImmediateCharacterSkill(run,p,{prediction:{type:'NO_COLLISION'}});
+    else if(p.augments.includes('aug-161')){
+     const target=run.players.find(q=>q.playerId!==p.playerId&&q.characterId!=='gambler'&&run.combat.privateByPlayer[q.playerId].spentCardIds.length);
+     if(target)activateImmediateCharacterSkill(run,p,{target_player_id:target.playerId,ally_number_delta:1});
+    }else if(st.spentCardIds.length)activateImmediateCharacterSkill(run,p);
+   }
    while(st.drawChoicePending)setGamblerDrawPreference(run,p,st,st.drawChoicePending==='AUG_230'?[1,3,5]:'LOW');
    if(!run.combat.turnSubmissions[p.playerId]){
     const selected=t===0&&p.characterId==='gunner'?st.remainingCardIds.at(-1):st.remainingCardIds[0];
