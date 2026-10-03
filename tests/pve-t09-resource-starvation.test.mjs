@@ -162,8 +162,16 @@ test('T09 stress metrics exercise rejection, cycle reset, Revelation, and Full B
   assert.ok(r.resourceMetrics.invalidSkillRequestCount>0);
   assert.equal(r.resourceMetrics.invalidSkillRequestCount,r.resourceMetrics.rejectedRequestCount);
   assert.ok(r.resourceMetrics.cycleResetCount>0);
-  assert.ok(r.resourceMetrics.revelationGain>0);
-  assert.ok(r.resourceMetrics.revelationSpend>0);
+  const validGain=r.fixtures.find(x=>x.id==='F4_SEER_ACTIVATION_VALID_GAIN');
+  const collisionNoGain=r.fixtures.find(x=>x.id==='F5_SEER_ACTIVATION_COLLISION_NO_GAIN');
+  const validRegain=r.fixtures.find(x=>x.id==='F7_SEER_USE_VALID_REGAIN');
+  assert.equal(validGain?.gain,1);
+  assert.equal(validGain?.revelation,1);
+  assert.equal(collisionNoGain?.gain,0);
+  assert.equal(collisionNoGain?.revelation,0);
+  assert.equal(validRegain?.spent,1);
+  assert.equal(validRegain?.gained,1);
+  assert.equal(validRegain?.revelation,1);
   assert.ok(r.resourceMetrics.fullBurstSuccess+r.resourceMetrics.fullBurstFailure>0);
   assert.equal(r.resourceMetrics.negativeResourceOccurrence,0);
   assert.equal(r.resourceMetrics.resourceOverCapOccurrence,0);
