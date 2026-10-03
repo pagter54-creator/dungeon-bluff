@@ -328,7 +328,7 @@ test('005C-C actual positive/negative effect matrix covers aug-211..240 30/30',(
   runCase('aug-236',()=>{
     const x=fixture(['aug-231','aug-236']),[a]=setHand(x,[2,5]),r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);assert.equal(r.gamblerBorrowBonus,1);assert.equal(x.state.weakenedBorrowedIds.length,1);
   },()=>{
-    const x=fixture(['aug-231','aug-236']),[a]=setHand(x,[2,5]);x.state.drawPileIds=[];const r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);assert.equal(r.gamblerBorrowBonus,0);assert.equal(x.state.weakenedBorrowedIds.length,0);
+    const x=fixture(['aug-231','aug-236']),[a]=setHand(x,[2,5]);x.state.discardPileIds=[...x.state.drawPileIds];x.state.drawPileIds=[];const r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);assert.equal(r.gamblerBorrowBonus,0);assert.equal(x.state.weakenedBorrowedIds.length,0);
   });
   runCase('aug-237',()=>{
     const x=fixture(['aug-231','aug-237']),[a]=setHand(x,[2,6]),r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);const d=gamblerSetDamage(x.run,x.p,x.state,r,2);finalizeGamblerActualDamage(x.run,x.p,x.state,r,d);assert.equal(x.state.aug237Used,true);assert.equal(x.state.pendingAllIn.aug237Reduced,true);
