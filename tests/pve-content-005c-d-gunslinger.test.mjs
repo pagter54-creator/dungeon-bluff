@@ -140,7 +140,7 @@ function play(x,{gunnerNumber=1,collision=false}={}){
  return resolveBasicTurn(x.run);
 }
 test('005C-D actual 4-card Burst orders three physical derived cards then one fixed component and advances once',()=>{
- const x=fixture(['aug-241','aug-242','aug-248']),ids=[...x.priv.remainingCardIds],result=play(x);
+ const x=fixture(['aug-241','aug-242','aug-248']),ids=[x.priv.remainingCardIds.at(-1),...x.priv.remainingCardIds.slice(0,-1)],result=play(x,{gunnerNumber:3});
  const packets=result.damagePackets.filter(p=>p.sourcePlayerId==='p0');
  assert.equal(packets.length,5);assert.deepEqual(packets.slice(0,4).map(p=>p.sourceCardId),ids);
  assert.equal(packets[4].amount,5);assert.equal(packets[4].extraDamageComponent,true);assert.equal(packets[4].createsSeparateHit,false);
@@ -217,4 +217,16 @@ test('005C-D all five room matrices, RUN output persistence and COMBAT cleanup a
  }
  const x=fixture(['aug-269','aug-261','aug-253']);x.s.output269=3;x.s.overheat=3;x.s.accuracy=4;
  applyOwnedEffects(x.run,'COMBAT_END',{player:x.p});assert.equal(x.s.output269,3);assert.equal(x.s.overheat,0);assert.equal(x.s.accuracy,0);assert.equal(x.s.aug253.preservationUsedThisCombat,false);
+});
+
+test('005C-D all 120 005C candidates are reachable and later stages respect each class build lock',()=>{
+ for(const character of ['prophet','imp','gambler','gunner']){
+  const first=augmentCandidates(character,1);assert.equal(first.length,3);
+  const all=new Set(first.map(c=>c.id));
+  for(const card of first)for(const stage of [2,3,4]){
+   const candidates=augmentCandidates(character,stage,card.build);
+   assert.equal(candidates.length,3);assert.ok(candidates.every(c=>c.build===card.build));candidates.forEach(c=>all.add(c.id));
+  }
+  assert.equal(all.size,30);
+ }
 });
