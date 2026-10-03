@@ -1,3 +1,4 @@
+import {VAMPIRE_CONTRACTS} from './vampire-contracts.js';
 import {MARTIAL_CONTRACTS} from './martial-contracts.js';
 import {executableAugmentRuntime} from './augment-runtime.js';
 import {GAMBLER_CONTRACTS} from './gambler-contracts.js';
@@ -44,6 +45,12 @@ SOURCE.martial_artist={};
 for(const c of Object.values(MARTIAL_CONTRACTS)){
  SOURCE.martial_artist[c.archetype]||={};SOURCE.martial_artist[c.archetype][c.stage]||=[];
  SOURCE.martial_artist[c.archetype][c.stage].push({n:Number(c.augmentId.slice(4)),o:c.stage===1?1:((Number(c.augmentId.slice(4))-272)%10)%3+1,name:c.name});
+}
+SOURCE.vampire={};
+for(const c of Object.values(VAMPIRE_CONTRACTS)){
+ SOURCE.vampire[c.archetype]||={};SOURCE.vampire[c.archetype][c.stage]||=[];
+ const n=Number(c.augmentId.slice(4)),offset=(n-301)%10;
+ SOURCE.vampire[c.archetype][c.stage].push({n,o:offset===0?1:(offset-1)%3+1,name:c.name});
 }
 const defs=[];
 for(const [characterId,builds] of Object.entries(SOURCE))for(const [build,tiers] of Object.entries(builds))for(const [tier,items] of Object.entries(tiers))for(const item of items){

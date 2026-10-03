@@ -1,0 +1,71 @@
+{
+  "task": "PVE_CONTENT_005D_B",
+  "registered": 30,
+  "executable": 30,
+  "candidateReachable": 30,
+  "positive": 30,
+  "conditionNegative": 30,
+  "wrongRoomNegative": 30,
+  "acquisition": 30,
+  "fullBuilds": 3,
+  "stageProgressionBuilds": 3,
+  "testsPrepared": 182,
+  "inMemoryRepositoryModuleCheck": {
+    "pass": 182,
+    "fail": 0,
+    "limitation": "Supplemental in-memory module checks use deterministic UUID and clone shims; required GitHub Node CI remains authoritative."
+  },
+  "sourceIntegrity": {
+    "modifiedBETA": 0,
+    "modified005R": 0,
+    "modifiedDESIGN": 0,
+    "modifiedGolden": 0
+  },
+  "flags": {
+    "VAMPIRE_RUNTIME_COMPLETE": false,
+    "READY_FOR_PVE_CONTENT_005D_C_GHOST": false
+  },
+  "status": "DESIGN_BLOCKER_CANONICAL_RULES_VS_HISTORICAL_GOLDEN",
+  "githubEvidence": {
+    "head": "2d3b4de8a34f1054c79172c9b3727c7e283101c2",
+    "runId": 37156438416,
+    "tests": 1767,
+    "pass": 1761,
+    "fail": 6,
+    "skip": 0,
+    "newTests": 182,
+    "newPass": 182,
+    "projectCheckFiles": 225,
+    "smokeHardFailures": 10
+  },
+  "unaffectedFixes": [
+    "Stable Vampire names populated; follow-up comma syntax error repaired",
+    "Base aug-321 numeric config metadata preserved",
+    "Blood gain event compatibility restored",
+    "Shop/Rest rejection and Event/Reward number-only branch tests added",
+    "Alternate Beta UI exposes Blood Command when a Thrall mark is present",
+    "Restore existing base Vampire Event numeric swap eligibility; aug-301 Combat-only secondary effects remain excluded from Event/Reward."
+  ],
+  "designBlockers": [
+    {
+      "id": "005D_B_GOLDEN_RULE_DOMAIN_CONFLICT",
+      "currentAuthority": "DESIGN-D CLOSEOUT",
+      "differences": [
+        {
+          "field": "Thrall target ranking",
+          "current": "player.score",
+          "historicalT04": "growthExp"
+        },
+        {
+          "field": "aug-321 trigger",
+          "current": "automatic after damage before DOWN_RESOLVE",
+          "historicalT03": "manual SELECTION_OPEN activation"
+        }
+      ],
+      "decisionPending": true,
+      "existingPermission": "PR25comment5973473233 only authorized historical count/catalog hash updates",
+      "goldensChanged": false,
+      "behaviorTestsChanged": false
+    }
+  ]
+}

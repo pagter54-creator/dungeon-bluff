@@ -1,3 +1,4 @@
+import {protectVampireCollision,resolveVampireValidity,vampirePostDamage,vampirePreDown} from './vampire-runtime.js';
 import {prepareMartialCollision,martialPacket,afterMartialDamage} from './martial-runtime.js';
 import {gunnerPenetration,gunnerExtraComponent,gunnerState,markGunnerBurstPhase,syncGunnerMagazine} from './gunner-runtime.js';
 import {choose} from './rng.js';
@@ -233,6 +234,7 @@ export function resolveBasicTurn(run){
     if(group.length>1)for(const rc of group)if(!rc.collisionImmune){rc.valid=false;rc.invalidReason='COLLISION';}
   }
   prepareMartialCollision(run,cards,events);
+  protectVampireCollision(run,cards,events);
   resolveGuardianWallCollisions(run,cards,groups,events);
   assignVampireThralls(run,cards,groups,events);
   c.phase='POST_COLLISION_EFFECTS';phaseTrace.push(c.phase);
@@ -246,6 +248,7 @@ export function resolveBasicTurn(run){
   attachValidity(cards);
   for(const rc of cards){const p=playerFor(run,rc.playerId);if(p?.characterId==='gambler')finalizeGamblerAllIn(run,p,c.privateByPlayer[p.playerId],rc);}
   applyMonsterCardRules(run,cards,events);
+  resolveVampireValidity(run,cards,events);
   c.phase='DAMAGE_BUILD';phaseTrace.push(c.phase);
   const defense=Math.max(0,Number(c.monster.defense)||0);
   const packets=[],monsterHpBeforeBatch=c.monster.hp;
@@ -279,7 +282,7 @@ export function resolveBasicTurn(run){
     const armorPenetration=Math.min(defense,knightArmorPenetration+roguePoisonPenetration+gunnerArmorPenetration+martial.penetration);
     if(knightArmorPenetration)modifierIds.push('AUG_052_ARMOR_PENETRATION');
     if(roguePoisonPenetration)modifierIds.push('ROGUE_POISON_DEFENSE');
-    const ordinaryAmount=Math.max(0,baseDamageForCharacter(player,rc)+engraving+martial.bonus-Math.max(0,martial.defense-armorPenetration)-(rc.monsterDamagePenalty||0));
+    const ordinaryAmount=Math.max(0,baseDamageForCharacter(player,rc)+engraving+martial.bonus+(Number(rc.vampireBonus)||0)-Math.max(0,martial.defense-armorPenetration)-(rc.monsterDamagePenalty||0));
     const resolvedAmount=player.characterId==='gambler'?gamblerSetDamage(run,player,c.privateByPlayer[player.playerId],rc,ordinaryAmount):ordinaryAmount;
     let primary=burstPacket({sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,amount:resolvedAmount,armorPenetration,tags:[...(rc.allIn?['ALL_IN','SET_DAMAGE']:['BASE_CARD'])],followUp:false},
       {resolved:rc,player,baseNumber:rc.finalNumber,baseDamage:rc.finalNumber,classBonus,augmentBonus,modifierIds});
@@ -333,6 +336,7 @@ export function resolveBasicTurn(run){
   for(const packet of packets.filter(packet=>!packet.extraDamageComponent)){const p=playerFor(run,packet.sourcePlayerId),resolved=cards.find(x=>x.playerId===packet.sourcePlayerId);applyOwnedEffects(run,'AFTER_DAMAGE',{player:p,resolved,damage:{amount:packet.amount},followUp:packet.followUp,packet,events:[]});}
   for(const rc of cards)if(rc.valid)onValidAttack(playerFor(run,rc.playerId),run,rc,events);
   for(const rc of cards)afterMartialDamage(run,playerFor(run,rc.playerId),rc);
+  vampirePostDamage(run,cards,packets,events,monsterHpBeforeBatch);
   c.phase='POST_PLAYER_ATTACK';phaseTrace.push(c.phase);
   for(const rc of cards.filter(x=>x.valid))applyPostPlayerAttackCharacter(run,rc,events);
   for(const rc of cards.filter(x=>x.burstMisfire)){
@@ -347,6 +351,7 @@ export function resolveBasicTurn(run){
   c.phase='KILL_CHECK';phaseTrace.push(c.phase);
   if(c.monster.hp<=0){
     onMonsterKilledCharacter(run,cards,packets,events);
+    vampirePreDown(run,cards,events);
     events.push(...resolveDowns(run));
     spendResolvedCards(run,cards,events);c.turnSubmissions={};
     if(run.phase==='RUN_FAILED'){
@@ -393,6 +398,7 @@ export function resolveBasicTurn(run){
     return c.publicTurnResult;
   }
   c.phase='MONSTER_ACTION';phaseTrace.push(c.phase);events.push(...executeMonsterIntent(run));
+  vampirePreDown(run,cards,events);
   c.phase='DOWN_RESOLVE';phaseTrace.push(c.phase);events.push(...resolveDowns(run));
   spendResolvedCards(run,cards,events);c.turnSubmissions={};
   if(run.phase==='RUN_FAILED'){
