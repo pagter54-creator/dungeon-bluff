@@ -1,7 +1,21 @@
 import {drawIndex} from './rng.js';
+import {GAMBLER_CONTRACTS} from './gambler-contracts.js';
 
 export const GAMBLER_BASE_DECK=Object.freeze([1,1,2,2,3,3,4,4,5,5,6]);
 export const GAMBLER_ZONES=Object.freeze(['DECK','HAND','DISCARD','VANISHED']);
+
+function gamblerRoomScope(run){
+  if(run?.phase==='COMBAT')return 'COMBAT';
+  if(run?.phase==='EVENT')return 'EVENT';
+  if(run?.phase==='REWARD_ROOM')return 'REWARD';
+  if(run?.phase==='SHOP')return 'SHOP';
+  if(run?.phase==='REST')return 'REST';
+  return null;
+}
+function hasGamblerAugment(run,player,id){
+  const scope=gamblerRoomScope(run);
+  return Boolean(player?.augments?.includes(id)&&scope&&GAMBLER_CONTRACTS[id]?.roomApplicability?.[scope]===true);
+}
 
 function boundedHistory(state,row){
   state.history||=[];
@@ -235,15 +249,15 @@ export function settleGamblerHand(run,player,state,selectedId,finalNumber,{rootA
   if(wasAllIn){
     let penaltyTurns=Math.max(0,Number(state.drawPenaltyTurns)||0);
     if(pending.allAssets)penaltyTurns=Math.max(penaltyTurns,2);
-    else if(!(pending.valid&&player.augments?.includes('aug-235')&&!pending.doubleDownSecond))penaltyTurns=Math.max(penaltyTurns,1);
+    else if(!(pending.valid&&hasGamblerAugment(run,player,'aug-235')&&!pending.doubleDownSecond))penaltyTurns=Math.max(penaltyTurns,1);
     if(pending.aug237Reduced)penaltyTurns=Math.max(0,penaltyTurns-1);
     if(penaltyTurns>0){nextDrawCount=1;penaltyTurns--;}
     state.drawPenaltyTurns=penaltyTurns;
-    if(pending.doubleDownSecond&&!pending.valid&&player.augments?.includes('aug-235')){nextDrawCount=0;state.forcedAutoSubmitNext=true;}
+    if(pending.doubleDownSecond&&!pending.valid&&hasGamblerAugment(run,player,'aug-235')){nextDrawCount=0;state.forcedAutoSubmitNext=true;}
   }else if(state.drawPenaltyTurns>0){
     nextDrawCount=1;state.drawPenaltyTurns--;
   }
-  if(player.augments?.includes('aug-233')&&state.allInFailedThisTurn&&!state.insuranceUsed){nextDrawCount=2;state.insuranceUsed=true;state.drawPenaltyTurns=0;state.forcedAutoSubmitNext=false;}
+  if(hasGamblerAugment(run,player,'aug-233')&&state.allInFailedThisTurn&&!state.insuranceUsed){nextDrawCount=2;state.insuranceUsed=true;state.drawPenaltyTurns=0;state.forcedAutoSubmitNext=false;}
   state.allInFailedThisTurn=false;
   if(wasAllIn)state.pendingAllIn=null;
   if(nextDrawCount>0)drawGamblerHand(run,player,state,nextDrawCount);
@@ -251,7 +265,7 @@ export function settleGamblerHand(run,player,state,selectedId,finalNumber,{rootA
 }
 export function prepareGamblerAllIn(run,player,state,submission,resolved){
   normalizeGamblerState(run,player,state);
-  if(!player.augments?.includes('aug-231'))return null;
+  if(!hasGamblerAugment(run,player,'aug-231'))return null;
   const ids=[...(state.remainingCardIds||[])];
   if(ids.length<2)return null;
   const judgmentId=submission?.cardInstanceId||resolved?.cardInstanceId;
@@ -261,18 +275,18 @@ export function prepareGamblerAllIn(run,player,state,submission,resolved){
   if(!judgment||!partner)throw new Error('GAMBLER_ALL_IN_CARD_MISSING');
   const turn=run.combat?.turn||0;
   const rootActionId=`all-in:${run.combat?.id||run.currentRoomNodeId||'room'}:${turn}:${player.playerId}:${judgmentId}`;
-  const doubleDownSecond=Boolean(player.augments?.includes('aug-235')&&state.doubleDownReady);
+  const doubleDownSecond=Boolean(hasGamblerAugment(run,player,'aug-235')&&state.doubleDownReady);
   const handOrdinary=[judgment,partner].every(card=>card.baseNumber>=1&&card.baseNumber<=5);
   const specialPool=[...(state.discardPileIds||[]),...(state.drawPileIds||[])]
     .map(id=>player.cardPool.find(card=>card.id===id)).filter(card=>card&&card.baseNumber>=6&&!state.vanishedCardIds.includes(card.id))
     .sort((a,b)=>a.baseNumber-b.baseNumber||String(a.id).localeCompare(String(b.id)));
-  const allAssets=Boolean(player.augments?.includes('aug-238')&&!state.aug238Used&&handOrdinary&&specialPool.length);
+  const allAssets=Boolean(hasGamblerAugment(run,player,'aug-238')&&!state.aug238Used&&handOrdinary&&specialPool.length);
   const externalSpecial=allAssets?specialPool[0]:null;
   const values=[judgment.baseNumber,partner.baseNumber,...(externalSpecial?[externalSpecial.baseNumber]:[])];
   const cardIds=[judgmentId,partnerId,...(externalSpecial?[externalSpecial.id]:[])];
   let borrowedCardId=null,borrowBonus=0;
   const borrowKey=`aug-236:turn:${turn}`;
-  if(player.augments?.includes('aug-236')&&!state.runtimeOnce[borrowKey]){
+  if(hasGamblerAugment(run,player,'aug-236')&&!state.runtimeOnce[borrowKey]){
     const candidate=(state.drawPileIds||[]).find(id=>!cardIds.includes(id));
     if(candidate){borrowedCardId=candidate;borrowBonus=1;state.runtimeOnce[borrowKey]=true;if(!state.weakenedBorrowedIds.includes(candidate))state.weakenedBorrowedIds.push(candidate);}
   }
@@ -374,14 +388,14 @@ export function gamblerSetDamage(run,player,state,resolved,damage){
   if(Number.isFinite(state.processedActions[key]))return state.processedActions[key];
   let amount=Math.max(0,Number(resolved.allInSum)||0)+(resolved.allAssets?4:0)+(Number(resolved.gamblerBorrowBonus)||0);
   const values=resolved.allInValues||[];
-  if(player.augments.includes('aug-232'))amount+=Math.max(...[0,...(resolved.allInSum>=10?[4]:resolved.allInSum>=8?[2]:[])]);
-  if(player.augments.includes('aug-234')&&values.length===2&&values.every(v=>v<=3))amount+=1;
-  if(player.augments.includes('aug-235')&&resolved.doubleDownSecond)amount+=2;
+  if(hasGamblerAugment(run,player,'aug-232'))amount+=Math.max(...[0,...(resolved.allInSum>=10?[4]:resolved.allInSum>=8?[2]:[])]);
+  if(hasGamblerAugment(run,player,'aug-234')&&values.length===2&&values.every(v=>v<=3))amount+=1;
+  if(hasGamblerAugment(run,player,'aug-235')&&resolved.doubleDownSecond)amount+=2;
   const streak=Math.max(0,Math.min(4,Number(state.allInWinStreak)||0));
-  if(player.augments.includes('aug-239'))amount+=streak;
-  if(player.augments.includes('aug-240')&&!state.houseUsed){amount+=8;state.houseUsed=true;}
+  if(hasGamblerAugment(run,player,'aug-239'))amount+=streak;
+  if(hasGamblerAugment(run,player,'aug-240')&&!state.houseUsed){amount+=8;state.houseUsed=true;}
   amount=Math.max(0,amount+validatedBonus-penalty);
-  if(player.augments.includes('aug-237')&&amount>=8&&!state.aug237Used){state.aug237Used=true;if(state.pendingAllIn)state.pendingAllIn.aug237Reduced=true;resolved.aug237Reduced=true;}
+  if(hasGamblerAugment(run,player,'aug-237')&&amount>=8&&!state.aug237Used){state.aug237Used=true;if(state.pendingAllIn)state.pendingAllIn.aug237Reduced=true;resolved.aug237Reduced=true;}
   state.processedActions[key]=amount;
   boundedHistory(state,{type:'ALL_IN_DAMAGE',turn:run.combat?.turn||0,rootActionId:resolved.allInRootActionId,amount});
   return amount;
@@ -392,12 +406,12 @@ export function finalizeGamblerAllIn(run,player,state,resolved){
   if(state.processedActions[key])return;
   state.processedActions[key]=true;
   if(resolved.valid){
-    state.allInWinStreak=player.augments?.includes('aug-239')?Math.min(4,(Number(state.allInWinStreak)||0)+1):0;
-    if(player.augments?.includes('aug-235')){if(resolved.doubleDownSecond)state.doubleDownReady=false;else state.doubleDownReady=true;}
+    state.allInWinStreak=hasGamblerAugment(run,player,'aug-239')?Math.min(4,(Number(state.allInWinStreak)||0)+1):0;
+    if(hasGamblerAugment(run,player,'aug-235')){if(resolved.doubleDownSecond)state.doubleDownReady=false;else state.doubleDownReady=true;}
   }
   else{
     state.allInWinStreak=0;state.allInFailedThisTurn=true;
-    if(player.augments?.includes('aug-240')&&!state.houseUsed){
+    if(hasGamblerAugment(run,player,'aug-240')&&!state.houseUsed){
       state.houseUsed=true;player.hp-=1;run.combat&&(run.combat.pendingDownPlayerIds||=[]);
       if(run.combat&&player.hp<=0&&!run.combat.pendingDownPlayerIds.includes(player.playerId))run.combat.pendingDownPlayerIds.push(player.playerId);
     }
