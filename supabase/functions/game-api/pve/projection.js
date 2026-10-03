@@ -7,6 +7,8 @@ export function projectRun(run,viewerPlayerId){
   if(out.roomState?.type==='SHOP'&&run.augmentFramework?.cardState?.[viewerPlayerId+':ad:shopDiscount']?.ready){
     for(const item of [...out.roomState.cardStock,...out.roomState.relicStock]){item.basePrice=item.price;item.price=Math.max(0,item.price-1);}
   }
+  const ownGunner=run.augmentFramework?.cardState?.[viewerPlayerId+':gunner'];
+  if(ownGunner)out.privateGunnerState=structuredClone(ownGunner);
   delete out.augmentFramework;
   delete out.frameworkEffects;
   if(publicFramework)out.augmentStatuses=publicFramework.statuses;
