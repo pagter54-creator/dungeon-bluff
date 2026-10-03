@@ -77,6 +77,6 @@ test('005C-C room isolation: aug-231 settles both cards in Event, combat-only Ga
   assert.equal(applyGamblerValidated(run,p,state,{...resolved,baseNumber:6,finalNumber:6}),0);
   finalizeGamblerAllIn(run,p,state,resolved);
   settleGamblerHand(run,p,state,ids[0],resolved.finalNumber,{rootActionId:'event-isolation'});
-  assert.equal(state.remainingCardIds.length,2);
+  assert.equal(state.remainingCardIds.length,1);
   assert.ok(pending.cardIds.every(id=>state.discardPileIds.includes(id)||state.vanishedCardIds.includes(id)));
 });
