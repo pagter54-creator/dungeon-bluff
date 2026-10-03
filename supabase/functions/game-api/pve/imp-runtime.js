@@ -215,7 +215,8 @@ export function onImpTurnEnd(run,p){
   const s=scopedImpState(run,p);
   if(owned(p,'aug-194')&&impRoomAllowed(run,'aug-194')){const ok=clampStored(p)>=3;telemetry(run,'aug-194','TURN_END',ok,{storedNumber:p.publicResources.stolenNumber,bonusDamage:ok?2:0});if(ok)addBuff(run,{sourceAugmentId:'aug-194',ownerId:p.playerId,targetId:p.playerId,amount:2,validFromTurn:turn(run)+1,expiryTurn:turn(run)+1,requiresStoredSpend:true});}
   s.markedThisTurn=[];s.mischiefValidTurn=[];
-  const t=turn(run);const r=root(run);for(const [k,m] of Object.entries(r.mischief))if(m.ownerId===p.playerId&&m.expiryTurn<t)delete r.mischief[k];
+  const t=turn(run),r=root(run);for(const [k,m] of Object.entries(r.mischief))if(m.ownerId===p.playerId&&m.expiryTurn<t)delete r.mischief[k];
+  delete r.processedRoots[`steal:${run.combat?.id||run.currentRoomNodeId||run.roomState?.id||run.id}:${t}:${p.playerId}`];
 }
 export function cleanupImpRoom(run){
   const r=root(run),roomId=run.currentRoomNodeId||run.roomState?.id||null;
