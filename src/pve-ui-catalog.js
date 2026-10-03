@@ -149,6 +149,36 @@ export const PVE_AUGMENT_NAMES=Object.freeze({
   "aug-388": "끝없는 앙코르",
   "aug-389": "낙하 피날레",
   "aug-390": "하늘을 걷는 쌍둥이",
+  "aug-151": "완전한 계시",
+  "aug-152": "선명한 환영",
+  "aug-153": "되풀이되는 미래",
+  "aug-154": "별의 기억",
+  "aug-155": "두 번째 계시",
+  "aug-156": "미래의 잔상",
+  "aug-157": "운명의 반복",
+  "aug-158": "천개의 미래",
+  "aug-159": "끝없는 계시",
+  "aug-160": "이미 본 결말",
+  "aug-161": "운명 조작자",
+  "aug-162": "별빛 인도",
+  "aug-163": "나누어진 운명",
+  "aug-164": "축복받은 패",
+  "aug-165": "운명의 실",
+  "aug-166": "엇갈린 미래",
+  "aug-167": "공동의 예지",
+  "aug-168": "운명 공동체",
+  "aug-169": "별들이 선택한 패",
+  "aug-170": "함께 쓰는 미래",
+  "aug-171": "불길한 예언",
+  "aug-172": "흉조",
+  "aug-173": "길조",
+  "aug-174": "숫자의 별자리",
+  "aug-175": "연속 적중",
+  "aug-176": "불길한 확신",
+  "aug-177": "자기충족적 예언",
+  "aug-178": "대예언",
+  "aug-179": "운명은 정해졌다",
+  "aug-180": "예언의 성취",
   "aug-121": "피의 광전",
   "aug-122": "끓어오르는 피",
   "aug-123": "핏빛 가속",
@@ -357,10 +387,6 @@ export const PVE_EXECUTABLE_AUGMENT_UI=Object.freeze({
   "aug-148":{"build":"최후의 격노","description":"HP 1에서 유효 공격을 3회 연속 성공하면 세 번째 공격 피해가 4 증가하고 별도 추가 피해 2를 줍니다. 전투당 1회입니다."},
   "aug-149":{"build":"최후의 격노","description":"전투에서 처음 HP 1이 되면 다음 턴부터 2턴간 각 턴 첫 유효 공격 피해가 3 증가하고, 그동안 첫 몬스터 직접 피해 1회를 1 줄입니다."},
   "aug-150":{"build":"최후의 격노","description":"최대 HP가 1로 고정됩니다. 모든 유효 공격 피해가 3 증가하고 전투 시작 시 몬스터 직접 피해 1회를 무효화하는 혈갑을 얻습니다."},
-  "aug-161": {
-    "build": "운명 조작자",
-    "description": "아군의 사용한 기본 카드를 같은 실물 카드 ID로 한 장 회수합니다."
-  },
   "aug-181": {
     "build": "대담한 슬쩍",
     "description": "숫자를 두 명 이상에게서 훔쳤다면 공격 피해가 2 증가합니다."
@@ -422,7 +448,37 @@ export const PVE_EXECUTABLE_AUGMENT_UI=Object.freeze({
 "aug-027":{"build":"기적의 탐험가","description":"보상방에서 유효 통과하고 최종 피해 순위 상위 2명이면 공용 유물 후보를 1개 추가 공개합니다. 방당 1회, 기존 선택 순서를 유지합니다."},
 "aug-028":{"build":"기적의 탐험가","description":"기적의 발견 시 전원 EXP +2 추가; 한 층 3회 달성 시 전원 EXP +5 추가."},
 "aug-029":{"build":"기적의 탐험가","description":"한 층에서 기적의 발견 2회 이상이면 보스 클리어 후 전원 +1G."},
-"aug-030":{"build":"기적의 탐험가","description":"한 층에서 기적의 발견 3회 이상 달성 후 보스를 클리어하면 파티용 추가 유물 1개 획득 기회 생성."}
+"aug-030":{"build":"기적의 탐험가","description":"한 층에서 기적의 발견 3회 이상 달성 후 보스를 클리어하면 파티용 추가 유물 1개 획득 기회 생성."},
+"aug-151":{build:"완전한 계시",description:"계시로 복구한 카드를 유효하게 사용하면 전투당 1회 계시 1을 즉시 다시 획득. 즉시 재획득은 전투당 1회."},
+"aug-152":{build:"완전한 계시",description:"계시 복구 시 무작위 사용 카드 2장을 후보로 제시하고 1장 선택. 후보가 1장이면 그대로 복구."},
+"aug-153":{build:"완전한 계시",description:"사용 카드 1장 복구. 기본 사이클당 1회; 특수/임시 카드는 복구 불가."},
+"aug-154":{build:"완전한 계시",description:"계시로 복구한 자신의 카드를 전투에서 유효하게 사용하면 EXP를 1 얻습니다. 턴당 1회."},
+"aug-155":{build:"완전한 계시",description:"계시 사용 후 복구한 카드를 2턴 이내 유효하게 사용하면 계시 1 재획득. 전투당 1회."},
+"aug-156":{build:"완전한 계시",description:"복구한 카드가 유효 성공하면 다음 턴 첫 유효 공격 추가 피해 +1. 1회 후 소멸."},
+"aug-157":{build:"완전한 계시",description:"The same printed number has been recovered by Revelation and used valid at least twice this combat.일 때 추가 피해 +2 효과를 적용합니다. 제한: ONCE_PER_TURN."},
+"aug-158":{build:"완전한 계시",description:"계시 사용 시 자신의 사용 카드 중 1장을 직접 지정해 복구. 계시 1회당 1장."},
+"aug-159":{build:"완전한 계시",description:"A Revelation-recovered own card is used valid and this turn began with at least 1 Revelation.일 때 추가 피해 +4 효과를 적용합니다. 제한: ONCE_PER_TURN."},
+"aug-160":{build:"완전한 계시",description:"사용 카드 2장 복구. 기본 사이클당 1회; 특수/임시 카드는 복구 불가."},
+"aug-161":{build:"운명 조작자",description:"계시 사용 시 아군 1명을 지정해 그 아군의 사용 카드 중 무작위 1장을 복구할 수 있음. 계시 1회당 카드 1장; 특수/임시 카드는 복구 불가."},
+"aug-162":{build:"운명 조작자",description:"사용 카드 1장 복구. 기본 사이클당 1회; 특수/임시 카드는 복구 불가."},
+"aug-163":{build:"운명 조작자",description:"사용 카드 1장 복구. 기본 사이클당 1회; 특수/임시 카드는 복구 불가."},
+"aug-164":{build:"운명 조작자",description:"사용 카드 1장 복구. 기본 사이클당 1회; 특수/임시 카드는 복구 불가."},
+"aug-165":{build:"운명 조작자",description:"예언가가 복구해준 아군 카드가 유효 성공하면 계시 1 재획득. 전투당 1회."},
+"aug-166":{build:"운명 조작자",description:"사용 카드 1장 복구. 기본 사이클당 1회; 특수/임시 카드는 복구 불가."},
+"aug-167":{build:"운명 조작자",description:"사용 카드 1장 복구. 기본 사이클당 1회; 특수/임시 카드는 복구 불가."},
+"aug-168":{build:"운명 조작자",description:"계시 1회로 서로 다른 아군 2명에게서 사용 카드 1장씩 무작위 복구. 전투당 1회."},
+"aug-169":{build:"운명 조작자",description:"아군 복구 시 그 아군의 사용 카드 중 무작위 2장 제시, 대상이 1장 선택. 복구 카드 첫 유효 공격 +1 피해. 계시 1회당 1장."},
+"aug-170":{build:"운명 조작자",description:"복구해준 아군 카드가 유효 성공하면 그 아군 +2 피해, 예언가의 다음 유효 공격 +2 피해. 계시 1회당 1회."},
+"aug-171":{build:"불길한 예언",description:"계시 사용 시 다음 턴 예언 1개 선언. 적중 시 '예지' 1(최대 2); 예지 1당 예언가의 다음 유효 공격 추가 피해 +1 후 전부 소모. 예언 종류: 중복 발생/무중복/지정 숫자 유효."},
+"aug-172":{build:"불길한 예언",description:"이번 턴의 충돌 발생을 정확히 예언하면 자신의 다음 유효 공격 피해가 1 증가합니다. 턴당 1회."},
+"aug-173":{build:"불길한 예언",description:"Declared positive prediction resolves with no collision among living players and at least 2 valid allies.일 때 추가 피해 +1 효과를 적용합니다. 제한: ONCE_PER_TURN."},
+"aug-174":{build:"불길한 예언",description:"The number declared before submissions matches Seer's final valid number.일 때 추가 피해 +1 효과를 적용합니다. 제한: ONCE_PER_TURN."},
+"aug-175":{build:"불길한 예언",description:"조건 1회당 스택 +1(최대 3); 스택 1당 관련 효과 +1 피해 상당. 전투 종료 시 초기화; 별도 유지 카드 제외."},
+"aug-176":{build:"불길한 예언",description:"고난도 예언 선택 가능. 적중 시 예지 3 획득(기본 최대 2를 일시 초과 가능). 전투당 1회."},
+"aug-177":{build:"불길한 예언",description:"예언 선언 후 카드 선택 전에 무작위 아군 1명의 현재 선택 숫자를 확인. 예언 1회당 1명."},
+"aug-178":{build:"불길한 예언",description:"고난도 예언 적중 시 예지 3 획득 및 전원 다음 유효 공격 +1 피해. 전투당 1회."},
+"aug-179":{build:"불길한 예언",description:"대상 전원의 다음 유효 공격 추가 피해 +2. 각 대상 1회 발동 후 소멸."},
+"aug-180":{build:"불길한 예언",description:"한 전투에서 서로 다른 예언 3종을 모두 적중하면 전원 EXP +2, 예언가의 다음 유효 공격 +4 피해. 전투당 1회."}
 });
 export const PVE_RELIC_UI=Object.freeze({
   "f1_worn_whetstone": {
@@ -456,7 +512,6 @@ export const PVE_RELIC_UI=Object.freeze({
   "f1_golden_compass": {
     "name": "황금 나침반",
     "text": "몬스터 처치 시 추가 Run Gold를 얻습니다."
-  }
-});
+  }});
 export function augmentUi(id,tier){const detail=PVE_EXECUTABLE_AUGMENT_UI[id];return {id,name:PVE_AUGMENT_NAMES[id]||id,tier:Number(tier)||0,build:detail?.build||null,description:detail?.description||'현재 선택할 수 없는 증강입니다.'};}
 export function relicUi(id){return PVE_RELIC_UI[id]||{name:id,text:'유물 효과는 서버 규칙을 따릅니다.'};}

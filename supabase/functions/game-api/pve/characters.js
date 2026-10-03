@@ -7,6 +7,7 @@ import {upsertAugmentStatus} from './augment-framework.js';
 import {consumeKnightNextCycleBonus,knightFreeUseAvailable} from './knight-runtime.js';
 import {mageNaturalManaRecovery,resolveMageWhiteMagicCollision} from './mage-runtime.js';
 import {planBerserkerCollisionHeal,afterBerserkerAttackCost,notifyBerserkerHeal} from './berserker-runtime.js';
+import {initializeSeerCombat,onSeerTurnStart,resolveSeerBaseValidity,cleanupSeerCombat,activateSeerImmediateSkill} from './seer-runtime.js';
 
 export const PVE_CHARACTER_DEFS={
   adventurer:{deck:[1,2,3,4,5],skillId:'gold_bonus'},
@@ -98,7 +99,7 @@ export function initializeCombatCharacter(player){
   clearCombatResources(player);
   if(player.characterId==='warrior')player.publicResources.toughnessCharges=1;
   if(player.characterId==='mage')player.publicResources.mana=0;
-  if(player.characterId==='prophet')player.publicResources.revelation=0;
+  if(player.characterId==='prophet')initializeSeerCombat(player);
   if(player.characterId==='berserker'&&player.augments.includes('aug-131'))player.publicResources.revenge=0;
   if(player.characterId==='vampire'&&player.augments.includes('aug-321'))player.publicResources.blood=0;
   if(player.characterId==='gunner'){
@@ -127,10 +128,7 @@ export function initializeCombatCharacter(player){
 }
 export function onTurnStartCharacter(player,run){
   clearResourcesByScope(player,'TURN');
-  if(player.characterId==='prophet'){
-    const priv=run.combat?.privateByPlayer?.[player.playerId];
-    if(priv)delete priv.revelationPeek;
-  }
+  if(player.characterId==='prophet')onSeerTurnStart(run,player);
   if(player.status==='DOWNED')return;
   if(player.characterId==='mage')mageNaturalManaRecovery(run,player);
   if(player.characterId==='twins'){
@@ -238,71 +236,7 @@ export function activateImmediateCharacterSkill(run,player,skillData=null){
     }
     return event;
   }
-  if(player.characterId==='prophet'){
-    if((player.publicResources.revelation||0)<1)rejectSkill('INSUFFICIENT_RESOURCE','계시가 없습니다.');
-    if(player.augments.includes('aug-161')){
-      const targetPlayerId=String(skillData?.target_player_id||skillData?.targetPlayerId||'');
-      if(!targetPlayerId)rejectSkill('INVALID_SKILL_REQUEST','운명 조작자는 복구할 아군을 지정해야 합니다.');
-      const target=run.players.find(p=>p.playerId===targetPlayerId&&p.playerId!==player.playerId&&p.status!=='DOWNED');
-      if(!target)rejectSkill('INVALID_SKILL_REQUEST','운명 조작자 대상이 올바르지 않습니다.');
-      const targetPriv=c.privateByPlayer[target.playerId];
-      let recoverable=(targetPriv?.spentCardIds||[]).filter(id=>{
-        const card=target.cardPool.find(x=>x.id===id);
-        return card?.source==='BASE'&&!(card.tags||[]).some(tag=>['TEMPORARY','TRANSFORMED','SPECIAL'].includes(tag));
-      }).sort();
-      if(target.characterId==='twins'){
-        const submittedId=c.turnSubmissions[target.playerId]?.cardInstanceId||null;
-        const currentParity=Number(target.publicResources.parity)||0;
-        recoverable=recoverable.filter(candidateId=>{
-          const ids=[...(targetPriv.remainingCardIds||[]),candidateId].filter(id=>id!==submittedId);
-          const startParity=submittedId?1-currentParity:currentParity;
-          const counts=[0,0];
-          for(const id of ids){const card=target.cardPool.find(x=>x.id===id);if(card)counts[card.baseNumber%2]++;}
-          return counts[startParity]===Math.ceil(ids.length/2)&&counts[1-startParity]===Math.floor(ids.length/2);
-        });
-      }
-      if(!recoverable.length)rejectSkill('SKILL_NOT_READY','대상 아군의 현재 사이클에 안전하게 복구 가능한 사용 카드가 없습니다.');
-      const cardId=choose(run,recoverable,`fate-manipulator:${run.floor}:${run.depth}:${run.currentRoomNodeId||c.monster.id}:${c.turn}:${player.playerId}:${target.playerId}`);
-      const card=target.cardPool.find(x=>x.id===cardId);
-      if(!card||!targetPriv.spentCardIds.includes(cardId)||targetPriv.remainingCardIds.includes(cardId))rejectSkill('INVALID_STATE','복구 대상 physical card zone이 올바르지 않습니다.');
-      const cycleId=targetPriv.cycleIndex||1;
-      targetPriv.spentCardIds=targetPriv.spentCardIds.filter(id=>id!==cardId);
-      targetPriv.remainingCardIds.push(cardId);
-      const order=new Map(target.cardPool.map((x,index)=>[x.id,index]));
-      targetPriv.remainingCardIds.sort((a,b)=>(order.get(a)??999)-(order.get(b)??999)||a.localeCompare(b));
-      player.publicResources.revelation=0;
-      c.derivedEventSequence=(Number(c.derivedEventSequence)||0)+1;
-      const rootActionId=`skill:${c.id}:${c.turn}:${player.playerId}:fate-manipulator`;
-      const recoveryChainId=`recovery:${rootActionId}`,eventId=`recovery-event:${c.id}:${c.turn}:${c.derivedEventSequence}`;
-      const recovery={type:'CARD_RECOVERED',eventId,turn:c.turn,actorId:player.playerId,targetPlayerId:target.playerId,cardInstanceId:cardId,fromZone:'SPENT',toZone:'REMAINING',cycleIdBefore:cycleId,cycleIdAfter:cycleId,sourceEffectId:'aug-161',sourceCardInstanceId:null,rootActionId,recoveryChainId,parentEventId:null,chainDepth:1};
-      const used={type:'FATE_MANIPULATOR_USED',eventId:`fate:${eventId}`,turn:c.turn,playerId:player.playerId,targetPlayerId:target.playerId,recoveredCardId:cardId,rootActionId,recoveryChainId,parentEventId:null,chainDepth:0,sourceEffectId:'aug-161'};
-      c.pendingSkillEvents||=[];c.pendingSkillEvents.push(used,recovery);
-      priv.revelationPeek={turn:c.turn,targetPlayerId:target.playerId,recoveredCardId:cardId,recoveryMode:'ALLY'};
-      return used;
-    }
-    const targets=run.players
-      .filter(p=>p.playerId!==player.playerId&&p.status!=='DOWNED'&&c.turnSubmissions[p.playerId])
-      .sort((a,b)=>a.seat-b.seat||a.playerId.localeCompare(b.playerId));
-    const target=targets[0];
-    if(!target)rejectSkill('SKILL_NOT_READY','확인할 수 있는 다른 플레이어의 제출 카드가 아직 없습니다.');
-    const targetSubmission=c.turnSubmissions[target.playerId];
-    const targetCard=target.cardPool.find(card=>card.id===targetSubmission.cardInstanceId);
-    if(!targetCard)rejectSkill('INVALID_STATE','계시 대상 카드를 찾을 수 없습니다.');
-    const candidates=[...(priv.spentCardIds||[])].sort();
-    const recoveredCardId=candidates.length?choose(run,candidates,`prophet-recovery:${run.floor}:${run.depth}:${run.currentRoomNodeId||c.monster.id}:${c.turn}:${player.playerId}`):null;
-    player.publicResources.revelation=0;
-    if(recoveredCardId){
-      priv.spentCardIds=priv.spentCardIds.filter(id=>id!==recoveredCardId);
-      if(!priv.remainingCardIds.includes(recoveredCardId))priv.remainingCardIds.push(recoveredCardId);
-      const order=new Map(player.cardPool.map((card,index)=>[card.id,index]));
-      priv.remainingCardIds.sort((a,b)=>(order.get(a)??999)-(order.get(b)??999)||a.localeCompare(b));
-    }
-    priv.revelationPeek={turn:c.turn,targetPlayerId:target.playerId,selectedNumber:targetCard.baseNumber,recoveredCardId};
-    return {
-      type:'REVELATION_USED',playerId:player.playerId,targetPlayerId:target.playerId,
-      selectedNumber:targetCard.baseNumber,recoveredCardId
-    };
-  }
+  if(player.characterId==='prophet')return activateSeerImmediateSkill(run,player,skillData);
   if(player.characterId!=='twins')rejectSkill('SKILL_NOT_READY','즉시 발동할 수 있는 PVE 스킬이 아닙니다.');
   if(!player.publicResources.acrobaticsReady)rejectSkill('SKILL_NOT_READY',player.augments.includes('aug-381')?'유효 공격 3회를 달성하면 곡예가 재충전됩니다.':'새 사이클을 완주하면 곡예가 재충전됩니다.');
   const previousCycleId=priv.cycleIndex||1,remainingBefore=[...(priv.remainingCardIds||[])],spentBefore=[...(priv.spentCardIds||[])],parityBefore=player.publicResources.parity||0;
@@ -607,13 +541,7 @@ export function resolvePostCollisionCharacter(run,resolved,submission,events=[])
     resolved.bloodFrenzyBonusDamage=player.hp>1?bonus:0;
     resolved.bloodFrenzyExpectedHpCost=player.hp>1?1:0;
   }
-  if(player.characterId==='prophet'&&resolved.invalidReason==='COLLISION'){
-    const before=player.publicResources.revelation||0;
-    const after=Math.min(resourceMax(player,'revelation',1),before+1);
-    player.publicResources.revelation=after;
-    resolved.revelationGained=after-before;
-    if(after>before)events.push({type:'REVELATION_GAINED',playerId:player.playerId,before,after,reason:'COLLISION'});
-  }
+  if(player.characterId==='prophet')resolveSeerBaseValidity(run,player,resolved,events);
   if(player.characterId!=='gunner'||!submission.skillIntent)return;
   const gunnerPriv=run.combat.privateByPlayer[player.playerId];
   player.publicResources.fullBurstReady=false;
@@ -643,6 +571,7 @@ export function baseDamageForCharacter(player,resolved){
   return damage;
 }
 export function onCombatEndCharacter(player,run=null){
+  if(player.characterId==='prophet'&&run)cleanupSeerCombat(run,player);
   const priv=run?.combat?.privateByPlayer?.[player.playerId];
   if(player.characterId==='demon_swordsman'&&player.augments.includes('aug-351')){
     if(priv?.demonNormalCardPool){

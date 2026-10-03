@@ -363,7 +363,7 @@ export function assertRunInvariants(run){
     for(const [name,value] of Object.entries(p.publicResources||{}))if(typeof value==='number'&&(!finite(value)||value<0))fail('NEGATIVE_RESOURCE','negative/invalid combat resource',{playerId:p.playerId,name,value});
     if(Number(p.publicResources?.mana)>resourceMax(p,'mana',4))fail('INVALID_RESOURCE','mage mana exceeded current cap',{playerId:p.playerId,value:p.publicResources.mana,max:resourceMax(p,'mana',4)});
     if(Number(p.publicResources?.toughnessCharges)>resourceMax(p,'toughnessCharges',2))fail('INVALID_RESOURCE','warrior toughness exceeded current cap',{playerId:p.playerId,value:p.publicResources.toughnessCharges,max:resourceMax(p,'toughnessCharges',2)});
-    if(Number(p.publicResources?.revelation)>resourceMax(p,'revelation',1))fail('INVALID_RESOURCE','prophet revelation exceeded current cap',{playerId:p.playerId,value:p.publicResources.revelation,max:resourceMax(p,'revelation',1)});
+    if(Number(p.publicResources?.revelation)>resourceMax(p,'revelation',3))fail('INVALID_RESOURCE','prophet revelation exceeded current cap',{playerId:p.playerId,value:p.publicResources.revelation,max:resourceMax(p,'revelation',3)});
     if(Number(p.publicResources?.revenge)>resourceMax(p,'revenge',1))fail('INVALID_RESOURCE','berserker revenge exceeded current cap',{playerId:p.playerId,value:p.publicResources.revenge,max:resourceMax(p,'revenge',1)});
     if(Number(p.publicResources?.blood)>resourceMax(p,'blood',6))fail('INVALID_RESOURCE','vampire blood exceeded current cap',{playerId:p.playerId,value:p.publicResources.blood,max:resourceMax(p,'blood',6)});
     if(Number(p.publicResources?.combo)>resourceMax(p,'combo',3))fail('INVALID_RESOURCE','martial combo exceeded current cap',{playerId:p.playerId,value:p.publicResources.combo,max:resourceMax(p,'combo',3)});
@@ -662,6 +662,10 @@ function assertT03SustainTurn(run,result,policyPlan){
 
 export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterDef=F1_MONSTER_DEFINITIONS.f1_armored_boar,policy='reference',flame=4,maxTurns=HARD_MAX_TURNS,caseId='generic-combat'}){
   const run=makeCombatRun(seed,{caseId,characterIds,augmentIdsByPlayer,flame,monsterDef});
+  if(['resource_starvation','recovery','steady_recovery'].includes(policy)){
+    const prophet=run.players.find(p=>p.characterId==='prophet');
+    if(prophet)prophet.publicResources.revelation=Math.min(resourceMax(prophet,'revelation',3),1);
+  }
   let actions=0,resolves=0;
   const referenceTurns=[],numberMutationTurns=[],resourceTimeline=[],collisionTurns=[],sustainTurns=[],burstTurns=[],recoveryTurns=[];
   const t09PriorResource=new Map(run.players.map(p=>[p.playerId,t09ResourceValue(p)]));
@@ -1467,16 +1471,18 @@ export function runT09Fixtures(seed){
     cases.push({id:'F3_KNIGHT_TOUGHNESS_0',reject,toughnessAfterReject:0,turnAdvanced:run.combat.turn===2});
   }
   {
-    const run=t09Run(seed,'F4_SEER_COLLISION_GAIN');run.players[2].publicResources.revelation=0;
-    submitT09(run,'p0',5);submitT09(run,'p1',1);submitT09(run,'p2',1);submitT09(run,'p3',2);
-    const result=resolveT09(run),seer=result.cards.find(x=>x.playerId==='p2');
-    cases.push({id:'F4_SEER_COLLISION_GAIN',gain:seer.revelationGained||0,revelation:run.players[2].publicResources.revelation,valid:seer.valid});
+    const run=t09Run(seed,'F4_SEER_ACTIVATION_VALID_GAIN'),seer=run.players[2];seer.publicResources.revelation=1;
+    submitT09(run,'p0',5);activateImmediateCharacterSkill(run,seer);
+    submitT09(run,'p1',1);submitT09(run,'p2',4);submitT09(run,'p3',2);
+    const result=resolveT09(run),seerCard=result.cards.find(x=>x.playerId==='p2');
+    cases.push({id:'F4_SEER_ACTIVATION_VALID_GAIN',gain:seerCard.revelationGained||0,revelation:seer.publicResources.revelation,valid:seerCard.valid});
   }
   {
-    const run=t09Run(seed,'F5_SEER_MAX_COLLISION');run.players[2].publicResources.revelation=1;
-    submitT09(run,'p0',5);submitT09(run,'p1',1);submitT09(run,'p2',1);submitT09(run,'p3',2);
-    const result=resolveT09(run),seer=result.cards.find(x=>x.playerId==='p2');
-    cases.push({id:'F5_SEER_MAX_COLLISION',gain:seer.revelationGained||0,revelation:run.players[2].publicResources.revelation});
+    const run=t09Run(seed,'F5_SEER_ACTIVATION_COLLISION_NO_GAIN'),seer=run.players[2];seer.publicResources.revelation=1;
+    submitT09(run,'p1',1);activateImmediateCharacterSkill(run,seer);
+    submitT09(run,'p0',5);submitT09(run,'p2',1);submitT09(run,'p3',2);
+    const result=resolveT09(run),seerCard=result.cards.find(x=>x.playerId==='p2');
+    cases.push({id:'F5_SEER_ACTIVATION_COLLISION_NO_GAIN',gain:seerCard.revelationGained||0,revelation:seer.publicResources.revelation,valid:seerCard.valid});
   }
   {
     const run=t09Run(seed,'F6_SEER_USE_RECOVERY'),seer=run.players[2],priv=run.combat.privateByPlayer.p2;
@@ -1489,13 +1495,13 @@ export function runT09Fixtures(seed){
     cases.push({id:'F6_SEER_USE_RECOVERY',recoveredCardId:evt.recoveredCardId,expectedCardId:recoverId,revelationAfterUse:0,peek,ownershipStable:seer.cardPool.some(x=>x.id===recoverId)});
   }
   {
-    const run=t09Run(seed,'F7_SEER_USE_COLLISION_REGAIN'),seer=run.players[2],priv=run.combat.privateByPlayer.p2;
+    const run=t09Run(seed,'F7_SEER_USE_VALID_REGAIN'),seer=run.players[2],priv=run.combat.privateByPlayer.p2;
     const recoverId=seer.cardPool.find(x=>x.baseNumber===5).id;
     priv.remainingCardIds=priv.remainingCardIds.filter(id=>id!==recoverId);priv.spentCardIds=[recoverId];seer.publicResources.revelation=1;
     submitT09(run,'p1',1);const evt=activateImmediateCharacterSkill(run,seer);
-    submitT09(run,'p0',5);submitT09(run,'p2',1);submitT09(run,'p3',2);
+    submitT09(run,'p0',5);submitT09(run,'p2',4);submitT09(run,'p3',2);
     const result=resolveT09(run),seerCard=result.cards.find(x=>x.playerId==='p2');
-    cases.push({id:'F7_SEER_USE_COLLISION_REGAIN',recoveredCardId:evt.recoveredCardId,spent:1,gained:seerCard.revelationGained||0,revelation:seer.publicResources.revelation});
+    cases.push({id:'F7_SEER_USE_VALID_REGAIN',recoveredCardId:evt.recoveredCardId,spent:1,gained:seerCard.revelationGained||0,revelation:seer.publicResources.revelation});
   }
   {
     const run=t09Run(seed,'F8_SEER_NO_RECOVERY_TARGET'),seer=run.players[2],priv=run.combat.privateByPlayer.p2;

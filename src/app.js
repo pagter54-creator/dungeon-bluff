@@ -167,6 +167,25 @@ function pveMageIntentChoices(player,selectedCardId){
   }
   return choices;
 }
+function pveRevelationModal(run){
+  const player=pvePlayerForUser(run,api.user?.id);
+  if(!player)return;
+  const augments=player.augments||[];
+  if(augments.includes('aug-161')){
+    const allies=(run.players||[]).filter(p=>p.playerId!==player.playerId&&p.status!=='DOWNED').sort((a,b)=>(a.seat??0)-(b.seat??0)||String(a.playerId).localeCompare(String(b.playerId)));
+    if(!allies.length){toast('복구 대상으로 지정할 아군이 없습니다.');return;}
+    showModal('<div class="eyebrow">계시 · 운명 조작자</div><h2>카드를 복구할 아군</h2><p>대상을 지정하면 그 아군의 복구 가능한 사용 카드에서 계약 규칙에 따라 선택합니다.</p>'+allies.map(p=>'<button class="button secondary full" data-action="pve-revelation-ally" data-player-id="'+escape(p.playerId)+'">'+escape(p.characterId||p.playerId)+'</button>').join(''));
+    return;
+  }
+  if(augments.includes('aug-171')){
+    const normal=['COLLISION','NO_COLLISION'].map(type=>'<button class="button secondary full" data-action="pve-revelation-predict" data-prediction-type="'+type+'">'+(type==='COLLISION'?'다음 턴 충돌 발생':'다음 턴 충돌 없음')+'</button>').join('');
+    const numbers=Array.from({length:7},(_,n)=>'<button class="button secondary" data-action="pve-revelation-predict" data-prediction-type="NUMBER_VALID" data-number="'+n+'">숫자 '+n+' 유효</button>').join('');
+    const exact=augments.includes('aug-176')?'<hr><p>고난도 예언 · 특정 플레이어의 최종 숫자</p>'+((run.players||[]).filter(p=>p.status!=='DOWNED').sort((a,b)=>(a.seat??0)-(b.seat??0)).map(p=>'<button class="button secondary full" data-action="pve-revelation-exact-target" data-player-id="'+escape(p.playerId)+'">'+escape(p.characterId||p.playerId)+' 지정</button>').join('')):'';
+    showModal('<div class="eyebrow">계시 · 불길한 예언</div><h2>다음 턴을 예언하세요</h2>'+normal+'<div class="choice-grid">'+numbers+'</div>'+exact);
+    return;
+  }
+  void performPve('pve.activateSkill');
+}
 function pveSkillData(run){
   const player=pvePlayerForUser(run,api.user?.id),level=Number(pveUseSkill)||0;
   if(run.phase==='COMBAT'&&player?.augments?.includes('aug-020'))return {equipmentCategory:pveEquipmentChoice};
@@ -500,7 +519,7 @@ document.addEventListener('click', async event => {
       void showSkillEffect(document.querySelector(`[data-player="${member.id}"]`),'acrobatics','곡예 · 교대!');
     }
   }
-  if(action==='activate-revelation'&&!animating&&!pveAnimating&&view==='pve'){void performPve('pve.activateSkill');}
+  if(action==='activate-revelation'&&!animating&&!pveAnimating&&view==='pve'){pveRevelationModal(bundle.run);}
   else if (action === 'activate-revelation' && !animating && bundle?.session) {
     const member = mine(), session = bundle.session;
     const response = await perform('activate_skill', { session_id:session.id, turn_index:session.turn_index, member_id:member.id });
@@ -511,6 +530,23 @@ document.addEventListener('click', async event => {
   if (action === 'add-ai') void perform('add_ai', { ai_type: button.dataset.type });
   if (action === 'remove-ai') void perform('remove_ai', { member_id: button.dataset.id });
   if (action === 'start') void perform('start_game');
+  if(action==='pve-revelation-ally'){
+    const player=pvePlayerForUser(bundle.run,api.user?.id),target=button.dataset.playerId;
+    if(!player||!target)return;
+    if((player.augments||[]).includes('aug-166')){
+      showModal('<div class="eyebrow">운명 조작자 · 엇갈린 미래</div><h2>복구 카드의 숫자 보정</h2><button class="button secondary full" data-action="pve-revelation-ally-delta" data-player-id="'+escape(target)+'" data-delta="-1">−1</button><button class="button secondary full" data-action="pve-revelation-ally-delta" data-player-id="'+escape(target)+'" data-delta="1">+1</button><button class="button secondary full" data-action="pve-revelation-ally-delta" data-player-id="'+escape(target)+'" data-delta="0">보정 없음</button>');
+    }else{modal.close();void performPve('pve.activateSkill',{skill_data:{target_player_id:target}});}
+  }
+  if(action==='pve-revelation-ally-delta'){const target=button.dataset.playerId,delta=Number(button.dataset.delta)||0;modal.close();void performPve('pve.activateSkill',{skill_data:{target_player_id:target,...(delta?{ally_number_delta:delta}:{})}});}
+  if(action==='pve-revelation-predict'){
+    const type=button.dataset.predictionType,number=button.dataset.number==null?undefined:Number(button.dataset.number);
+    modal.close();void performPve('pve.activateSkill',{skill_data:{prediction:{type,...(Number.isInteger(number)?{number}:{})}}});
+  }
+  if(action==='pve-revelation-exact-target'){
+    const target=button.dataset.playerId;
+    showModal('<div class="eyebrow">고난도 예언</div><h2>예언할 최종 숫자</h2><div class="choice-grid">'+Array.from({length:7},(_,n)=>'<button class="button secondary" data-action="pve-revelation-exact-number" data-player-id="'+escape(target)+'" data-number="'+n+'">'+n+'</button>').join('')+'</div>');
+  }
+  if(action==='pve-revelation-exact-number'){const target=button.dataset.playerId,number=Number(button.dataset.number);modal.close();void performPve('pve.activateSkill',{skill_data:{prediction:{type:'EXACT_PLAYER_NUMBER',target_player_id:target,number}}});}
   if(action==='pve-map-open'){pveMapOpen=true;if(pveAnimating)app.insertAdjacentHTML('beforeend',pveMapOverlayMarkup(bundle.run,api.user?.id,{visitedNodes:[...pveVisitedNodes]}));else renderPve();}
   if(action==='pve-continue-floor')void performPve('pve.continueFloor');
   if(action==='pve-map-close'){pveMapOpen=false;if(pveAnimating)button.closest('.pve-map-layer')?.remove();else renderPve();}
