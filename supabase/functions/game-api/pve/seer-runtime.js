@@ -133,7 +133,7 @@ export function recoverSeerPhysicalCard(run,owner,target,cardId,{sourceAugmentId
   if(c){
     c.derivedEventSequence=(Number(c.derivedEventSequence)||0)+1;
     c.pendingSkillEvents||=[];
-    c.pendingSkillEvents.push({type:'CARD_RECOVERED',eventId:`seer-recovery:${c.id}:${c.turn}:${c.derivedEventSequence}`,turn:c.turn,actorId:owner.playerId,targetPlayerId:target.playerId,fromZone:'SPENT',toZone:'REMAINING',sourceEffectId:sourceAugmentId,rootActionId:rootId,recoveryChainId:'recovery:'+rootId,parentEventId:null,chainDepth:result.chainDepth});
+    c.pendingSkillEvents.push({type:'CARD_RECOVERED',cardInstanceId:cardId,eventId:`seer-recovery:${c.id}:${c.turn}:${c.derivedEventSequence}`,turn:c.turn,actorId:owner.playerId,targetPlayerId:target.playerId,fromZone:'SPENT',toZone:'REMAINING',sourceEffectId:sourceAugmentId,rootActionId:rootId,recoveryChainId:'recovery:'+rootId,parentEventId:null,chainDepth:result.chainDepth});
   }
   telemetry(run,sourceAugmentId,'ON_RECOVER_CARD',true,{cardsRecovered:1,allyRecoveries:target.playerId===owner.playerId?0:1});
   onRecovery(run,owner,target,record,skillData);
@@ -267,8 +267,10 @@ export function resolveSeerBaseValidity(run,player,resolved,events=[]){
   const s=scopedSeerState(run,player),turn=currentTurn(run);
   if(s.activationTurn!==turn||s.activationResolvedTurn===turn)return 0;
   s.activationResolvedTurn=turn;
-  if(!resolved.valid){telemetry(run,'SEER_BASE','ACTIVATION_RESOLVE',false,{reason:resolved.invalidReason||'INVALID'});return 0;}
-  return gainRevelation(run,player,1,'SEER_BASE',{resolved,events},'ACTIVATION_TURN_VALID');
+  if(!resolved.valid){resolved.revelationGained=0;telemetry(run,'SEER_BASE','ACTIVATION_RESOLVE',false,{reason:resolved.invalidReason||'INVALID'});return 0;}
+  const gained=gainRevelation(run,player,1,'SEER_BASE',{resolved,events},'ACTIVATION_TURN_VALID');
+  resolved.revelationGained=gained;
+  return gained;
 }
 export function cleanupSeerCombat(run,player){
   if(player.characterId!=='prophet')return;
@@ -276,7 +278,10 @@ export function cleanupSeerCombat(run,player){
   for(const [id,p] of Object.entries(r.recoveredCards))if(p.combatId===combatId)delete r.recoveredCards[id];
   r.buffs=r.buffs.filter(x=>x.combatId!==combatId);
   const s=scopedSeerState(run,player);
-  if(s.prediction?.status==='ARMED')telemetry(run,'aug-171','PREDICTION_CANCELLED',true,{predictionCancelled:1,reason:'COMBAT_END'});
+  if(s.prediction?.status==='ARMED'){
+    s.prediction.status='CANCELLED';
+    telemetry(run,'aug-171','PREDICTION_CANCELLED',true,{predictionCancelled:1,reason:'COMBAT_END'});
+  }
 }
 export function activateSeerImmediateSkill(run,player,skillData=null){
   if(player.characterId!=='prophet')return null;
