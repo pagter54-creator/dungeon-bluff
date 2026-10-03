@@ -64,7 +64,7 @@ function spendResolvedCards(run,cards,events=[]){
       if(run.combat.turnSubmissions[rc.playerId]?.autoSubmitted&&player.status==='STUNNED_NEXT_TURN')player.status='ACTIVE';
       continue;
     }
-    if(player.characterId==='gunner'&&rc.skillUsed==='full_burst'&&gunnerState(run,player).burstActions?.['gunner:'+run.combat.id+':'+run.combat.turn+':'+player.playerId+':'+rc.cardInstanceId]?.completed)continue;
+    if(player.characterId==='gunner'&&rc.skillUsed==='full_burst'&&gunnerState(run,player).burstActions?.['action:'+run.combat.id+':'+run.combat.turn+':'+player.playerId+':'+rc.cardInstanceId]?.completed)continue;
     const consume=[rc.cardInstanceId,...(rc.followUpCardIds||[])];
     for(const id of consume){
       priv.remainingCardIds=priv.remainingCardIds.filter(x=>x!==id);
@@ -77,7 +77,7 @@ function spendResolvedCards(run,cards,events=[]){
     if(player.characterId==='gunner'){
       if(rc.skillUsed==='full_burst'){
         markGunnerBurstPhase(run,player,rc,'MAGAZINE/CYCLE_ADVANCE');markGunnerBurstPhase(run,player,rc,'COOLDOWN/RECHARGE');
-        gunnerState(run,player).burstActions['gunner:'+run.combat.id+':'+run.combat.turn+':'+player.playerId+':'+rc.cardInstanceId].completed=true;
+        gunnerState(run,player).burstActions['action:'+run.combat.id+':'+run.combat.turn+':'+player.playerId+':'+rc.cardInstanceId].completed=true;
       }
       syncGunnerMagazine(run,player);
     }
@@ -333,7 +333,7 @@ export function resolveBasicTurn(run){
   for(const rc of cards.filter(x=>x.valid))applyPostPlayerAttackCharacter(run,rc,events);
   for(const rc of cards.filter(x=>x.burstMisfire)){
     const p=playerFor(run,rc.playerId);
-    const state=gunnerState(run,p),guard='gunner:'+c.id+':'+c.turn+':'+p.playerId+':'+rc.cardInstanceId+':self-damage';
+    const state=gunnerState(run,p),guard='action:'+c.id+':'+c.turn+':'+p.playerId+':'+rc.cardInstanceId+':self-damage';
     if(state.applied[guard])continue;state.applied[guard]=true;
     const before=p.hp;p.hp=Math.max(0,p.hp-1);state.telemetry.failureSelfDamage+=before-p.hp;
     events.push({type:'FULL_BURST_MISFIRE',playerId:p.playerId,amount:before-p.hp,hp:p.hp,source:'GUNSLINGER_FULL_BURST_FAILURE',damageType:'SELF',canDown:true,minHP:0,timing:'POST_PLAYER_ATTACK'});
