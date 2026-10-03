@@ -281,10 +281,13 @@ test('005C-D aug248 uses activation-time remaining count even when an ally recov
 });
 
 test('005C-D saved legacy Reward skill intent cannot trigger Burst, misfire or remaining-card use',()=>{
- const x=fixture(['aug-241','aug-248']);enterRewardRoom(x.run);
- for(const p of x.run.players){const st=x.run.roomState.privateByPlayer[p.playerId];submitRewardCard(x.run,p.playerId,st.remainingCardIds[0],false);}
+ const x=fixture(['aug-241','aug-248']),normal=fixture(['aug-241','aug-248']);
+ for(const f of [x,normal]){enterRewardRoom(f.run);
+  for(const p of f.run.players){const st=f.run.roomState.privateByPlayer[p.playerId];submitRewardCard(f.run,p.playerId,st.remainingCardIds[0],false);}
+ }
  x.run.roomState.turnSubmissions.p0.skillIntent=true;
- const hp=x.p.hp,ready=x.p.publicResources.fullBurstReady;resolveRewardAttempt(x.run);
- const card=x.run.roomState.publicTurnResult.cards.find(c=>c.playerId==='p0');
- assert.equal(card.followUpCardIds,undefined);assert.equal(x.p.hp,hp);assert.equal(x.p.publicResources.fullBurstReady,ready);
+ const result=resolveRewardAttempt(x.run);resolveRewardAttempt(normal.run);
+ assert.equal(result.cards.find(c=>c.playerId==='p0').followUpCardIds,undefined);
+ assert.equal(x.p.hp,normal.p.hp);assert.deepEqual(x.p.publicResources,normal.p.publicResources);
+ assert.deepEqual(x.run.cardCycles,normal.run.cardCycles);assert.deepEqual(x.s,normal.s);
 });
