@@ -1,3 +1,4 @@
+import {activateImmediateCharacterSkill} from '../supabase/functions/game-api/pve/characters.js';
 import {beginAugmentChoices,chooseAugment,AUGMENT_THRESHOLDS} from '../supabase/functions/game-api/pve/augments.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -180,4 +181,26 @@ for(const room of ['EVENT','REWARD_ROOM','SHOP','REST'])test('Martial thirty car
 test('Martial telemetry is once per effect root and private guards stay hidden',()=>{
  const f=fixture([273]);go(f);const count=f.run._telemetryPending.filter(x=>x.logType==='EFFECT'&&x.payload.effect_id==='aug-273').length;assert.equal(count,1);go(f);assert.equal(f.run._telemetryPending.filter(x=>x.logType==='EFFECT'&&x.payload.effect_id==='aug-273').length,1);
  const view=projectRun(f.run,'p1');assert.equal(view._telemetryPending,undefined);
+});
+
+test('Seer recovers the same Martial physical card without changing Combo or comparison',()=>{
+ const f=fixture([273]);const seer=newPlayerRunState({id:'p1',user_id:'u1',character_id:'prophet',member_type:'human',seat_index:1});seer.augments=['aug-161'];f.run.players[1]=seer;
+ f.run.combat=newCombatState(f.run.players,999,'NORMAL_COMBAT');f.run.combat.id='martial-seer-recovery';beginTurn(f.run);
+ f.p.publicResources.combo=2;f.p.publicResources.lastSubmittedNumber=4;
+ const st=f.run.combat.privateByPlayer.p0,id=f.p.cardPool.find(c=>c.baseNumber===3).id;
+ st.remainingCardIds=st.remainingCardIds.filter(x=>x!==id);st.spentCardIds=[id];
+ const event=activateImmediateCharacterSkill(f.run,seer,{target_player_id:'p0'});
+ assert.equal(event.recoveredCardId,id);assert.ok(st.remainingCardIds.includes(id));assert.equal(st.spentCardIds.includes(id),false);
+ assert.equal(f.p.publicResources.combo,2);assert.equal(f.p.publicResources.lastSubmittedNumber,4);
+ for(let i=0;i<4;i++){const p=f.run.players[i],number=[3,1,2,5][i];submitCard(f.run,p.playerId,p.cardPool.find(c=>c.baseNumber===number).id);}
+ f.run.combat.monster.intent={type:'CHARGE',payload:{}};const result=resolveBasicTurn(f.run),rc=result.cards.find(c=>c.playerId==='p0');
+ assert.equal(rc.cardInstanceId,id);assert.equal(rc.previousSubmittedNumber,4);assert.equal(rc.comboAfter,2);assert.equal(f.p.publicResources.lastSubmittedNumber,3);
+});
+test('Two Martial suppliers consume only the other owner FIFO unit',()=>{
+ const f=fixture([281]);const other=f.run.players[1];other.characterId='martial_artist';other.augments=['aug-281'];other.publicResources.combo=1;other.publicResources.lastSubmittedNumber=1;
+ go(f);const rc={playerId:'p1',cardInstanceId:'p1:base:3',finalNumber:3,valid:true};resolveMartial(f.run,other,rc,{});
+ assert.deepEqual(f.run.combat.martialEnemy.units.map(x=>x.supplierOwnerId),['p0','p1']);
+ martialPacket(f.run,f.p,f.rc,2);assert.deepEqual(f.run.combat.martialEnemy.units.map(x=>x.supplierOwnerId),['p0']);
+ martialPacket(f.run,other,rc,2);assert.equal(f.run.combat.martialEnemy.units.length,0);
+ assert.notEqual(martialState(f.run,other),f.s);
 });
