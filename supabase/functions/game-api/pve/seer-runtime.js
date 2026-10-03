@@ -125,7 +125,7 @@ export function recoverSeerPhysicalCard(run,owner,target,cardId,{sourceAugmentId
     sourceAugmentId,rootActionId:rootId,recoveredFromZone:'SPENT',recoveredByPlayerId:owner.playerId,
     targetPlayerId:target.playerId,originalCardInstanceId:cardId,cardInstanceId:cardId,
     combatId:run.combat?.id||null,roomId:run.currentRoomNodeId||null,recoveredTurn:currentTurn(run),
-    cycleIndex:priv.cycleIndex||1,recoveryMode,usedValidCount:0,
+    cycleIndex:priv.cycleIndex||1,recoveryMode,usedValidCount:0,revelationSerial:scopedSeerState(run,owner).activationSerial,
     numberDelta:owned(owner,'aug-166')&&[-1,1].includes(Number(skillData?.ally_number_delta??skillData?.allyNumberDelta))?Number(skillData?.ally_number_delta??skillData?.allyNumberDelta):0
   };
   root(run).recoveredCards[cardId]=record;
@@ -180,7 +180,11 @@ function normalizePrediction(raw,run){
   const number=raw.number==null?null:Number(raw.number);
   if(['NUMBER_VALID','EXACT_PLAYER_NUMBER'].includes(type)&&(!Number.isInteger(number)||number<0||number>9))return null;
   const targetPlayerId=raw.target_player_id||raw.targetPlayerId||null;
-  if(type==='EXACT_PLAYER_NUMBER'&&!targetPlayerId)return null;
+  if(type==='EXACT_PLAYER_NUMBER'){
+    if(!targetPlayerId)return null;
+    const target=playerById(run,targetPlayerId);
+    if(!target||target.status==='DOWNED')return null;
+  }
   return {type,number,targetPlayerId};
 }
 function declarePrediction(run,owner,skillData,rootActionId){
@@ -285,6 +289,11 @@ export function cleanupSeerCombat(run,player){
     s.prediction.status='CANCELLED';
     telemetry(run,'aug-171','PREDICTION_CANCELLED',true,{predictionCancelled:1,reason:'COMBAT_END'});
   }
+  const priv=privateFor(run,player);
+  if(priv){delete priv.revelationPeek;delete priv.seerRecoveryCandidates;}
+  const f=framework(run),key=player.playerId+':seer';
+  delete f.cardState?.[key];
+  if(combatId)for(const once of Object.keys(f.once||{}))if(once.includes(player.playerId)&&once.includes(combatId))delete f.once[once];
 }
 export function activateSeerImmediateSkill(run,player,skillData=null){
   if(player.characterId!=='prophet')return null;
@@ -382,19 +391,20 @@ function processRecoveredUse(run,ctx){
   if(self&&owned(owner,'aug-159')&&roomAllowed(run,'aug-159')&&scopedSeerState(run,owner).turnStartRevelation>=1&&claim(run,owner,'aug-159','ONCE_PER_TURN',sourceCtx,'damage')){
     ctx.resolved.seerRuntimeBonus=(ctx.resolved.seerRuntimeBonus||0)+4;telemetry(run,'aug-159','ON_VALID',true,{bonusDamage:4});results.push({augmentId:'aug-159',applied:true});
   }
-  if(self&&owned(owner,'aug-160')&&roomAllowed(run,'aug-160')&&prov.strengthened&&claim(run,owner,'aug-160','ONCE_PER_TURN',sourceCtx,'recovered-strength')){
+  if(self&&owned(owner,'aug-160')&&roomAllowed(run,'aug-160')&&prov.strengthened&&claim(run,owner,'aug-160','ONCE_PER_TURN',sourceCtx,'strength')){
     ctx.resolved.seerRuntimeBonus=(ctx.resolved.seerRuntimeBonus||0)+3;telemetry(run,'aug-160','ON_VALID',true,{bonusDamage:3,mode:'RECOVERED_STRENGTHEN'});results.push({augmentId:'aug-160',applied:true});
   }
   if(!self&&owned(owner,'aug-164')&&roomAllowed(run,'aug-164')){ctx.resolved.seerRuntimeBonus=(ctx.resolved.seerRuntimeBonus||0)+2;telemetry(run,'aug-164','ON_VALID',true,{bonusDamage:2});results.push({augmentId:'aug-164',applied:true});}
   if(!self&&owned(owner,'aug-165')&&roomAllowed(run,'aug-165')&&claim(run,owner,'aug-165','ONCE_PER_COMBAT',sourceCtx,'refund')){gainRevelation(run,owner,1,'aug-165',ctx,'ALLY_RECOVERED_CARD_VALID');results.push({augmentId:'aug-165',applied:true});}
-  if(!self&&owned(owner,'aug-169')&&roomAllowed(run,'aug-169')&&!prov.aug169Consumed){prov.aug169Consumed=true;ctx.resolved.seerRuntimeBonus=(ctx.resolved.seerRuntimeBonus||0)+1;telemetry(run,'aug-169','ON_VALID',true,{bonusDamage:1});results.push({augmentId:'aug-169',applied:true});}
-  if(!self&&owned(owner,'aug-170')&&roomAllowed(run,'aug-170')&&!prov.aug170Consumed){prov.aug170Consumed=true;ctx.resolved.seerRuntimeBonus=(ctx.resolved.seerRuntimeBonus||0)+2;buff(run,{sourceAugmentId:'aug-170',ownerId:owner.playerId,targetId:owner.playerId,amount:2,validFromTurn:turn});telemetry(run,'aug-170','ON_VALID',true,{bonusDamage:4});results.push({augmentId:'aug-170',applied:true});}
+  if(!self&&owned(owner,'aug-169')&&roomAllowed(run,'aug-169')&&claim(run,owner,'aug-169','ONCE_PER_REVELATION_USE',{...sourceCtx,revelationSerial:prov.revelationSerial},'valid-bonus')){ctx.resolved.seerRuntimeBonus=(ctx.resolved.seerRuntimeBonus||0)+1;telemetry(run,'aug-169','ON_VALID',true,{bonusDamage:1});results.push({augmentId:'aug-169',applied:true});}
+  if(!self&&owned(owner,'aug-170')&&roomAllowed(run,'aug-170')&&claim(run,owner,'aug-170','ONCE_PER_REVELATION_USE',{...sourceCtx,revelationSerial:prov.revelationSerial},'shared-future')){ctx.resolved.seerRuntimeBonus=(ctx.resolved.seerRuntimeBonus||0)+2;buff(run,{sourceAugmentId:'aug-170',ownerId:owner.playerId,targetId:owner.playerId,amount:2,validFromTurn:turn});telemetry(run,'aug-170','ON_VALID',true,{bonusDamage:4});results.push({augmentId:'aug-170',applied:true});}
   return results;
 }
 function applyRecoveredNumberMutation(run,ctx){
   const prov=provenance(run,ctx.resolved?.cardInstanceId);if(!prov||prov.numberDelta===0||prov.aug166Consumed)return [];
   const owner=playerById(run,prov.recoveredByPlayerId);
   if(!owner||!owned(owner,'aug-166')||!roomAllowed(run,'aug-166'))return [];
+  if(!claim(run,owner,'aug-166','ONCE_PER_CYCLE',{...ctx,privateState:privateFor(run,owner),rootActionId:prov.rootActionId},'number-shift'))return [];
   const before=ctx.resolved.workingNumber,after=Math.max(0,before+prov.numberDelta);
   ctx.resolved.workingNumber=after;ctx.resolved.finalNumber=after;prov.aug166Consumed=true;
   telemetry(run,'aug-166','PRE_COLLISION_SELF_MODIFY',true,{numberDelta:after-before});
@@ -410,7 +420,7 @@ export function applySeerRuntime(run,trigger,ctx={}){
   if(!p||p.characterId!=='prophet')return out;
   if(trigger==='TURN_START'){onSeerTurnStart(run,p);return out;}
   if(trigger==='CARD_VALIDATED'){
-    if(owned(p,'aug-160')&&roomAllowed(run,'aug-160')&&scopedSeerState(run,p).aug160ActivationTurn===currentTurn(run)&&ctx.resolved?.valid&&claim(run,p,'aug-160','ONCE_PER_TURN',ctx,'activation-strength')){
+    if(owned(p,'aug-160')&&roomAllowed(run,'aug-160')&&scopedSeerState(run,p).aug160ActivationTurn===currentTurn(run)&&ctx.resolved?.valid&&claim(run,p,'aug-160','ONCE_PER_TURN',ctx,'strength')){
       ctx.resolved.seerRuntimeBonus=(ctx.resolved.seerRuntimeBonus||0)+3;telemetry(run,'aug-160','ON_VALID',true,{bonusDamage:3,mode:'ACTIVATION_TURN'});out.push({augmentId:'aug-160',applied:true});
     }
     evaluatePrediction(run,p,ctx);
