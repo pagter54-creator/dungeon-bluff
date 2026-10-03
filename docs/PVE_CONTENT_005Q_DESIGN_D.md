@@ -50,7 +50,7 @@
 
 21. **D04** — 선택/제출에서 printed/base physical number parity 확인. server reject가 숫자 변환보다 먼저. 복구는 same cardInstanceId.
 
-22. **D05** — numeric cooldown·독립 cycle 명령 제한 없음.303 양측 VALID reserve1, cycle당1회 획득, 이후 새 mark 소비1회 유예.308 command사용+1 Dominance cap4 비소모; 이후 별도 valid primary attack stream ADD currentstacks. 최초4 reserve1/combat, sharedcap1/overflowdiscard.
+22. **D05** — numeric cooldown·독립 cycle 명령 제한 없음.303 양측 VALID reserve1, cycle당1회 획득, 이후 새 mark 소비1회 유예.308 command사용+1 Dominance cap4 비소모; 이후 별도 next valid primary attack 1회에 ADD currentstacks; 피해 charge만 소비하고 Dominance는 유지. 새 명령 없이 이후 공격에 반복 적용하지 않는다. 최초4 reserve1/combat, sharedcap1/overflowdiscard.
 
 23. **D06** — 307 실제 command 교환 ownercard collision만 통과, 다른 멤버 무효 유지, once/combat. HP 감소 효과 없음.
 
@@ -305,7 +305,7 @@ flowchart LR
 | aug-305 | 흡혈귀 / 완전한 권속 / 3 | 강화된 지배 | BLOOD_COMMAND_USED && OWNER_FINAL_VALID | `{"op":"GAIN_STACK","key":"commandPower","value":1,"cap":3}`<br>`{"op":"ADD_DAMAGE","valueFrom":"commandPowerAfter"}` |
 | aug-306 | 흡혈귀 / 완전한 권속 / 3 | 운명의 대리인 | BLOOD_COMMAND_USED && OWNER_FINAL_VALID && ROOT_THRALL_FINAL_VALID && targetPreSwapDuplicateCount >= 2 | `{"op":"ADD_DAMAGE","value":2}` |
 | aug-307 | 흡혈귀 / 완전한 권속 / 3 | 거역할 수 없는 명령 | BLOOD_COMMAND_USED && OWNER_COLLISION && OWNER_NOT_DOWNED && NO_OTHER_INVALID_REASON | `{"op":"PROTECT_OWNER_COLLISION_VALIDITY","value":true,"leaveOtherMembersInvalid":true}` |
-| aug-308 | 흡혈귀 / 완전한 권속 / 4 | 절대 지배 | NORMAL_BLOOD_COMMAND_USE | `{"op":"GAIN_DOMINANCE_NONCONSUMED","value":1,"cap":4}`<br>`{"op":"ARM_COMMAND_DAMAGE_STREAM","valueFrom":"currentDominance","eligibleFrom":"NEXT_DISTINCT_PRIMARY_ATTACK_AFTER_COMMAND_RESOLVE","consumeDominance":false}`<br>`{"op":"FIRST_DOMINANCE_4_GRANT_RESERVE","value":1,"cap":1,"once":"COMBAT","overflow":"DISCARD"}` |
+| aug-308 | 흡혈귀 / 완전한 권속 / 4 | 절대 지배 | NORMAL_BLOOD_COMMAND_USE | `{"op":"GAIN_DOMINANCE_NONCONSUMED","value":1,"cap":4}`<br>`{"op":"ARM_COMMAND_DAMAGE_STREAM","valueFrom":"currentDominance","eligibleFrom":"NEXT_DISTINCT_PRIMARY_ATTACK_AFTER_COMMAND_RESOLVE","consumeDominance":false,"streamMode":"NEXT_VALID_ATTACK_ONCE_PER_COMMAND","charges":1,"consumeCharge":true,"merge":"REPLACE_PENDING_CHARGE_NOT_QUEUE","excludeBloodCommandResolvingRoots":true}`<br>`{"op":"FIRST_DOMINANCE_4_GRANT_RESERVE","value":1,"cap":1,"once":"COMBAT","overflow":"DISCARD"}` |
 | aug-309 | 흡혈귀 / 완전한 권속 / 4 | 핏빛 군주 | BLOOD_COMMAND_USED && OWNER_FINAL_VALID && commandValidSuccessesAfter >= 2 | `{"op":"ADD_DAMAGE","value":4}` |
 | aug-310 | 흡혈귀 / 완전한 권속 / 4 | 완전한 종속 | BLOOD_COMMAND_USED && OWNER_FINAL_VALID && ROOT_THRALL_FINAL_VALID && jointCommandSuccessesAfter >= 2 | `{"op":"ADD_PAIR_DAMAGE","value":3}` |
 | aug-311 | 흡혈귀 / 피의 맹약 / 1 | 피의 맹약 | BOUND_PAIR_TURN_RESOLVED | `{"op":"PAIR_BOTH_VALID_GAIN_PACT","value":1,"cap":3,"predicate":"BOUND_PAIR_BOTH_VALID"}`<br>`{"op":"PAIR_ANY_INVALID_LOSE_PACT","value":1,"min":0,"predicate":"NOT_BOUND_PAIR_BOTH_VALID"}`<br>`{"op":"PAIR_BOTH_VALID_DAMAGE_IF_PACT","threshold":2,"value":1,"predicate":"BOUND_PAIR_BOTH_VALID"}` |
