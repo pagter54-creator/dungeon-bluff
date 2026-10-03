@@ -334,7 +334,11 @@ export function activateSeerImmediateSkill(run,player,skillData=null){
       if(result.applied)recovered.push({targetPlayerId:player.playerId,cardInstanceId:selected.cardId});
     }
     const peek=inspectReadyAlly(run,player,{seeded:false,sourceAugmentId:'SEER_BASE_REVELATION'});
-    if(peek)event.inspectedTargetPlayerId=peek.targetPlayerId;
+    if(peek){
+      peek.recoveredCardId=recovered.length===1?recovered[0].cardInstanceId:null;
+      if(priv)priv.revelationPeek=peek;
+      event.inspectedTargetPlayerId=peek.targetPlayerId;
+    }
   }
   if(owned(player,'aug-160'))s.aug160ActivationTurn=c.turn;
   const prediction=declarePrediction(run,player,skillData,rootActionId);
