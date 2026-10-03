@@ -64,6 +64,12 @@ function reshuffle(run,player,state){
   state.drawPileIds=shuffleIds(run,state.discardPileIds,`gambler-reshuffle:${run.floor}:${run.depth}:${run.currentRoomNodeId||'room'}:${player.playerId}:${state.shuffleCount}`);
   state.discardPileIds=[];state.shuffleCount++;
   state.sixProgress=[];state.sevenProgress=[];
+  state.aug214Run=[];state.aug214TriggeredShuffle=false;
+  state.countedOrdinary=[];state.cardCounter=0;state.cardCounterArmed=false;
+  state.shuffleOrdinarySeen=[];state.fiveMemoryArmed=false;
+  state.sequenceArmed=false;
+  state.aug228UsedShuffle=false;state.aug230UsedShuffle=false;
+  state.firstDrawAfterShuffle=true;
   boundedHistory(state,{type:'SHUFFLE',turn:run.combat?.turn||run.roomState?.turn||0,shuffleCount:state.shuffleCount});
   return true;
 }
@@ -122,9 +128,11 @@ export function settleGamblerHand(run,player,state,selectedId,finalNumber,{rootA
   if(actionKey&&state.processedActions[actionKey])return false;
   if(!state.remainingCardIds.includes(selectedId))throw new Error('GAMBLER_CARD_NOT_IN_HAND');
   const used=player.cardPool.find(c=>c.id===selectedId);
+  const allInUse=state.pendingAllIn?.finalized&&state.pendingAllIn.judgmentCardId===selectedId?new Set(state.pendingAllIn.cardIds||[]):null;
+  const physicallyUsed=allInUse||new Set([selectedId]);
   for(const id of [...state.remainingCardIds]){
     const card=player.cardPool.find(c=>c.id===id);
-    if(id===selectedId&&card?.baseNumber>=6){
+    if(physicallyUsed.has(id)&&card?.baseNumber>=6){
       if(!state.vanishedCardIds.includes(id))state.vanishedCardIds.push(id);
       boundedHistory(state,{type:'VANISH',turn:run.combat?.turn||0,cardInstanceId:id,value:card.baseNumber});
     }else{
@@ -182,6 +190,10 @@ export function applyGamblerValidated(run,player,state,resolved){
     if(resolved?.allIn)state.allInFailedThisTurn=true;
     return 0;
   }
+  const counterWasArmed=Boolean(state.cardCounterArmed);
+  const sequenceWasArmed=Boolean(state.sequenceArmed);
+  if(counterWasArmed){bonus+=2;state.cardCounter=0;state.cardCounterArmed=false;state.countedOrdinary=[];}
+  if(sequenceWasArmed){bonus+=3;state.sequenceArmed=false;state.validOrdinaryHistory=[];}
   if(value===6){
     if(player.augments?.includes('aug-212')&&onceTurn('aug-212')){bonus+=2;state.specialCharge=(Number(state.specialCharge)||0)+1;}
     if(player.augments?.includes('aug-218')&&onceTurn('aug-218'))bonus+=3;
@@ -220,8 +232,6 @@ export function applyGamblerValidated(run,player,state,resolved){
     }
     if(player.augments?.includes('aug-227')&&state.shuffleOrdinarySeen.length===5)state.fiveMemoryArmed=true;
   }
-  if(state.cardCounterArmed){bonus+=2;state.cardCounter=0;state.cardCounterArmed=false;state.countedOrdinary=[];}
-  if(state.sequenceArmed&&value>=1&&value<=7){bonus+=3;state.sequenceArmed=false;state.validOrdinaryHistory=[];}
   if(state.fiveMemoryArmed&&[6,7].includes(value)){bonus+=4;state.fiveMemoryArmed=false;}
   resolved.gamblerBonusDamage=(Number(resolved.gamblerBonusDamage)||0)+bonus;
   state.lastValidCardValue=value;
@@ -233,7 +243,7 @@ export function gamblerSetDamage(run,player,state,resolved,damage){
   const validatedBonus=Math.max(0,Number(resolved?.gamblerBonusDamage)||0);
   if(!resolved?.allIn||!player.augments?.includes('aug-231'))return Math.max(0,Number(damage)||0)+validatedBonus;
   const key=`all-in-damage:${resolved.allInRootActionId}`;
-  if(state.processedActions[key])return damage;
+  if(Number.isFinite(state.processedActions[key]))return state.processedActions[key];
   let amount=Math.max(0,Number(resolved.allInSum)||0);
   const values=resolved.allInValues||[];
   if(player.augments.includes('aug-232'))amount+=Math.max(...[0,...(resolved.allInSum>=10?[4]:resolved.allInSum>=8?[2]:[])]);
@@ -242,12 +252,15 @@ export function gamblerSetDamage(run,player,state,resolved,damage){
   if(player.augments.includes('aug-239'))amount+=streak;
   if(player.augments.includes('aug-240')&&!state.houseUsed){amount+=8;state.houseUsed=true;}
   amount+=validatedBonus;
-  state.processedActions[key]=true;
+  state.processedActions[key]=amount;
   boundedHistory(state,{type:'ALL_IN_DAMAGE',turn:run.combat?.turn||0,rootActionId:resolved.allInRootActionId,amount});
   return amount;
 }
 export function finalizeGamblerAllIn(run,player,state,resolved){
   if(!resolved?.allIn)return;
+  const key=`all-in-final:${resolved.allInRootActionId}`;
+  if(state.processedActions[key])return;
+  state.processedActions[key]=true;
   if(resolved.valid){state.allInWinStreak=player.augments?.includes('aug-239')?Math.min(4,(Number(state.allInWinStreak)||0)+1):0;}
   else{
     state.allInWinStreak=0;state.allInFailedThisTurn=true;
