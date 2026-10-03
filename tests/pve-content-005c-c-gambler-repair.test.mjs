@@ -137,6 +137,7 @@ test('005C-C aug-228 owner choice guarantees LOW/HIGH first draw and rejects inv
   const values=x.state.remainingCardIds.map(id=>x.p.cardPool.find(c=>c.id===id).baseNumber);
   assert.ok(values.some(v=>[1,2,3].includes(v)));
   assert.equal(x.state.aug228UsedShuffle,true);
+  assert.deepEqual(x.state.telemetry.augment['aug-228'],{augmentId:'aug-228',triggerCount:1,successCount:1});
 });
 
 test('005C-C aug-230 owner can choose any three ordinary numbers and guarantee one',()=>{
@@ -393,6 +394,7 @@ test('005C-C Gambler telemetry is retry-safe for All-In attempt success damage a
   prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:judgment},r);
   const retry=resolvedFor(judgment,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:judgment},retry);
   assert.equal(x.state.telemetry.allInAttempt,1);
+  assert.deepEqual(x.state.telemetry.augment['aug-231'],{augmentId:'aug-231',triggerCount:1,successCount:1});
   const damage=gamblerSetDamage(x.run,x.p,x.state,r,2);assert.equal(gamblerSetDamage(x.run,x.p,x.state,retry,2),damage);
   assert.equal(x.state.telemetry.allInDamage,damage);
   finalizeGamblerAllIn(x.run,x.p,x.state,r);finalizeGamblerAllIn(x.run,x.p,x.state,retry);
