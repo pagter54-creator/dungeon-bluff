@@ -57,7 +57,7 @@ const positives={
  'aug-250':()=>{const x=fixture(['aug-250']);assert.equal(damage(x,shot(x,{remaining:1})),5);},
  'aug-251':()=>{const x=fixture(['aug-251']);assert.equal(damage(x,shot(x,{spent:2})),3);},
  'aug-252':()=>{const x=fixture(['aug-251','aug-252']);shot(x,{skill:false});assert.equal(x.s.precisionSetup,true);x.run.combat.turn++;assert.equal(damage(x,shot(x)),1);assert.equal(x.s.precisionSetup,false);},
- 'aug-253':()=>{const x=fixture(['aug-251','aug-253']),r=shot(x,{valid:false});assert.equal(x.s.precisionShot.armed,true);assert.equal(x.s.aug253.preservationUsedThisCombat,true);const saved=structuredClone(x.s);resolveGunnerSelected(x.run,x.p,r,{skillIntent:true});assert.deepEqual(x.s,saved);x.run.combat.turn++;shot(x);assert.equal(x.s.precisionShot.armed,false);},
+ 'aug-253':()=>{const x=fixture(['aug-251','aug-253']),r=shot(x,{valid:false});assert.equal(x.s.precisionShot.armed,true);assert.equal(x.s.aug253.preservationUsedThisCombat,true);const saved=structuredClone(x.s);resolveGunnerSelected(x.run,x.p,r,{skillIntent:true});assert.deepEqual(x.s,saved);x.run.combat.turn++;shot(x);assert.equal(x.s.precisionShot.armed,false);assert.equal(x.s.aug253.preservedForCycleId,null);},
  'aug-254':()=>{const x=fixture(['aug-251','aug-254']);assert.equal(damage(x,shot(x,{remaining:1})),5);},
  'aug-255':()=>{const x=fixture(['aug-251','aug-255']);x.s.previousFinal=3;assert.equal(damage(x,shot(x)),2);},
  'aug-256':()=>{const x=fixture(['aug-251','aug-256']);shot(x);assert.equal(x.s.weakness,1);},
