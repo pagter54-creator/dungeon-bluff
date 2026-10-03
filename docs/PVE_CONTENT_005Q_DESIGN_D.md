@@ -110,7 +110,7 @@
 
 51. **high-risk tests** — 필수21장에 explicit highRiskTest + retry/reconnect/multi-owner/same-root. 조건/경계 positive-negative가 machine artifact에 있다.
 
-52. **validator results** — 120exact, unique, class/stage/archetype, requiredschema, null/room/scope/visibility, sourcewording, userdecision actualoperation, testcontract, executable=false를 검증. 의도적으로 잘못된22개 fixture를 거절하는 regression test 포함.
+52. **validator results** — 120exact, unique, class/stage/archetype, requiredschema, null/room/scope/visibility, sourcewording, userdecision actualoperation, testcontract, executable=false를 검증. 의도적으로 잘못된23개 fixture를 거절하는 regression test 포함.
 
 53. **unresolved scanner** — 현재 contract의 incomplete marker0; sourceIntent/sourceValueV01/oldclassification historical quote는 제외. historicalpreflight는 현재 상태가 아니다.
 
