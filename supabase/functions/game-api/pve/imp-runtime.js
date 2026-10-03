@@ -68,14 +68,14 @@ export function prepareImpSubmission(run,p,skillData=null){
   if(p.characterId!=='imp')return {spent:0};
   const priv=run.combat?.privateByPlayer?.[p.playerId]||run.roomState?.privateByPlayer?.[p.playerId];
   const data=skillData||{};let spent=0;
-  if(owned(p,'aug-191')){
+  if(owned(p,'aug-191')&&impRoomAllowed(run,'aug-191')){
     const have=clampStored(p),requested=Math.max(0,Number(data.stolen_number_spend??data.impSpend)||0);
     const maxSpend=owned(p,'aug-193')?have:Math.min(2,have);
     if(!Number.isInteger(requested)||requested>maxSpend)throw new Error('INVALID_STOLEN_NUMBER_SPEND');
     p.publicResources.stolenNumber=have-requested;spent=requested;
   }
   let tradeMode=null;
-  if(owned(p,'aug-195')&&data.impTradeMode!=null){
+  if(owned(p,'aug-195')&&impRoomAllowed(run,'aug-195')&&data.impTradeMode!=null){
     tradeMode=String(data.impTradeMode).toUpperCase();if(!['ATTACK','DEFENSE'].includes(tradeMode))throw new Error('INVALID_IMP_TRADE_MODE');
     const have=clampStored(p);if(have<2)throw new Error('INSUFFICIENT_STOLEN_NUMBER');
     p.publicResources.stolenNumber=have-2;
@@ -133,7 +133,7 @@ export function applyImpPreCollisionSteal(run,cards,events=[]){
       if(actual>0){targetCard.workingNumber=Math.max(0,before-actual);ev.after=targetCard.workingNumber;total+=actual;victimIds.push(victim.playerId);if(before===1||before===2)lowVictimIds.push(victim.playerId);actor.stealEvents.push(ev);events.push(ev);applyMischiefOnSteal(run,imp,victim,rootActionId,events);}
       else {ev.after=before;events.push(ev);}
     }
-    const storageMode=owned(imp,'aug-191');
+    const storageMode=owned(imp,'aug-191')&&impRoomAllowed(run,'aug-191');
     if(storageMode){actor.storedThisSteal=addStored(imp,total);}else actor.workingNumber=actorStart+total;
     actor.stealTotal=total;actor.stealTargets=[...new Set(victimIds)];actor.stealTargetCount=actor.stealTargets.length;actor.lowStealVictimCount=new Set(lowVictimIds).size;
     imp.publicResources.greed=total;
