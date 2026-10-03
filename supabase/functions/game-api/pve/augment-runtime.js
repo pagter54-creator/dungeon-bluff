@@ -260,7 +260,7 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
   ...Object.fromEntries(Object.entries(ROGUE_CONTRACTS).filter(([id])=>id!=='aug-061').map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['ROGUE_V02']}])) ,
   ...Object.fromEntries(Object.entries(MAGE_CONTRACTS).filter(([id])=>!['aug-091','aug-101','aug-111'].includes(id)).map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['MAGE_V02']}])) ,
   ...Object.fromEntries(Object.entries(BERSERKER_CONTRACTS).filter(([id])=>!['aug-121','aug-131'].includes(id)).map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['BERSERKER_V02']}])) ,
-  ...Object.fromEntries(Object.entries(SEER_CONTRACTS).map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['SEER_V02']}])) ,
+  ...Object.fromEntries(Object.entries(SEER_CONTRACTS).map(([id,contract])=>[id,{...contract,...(id==='aug-161'?{config:{recoverCount:1,targetMode:'EXPLICIT_ALLY',recoverableSources:['BASE'],excludeTemporary:true}}:{}),effects:[],specialHandlers:['SEER_V02']}])) ,
 });
 
 export function executableAugmentRuntime(augmentId){return EXECUTABLE_AUGMENT_RUNTIME[augmentId]||null;}
