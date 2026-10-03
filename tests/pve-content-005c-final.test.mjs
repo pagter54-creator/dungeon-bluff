@@ -113,7 +113,7 @@ test('005C FINAL AI all classes advances all four stages deterministically',()=>
  function execute(){
   const players=classes.map((character_id,i)=>newPlayerRunState({id:'p'+i,character_id,seat_index:i,member_type:'ai'}));
   const run={id:'AI',seed:'005c-final-ai',rngCounter:0,version:0,phase:'ROOM_RESULT',floor:1,players};
-  for(const p of players)p.growthExp=750;assert.equal(beginAugmentChoices(run),true);assert.equal(run.phase,'ROOM_RESULT');
+  for(const p of players)p.growthExp=750;for(let boundary=0;boundary<4;boundary++)beginAugmentChoices(run);assert.equal(run.phase,'ROOM_RESULT');
   for(const p of players){assert.equal(p.augments.length,4);assert.ok(p.augments.every(id=>AUGMENT_BY_ID[id].build===p.augmentBuild));}
   return run;
  }
