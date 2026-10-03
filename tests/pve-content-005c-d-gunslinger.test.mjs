@@ -9,8 +9,8 @@ import {AUGMENT_BY_ID,augmentCandidates} from '../supabase/functions/game-api/pv
 import {EXECUTABLE_AUGMENT_RUNTIME} from '../supabase/functions/game-api/pve/augment-runtime.js';
 import {enterRewardRoom,submitRewardCard} from '../supabase/functions/game-api/pve/rooms.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
-function fixture(ids=[]){
- const players=['gunner','prophet','imp','mage'].map((character_id,i)=>newPlayerRunState({id:'p'+i,character_id,seat_index:i,member_type:'human'}));
+function fixture(ids=[],fourth='mage'){
+ const players=['gunner','prophet','imp',fourth].map((character_id,i)=>newPlayerRunState({id:'p'+i,character_id,seat_index:i,member_type:'human'}));
  players[0].augments=ids;
  const run={id:'gunner-test',seed:'gunner-seed',rngCounter:0,phase:'COMBAT',floor:1,depth:1,currentRoomNodeId:'room',players,flame:5,maxFlame:5};
  run.combat=newCombatState(players,9999);run.combat.id='gunner-combat';beginTurn(run);
@@ -109,16 +109,16 @@ test('005C-D owner-only magazine/activation/once state survives reconnect at Hea
  }
 });
 
-for(const build of ['전탄 난사','정밀 사수','과열 기관']){
- test('005C-D full '+build+' build with Seer Imp Mage preserves one collision participant and deterministic state',()=>{
+for(const build of ['전탄 난사','정밀 사수','과열 기관'])for(const fourth of ['mage','warrior','gambler']){
+ test('005C-D full '+build+' build with Seer Imp '+fourth preserves one collision participant and deterministic state',()=>{
   const ids=GUNNER_CONTRACT_IDS.filter(id=>GUNNER_CONTRACTS[id].archetype===build);
-  const a=fixture(ids),b=fixture(ids);
+  const a=fixture(ids,fourth),b=fixture(ids,fourth);
   for(const x of [a,b]){
    for(const p of x.run.players){p.hp=100;p.maxHp=100;}
    for(let t=0;t<8;t++){
     for(const p of x.run.players){
      const priv=x.run.combat.privateByPlayer[p.playerId];
-     if(!x.run.combat.turnSubmissions[p.playerId])submitCard(x.run,p.playerId,priv.remainingCardIds[0],p.playerId==='p0'&&p.publicResources.fullBurstReady===true);
+     if(!x.run.combat.turnSubmissions[p.playerId])submitCard(x.run,p.playerId,t===0&&p.playerId==='p0'?priv.remainingCardIds.at(-1):priv.remainingCardIds[0],p.playerId==='p0'&&p.publicResources.fullBurstReady===true);
     }
     x.run.combat.monster.intent={type:'CHARGE',payload:{}};
     const result=resolveBasicTurn(x.run);assert.equal(result.cards.length,4);
@@ -126,6 +126,7 @@ for(const build of ['전탄 난사','정밀 사수','과열 기관']){
     assert.ok(gunnerState(x.run,x.p).overheat>=0&&gunnerState(x.run,x.p).overheat<=3);
    }
   }
+  assert.ok(build==='정밀 사수'?gunnerState(a.run,a.p).telemetry.precisionTriggers>0:gunnerState(a.run,a.p).telemetry.burstSuccess>0);
   assert.deepEqual(gunnerState(a.run,a.p),gunnerState(b.run,b.p));
  });
 }
@@ -148,7 +149,7 @@ test('005C-D actual 4-card Burst orders three physical derived cards then one fi
  assert.equal(result.events.filter(e=>e.type==='CYCLE_RESET'&&e.playerId==='p0').length,1);
  const action=Object.values(x.s.burstActions)[0];
  assert.deepEqual(action.phases,['BURST_ACTIVATION','SELECTED_CARD_RESOLUTION','BURST_SUCCESS_OR_FAILURE','REMAINING_CARD_USE','DAMAGE_RESOLUTION','MAGAZINE/CYCLE_ADVANCE','COOLDOWN/RECHARGE']);
- assert.equal(action.completed,true);assert.equal(x.s.telemetry.burstAttempts,1);assert.equal(x.s.telemetry.derivedCardsUsed,3);
+ assert.equal(action.rootActionId,packets[0].rootActionId);assert.equal(action.completed,true);assert.equal(x.s.telemetry.burstAttempts,1);assert.equal(x.s.telemetry.derivedCardsUsed,3);
  assert.equal(x.s.magazine.cycleIndex,2);assert.deepEqual(projectRun(structuredClone(x.run),'p0').privateGunnerState,x.s);
 });
 test('005C-D actual failed Burst consumes only selection; SELF damage reaches DOWN and spends Flame once',()=>{
@@ -229,4 +230,24 @@ test('005C-D all 120 005C candidates are reachable and later stages respect each
   }
   assert.equal(all.size,30);
  }
+});
+
+test('005C-D Heat advances 0 to 3 without exceeding cap and forced failure keeps Heat3 with one penalty',()=>{
+ const x=fixture(['aug-261']);
+ for(let n=1;n<=4;n++){shot(x);assert.equal(x.s.overheat,Math.min(n,3));x.run.combat.turn++;}
+ assert.equal(x.s.telemetry.maxOverheatReached,1);
+ const y=fixture(['aug-261','aug-270']);y.s.overheat=3;y.s.blockedTurn=1;
+ const r=shot(y,{valid:false});assert.equal(r.gunnerForced,true);assert.equal(r.burstMisfire,true);assert.equal(y.s.overheat,3);
+ const saved=structuredClone(y.s);resolveGunnerSelected(y.run,y.p,r,{skillIntent:true});assert.deepEqual(y.s,saved);assert.equal(y.s.once['aug-270:combat'],true);
+});
+test('005C-D combat initialization retry preserves armed flags and RUN output survives new combat',()=>{
+ const x=fixture(['aug-251','aug-253','aug-269']);shot(x,{valid:false});x.s.output269=2;
+ const before=structuredClone(x.s);applyOwnedEffects(x.run,'COMBAT_START',{player:x.p});assert.deepEqual(x.s,before);
+ applyOwnedEffects(x.run,'COMBAT_END',{player:x.p});x.run.combat.id='next-combat';
+ applyOwnedEffects(x.run,'COMBAT_START',{player:x.p});const s=gunnerState(x.run,x.p);
+ assert.equal(s.output269,2);assert.equal(s.aug253.preservationUsedThisCombat,false);assert.equal(s.precisionShot.armed,true);
+});
+test('005C-D failed Burst SELF cost never grants Berserker Revenge to another owner',()=>{
+ const x=fixture(['aug-241'],'berserker');x.run.players[3].augments=['aug-131'];x.run.players[3].publicResources.revenge=0;
+ play(x,{collision:true});assert.equal(x.run.players[3].publicResources.revenge,0);
 });
