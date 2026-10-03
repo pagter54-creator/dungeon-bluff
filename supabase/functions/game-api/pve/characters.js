@@ -107,7 +107,9 @@ export function initializeCombatCharacter(player){
   if(player.characterId==='gunner'){
     // Construct the starting magazine before its first physical cycle exists.
     // Later acquisitions preserve identities through ensureGunnerMagazine.
-    if(!player.persistentCharacterState.gunnerMagazineInitialized&&player.augments.includes('aug-241'))setCanonicalBaseDeck(player,[1,2,2,3]);
+    if(!player.persistentCharacterState.gunnerMagazineInitialized&&player.augments.includes('aug-241')){
+      setCanonicalBaseDeck(player,[1,2,2,3]);player.persistentCharacterState.gunnerMagazineOverridePending=true;
+    }
     player.persistentCharacterState.gunnerMagazineInitialized=true;
     if(player.augments.includes('aug-241'))ensureGunnerMagazine({players:[player]},player);
     player.publicResources.fullBurstReady=true;
