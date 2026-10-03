@@ -233,12 +233,12 @@ test('005C-A multiple Seers keep private state and provenance owners independent
   assert.equal(run.augmentFramework.seer.recoveredCards[ib].recoveredByPlayerId,'p1');
 });
 
-test('005C-A remains 30/30 while 005C-C raises shared registry counts to 91 and 241',()=>{
+test('005C-A remains 30/30 while 005C-C raises shared registry counts to 120 and 270',()=>{
   const ids=Object.keys(EXECUTABLE_AUGMENT_RUNTIME).filter(id=>EXECUTABLE_AUGMENT_RUNTIME[id]?.executable===true);
   const c005=ids.filter(id=>{const n=Number(id.slice(4));return n>=151&&n<=270;});
   const global=ids.filter(id=>{const n=Number(id.slice(4));return n>=1&&n<=270;});
-  assert.equal(new Set(c005).size,91);
-  assert.equal(new Set(global).size,241);
+  assert.equal(new Set(c005).size,120);
+  assert.equal(new Set(global).size,270);
   assert.equal(c005.filter(id=>{const n=Number(id.slice(4));return n>=181&&n<=210;}).length,30);
   assert.ok(c005.includes('aug-241'));
 });

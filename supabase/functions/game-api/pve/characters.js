@@ -1,3 +1,4 @@
+import {ensureGunnerMagazine,resolveGunnerSelected} from './gunner-runtime.js';
 import {grantAugmentExp} from './augment-framework.js';
 import {choose} from './rng.js';
 import {GAMBLER_BASE_DECK} from './gambler.js';
@@ -104,7 +105,13 @@ export function initializeCombatCharacter(player){
   if(player.characterId==='berserker'&&player.augments.includes('aug-131'))player.publicResources.revenge=0;
   if(player.characterId==='vampire'&&player.augments.includes('aug-321'))player.publicResources.blood=0;
   if(player.characterId==='gunner'){
-    if(player.augments.includes('aug-241'))setCanonicalBaseDeck(player,[...(runtimeConfig('aug-241').expandedDeck||[1,2,2,3])]);
+    // Construct the starting magazine before its first physical cycle exists.
+    // Later acquisitions preserve identities through ensureGunnerMagazine.
+    if(!player.persistentCharacterState.gunnerMagazineInitialized&&player.augments.includes('aug-241')){
+      setCanonicalBaseDeck(player,[1,2,2,3]);player.persistentCharacterState.gunnerMagazineOverridePending=true;
+    }
+    player.persistentCharacterState.gunnerMagazineInitialized=true;
+    if(player.augments.includes('aug-241'))ensureGunnerMagazine({players:[player]},player);
     player.publicResources.fullBurstReady=true;
     player.publicResources.burstReadyCycle=1;
   }
@@ -544,20 +551,7 @@ export function resolvePostCollisionCharacter(run,resolved,submission,events=[])
     resolved.bloodFrenzyExpectedHpCost=player.hp>1?1:0;
   }
   if(player.characterId==='prophet')resolveSeerBaseValidity(run,player,resolved,events);
-  if(player.characterId!=='gunner'||!submission.skillIntent)return;
-  const gunnerPriv=run.combat.privateByPlayer[player.playerId];
-  player.publicResources.fullBurstReady=false;
-  if(resolved.valid){
-    resolved.followUpCardIds=gunnerPriv.remainingCardIds.filter(id=>id!==resolved.cardInstanceId);
-    player.publicResources.burstReadyCycle=(gunnerPriv.cycleIndex||1)+2;
-    resolved.skillUsed='full_burst';
-    resolved.fullBurstOutcome='SUCCESS';
-  }else if(resolved.invalidReason==='COLLISION'){
-    player.publicResources.burstReadyCycle=(gunnerPriv.cycleIndex||1)+1;
-    resolved.skillUsed='full_burst';
-    resolved.fullBurstOutcome='FAIL_COLLISION';
-    resolved.burstMisfire=true;
-  }
+  if(player.characterId==='gunner')resolveGunnerSelected(run,player,resolved,submission,events);
 }
 export function baseDamageForCharacter(player,resolved){
   if(player.characterId==='rogue'&&resolved.soloLowest&&!player.augments.includes('aug-071'))return 5;

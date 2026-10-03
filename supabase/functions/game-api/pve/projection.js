@@ -7,6 +7,8 @@ export function projectRun(run,viewerPlayerId){
   if(out.roomState?.type==='SHOP'&&run.augmentFramework?.cardState?.[viewerPlayerId+':ad:shopDiscount']?.ready){
     for(const item of [...out.roomState.cardStock,...out.roomState.relicStock]){item.basePrice=item.price;item.price=Math.max(0,item.price-1);}
   }
+  const ownGunner=run.augmentFramework?.cardState?.[viewerPlayerId+':gunner'];
+  if(ownGunner)out.privateGunnerState=structuredClone(ownGunner);
   delete out.augmentFramework;
   delete out.frameworkEffects;
   if(publicFramework)out.augmentStatuses=publicFramework.statuses;
@@ -19,6 +21,14 @@ export function projectRun(run,viewerPlayerId){
   if(!out.combat&&run.cardCycles?.[viewerPlayerId])out.privateCombat=structuredClone(run.cardCycles[viewerPlayerId]);
   if(out.combat?.monster){delete out.combat.monster.mechanic;delete out.combat.monster.behaviorState;delete out.combat.monster.pattern;}
 
+  // DESIGN-C public class resources exclude physical magazine/activation identities.
+  if(run.phase==='COMBAT')for(const player of out.players||[]){
+    if(player.characterId!=='gunner')continue;
+    const state=run.augmentFramework?.cardState?.[player.playerId+':gunner'];if(!state)continue;
+    if(player.augments?.includes('aug-261'))player.publicResources.overheat=state.overheat;
+    if(player.augments?.includes('aug-266'))player.publicResources.burstOutput=state.output;
+    if(player.augments?.includes('aug-253'))player.publicResources.precisionShotPreserved=state.aug253.preservedForCycleId!==null;
+  }
   // Gambler aggregate pile counts/composition may be public; exact order, identities and history stay owner-only.
   for(const player of out.players||[]){
     if(player.characterId!=='gambler')continue;
@@ -58,6 +68,7 @@ export function projectRun(run,viewerPlayerId){
     for(const card of result.cards||[]){
       // All-In partner identities/printed values and borrowed deck information are owner-private.
       if(card.playerId!==viewerPlayerId){
+        for(const key of Object.keys(card))if(key.startsWith('gunner'))delete card[key];
         for(const key of ['allInCardIds','allInValues','allInSum','allInRootActionId','gamblerBorrowBonus','doubleDownSecond','allAssets','aug237Reduced'])delete card[key];
       }
       delete card.numberHistory;

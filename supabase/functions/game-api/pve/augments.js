@@ -1,3 +1,4 @@
+import {ensureGunnerMagazine} from './gunner-runtime.js';
 import {assertAdventurerHandler} from './adventurer-runtime.js';
 import {assertKnightHandler} from './knight-runtime.js';
 import {assertRogueHandler} from './rogue-runtime.js';
@@ -72,7 +73,7 @@ function applyChoice(run,playerId,augmentId){
   if(player.augments.includes(augmentId))throw new Error('이미 획득한 증강입니다.');
   player.augments.push(augmentId);
   const acquisition=acquireAugmentOnce(run,player,augmentId,{actionId:`augment-choice:${run.id}:${run.version}:${playerId}:${augmentId}`});
-  if(acquisition.applied)applyContent005B(run,'ON_ACQUIRE',{player});
+  if(acquisition.applied){applyContent005B(run,'ON_ACQUIRE',{player});if(augmentId==='aug-241')ensureGunnerMagazine(run,player);}
   completedTiers(player).push(tier);
   tiers.shift();
   refreshOffer(run,playerId);

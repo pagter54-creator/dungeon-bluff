@@ -4,6 +4,7 @@ import {resourceMax} from './resources.js';
 import {dispatchAugmentTrigger} from './augment-framework.js';
 import {applyContent005B} from './content-005b-runtime.js';
 import {notifyBerserkerHeal} from './berserker-runtime.js';
+import {applyGunnerRuntime} from './gunner-runtime.js';
 import {applySeerRuntime} from './seer-runtime.js';
 
 const VALID_OPERATIONS=new Set([
@@ -116,6 +117,7 @@ export function applyOwnedEffects(run,trigger,ctx={}){
   fired.push(...dispatchAugmentTrigger(run,trigger,ctx));
   fired.push(...applyContent005B(run,trigger,ctx));
   fired.push(...applySeerRuntime(run,trigger,ctx));
+  fired.push(...applyGunnerRuntime(run,trigger,ctx));
   return fired;
 }
 export function applyEffectDefinitions(run,player,definitions,trigger,ctx={}){

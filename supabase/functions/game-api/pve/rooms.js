@@ -187,7 +187,7 @@ export function submitRewardCard(run,playerId,cardInstanceId,skillIntent=false,s
   const p=playerFor(run,playerId),room=run.roomState,st=room.privateByPlayer[playerId];if(!p||p.status==='DOWNED')throw new Error('카드를 제출할 수 없습니다.');
   if(room.turnSubmissions[playerId])throw new Error('이미 제출했습니다.');
   if(!rewardSelectable(run,p,cardInstanceId))throw new Error('사용 가능한 카드가 아닙니다.');
-  if(skillIntent&&!['warrior','mage','vampire','gunner'].includes(p.characterId))throw new Error('이 스킬은 보상방 카드 판정에 사용할 수 없습니다.');
+  if(skillIntent&&!['warrior','mage','vampire'].includes(p.characterId))throw new Error('이 스킬은 보상방 카드 판정에 사용할 수 없습니다.');
   validateCharacterSkillIntent(p,st,Boolean(skillIntent),cardFor(p,cardInstanceId),skillData);
   if(p.characterId==='imp')prepareImpSubmission(run,p,skillData);
   room.turnSubmissions[playerId]={playerId,cardInstanceId,skillIntent:Boolean(skillIntent),...(skillData?{skillData:structuredClone(skillData)}:{})};st.selectedCardId=cardInstanceId;st.skillIntent=Boolean(skillIntent);
@@ -285,7 +285,7 @@ export function resolveRewardAttempt(run){
   for(const c of cards){const player=playerFor(run,c.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player,resolved:c,privateState:room.privateByPlayer[c.playerId],events:[]});applyImpCardValidated(run,{player,resolved:c,cards,events:[]});if(player.characterId==='gambler')applyGamblerValidated(run,player,room.privateByPlayer[c.playerId],c);}
   for(const c of cards){
     const p=playerFor(run,c.playerId),sub=room.turnSubmissions[c.playerId],st=room.privateByPlayer[c.playerId];
-    if(p.characterId==='gunner'&&sub.skillIntent){p.publicResources.fullBurstReady=false;if(c.valid){c.followUpCardIds=st.remainingCardIds.filter(id=>id!==c.cardInstanceId);p.publicResources.burstReadyCycle=(st.cycleIndex||1)+2;}else{p.publicResources.burstReadyCycle=(st.cycleIndex||1)+1;p.hp=Math.max(0,p.hp-1);}}
+    // Combat-only Gunslinger skills never mutate Reward damage, HP or magazine, even in older saved submissions.
     const engrave=Number(p.engravings?.[String(c.finalNumber)])||0;const ordinaryAmount=Math.max(0,baseDamageForCharacter(p,c)+engrave);const primary={amount:ordinaryAmount},queued=[];
     applyOwnedEffects(run,'BEFORE_DAMAGE',{player:p,resolved:c,damage:primary,followUps:queued,followUp:false,privateState:room.privateByPlayer[c.playerId],events:[]});
     applyImpBeforeDamage(run,{player:p,resolved:c,damage:primary,followUp:false,events:[]});
