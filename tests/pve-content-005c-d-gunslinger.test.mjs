@@ -7,6 +7,7 @@ import {GUNNER_CONTRACTS,GUNNER_CONTRACT_IDS} from '../supabase/functions/game-a
 import {gunnerState,ensureGunnerMagazine,resolveGunnerSelected,gunnerPenetration,gunnerExtraComponent} from '../supabase/functions/game-api/pve/gunner-runtime.js';
 import {AUGMENT_BY_ID,augmentCandidates} from '../supabase/functions/game-api/pve/augment-catalog.js';
 import {EXECUTABLE_AUGMENT_RUNTIME} from '../supabase/functions/game-api/pve/augment-runtime.js';
+import {enterRewardRoom,submitRewardCard} from '../supabase/functions/game-api/pve/rooms.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 function fixture(ids=[]){
  const players=['gunner','prophet','imp','mage'].map((character_id,i)=>newPlayerRunState({id:'p'+i,character_id,seat_index:i,member_type:'human'}));
@@ -128,3 +129,92 @@ for(const build of ['전탄 난사','정밀 사수','과열 기관']){
   assert.deepEqual(gunnerState(a.run,a.p),gunnerState(b.run,b.p));
  });
 }
+
+function play(x,{gunnerNumber=1,collision=false}={}){
+ for(const p of x.run.players){
+  const priv=x.run.combat.privateByPlayer[p.playerId];
+  const card=p.cardPool.find(c=>priv.remainingCardIds.includes(c.id)&&(p.playerId==='p0'?c.baseNumber===gunnerNumber:c.baseNumber===(collision?gunnerNumber:2)))||p.cardPool.find(c=>priv.remainingCardIds.includes(c.id));
+  submitCard(x.run,p.playerId,card.id,p.playerId==='p0');
+ }
+ x.run.combat.monster.intent={type:'CHARGE',payload:{}};
+ return resolveBasicTurn(x.run);
+}
+test('005C-D actual 4-card Burst orders three physical derived cards then one fixed component and advances once',()=>{
+ const x=fixture(['aug-241','aug-242','aug-248']),ids=[...x.priv.remainingCardIds],result=play(x);
+ const packets=result.damagePackets.filter(p=>p.sourcePlayerId==='p0');
+ assert.equal(packets.length,5);assert.deepEqual(packets.slice(0,4).map(p=>p.sourceCardId),ids);
+ assert.equal(packets[4].amount,5);assert.equal(packets[4].extraDamageComponent,true);assert.equal(packets[4].createsSeparateHit,false);
+ assert.equal(result.cards.length,4);assert.equal(x.priv.cycleIndex,2);assert.equal(x.p.publicResources.burstReadyCycle,3);
+ assert.equal(result.events.filter(e=>e.type==='CYCLE_RESET'&&e.playerId==='p0').length,1);
+ const action=Object.values(x.s.burstActions)[0];
+ assert.deepEqual(action.phases,['BURST_ACTIVATION','SELECTED_CARD_RESOLUTION','BURST_SUCCESS_OR_FAILURE','REMAINING_CARD_USE','DAMAGE_RESOLUTION','MAGAZINE/CYCLE_ADVANCE','COOLDOWN/RECHARGE']);
+ assert.equal(action.completed,true);assert.equal(x.s.telemetry.burstAttempts,1);assert.equal(x.s.telemetry.derivedCardsUsed,3);
+ assert.equal(x.s.magazine.cycleIndex,2);assert.deepEqual(projectRun(structuredClone(x.run),'p0').privateGunnerState,x.s);
+});
+test('005C-D actual failed Burst consumes only selection; SELF damage reaches DOWN and spends Flame once',()=>{
+ const x=fixture(['aug-241']);x.p.hp=1;const flame=x.run.flame,result=play(x,{collision:true});
+ assert.equal(result.cards.find(c=>c.playerId==='p0').fullBurstOutcome,'FAIL_COLLISION');
+ assert.equal(result.damagePackets.filter(p=>p.sourcePlayerId==='p0').length,0);
+ assert.equal(x.priv.spentCardIds.length,1);assert.equal(x.priv.remainingCardIds.length,3);assert.equal(x.priv.cycleIndex,1);
+ const failure=result.events.find(e=>e.type==='FULL_BURST_MISFIRE');
+ assert.equal(failure.damageType,'SELF');assert.equal(failure.canDown,true);assert.equal(failure.minHP,0);assert.equal(failure.timing,'POST_PLAYER_ATTACK');
+ assert.equal(x.run.flame,flame-1);assert.equal(x.p.hp,1);assert.equal(x.s.telemetry.failureSelfDamage,1);assert.equal(x.p.publicResources.burstReadyCycle,2);
+});
+test('005C-D actual Precision defense penetration precedes mitigation and retains physical magazine remainder',()=>{
+ const a=fixture(['aug-251','aug-257']),b=fixture(['aug-251']);
+ for(const x of [a,b]){x.priv.spentCardIds=x.p.cardPool.slice(0,2).map(c=>c.id);x.priv.remainingCardIds=[x.p.cardPool[2].id];x.run.combat.monster.defense=2;}
+ const ar=play(a,{gunnerNumber:3}),br=play(b,{gunnerNumber:3});
+ const ap=ar.damagePackets.find(p=>p.sourcePlayerId==='p0'),bp=br.damagePackets.find(p=>p.sourcePlayerId==='p0');
+ assert.equal(ap.armorPenetration,1);assert.equal(ap.amount,bp.amount+1);assert.equal(a.s.telemetry.defensePenetrated,1);
+ const partial=fixture(['aug-251']);play(partial);assert.equal(partial.priv.remainingCardIds.length,2);assert.equal(partial.priv.cycleIndex,1);
+});
+test('005C-D blocked Overheat turn retains Heat 1 and same turn cooling cannot consume it twice',()=>{
+ const x=fixture(['aug-261']);x.s.overheat=2;shot(x);assert.equal(x.s.overheat,3);
+ x.run.combat.turn++;applyOwnedEffects(x.run,'TURN_START',{player:x.p});assert.equal(x.p.publicResources.fullBurstReady,false);assert.equal(x.s.overheat,1);
+ applyOwnedEffects(x.run,'TURN_END',{player:x.p});assert.equal(x.s.overheat,1);
+ const saved=structuredClone(x.s);applyOwnedEffects(x.run,'TURN_END',{player:x.p});assert.deepEqual(x.s,saved);
+});
+test('005C-D 253 second collision consumes preserved activation and noncollision invalid never preserves',()=>{
+ const x=fixture(['aug-251','aug-253']);shot(x,{valid:false});x.run.combat.turn++;shot(x,{valid:false});
+ assert.equal(x.s.precisionShot.armed,false);assert.equal(x.s.telemetry.augment['aug-253'].successCount,1);
+ const y=fixture(['aug-251','aug-253']);const r={playerId:'p0',cardInstanceId:y.priv.remainingCardIds[0],finalNumber:1,valid:false,invalidReason:'OTHER'};
+ resolveGunnerSelected(y.run,y.p,r,{skillIntent:true});assert.equal(y.s.precisionShot.armed,false);assert.equal(y.s.aug253.preservationUsedThisCombat,false);
+ const z=fixture(['aug-251','aug-253']);shot(z,{valid:false});
+ assert.deepEqual(projectRun(structuredClone(z.run),'p0').privateGunnerState.aug253,z.s.aug253);
+});
+test('005C-D execution predicates reject non-last Deadeye and same-shot newly gained third Weakness',()=>{
+ const x=fixture(['aug-251','aug-258']);x.priv.spentCardIds=['old-a','old-b'];assert.equal(damage(x,shot(x)),3);
+ const y=fixture(['aug-251','aug-256','aug-260']);y.s.weakness=2;
+ assert.equal(damage(y,shot(y,{remaining:1})),5);assert.equal(y.s.weakness,3);assert.equal(y.s.telemetry.augment['aug-260'],undefined);
+});
+test('005C-D pending activation reconnect resumes once with Heat, physical zones and cooldown intact',()=>{
+ const x=fixture(['aug-261','aug-266']),r={playerId:'p0',cardInstanceId:x.priv.remainingCardIds[0],finalNumber:1,valid:true};
+ applyOwnedEffects(x.run,'ON_SKILL_USE',{player:x.p,resolved:r});
+ const run=structuredClone(x.run),p=run.players[0],s=gunnerState(run,p);
+ applyOwnedEffects(run,'ON_SKILL_USE',{player:p,resolved:r});assert.equal(s.overheat,1);
+ resolveGunnerSelected(run,p,r,{skillIntent:true});const before=structuredClone(s);resolveGunnerSelected(run,p,r,{skillIntent:true});
+ assert.deepEqual(s,before);assert.equal(s.telemetry.burstAttempts,1);
+});
+test('005C-D two Gunners have independent Heat, Precision flags, magazines and once guards',()=>{
+ const x=fixture(['aug-261']),other=newPlayerRunState({id:'p1',character_id:'gunner',seat_index:1,member_type:'human'});
+ other.augments=['aug-251','aug-253'];x.run.players[1]=other;x.run.combat=newCombatState(x.run.players,9999);x.run.combat.id='two-gunners';beginTurn(x.run);
+ const a=gunnerState(x.run,x.run.players[0]),b=gunnerState(x.run,other);
+ const r={playerId:'p1',cardInstanceId:other.cardPool[0].id,finalNumber:1,valid:false,invalidReason:'COLLISION'};
+ resolveGunnerSelected(x.run,other,r,{skillIntent:true});assert.equal(b.aug253.preservationUsedThisCombat,true);assert.equal(a.aug253.preservationUsedThisCombat,false);
+ assert.equal(a.overheat,0);assert.equal(b.overheat,0);assert.notDeepEqual(a.magazine.magazineCardInstanceIds,b.magazine.magazineCardInstanceIds);
+});
+test('005C-D Reward submission rejects Burst rather than adding combat packets to ranking',()=>{
+ const x=fixture(['aug-241','aug-248','aug-261']);enterRewardRoom(x.run);
+ const st=x.run.roomState.privateByPlayer.p0,card=st.remainingCardIds[0];
+ const before=structuredClone(x.s);assert.throws(()=>submitRewardCard(x.run,'p0',card,true),/보상방/);
+ assert.deepEqual(x.s,before);assert.equal(x.run.roomState.turnSubmissions.p0,undefined);
+});
+test('005C-D all five room matrices, RUN output persistence and COMBAT cleanup are exact',()=>{
+ for(const phase of ['EVENT','REWARD_ROOM','SHOP','REST']){
+  const x=fixture(GUNNER_CONTRACT_IDS);x.run.phase=phase;const before=structuredClone(x.s);
+  for(const trigger of ['ON_SKILL_USE','CARD_VALIDATED','BEFORE_DAMAGE','TURN_END'])applyOwnedEffects(x.run,trigger,{player:x.p,resolved:{playerId:'p0',cardInstanceId:x.p.cardPool[0].id,finalNumber:1,valid:true},damage:{amount:1}});
+  assert.deepEqual(x.s,before);
+ }
+ const x=fixture(['aug-269','aug-261','aug-253']);x.s.output269=3;x.s.overheat=3;x.s.accuracy=4;
+ applyOwnedEffects(x.run,'COMBAT_END',{player:x.p});assert.equal(x.s.output269,3);assert.equal(x.s.overheat,0);assert.equal(x.s.accuracy,0);assert.equal(x.s.aug253.preservationUsedThisCombat,false);
+});
