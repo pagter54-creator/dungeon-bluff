@@ -14,6 +14,7 @@ import {GUNNER_CONTRACTS} from '../supabase/functions/game-api/pve/gunner-contra
 import {PVE_EXECUTABLE_AUGMENT_UI} from '../src/pve-ui-catalog.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 import {setGamblerDrawPreference} from '../supabase/functions/game-api/pve/gambler.js';
+import {cleanupSeerCombat,scopedSeerState} from '../supabase/functions/game-api/pve/seer-runtime.js';
 const contracts={...SEER_CONTRACTS,...IMP_CONTRACTS,...GAMBLER_CONTRACTS,...GUNNER_CONTRACTS};
 const ids=Array.from({length:120},(_,i)=>'aug-'+String(151+i).padStart(3,'0'));
 const classes=['prophet','imp','gambler','gunner'];
@@ -154,4 +155,15 @@ test('005C FINAL immutable source and golden git blob hashes',()=>{
  'tests/fixtures/pve-stress-t06-golden.json':'25cf1ab9dc82865e4ccdd543f9a427871697d0d7'
  };
  for(const [path,hash] of Object.entries(hashes)){const b=fs.readFileSync(new URL('../'+path,import.meta.url));assert.equal(createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex'),hash,path);}
+});
+
+test('005C FINAL Seer completed combat claims expire per owner before serial reuse',()=>{
+ const run=make(['prophet','prophet','imp','gunner']);
+ const s=scopedSeerState(run,run.players[0]);s.activationSerial=1;
+ run.augmentFramework.seer||={recoveredCards:{},buffs:[],applied:{},sequence:0};
+ run.augmentFramework.seer.applied={'p0:aug-169:revelation:1:valid-bonus':true,'p1:aug-169:revelation:1:valid-bonus':true};
+ cleanupSeerCombat(run,run.players[0]);
+ assert.equal(run.augmentFramework.seer.applied['p0:aug-169:revelation:1:valid-bonus'],undefined);
+ assert.equal(run.augmentFramework.seer.applied['p1:aug-169:revelation:1:valid-bonus'],true);
+ assert.equal(scopedSeerState(run,run.players[0]).activationSerial,0);
 });
