@@ -116,36 +116,22 @@ test('blocked berserker cards never spend HP; original numbers still control col
  const {g}=setup(['berserker','adventurer','warrior','rogue']);
  const r=resolveTurn(g,submit(g,[4,5,2,3]));assert.equal(r.cards[0].valid,true);assert.equal(r.cards[0].damageValue,5);
 });
-test('seer gains a stack on any collision and spends one for current-turn private knowledge',()=> {
-  const {g,members}=setup(['seer','adventurer','warrior','rogue']);
-  const p=g.state.players.p0;
-  room(g,'suspicious_merchant','event');
-  resolveTurn(g,submit(g,[3,3,3,5]));
+test('seer base Revelation uses canonical valid gain, collision no-gain and no selected-number knowledge',()=> {
+  const {g,members}=setup(['seer','adventurer','warrior','rogue']);const p=g.state.players.p0;
+  resolveTurn(g,submit(g,[3,3,3,5]));assert.equal(p.characterRuntimeState.revelationStacks,0);
+  const request={session_id:g.id,turn_index:g.turn_index};assert.throws(()=>activateSkill(g,members[0],'u0',request,[]),/1칸/);
+  p.characterRuntimeState.revelationStacks=2;assert.equal(activateSkill(g,members[0],'u0',request,[]),true);assert.equal(activateSkill(g,members[0],'u0',request,[]),false);
   assert.equal(p.characterRuntimeState.revelationStacks,1);assert.equal(p.characterRuntimeState.revealTargets,undefined);
-  const request={session_id:g.id,turn_index:g.turn_index};
-  p.characterRuntimeState.revelationStacks=0;
-  assert.throws(()=>activateSkill(g,members[0],'u0',request,[]),/1칸/);
-  p.characterRuntimeState.revelationStacks=1;
-  assert.equal(activateSkill(g,members[0],'u0',request,[]),true);
-  assert.equal(activateSkill(g,members[0],'u0',request,[]),false);
-  assert.equal(p.characterRuntimeState.revelationStacks,0);
-  assert.deepEqual(p.characterRuntimeState.revealTargets,['p1','p2','p3']);
-  const sub=submit(g,[1,2,5,4]);
-  assert.deepEqual(privateKnowledge(g,'p0',sub.slice(1,3)).revealedCards,[{memberId:'p1',value:2},{memberId:'p2',value:5}]);
-  assert.deepEqual(privateKnowledge(g,'p3',sub).revealedCards,[]);
-  assert.ok(!JSON.stringify(g.state).includes('revealedCards'));
-  resolveTurn(g,sub);assert.equal(p.characterRuntimeState.revealExpiresTurn,undefined);
+  const sub=submit(g,[1,2,5,4]);assert.deepEqual(privateKnowledge(g,'p0',sub).revealedCards,[]);
+  const r=resolveTurn(g,sub);assert.equal(r.cards[0].valid,true);assert.equal(p.characterRuntimeState.revelationStacks,2);
   assert.deepEqual(privateKnowledge(g,'p0',sub).revealedCards,[]);
 });
-test('seer clash stacks cap at one and survive cycle changes; unique cards give none',()=> {
-  for(const last of [false,true]) {
-    const {g}=setup(['seer','adventurer','warrior','rogue']);const p=g.state.players.p0;
-    if(last){for(const c of p.cycleCards)c.used=c.value!==5;p.remainingCards=[5];}
-    p.characterRuntimeState.revelationStacks=1;
-    resolveTurn(g,submit(g,last?[5,1,2,3]:[3,3,3,5]));assert.equal(p.characterRuntimeState.revealTargets,undefined);
-    assert.equal(p.characterRuntimeState.revelationStacks,1);
-    startCycle(p,p.character);assert.equal(p.characterRuntimeState.revelationStacks,1);
-  }
+test('seer Revelation caps at three, collisions do not gain, and cycle changes preserve current stacks',()=> {
+  const {g,members}=setup(['seer','adventurer','warrior','rogue']);const p=g.state.players.p0;
+  p.characterRuntimeState.revelationStacks=3;resolveTurn(g,submit(g,[3,3,3,5]));assert.equal(p.characterRuntimeState.revelationStacks,3);
+  startCycle(p,p.character);assert.equal(p.characterRuntimeState.revelationStacks,3);
+  p.characterRuntimeState.revelationStacks=2;const request={session_id:g.id,turn_index:g.turn_index};
+  activateSkill(g,members[0],'u0',request,[]);resolveTurn(g,submit(g,[1,2,3,4]));assert.equal(p.characterRuntimeState.revelationStacks,2);
 });
 test('imp steals numbers before collision, including newly created collisions',()=>{
   const {g}=setup(['imp','adventurer','warrior','mage']);
@@ -196,13 +182,11 @@ test('gambler consumes a clashed card and refills for next turn, rejecting spent
  assert.match(html,/운명의 패 · 2장 남음/);
 });
 
-test('seer AI waits only for entitled human targets; regular AI remains locked first',()=> {
+test('seer AI does not wait for hidden human selections without an explicit inspection effect',()=> {
   const {g,members}=setup(['seer','adventurer','mage','gambler']);members[0].member_type='ai';members[0].ai_type='balanced';members[2].member_type='ai';members[2].ai_type='greedy';
-  const p=g.state.players.p0;p.characterRuntimeState={revealTargets:['p1'],revealExpiresTurn:g.turn_index};
-  const locked=openTurn(g,members,rng(4));assert.ok(!locked.some(s=>s.member_id==='p0'));assert.ok(locked.some(s=>s.member_id==='p2'));
-  const c=g.state.players.p1.cycleCards[0];locked.push({member_id:'p1',turn_index:g.turn_index,card_id:c.id,card_value:c.value});
-  fillAutomaticSubmissions(g,members,locked,rng(4));assert.ok(locked.some(s=>s.member_id==='p0'));
-  for(let seed=1;seed<=40;seed++)assert.notEqual(chooseAI(p,g.state,'balanced',rng(seed),{p1:1}),1);
+  g.state.players.p0.characterRuntimeState.revelationStacks=1;
+  const locked=openTurn(g,members,rng(4));assert.ok(locked.some(s=>s.member_id==='p0'));assert.ok(locked.some(s=>s.member_id==='p2'));
+  assert.deepEqual(privateKnowledge(g,'p0',locked).revealedCards,[]);
 });
 test('AI can play full expeditions for every character without illegal cards or stalled turns',()=> {
   for(const id of Object.keys(CHARACTER_CATALOG)) {
@@ -231,7 +215,7 @@ test('two active knights can both resist a collision, while a boss seal still su
   const r=resolveTurn(g,submit(g,[3,3,3,3],[0,1]));
   assert.deepEqual(r.cards.map(c=>c.valid),[true,true,false,false]);
   assert.deepEqual(r.cards.slice(0,2).map(c=>c.damageValue),seal?[0,0]:[3,3]);
-  assert.equal(g.state.players.p2.characterRuntimeState.revelationStacks,1);
+  assert.equal(g.state.players.p2.characterRuntimeState.revelationStacks,0);
  }
  const {g}=setup(['warrior','adventurer','mage','imp']);room(g,'suspicious_merchant','event');
  const r=resolveTurn(g,submit(g,[3,3,2,4],[0]));
@@ -249,23 +233,19 @@ test('revelation activation is owned, turn-scoped, before submission, and cannot
  p.knockedOut=true;assert.throws(()=>activateSkill(g,members[0],'u0',body,[]));p.knockedOut=false;
  assert.equal(p.characterRuntimeState.revelationStacks,2);
  activateSkill(g,members[0],'u0',body,[]);
- assert.equal(p.characterRuntimeState.revelationStacks,0);
+ assert.equal(p.characterRuntimeState.revelationStacks,1);
  const sub=submit(g,[1,2,3,4]);
- assert.equal(privateKnowledge(g,'p0',sub).revealedCards.length,3);
+ assert.equal(privateKnowledge(g,'p0',sub).revealedCards.length,0);
  assert.equal(privateKnowledge(g,'p1',sub).revealedCards.length,0);
- resolveTurn(g,sub);assert.equal(privateKnowledge(g,'p0',sub).revealedCards.length,0);
+ resolveTurn(g,sub);assert.equal(p.characterRuntimeState.revelationStacks,2);assert.equal(privateKnowledge(g,'p0',sub).revealedCards.length,0);
 });
 
-test('AI seer waiting for a human releases its card when the human seer activates revelation',()=>{
- const {g,members}=setup(['seer','seer','mage','imp']);
- members[1].member_type='ai';members[1].ai_type='balanced';
+test('AI seer submissions remain hidden from a human Seer after base Revelation activation',()=>{
+ const {g,members}=setup(['seer','seer','mage','imp']);members[1].member_type='ai';members[1].ai_type='balanced';
  for(const id of ['p0','p1'])g.state.players[id].characterRuntimeState.revelationStacks=2;
- const submissions=openTurn(g,members,rng(2));assert.equal(submissions.length,0);
+ const submissions=openTurn(g,members,rng(2));assert.ok(submissions.some(s=>s.member_id==='p1'));
  activateSkill(g,members[0],'u0',{session_id:g.id,turn_index:g.turn_index},submissions);
- fillAutomaticSubmissions(g,members,submissions,rng(2));
- assert.equal(submissions.length,1);assert.equal(submissions[0].member_id,'p1');
- assert.equal(privateKnowledge(g,'p0',submissions).revealedCards.length,1);
- assert.equal(fillAutomaticSubmissions(g,members,submissions,rng(2)),false);
+ assert.equal(privateKnowledge(g,'p0',submissions).revealedCards.length,0);
 });
 
 test('skill controls label knight and seer correctly and show canonical Revelation max 3 without visible stack digits',()=>{
