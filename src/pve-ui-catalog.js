@@ -590,7 +590,7 @@ export const PVE_EXECUTABLE_AUGMENT_UI=Object.freeze({
   "aug-234": {"build":"올인","description":"All-In succeeds using two cards both <=3.일 때 추가 피해 +1 효과를 적용합니다. 제한: ONCE_PER_TURN."},
   "aug-235": {"build":"올인","description":"올인 성공 후 다음 턴 올인 재사용 가능. 두 번째 올인은 추가 피해 +2, 실패 시 그 다음 턴 드로우 0장 대신 자동 랜덤 1장 제출. 연속 2회까지만."},
   "aug-236": {"build":"올인","description":"조건 충족 시 다음 드로우 보정 또는 예상 범위 적중 시 추가 피해 +1. 턴당 1회."},
-  "aug-237": {"build":"올인","description":"해당 회복 효과는 HP 1 회복. 전투당 기본 1회; 전용 힐러 계통만 카드 설명의 별도 제한 적용."},
+  "aug-237": {"build":"올인","description":"올인 성공 공격의 실제 피해가 8 이상이면 다음 드로우 페널티를 1턴 줄입니다(최소 0턴). 전투당 1회."},
   "aug-238": {"build":"올인","description":"현재 2장 + 보유 특수 카드 1장까지 소비. 판정 숫자는 지정 1장, 유효 시 세 카드 숫자 합 +4 피해. 전투당 1회; 다음 2턴 드로우 1장."},
   "aug-239": {"build":"올인","description":"조건 1회당 스택 +1(최대 4); 스택 1당 관련 효과 +1 피해 상당. 전투 종료 시 초기화; 별도 유지 카드 제외."},
   "aug-240": {"build":"올인","description":"올인 선언 시 유효 성공하면 추가 피해 +8, 실패하면 HP1 감소 및 다음 턴 드로우 1장. 전투당 1회."},
