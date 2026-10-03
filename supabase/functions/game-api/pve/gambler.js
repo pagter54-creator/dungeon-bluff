@@ -133,7 +133,7 @@ export function settleGamblerHand(run,player,state,selectedId,finalNumber,{rootA
     }
   }
   state.remainingCardIds=[];state.spentCardIds=[];
-  if(used?.baseNumber===6||used?.baseNumber===7)addGamblerLuck(run,player,state,rootActionId||`special:${state.drawCount}`);
+  if(player.augments?.includes('aug-211')&&(used?.baseNumber===6||used?.baseNumber===7))addGamblerLuck(run,player,state,rootActionId||`special:${state.drawCount}`);
   if(Number.isInteger(finalNumber)&&finalNumber>=1&&finalNumber<=5){
     for(const [value,key,needed] of [[6,'sixProgress',3],[7,'sevenProgress',5]]){
       if(registered(player,state,value)>=2){state[key]=[];continue;}
@@ -142,8 +142,56 @@ export function settleGamblerHand(run,player,state,selectedId,finalNumber,{rootA
     }
   }
   if(actionKey)state.processedActions[actionKey]=true;
-  drawGamblerHand(run,player,state);
+  let nextDrawCount=2;
+  if(player.augments?.includes('aug-231'))nextDrawCount=1;
+  if(player.augments?.includes('aug-233')&&state.allInFailedThisTurn&&!state.insuranceUsed){nextDrawCount=2;state.insuranceUsed=true;}
+  state.allInFailedThisTurn=false;
+  drawGamblerHand(run,player,state,nextDrawCount);
   return true;
+}
+export function prepareGamblerAllIn(run,player,state,submission,resolved){
+  normalizeGamblerState(run,player,state);
+  if(!player.augments?.includes('aug-231'))return null;
+  const ids=[...(state.remainingCardIds||[])];
+  if(ids.length<2)return null;
+  const judgmentId=submission?.cardInstanceId||resolved?.cardInstanceId;
+  if(!ids.includes(judgmentId))throw new Error('GAMBLER_ALL_IN_JUDGMENT_NOT_IN_HAND');
+  const partnerId=ids.find(id=>id!==judgmentId);
+  const judgment=player.cardPool.find(c=>c.id===judgmentId),partner=player.cardPool.find(c=>c.id===partnerId);
+  if(!judgment||!partner)throw new Error('GAMBLER_ALL_IN_CARD_MISSING');
+  const rootActionId=`all-in:${run.combat?.id||run.currentRoomNodeId||'room'}:${run.combat?.turn||0}:${player.playerId}:${judgmentId}`;
+  state.pendingAllIn={rootActionId,judgmentCardId:judgmentId,partnerCardId:partnerId,cardIds:[judgmentId,partnerId],
+    values:[judgment.baseNumber,partner.baseNumber],sum:judgment.baseNumber+partner.baseNumber,finalized:false};
+  if(resolved){resolved.allIn=true;resolved.allInRootActionId=rootActionId;resolved.allInCardIds=[judgmentId,partnerId];resolved.allInValues=[judgment.baseNumber,partner.baseNumber];resolved.allInSum=judgment.baseNumber+partner.baseNumber;}
+  return state.pendingAllIn;
+}
+export function gamblerSetDamage(run,player,state,resolved,damage){
+  if(!resolved?.allIn||!player.augments?.includes('aug-231'))return damage;
+  const key=`all-in-damage:${resolved.allInRootActionId}`;
+  if(state.processedActions[key])return damage;
+  let amount=Math.max(0,Number(resolved.allInSum)||0);
+  const values=resolved.allInValues||[];
+  if(player.augments.includes('aug-232'))amount+=Math.max(...[0,...(resolved.allInSum>=10?[4]:resolved.allInSum>=8?[2]:[])]);
+  if(player.augments.includes('aug-234')&&values.length===2&&values.every(v=>v<=3))amount+=1;
+  const streak=Math.max(0,Math.min(4,Number(state.allInWinStreak)||0));
+  if(player.augments.includes('aug-239'))amount+=streak;
+  if(player.augments.includes('aug-240')&&!state.houseUsed){amount+=8;state.houseUsed=true;}
+  state.processedActions[key]=true;
+  boundedHistory(state,{type:'ALL_IN_DAMAGE',turn:run.combat?.turn||0,rootActionId:resolved.allInRootActionId,amount});
+  return amount;
+}
+export function finalizeGamblerAllIn(run,player,state,resolved){
+  if(!resolved?.allIn)return;
+  if(resolved.valid){state.allInWinStreak=player.augments?.includes('aug-239')?Math.min(4,(Number(state.allInWinStreak)||0)+1):0;}
+  else{
+    state.allInWinStreak=0;state.allInFailedThisTurn=true;
+    if(player.augments?.includes('aug-240')&&!state.houseUsed){
+      state.houseUsed=true;player.hp-=1;run.combat&&(run.combat.pendingDownPlayerIds||=[]);
+      if(run.combat&&player.hp<=0&&!run.combat.pendingDownPlayerIds.includes(player.playerId))run.combat.pendingDownPlayerIds.push(player.playerId);
+    }
+  }
+  if(state.pendingAllIn)state.pendingAllIn.finalized=true;
+  boundedHistory(state,{type:'ALL_IN_RESULT',turn:run.combat?.turn||0,rootActionId:resolved.allInRootActionId,valid:Boolean(resolved.valid)});
 }
 export function gamblerOwnerPrivateState(run,player,state){
   normalizeGamblerState(run,player,state);
