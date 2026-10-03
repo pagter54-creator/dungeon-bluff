@@ -220,11 +220,11 @@ export function useRewardGamblerLuck(run,playerId,mode,rootActionId=''){
   const p=playerFor(run,playerId),state=room.privateByPlayer?.[playerId];
   if(p?.characterId!=='gambler'||!p.augments?.includes('aug-211'))throw new Error('행운 증강을 보유한 도박사만 사용할 수 있습니다.');
   const window=refreshRewardLuckWindow(run);
-  if(!window)throw new Error('현재 행운 사용 창이 아닙니다.');
   if(mode!=='ATTACK'&&mode!=='SPECIAL')throw new Error('행운 사용 방식을 선택해 주세요.');
+  if(!window)return false;
   const actionKey=rootActionId||`${window.presentationKey}:${mode}`;
-  if(window.phase==='CONSUMED')return false;
-  if(window.phase!=='LUCK_AVAILABLE')throw new Error('현재 행운 사용 창이 아닙니다.');
+  if(window.phase==='CONSUMED'||window.phase==='CONFIRMED')return false;
+  if(window.phase!=='LUCK_AVAILABLE')return false;
   if(!consumeGamblerLuck(run,p,state,actionKey))return false;
   if(mode==='ATTACK')state.luckDamageArmed=true;
   else state.specialCharge=(Number(state.specialCharge)||0)+1;
