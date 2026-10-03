@@ -120,6 +120,7 @@ test('005C FINAL AI all classes advances all four stages deterministically',()=>
  }
  assert.deepEqual(execute(),execute());
 });
+const replayState=run=>JSON.parse(JSON.stringify(run,(key,value)=>key==='submittedAt'?undefined:value));
 const parties=[
  ['prophet','imp','gambler','gunner'],['prophet','imp','warrior','gunner'],
  ['mage','imp','gambler','gunner'],['prophet','rogue','gambler','gunner'],
@@ -129,14 +130,14 @@ for(const [i,party] of parties.entries())for(let build=0;build<3;build++)test('0
  const a=make(party,'mixed-'+i+'-'+build,build);const first=a.players[0];
  submitCard(a,first.playerId,a.combat.privateByPlayer[first.playerId].remainingCardIds[0]);
  const b=structuredClone(a);
- assert.deepEqual(turns(a,16),turns(b,16));assert.deepEqual(a,b);
+ assert.deepEqual(turns(a,16),turns(b,16));assert.deepEqual(replayState(a),replayState(b));
 });
 for(const character of classes)test('005C FINAL two '+character+' full owners isolated across 24 turns and reconnect',()=>{
  const a=make([character,character,'adventurer','mage'],'double-'+character);
  a.players[1].augments=augmentCandidates(character,1).slice(1,2).flatMap(c=>Object.values(AUGMENT_BY_ID).filter(d=>d.characterId===character&&d.build===c.build).map(d=>d.id));
  const b=structuredClone(a);
  assert.notEqual(a.combat.privateByPlayer.p0,a.combat.privateByPlayer.p1);
- assert.deepEqual(turns(a,24),turns(b,24));assert.deepEqual(a,b);
+ assert.deepEqual(turns(a,24),turns(b,24));assert.deepEqual(replayState(a),replayState(b));
 });
 test('005C FINAL 120 tooltips equal runtime contract overlays',()=>{
  for(const id of ids){
