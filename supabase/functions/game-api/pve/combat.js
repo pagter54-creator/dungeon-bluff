@@ -306,7 +306,7 @@ export function resolveBasicTurn(run){
       if(component)packets.push(burstPacket({...component,sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,tags:['AUG_248_EXTRA_DAMAGE_COMPONENT'],followUp:false},{resolved:rc,player,baseDamage:0,modifierIds:['aug-248']}));
     }
   }
-  for(const rc of cards){const p=playerFor(run,rc.playerId);if(p.characterId==='gunner'&&rc.skillUsed==='full_burst')markGunnerBurstPhase(run,p,rc,'DAMAGE_RESOLUTION');}
+  for(const rc of cards){const p=playerFor(run,rc.playerId);if(p.characterId==='gunner'&&rc.skillUsed==='full_burst'){markGunnerBurstPhase(run,p,rc,'REMAINING_CARD_USE');markGunnerBurstPhase(run,p,rc,'DAMAGE_RESOLUTION');}}
   c.monster.defense=0;
   c.phase='DAMAGE_BATCH_APPLY';phaseTrace.push(c.phase);
   const totalDamage=packets.reduce((s,p)=>s+p.amount,0);
