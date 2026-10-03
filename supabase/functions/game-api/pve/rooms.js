@@ -187,7 +187,7 @@ export function submitRewardCard(run,playerId,cardInstanceId,skillIntent=false,s
   const p=playerFor(run,playerId),room=run.roomState,st=room.privateByPlayer[playerId];if(!p||p.status==='DOWNED')throw new Error('카드를 제출할 수 없습니다.');
   if(room.turnSubmissions[playerId])throw new Error('이미 제출했습니다.');
   if(!rewardSelectable(run,p,cardInstanceId))throw new Error('사용 가능한 카드가 아닙니다.');
-  if(skillIntent&&!['warrior','mage','vampire','gunner'].includes(p.characterId))throw new Error('이 스킬은 보상방 카드 판정에 사용할 수 없습니다.');
+  if(skillIntent&&!['warrior','mage','vampire'].includes(p.characterId))throw new Error('이 스킬은 보상방 카드 판정에 사용할 수 없습니다.');
   validateCharacterSkillIntent(p,st,Boolean(skillIntent),cardFor(p,cardInstanceId),skillData);
   if(p.characterId==='imp')prepareImpSubmission(run,p,skillData);
   room.turnSubmissions[playerId]={playerId,cardInstanceId,skillIntent:Boolean(skillIntent),...(skillData?{skillData:structuredClone(skillData)}:{})};st.selectedCardId=cardInstanceId;st.skillIntent=Boolean(skillIntent);
