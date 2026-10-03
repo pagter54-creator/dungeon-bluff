@@ -1,0 +1,396 @@
+{
+  "schemaVersion": 1,
+  "task": "PVE_CONTENT_005Q_DESIGN_D",
+  "designOnly": true,
+  "decisions": [
+    {
+      "decisionId": "D01",
+      "selectedOption": "USER_CUSTOM",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "raw": "전투 당 1회 처음 파쇄가 3까지 쌓인 적을 향한 공격은 중복으로 무효처리 되지 않음.",
+      "ruleId": "FIRST_SHATTER_3_ATTACK_COLLISION_PROTECTION",
+      "affected": [
+        "aug-287"
+      ],
+      "confirmedRule": {
+        "shatterThreshold": 3,
+        "thresholdOccurrence": "FIRST_REACH_IN_COMBAT",
+        "onceScope": "ONCE_PER_COMBAT",
+        "effect": "Prevent collision-based invalidation of the attack against the enemy identified by the first Shatter 3 threshold occurrence."
+      },
+      "sourceClassification": "USER_CONFIRMED",
+      "replacesProposedBenefitOptions": true,
+      "doesNotReclassifyBetaV01AsSourceExplicit": true,
+      "runtimeImplemented": false,
+      "interpretationBoundary": "The CLOSEOUT request explicitly resolves the target to the owner's attack. Remaining deterministic reservation ordering is BETA_V02_INFERRED in the final contract.",
+      "closeoutIntegration": {
+        "source": "USER_CONFIRMED_CLOSEOUT_REQUEST",
+        "target": "OWNER_MARTIAL_ARTIST_ROOT_ATTACK_ONLY",
+        "excludeOtherAllies": true,
+        "deterministicReservation": "First owner's subsequent primary attack against the firstShatter3enemy; one owner primary card per root. Root retries reuse same reservation.",
+        "reservationConsumption": "Consume on that first attack whether or not it collides; protection suppresses only collision invalidation."
+      }
+    },
+    {
+      "selectedOption": "USER_CONFIRMED",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "sourceClassification": "USER_CONFIRMED",
+      "doesNotReclassifyBetaV01AsSourceExplicit": true,
+      "runtimeImplemented": false,
+      "decisionId": "D02",
+      "ruleId": "VAMPIRE_THRALL_MARK_OWNER_SCOPED",
+      "topic": "Vampire multi-thrall policy",
+      "confirmedRule": {
+        "maxActiveMarksPerOwner": 1,
+        "sharedTargetAcrossOwners": true,
+        "identityFields": [
+          "ownerVampireId",
+          "thrallPlayerId",
+          "sourceAugmentOrBase",
+          "active",
+          "createdRootActionId"
+        ],
+        "consumeAndReplaceScope": "OWNER_VAMPIRE_ONLY",
+        "reapplyWhileUnconsumed": false,
+        "excludeOwnerFromTargetCandidates": true,
+        "targetRule": "HIGHEST_SCORE_AMONG_ELIGIBLE_PLAYERS_EXCLUDING_OWNER",
+        "tieRule": [
+          "EARLIEST_LOBBY_SEAT",
+          "PLAYER_ID"
+        ],
+        "simultaneousCreation": "Each Vampire independently computes its target from the same collision result; another owner's mark does not exclude that target.",
+        "reconnectRule": "Restore the persisted owner/target relationship without reselection."
+      }
+    },
+    {
+      "selectedOption": "USER_CONFIRMED",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "sourceClassification": "USER_CONFIRMED",
+      "doesNotReclassifyBetaV01AsSourceExplicit": true,
+      "runtimeImplemented": false,
+      "decisionId": "D03",
+      "ruleId": "DEVOUR_THRESHOLD_OVERFLOW_CARRY",
+      "topic": "Ghost Swordsman Devour threshold overflow",
+      "confirmedRule": {
+        "defaultThreshold": 8,
+        "levelsGained": "floor((oldDevour + gainedDevour) / threshold)",
+        "newDevour": "(oldDevour + gainedDevour) % threshold",
+        "sourceLevelCap": "Apply an existing source-defined level cap if present; this patch introduces no level cap.",
+        "perLevelUp": [
+          "Increase Ghost Slash level by 1 subject to an existing source cap.",
+          "Rearm Ghost Slash if already used and inactive."
+        ],
+        "multipleThresholdsPerAtomicGain": true,
+        "reactivationRepresentation": "BOOLEAN_NO_DUPLICATE_ACTIVATIONS",
+        "persistenceScope": "RUN",
+        "combatEndRule": "Retain Devour remainder.",
+        "idempotencyRule": "Do not apply the same atomic Devour gain more than once.",
+        "examples": [
+          {
+            "oldDevour": 7,
+            "gainedDevour": 3,
+            "threshold": 8,
+            "levelsGained": 1,
+            "remainder": 2
+          },
+          {
+            "oldDevour": 15,
+            "gainedDevour": 2,
+            "threshold": 8,
+            "levelsGained": 2,
+            "remainder": 1
+          }
+        ]
+      }
+    },
+    {
+      "selectedOption": "USER_CONFIRMED",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "sourceClassification": "USER_CONFIRMED",
+      "doesNotReclassifyBetaV01AsSourceExplicit": true,
+      "runtimeImplemented": false,
+      "decisionId": "D04",
+      "ruleId": "TWINS_PARITY_CHECK_ON_PRINTED_CARD_SELECTION",
+      "topic": "Twins parity eligibility phase",
+      "confirmedRule": {
+        "checkNumber": "PHYSICAL_CARD_PRINTED_BASE_NUMBER",
+        "timingPhases": [
+          "CARD_SELECTION",
+          "CARD_SUBMISSION"
+        ],
+        "ordering": [
+          "PRINTED_PARITY_ELIGIBILITY",
+          "SELF_MODIFY",
+          "PRE_COLLISION_SWAP",
+          "PRE_COLLISION_STEAL",
+          "FINAL_NUMBER"
+        ],
+        "illegalSubmissionRule": "Reject at the server before submission; later number modification cannot legalize an illegal printed card.",
+        "finalNumberParityRule": "A parity change after legal submission does not invalidate the submitted card.",
+        "classification": "INPUT_ELIGIBILITY_NOT_FINAL_NUMBER_VALIDITY",
+        "recoveryRule": "Recovery ignores parity and preserves cardInstanceId; later selection rechecks current required parity against printed number.",
+        "acrobaticsRule": "A parity flip immediately updates selection validation.",
+        "reconnectRule": "Restore persisted required parity and cycle state without reseeding or rerolling.",
+        "specialIntegerRule": "Use ordinary integer parity, including 0 and 6, when explicitly present in the Twins pool; an explicit augment override takes precedence.",
+        "examples": [
+          {
+            "requiredParity": "ODD",
+            "printedNumber": 3,
+            "finalNumber": 4,
+            "submissionLegal": true
+          },
+          {
+            "requiredParity": "ODD",
+            "printedNumber": 2,
+            "plannedModification": 1,
+            "submissionLegal": false
+          }
+        ]
+      }
+    },
+    {
+      "selectedOption": "USER_CONFIRMED",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "sourceClassification": "USER_CONFIRMED",
+      "doesNotReclassifyBetaV01AsSourceExplicit": true,
+      "runtimeImplemented": false,
+      "decisionId": "D05",
+      "ruleIds": [
+        "VAMPIRE_COMMAND_RESERVE",
+        "VAMPIRE_DOMINANCE_COMMAND_RESERVE_AT_4"
+      ],
+      "affected": [
+        "aug-303",
+        "aug-308"
+      ],
+      "confirmedRule": {
+        "availability": {
+          "numericCooldown": false,
+          "requires": [
+            "OWNER_ACTIVE_UNCONSUMED_THRALL_MARK",
+            "THRALL_CAN_NORMALLY_SUBMIT_THIS_TURN"
+          ],
+          "normalUse": "Consume the owner's mark; unavailable until a new mark is obtained.",
+          "legacyOncePerCycleLimit": "The user-confirmed availability model supersedes a conflicting independent once-per-cycle Blood Command restriction. The aug-303 reserve acquisition limit remains once per cycle."
+        },
+        "reserve": {
+          "cap": 1,
+          "sharedTypeFor303And308": true,
+          "onOverflow": "DISCARD_ADDITIONAL_GRANT",
+          "effect": "Defer consumption of one mark for one Blood Command use; the following additional use normally consumes that mark.",
+          "combatEnd": "CLEAR",
+          "reconnect": "RESTORE",
+          "retry": "DEDUPLICATE_BY_ROOT_ACTION_AND_GRANT_SOURCE"
+        },
+        "aug303": {
+          "trigger": "Blood Command was used and both the owner and that root action's Thrall are finally VALID.",
+          "grant": 1,
+          "onceScope": "ONCE_PER_CYCLE",
+          "eligibleMark": "A NEW Thrall mark acquired after this reserve was earned.",
+          "noRecursiveAcquisitionFromSameSuccess": true
+        },
+        "aug308": {
+          "trigger": "NORMAL_BLOOD_COMMAND_USE",
+          "dominanceGain": 1,
+          "dominanceCap": 4,
+          "dominancePersistence": "COMBAT",
+          "dominanceConsumed": false,
+          "damageTarget": "OWNER_NEXT_VALID_ATTACK_AFTER_BLOOD_COMMAND",
+          "bonusDamage": "1 * current Dominance stacks",
+          "damageApplication": "One bonusDamage component attached to that eligible attack; no extra submissions or one hit per stack.",
+          "combatEnd": "RESET_DOMINANCE_TO_ZERO",
+          "reserveTrigger": "FIRST_REACH_OF_DOMINANCE_4_IN_COMBAT",
+          "reserveGrant": 1,
+          "reserveOnceScope": "ONCE_PER_COMBAT",
+          "retriggerAfterDropAndRegain": false,
+          "sameResolveExcluded": true,
+          "firstEligibleAttack": "Next distinct eligible primary attack after the Blood Command root resolution has ended; never the already resolving attack in that command turn."
+        },
+        "sourcePrecedenceNote": "With aug-308, persistent non-consumed Dominance overrides conflicting Q10/older consume-then-gain mechanics. Q10 remains the reference outside this explicit override."
+      },
+      "closeoutOrderingSource": "USER_CONFIRMED_CLOSEOUT_REQUEST"
+    },
+    {
+      "selectedOption": "USER_CONFIRMED",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "sourceClassification": "USER_CONFIRMED",
+      "doesNotReclassifyBetaV01AsSourceExplicit": true,
+      "runtimeImplemented": false,
+      "decisionId": "D06",
+      "ruleId": "VAMPIRE_BLOOD_COMMAND_COLLISION_PROTECTION",
+      "affected": [
+        "aug-307"
+      ],
+      "confirmedRule": {
+        "trigger": "Blood Command was actually used and the owner's exchanged card would be invalidated by final collision.",
+        "target": "OWNER_VAMPIRE_CARD_ONLY",
+        "effect": "Suppress only that card's collision-based invalidation; pass as VALID if no other invalid reason applies.",
+        "collisionGroup": "PRESERVE_GROUP_AND_OTHER_PLAYERS_INVALIDATION",
+        "excluded": [
+          "THRALL_CARD",
+          "MONSTER_DAMAGE",
+          "DIRECT_DAMAGE",
+          "SELF_DAMAGE",
+          "OTHER_INVALID_REASONS",
+          "ALREADY_DOWNED_OWNER"
+        ],
+        "onceScope": "ONCE_PER_COMBAT",
+        "ordering": [
+          "COLLISION_RESOLUTION",
+          "AUG_307_OWNER_VALIDITY_PROTECTION",
+          "VALIDITY"
+        ],
+        "idempotencyRule": "Consume protection at most once for the same rootAction.",
+        "reconnectRule": "Restore the combat usage flag.",
+        "replacesConflictingBetaEffect": "Incoming direct damage reduction by 1 is not the runtime meaning."
+      }
+    },
+    {
+      "selectedOption": "USER_CONFIRMED",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "sourceClassification": "USER_CONFIRMED",
+      "doesNotReclassifyBetaV01AsSourceExplicit": true,
+      "runtimeImplemented": false,
+      "decisionId": "D07",
+      "ruleId": "GHOST_TRANSFORMATION_MANUAL_PRE_SUBMIT_ACTIVATION",
+      "affected": [
+        "aug-351",
+        "aug-352",
+        "aug-353",
+        "aug-354",
+        "aug-355",
+        "aug-356",
+        "aug-357",
+        "aug-358",
+        "aug-359",
+        "aug-360"
+      ],
+      "confirmedRule": {
+        "readyCondition": "Devour >= 6",
+        "activationMode": "OWNER_MANUAL_ACTIVE_SKILL",
+        "activationWindow": "SELECTION_OPEN_BEFORE_FINAL_SUBMIT",
+        "afterCardSelectionAllowed": true,
+        "afterFinalSubmitAllowed": false,
+        "automaticActivation": false,
+        "activationOrdering": [
+          "CONSUME_EXACTLY_6_DEVOUR",
+          "END_AND_DISCARD_CURRENT_NORMAL_CYCLE",
+          "CREATE_TRANSFORMED_PHYSICAL_CARD_POOL",
+          "SET_TRANSFORMED_TRUE",
+          "START_NEW_TRANSFORMED_CYCLE"
+        ],
+        "pools": {
+          "base": [
+            2,
+            4,
+            5,
+            6
+          ],
+          "aug355": [
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "higherOverride": "An explicitly specified higher override such as aug-358 takes precedence."
+        },
+        "normalCycleRule": "Do not park or restore the previous normal cycle's spent/remaining cards. End and replace that cycle.",
+        "exitCondition": "All transformed physical cards have been used.",
+        "exitOrdering": [
+          "SET_TRANSFORMED_FALSE",
+          "CLEAN_TRANSFORMED_CARD_ZONE",
+          "APPLY_EXIT_DEVOUR_RULE",
+          "CREATE_NEW_NORMAL_CYCLE"
+        ],
+        "exitDevour": {
+          "base": 0,
+          "includesActivationRemainder": true,
+          "override": "Explicit exit rules such as aug-357 take precedence."
+        },
+        "resolutionThresholdOrdering": [
+          "ON_VALID_OR_DAMAGE_OR_KILL",
+          "DEVOUR_GAIN",
+          "THRESHOLD_CHECK_AND_SET_READY",
+          "FINISH_CURRENT_RESOLUTION",
+          "NEXT_SELECTION_OPEN_MANUAL_ACTIVATION"
+        ],
+        "activationExample": {
+          "before": 7,
+          "cost": 6,
+          "afterActivation": 1,
+          "baseAfterTransformationExit": 0
+        },
+        "combatEnd": {
+          "endTransformation": true,
+          "clearTransformationState": true,
+          "removeTemporaryCards": true,
+          "archetypeDevour": 0,
+          "nextCombat": "FRESH_STATE"
+        },
+        "reconnectRestore": [
+          "transformationReady",
+          "transformed",
+          "Devour",
+          "transformedCardInstanceIds",
+          "usedTransformedCards",
+          "remainingTransformedCards"
+        ],
+        "reconnectForbidden": [
+          "AUTO_ACTIVATION",
+          "REPEATED_DEVOUR_CONSUMPTION",
+          "RECREATING_TRANSFORMED_DECK"
+        ],
+        "scopeException": "The aug-351 transformation archetype's explicit combat-end Devour reset overrides D03 RUN carry for this archetype; D03 remains the general Devour rule.",
+        "legacySemanticReplacement": "Replaces automatic turn-end transformation and any proposed suspended-normal-pool restoration."
+      }
+    }
+  ],
+  "remainingDecisionBundles": [],
+  "readyForRuntime": false,
+  "unresolvedPriorQuestions": [],
+  "decisionIdentityRule": "Use ruleId as canonical identity. User-provided D02-D04 labels refer to the topics recorded here, not the differently worded prior questions.",
+  "resolvedPriorQuestions": [
+    {
+      "questionId": "VAMPIRE_COMMAND_AVAILABILITY_303_308",
+      "previousQuestionLabel": "D02",
+      "affected": [
+        "aug-303",
+        "aug-308"
+      ],
+      "status": "RESOLVED_BY_USER_CONFIRMED_PATCH",
+      "reason": "The new D02 confirms mark ownership, but does not define Blood Command cooldown/additional-use semantics.",
+      "resolvedBy": "D05"
+    },
+    {
+      "questionId": "VAMPIRE_307_COLLISION_PROTECTION_MEANING",
+      "previousQuestionLabel": "D03",
+      "affected": [
+        "aug-307"
+      ],
+      "status": "RESOLVED_BY_USER_CONFIRMED_PATCH",
+      "reason": "The new D03 confirms Devour overflow, but does not choose between collision validity protection and incoming-damage mitigation.",
+      "resolvedBy": "D06"
+    },
+    {
+      "questionId": "GHOST_TRANSFORMATION_ACTIVATION_PHASE",
+      "previousQuestionLabel": "D04",
+      "affected": [
+        "aug-351",
+        "aug-352",
+        "aug-353",
+        "aug-354",
+        "aug-355",
+        "aug-356",
+        "aug-357",
+        "aug-358",
+        "aug-359",
+        "aug-360"
+      ],
+      "status": "RESOLVED_BY_USER_CONFIRMED_PATCH",
+      "reason": "The new D04 confirms Twins input eligibility, but does not specify manual versus automatic transformation activation.",
+      "resolvedBy": "D07"
+    }
+  ],
+  "readinessNote": "D01-D07 and the CLOSEOUT target/ordering clarifications are reflected by final120 contracts. readyForRuntime in this source artifact remains false because this file records decisions only; final acceptance is gated by audit/validator and exact-head Project Checks in PR24."
+}
