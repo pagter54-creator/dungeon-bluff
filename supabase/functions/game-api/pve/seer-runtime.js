@@ -29,7 +29,9 @@ const currentCycle=(run,p)=>Number(privateFor(run,p)?.cycleIndex)||1;
 const actionRoot=(run,p,ctx={},suffix='effect')=>ctx.rootActionId||`action:${run.combat?.id||run.currentRoomNodeId||run.id}:${currentTurn(run)}:${p.playerId}:${ctx.resolved?.cardInstanceId||ctx.cardInstanceId||suffix}`;
 
 function telemetry(run,id,trigger,success,metrics={}){
-  framework(run).telemetry.push({augmentId:id,trigger,triggerCount:1,successCount:success?1:0,...metrics});
+  const f=framework(run),row={augmentId:id,trigger,triggerCount:1,successCount:success?1:0,...metrics};
+  f.telemetry.push(row);if(f.telemetry.length>2048)f.telemetry.splice(0,f.telemetry.length-2048);
+  f.telemetryTotals||={};const total=f.telemetryTotals[id+':'+trigger]||={augmentId:id,trigger,triggerCount:0,successCount:0};total.triggerCount++;if(success)total.successCount++;
 }
 function customClaim(run,p,id,key){
   const r=root(run),token=p.playerId+':'+id+':'+key;
