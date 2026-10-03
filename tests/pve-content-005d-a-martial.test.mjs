@@ -35,7 +35,7 @@ const cases={
 288:f=>{f.p.augments.push('aug-281','aug-286');go(f);f.run.combat.turn++;f.rc.finalNumber=5;f.rc.cardInstanceId='p0:base:5';go(f);assert.equal(f.run.combat.martialEnemy.vulnerabilityTurn,3);f.run.combat.turn++;assert.equal(consume(f).bonus,3);},
 289:f=>{f.p.augments.push('aug-281');go(f);assert.equal(consume(f).extra,3);assert.equal(f.run.combat.martialEnemy.units.length,1);},
 290:f=>{f.p.augments.push('aug-281');f.p.publicResources.combo=0;go(f);f.s.consumed=1;consume(f);assert.equal(f.p.publicResources.combo,2);assert.equal(f.s.nextPair,4);},
-291:f=>{go(f,true);assert.equal(f.rc.finisherBonusDamage,4);assert.equal(f.p.publicResources.combo,0);assert.equal(f.rc.martialComboBonus,0);},
+291:f=>{go(f,true);assert.equal(f.rc.finisherBonusDamage,4);assert.equal(f.p.publicResources.combo,0);assert.equal(f.rc.martialComboBonus??0,0);},
 292:f=>{f.p.publicResources.combo=4;go(f);assert.equal(f.p.publicResources.combo,5);},
 293:f=>{f.rc.finalNumber=1;go(f);assert.equal(f.p.publicResources.combo,1);},
 294:f=>{f.p.augments.push('aug-291');f.s.heldTurns=2;go(f,true);assert.equal(f.rc.finisherBonusDamage,5);},
@@ -90,4 +90,52 @@ test('Real combat pipeline applies Martial FINAL gain and primary packet damage'
  for(let i=0;i<4;i++){const p=f.run.players[i],number=[4,1,2,3][i],card=p.cardPool.find(c=>c.baseNumber===number);submitCard(f.run,p.playerId,card.id);}
  const result=resolveBasicTurn(f.run),rc=result.cards.find(c=>c.playerId==='p0'),packet=result.damagePackets.find(p=>p.sourcePlayerId==='p0');
  assert.equal(rc.comboAfter,3);assert.ok(packet.amount>=8);
+});
+
+const negatives={
+271:f=>{f.p.publicResources.combo=3;go(f);assert.equal(f.rc.martialBonusDamage,0);},
+272:f=>{f.rc.valid=false;f.rc.invalidReason='COLLISION';go(f);assert.equal(f.p.publicResources.combo,0);},
+273:f=>{f.p.publicResources.combo=0;go(f);assert.equal(f.rc.martialBonusDamage,0);},
+274:f=>{f.rc.valid=false;f.rc.invalidReason='COLLISION';go(f);assert.equal(f.s.pending,null);},
+275:f=>{f.s.exaltation=2;f.rc.valid=false;f.rc.invalidReason='COLLISION';go(f);assert.equal(f.s.exaltation,0);assert.equal(f.rc.martialBonusDamage,0);},
+276:f=>{f.p.publicResources.combo=1;f.rc.valid=false;f.rc.invalidReason='COLLISION';go(f);assert.equal(f.p.publicResources.combo,0);},
+277:f=>{f.p.publicResources.lastSubmittedNumber=3;go(f);assert.equal(f.rc.martialBonusDamage,0);},
+278:f=>{f.p.publicResources.combo=0;go(f);assert.equal(f.s.exaltation,0);},
+279:f=>{f.s.maxStreak=1;go(f);assert.equal(f.rc.martialExtraDamage,0);},
+280:f=>{f.rc.valid=false;f.rc.invalidReason='COLLISION';go(f);f.p.publicResources.combo=0;cleanupMartial(f.run,f.p);assert.equal(f.p.publicResources.combo,0);},
+281:f=>{go(f);const before=f.run.combat.martialEnemy.units.length;assert.equal(martialPacket(f.run,f.p,f.rc,2).bonus,0);assert.equal(f.run.combat.martialEnemy.units.length,before);},
+282:f=>{f.p.augments.push('aug-281');go(f);assert.equal(martialPacket(f.run,f.p,f.rc,2).bonus,0);},
+283:f=>{f.p.augments.push('aug-281');go(f);assert.equal(consume(f).defense,2);},
+284:f=>{f.p.augments.push('aug-281');go(f);martialPacket(f.run,f.p,f.rc,2);assert.equal(f.s.pending,null);},
+285:f=>{f.p.augments.push('aug-281');go(f);consume(f);assert.equal(f.run.combat.martialEnemy.units.length,0);},
+286:f=>{f.p.augments.push('aug-281');f.p.publicResources.combo=0;go(f);assert.equal(f.run.combat.martialEnemy.units.length,1);},
+287:f=>{f.s.reservation={enemyId:'dummy',afterTurn:0};const ally={playerId:'p1',valid:false,invalidReason:'COLLISION'};prepareMartialCollision(f.run,[ally]);assert.equal(ally.valid,false);},
+288:f=>{f.run.combat.martialEnemy={enemyId:'dummy',units:[],sequence:0,firstThree:true,vulnerabilityTurn:2};assert.equal(consume(f).bonus,0);},
+289:f=>{f.p.augments.push('aug-281');f.p.publicResources.combo=0;go(f);assert.equal(consume(f).extra,0);assert.equal(f.run.combat.martialEnemy.units.length,0);},
+290:f=>{f.p.augments.push('aug-281');go(f);const before=f.p.publicResources.combo;consume(f);assert.equal(f.p.publicResources.combo,before);},
+291:f=>{f.rc.valid=false;f.rc.invalidReason='COLLISION';go(f,true);assert.equal(f.p.publicResources.combo,2);assert.equal(f.rc.finisherBonusDamage,0);assert.equal(f.run.combat.privateByPlayer.p0.finisherUsedCycle,1);},
+292:f=>{const clone=structuredClone(f.run);martialState(clone,clone.players[0]);assert.equal(clone.players[0].publicResources.combo,2);},
+293:f=>{go(f);assert.equal(f.p.publicResources.combo,3);},
+294:f=>{f.p.augments.push('aug-291');f.s.heldTurns=1;go(f,true);assert.equal(f.rc.finisherBonusDamage,4);},
+295:f=>{f.p.augments.push('aug-291');f.s.qi=2;f.rc.valid=false;f.rc.invalidReason='COLLISION';go(f,true);assert.equal(f.s.qi,2);},
+296:f=>{go(f);assert.equal(martialPacket(f.run,f.p,f.rc,3).penetration,0);},
+297:f=>{go(f);afterMartialDamage(f.run,f.p,f.rc);assert.equal(f.p.publicResources.combo,3);},
+298:f=>{f.p.augments.push('aug-291','aug-295');f.p.publicResources.combo=4;f.s.qi=3;go(f,true);assert.equal(f.rc.martialExtraDamage,0);},
+299:f=>{f.p.publicResources.combo=3;f.rc.valid=false;f.rc.invalidReason='COLLISION';go(f);f.run.combat.turn++;f.rc.cardInstanceId='p0:base:3';go(f);assert.equal(f.p.publicResources.combo,0);},
+300:f=>{f.p.augments.push('aug-291');f.rc.valid=false;f.rc.invalidReason='COLLISION';go(f,true);afterMartialDamage(f.run,f.p,f.rc);assert.equal(f.p.publicResources.combo,2);}
+};
+for(const [id,check] of Object.entries(negatives))test('aug-'+id+' DESIGN-D condition negative',()=>check(fixture([Number(id)])));
+for(const character of ['imp','warrior','mage','vampire','gunner','prophet'])test('Martial cross-class '+character+' actual pipeline and reconnect',()=>{
+ const f=fixture([273]);const other=newPlayerRunState({id:'p1',user_id:'u1',character_id:character,member_type:'human',seat_index:1});f.run.players[1]=other;
+ f.run.combat=newCombatState(f.run.players,999,'NORMAL_COMBAT');f.run.combat.id='mixed-'+character;beginTurn(f.run);
+ for(let i=0;i<4;i++){
+ const p=f.run.players[i],number=[4,1,2,3][i],card=p.cardPool.find(c=>c.baseNumber===number);
+ if(character==='mage'&&i===1)p.publicResources.mana=2;
+ if(character==='vampire'&&i===1)p.publicResources.thrallPlayerId='p2';
+ submitCard(f.run,p.playerId,card.id,i===1&&['mage','vampire','gunner'].includes(character));
+ }
+ f.run.combat.monster.intent={type:'CHARGE',payload:{}};
+ const clone=structuredClone(f.run),a=resolveBasicTurn(f.run),b=resolveBasicTurn(clone);assert.deepEqual(a,b);
+ assert.deepEqual(a.phaseTrace.slice(1,5),['PRE_COLLISION_SELF_MODIFY','PRE_COLLISION_SWAP','PRE_COLLISION_STEAL','FINAL_NUMBER_REVEAL']);
+ for(const rc of a.cards){assert.equal(rc.finalNumber,rc.numberHistory.finalNumber);if(rc.playerId==='p0')assert.equal(rc.comboAfter,f.run.players[0].publicResources.combo);}
 });

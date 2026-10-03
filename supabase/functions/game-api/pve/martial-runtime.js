@@ -62,6 +62,7 @@ export function resolveMartial(run,p,rc,submission={},events=[]){
  const priv=run.combat.privateByPlayer?.[p.playerId];if(priv)priv.finisherUsedCycle=priv.cycleIndex||1;
  rc.skillUsed='one_hit_kill';rc.finisherComboBefore=before;rc.finisherComboConsumed=rc.valid?before:0;
  rc.finisherOutcome=rc.valid?'SUCCESS':collision?'FAIL_COLLISION':'FAIL_INVALID';
+ if(!rc.valid){rc.finisherBonusDamage=0;events.push({type:'ONE_HIT_KILL_FAILED',playerId:p.playerId,comboPreserved:before,reason:rc.invalidReason||'INVALID'});}
  if(rc.valid){
  const qi=s.qi;combo=0;bonus+=before*(has(p,298)?3:2);
  if(has(p,295)){bonus+=qi*2;s.qi=0;}
@@ -93,8 +94,9 @@ export function resolveMartial(run,p,rc,submission={},events=[]){
  if(rc.valid&&s.pending&&s.pending.root!==root){bonus+=s.pending.value;s.pending=null;}
  p.publicResources.combo=combo;p.publicResources.comboMax=cap;p.publicResources.lastSubmittedNumber=rc.finalNumber;
  p.publicResources.qi=s.qi;p.publicResources.exaltation=s.exaltation;
- rc.martialComboBonus=normal&&!has(p,281)?combo:0;rc.finisherBonusDamage=finisher&&rc.valid?bonus:0;rc.martialBonusDamage=finisher?0:bonus;rc.martialExtraDamage=extra;rc.comboAfter=combo;
- s.heldTurns=before>0?s.heldTurns+1:0;
+ if(normal)rc.martialComboBonus=has(p,281)?0:combo;else delete rc.martialComboBonus;
+ if(finisher)rc.finisherBonusDamage=rc.valid?bonus:0;else delete rc.finisherBonusDamage;rc.martialBonusDamage=finisher?0:bonus;rc.martialExtraDamage=extra;rc.comboAfter=combo;
+ s.heldTurns=combo>0?s.heldTurns+1:0;
  const fields=['comboBefore','previousSubmittedNumber','skillUsed','finisherComboBefore','finisherComboConsumed','finisherOutcome','martialRestore','martialPenetration','martialComboBonus','finisherBonusDamage','martialBonusDamage','martialExtraDamage','comboAfter'];
  s.results[root]=Object.fromEntries(fields.filter(k=>rc[k]!==undefined).map(k=>[k,rc[k]]));
  events.push({type:'MARTIAL_RESOLVED',playerId:p.playerId,comboBefore:before,comboAfter:combo,qi:s.qi,finalNumber:rc.finalNumber,valid:rc.valid});
