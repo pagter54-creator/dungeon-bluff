@@ -1,1 +1,123 @@
-{"task":"005D-A","status":"VALIDATION_PENDING","target":30,"claimedAccepted":0,"MARTIAL_RUNTIME_COMPLETE":false,"READY_FOR_PVE_CONTENT_005D_B_VAMPIRE":false}
+{
+  "task": "PVE_CONTENT_005D_A",
+  "status": "ACCEPTANCE_BLOCKED_PENDING_USER_APPROVAL",
+  "branch": "feat/pve-content-005d-a-martial",
+  "pr": 25,
+  "baselineHead": "60de86e12132f48ad64b891d3970d5b41b7996e3",
+  "runtimeEvidenceHead": "04a8fbde58185d040e8ec0e57f63005c189a80d1",
+  "latestCodeAndTestHead": "474ef7e6823215c2d603be3ec824e12473971aed",
+  "target": 30,
+  "registered": 30,
+  "executable": 30,
+  "candidateReachable": 30,
+  "positiveBehaviorCases": 30,
+  "conditionNegativeBehaviorCases": 30,
+  "wrongRoomNegativeCases": 30,
+  "fullBuilds": 3,
+  "stageProgressionBuilds": 3,
+  "crossClasses": [
+    "imp",
+    "warrior",
+    "mage",
+    "vampire",
+    "gunner",
+    "prophet"
+  ],
+  "verification": {
+    "targetedJob": {
+      "runId": 37148754699,
+      "jobId": 111278004050,
+      "conclusion": "success",
+      "tests": 148,
+      "pass": 148,
+      "fail": 0,
+      "skip": 0
+    },
+    "projectCheckFiles": 222,
+    "stress": [
+      {
+        "mode": "smoke",
+        "seeds": 10,
+        "hardFailures": 0,
+        "balanceWarnings": 54,
+        "scenarioIds": [
+          "T00",
+          "T05",
+          "T09",
+          "T14",
+          "T02",
+          "T03",
+          "T04",
+          "T06"
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hardFailures": 0,
+        "balanceWarnings": 100,
+        "scenarioIds": [
+          "T02"
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hardFailures": 0,
+        "balanceWarnings": 99,
+        "scenarioIds": [
+          "T05"
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hardFailures": 0,
+        "balanceWarnings": 100,
+        "scenarioIds": [
+          "T06"
+        ]
+      }
+    ],
+    "fullSuite": {
+      "runId": 37148656678,
+      "tests": 1582,
+      "pass": 1578,
+      "fail": 4,
+      "skip": 0
+    },
+    "latestAddedTests": [
+      "Seer physical-card recovery",
+      "two independent Martial Shatter suppliers"
+    ],
+    "latestTargetedTestCount": 150
+  },
+  "sourceIntegrity": {
+    "count": 25,
+    "mismatches": []
+  },
+  "existingTestsModified": 0,
+  "goldensModified": 0,
+  "productionMutations": 0,
+  "productionDeployment": false,
+  "merged": false,
+  "draft": true,
+  "blockingConditions": [
+    {
+      "type": "AUTO_APPROVAL_REJECTION",
+      "reason": "Automatic review rejected changing historical 005A/005C test domains under explicit user prohibition of adjusting existing tests to hide regression.",
+      "pendingQuestion": true,
+      "affectedAssertions": [
+        "005A catalog total305",
+        "005C-C executable total276",
+        "005C-FINAL executable total276",
+        "005C-FINAL catalog git blob hash"
+      ]
+    }
+  ],
+  "flags": {
+    "MARTIAL_RUNTIME_COMPLETE": false,
+    "READY_FOR_PVE_CONTENT_005D_B_VAMPIRE": false
+  },
+  "nextPhasesStarted": false
+}
