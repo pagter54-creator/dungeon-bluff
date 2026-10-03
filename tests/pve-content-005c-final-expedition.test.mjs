@@ -32,7 +32,7 @@ function legal(run,room=false){
   return (privateState.remainingCardIds||[]).map(id=>run.players[0].cardPool.find(card=>card.id===id)).filter(Boolean).sort((a,b)=>b.baseNumber-a.baseNumber||a.id.localeCompare(b.id))[0]?.id;
 }
 test('005C FINAL actual four-class expedition crosses Floor1/2/3 with two reconnects to RUN_CLEAR',async()=>{
-  const classes=['prophet','imp','gambler','gunner'];
+  const classes=['seer','imp','gambler','gunner'];
   const members=classes.map((character_id,i)=>({id:'p'+i,user_id:i===0?'u0':undefined,member_type:i===0?'human':'ai',character_id,seat_index:i,display_name:'005B '+i}));
   const initial=buildInitialPveRun({room:{id:'20000000-0000-4000-8000-000000000002'},members},{seed:'005c-final-full-expedition-route',depthCount:8});
   const equipped=[['aug-151','aug-153'],['aug-181','aug-183'],['aug-231','aug-232'],['aug-261','aug-266']];
