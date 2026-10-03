@@ -268,11 +268,11 @@ test('AI seer waiting for a human releases its card when the human seer activate
  assert.equal(fillAutomaticSubmissions(g,members,submissions,rng(2)),false);
 });
 
-test('skill controls label knight and seer correctly and show one filled segment without visible stack digits',()=>{
+test('skill controls label knight and seer correctly and show canonical Revelation max 3 without visible stack digits',()=>{
  const {g}=setup(['seer','warrior','mage','imp']);const p=g.state.players.p0;
  p.characterRuntimeState.revelationStacks=1;
  const gauge=revelationGauge(p);
- assert.equal((gauge.match(/class="revelation-pip/g)||[]).length,1);
+ assert.equal((gauge.match(/class="revelation-pip/g)||[]).length,3);
  assert.equal((gauge.match(/revelation-pip filled/g)||[]).length,1);
  assert.match(activeButton(p,false,false),/activate-revelation/);
  const selectedButton=activeButton(p,false,false,[],{},true);
