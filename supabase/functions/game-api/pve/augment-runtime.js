@@ -171,13 +171,6 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
     config:{collisionHealCapMode:'MAX_HP',revengeMax:1,revengeBonusDamage:2},
     effects:[]
   },
-  'aug-241':{
-    executable:true,
-    source:'BETA_v0.1',
-    specialHandlers:['FULL_BARRAGE'],
-    config:{expandedDeck:[1,2,2,3]},
-    effects:[]
-  },
   'aug-291':{
     executable:true,
     source:'BETA_v0.1',
