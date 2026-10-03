@@ -14,7 +14,7 @@ import {GUNNER_CONTRACTS} from '../supabase/functions/game-api/pve/gunner-contra
 import {PVE_EXECUTABLE_AUGMENT_UI} from '../src/pve-ui-catalog.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 import {setGamblerDrawPreference} from '../supabase/functions/game-api/pve/gambler.js';
-import {cleanupSeerCombat,scopedSeerState,applySeerRuntime} from '../supabase/functions/game-api/pve/seer-runtime.js';
+import {cleanupSeerCombat,scopedSeerState,applySeerRuntime,resolveSeerBaseValidity} from '../supabase/functions/game-api/pve/seer-runtime.js';
 import {initializeImpCombat,cleanupImpCombat,scopedImpState,applyImpCardValidated,applyImpBeforeDamage} from '../supabase/functions/game-api/pve/imp-runtime.js';
 import {cleanupGamblerCombat} from '../supabase/functions/game-api/pve/gambler.js';
 import {applyOwnedEffects} from '../supabase/functions/game-api/pve/effects.js';
@@ -246,4 +246,30 @@ test('005C FINAL old partial Seer/Imp state fills prediction fields and arrays w
  assert.equal(s.foresight,2);assert.equal(s.prediction,null);assert.deepEqual(s.predictionSuccessTypes,[]);assert.deepEqual(s.repeatedRecoveredNumbers,{});
  assert.equal(i.greed,3);assert.equal(i.excitement,2);assert.deepEqual(i.markedThisTurn,[]);assert.deepEqual(i.mischiefValidTurn,[]);
  assert.doesNotThrow(()=>applySeerRuntime(restored,'CARD_VALIDATED',{player:restored.players[0],resolved:{valid:true},cards:[]}));
+});
+
+test('005C FINAL user-confirmed Seer initial resource, activation outcomes, reconnect and next combat',()=>{
+ for(const valid of [true,false]){
+  const run=make(['prophet','imp','gambler','gunner']),p=run.players[0];p.augments=[];
+  assert.equal(p.publicResources.revelation,1);assert.equal(p.publicResources.revelationMax,3);
+  activateImmediateCharacterSkill(run,p);assert.equal(p.publicResources.revelation,0);
+  const restored=structuredClone(run);beginTurn(restored);
+  assert.equal(restored.players[0].publicResources.revelation,0,'reconnect/beginTurn does not initialize again');
+  resolveSeerBaseValidity(run,p,{valid,invalidReason:valid?null:'COLLISION'});
+  assert.equal(p.publicResources.revelation,valid?1:0);
+  resolveSeerBaseValidity(run,p,{valid});assert.equal(p.publicResources.revelation,valid?1:0,'resolve retry is idempotent');
+ }
+ const run=make(['prophet','imp','gambler','gunner']),p=run.players[0];p.augments=[];
+ resolveSeerBaseValidity(run,p,{valid:true});assert.equal(p.publicResources.revelation,1,'ordinary valid attack adds nothing');
+ for(const previous of [0,1,2,3]){
+  p.publicResources.revelation=previous;cleanupSeerCombat(run,p);
+  run.combat=newCombatState(run.players,99999);beginTurn(run);
+  assert.equal(p.publicResources.revelation,1,'next combat replaces previous resource');
+  for(let retry=0;retry<3;retry++){beginTurn(run);applyOwnedEffects(run,'COMBAT_START',{player:p,events:[]});}
+  assert.equal(p.publicResources.revelation,1,'COMBAT_START retry never grants again');
+ }
+ for(const value of [0,2,3]){
+  p.publicResources.revelation=value;const restored=structuredClone(run);beginTurn(restored);
+  assert.equal(restored.players[0].publicResources.revelation,value,'authoritative reconnect value preserved');
+ }
 });
