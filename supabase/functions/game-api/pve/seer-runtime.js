@@ -104,7 +104,7 @@ function applyGlobalBuffs(run,ctx){
   if(!ctx.player||!ctx.damage||!ctx.resolved?.valid)return [];
   const r=root(run),turn=currentTurn(run),combatId=run.combat?.id||null,out=[];
   for(const item of r.buffs){
-    if(item.uses<=0||item.targetId!==ctx.player.playerId||item.validFromTurn>turn||item.combatId&&item.combatId!==combatId)continue;
+    if(item.uses<=0||item.targetId!==ctx.player.playerId||item.validFromTurn>turn||item.combatId&&item.combatId!==combatId||!roomAllowed(run,item.sourceAugmentId))continue;
     if(item.expiryTurn!=null&&turn>item.expiryTurn){item.uses=0;continue;}
     if(addDamage(ctx,item.amount,item.sourceAugmentId)){
       item.uses--;telemetry(run,item.sourceAugmentId,'PRE_DAMAGE',true,{bonusDamage:item.amount});
