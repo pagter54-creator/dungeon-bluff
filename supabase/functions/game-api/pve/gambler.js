@@ -399,10 +399,17 @@ export function gamblerSetDamage(run,player,state,resolved,damage){
   if(hasGamblerAugment(run,player,'aug-239'))amount+=streak;
   if(hasGamblerAugment(run,player,'aug-240')&&!state.houseUsed){amount+=8;state.houseUsed=true;}
   amount=Math.max(0,amount+validatedBonus-penalty);
-  if(hasGamblerAugment(run,player,'aug-237')&&amount>=8&&!state.aug237Used){state.aug237Used=true;if(state.pendingAllIn)state.pendingAllIn.aug237Reduced=true;resolved.aug237Reduced=true;}
   state.processedActions[key]=amount;state.telemetry.allInDamage+=amount;
   boundedHistory(state,{type:'ALL_IN_DAMAGE',turn:run.combat?.turn||0,rootActionId:resolved.allInRootActionId,amount});
   return amount;
+}
+export function finalizeGamblerActualDamage(run,player,state,resolved,actualDamage){
+  normalizeGamblerState(run,player,state);
+  if(!resolved?.allIn||!resolved?.valid||!hasGamblerAugment(run,player,'aug-237')||state.aug237Used||Number(actualDamage)<8)return false;
+  const key=`aug-237:actual:${resolved.allInRootActionId}`;if(state.processedActions[key])return false;
+  state.processedActions[key]=true;state.aug237Used=true;
+  if(state.pendingAllIn?.rootActionId===resolved.allInRootActionId)state.pendingAllIn.aug237Reduced=true;
+  resolved.aug237Reduced=true;return true;
 }
 export function finalizeGamblerAllIn(run,player,state,resolved){
   if(!resolved?.allIn)return;
