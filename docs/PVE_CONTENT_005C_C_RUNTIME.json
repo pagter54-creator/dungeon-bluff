@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "PVE_CONTENT_005C_C_RUNTIME_DRAFT_V1",
+  "schemaVersion": "PVE_CONTENT_005C_C_RUNTIME_FINAL_V2",
   "baseline": "cbcbdc0306a7de7c73c99cde8bfd7ccdbb349e5a",
   "cards": [
     {
@@ -35,8 +35,14 @@
         "GAIN_RESOURCE",
         "SPEND_RESOURCE"
       ],
-      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-211 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-212",
@@ -71,8 +77,14 @@
         "GAIN_RESOURCE",
         "MODIFY_NUMBER"
       ],
-      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-212 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-213",
@@ -106,8 +118,14 @@
         "ADD_DAMAGE",
         "MODIFY_NUMBER"
       ],
-      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-213 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-214",
@@ -139,8 +157,14 @@
       "primitiveMapping": [
         "GAIN_RESOURCE"
       ],
-      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-214 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-215",
@@ -172,8 +196,14 @@
       "primitiveMapping": [
         "ADD_DAMAGE"
       ],
-      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-215 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-216",
@@ -205,8 +235,14 @@
       "primitiveMapping": [
         "GAIN_RESOURCE"
       ],
-      "runtimeStatus": "BLOCKED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-216 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-217",
@@ -239,8 +275,14 @@
       "primitiveMapping": [
         "ADD_DAMAGE"
       ],
-      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-217 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-218",
@@ -272,8 +314,14 @@
       "primitiveMapping": [
         "ADD_DAMAGE"
       ],
-      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-218 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-219",
@@ -307,8 +355,14 @@
         "ADD_DAMAGE",
         "MODIFY_NUMBER"
       ],
-      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-219 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-220",
@@ -340,8 +394,14 @@
       "primitiveMapping": [
         "ADD_STACK"
       ],
-      "runtimeStatus": "BLOCKED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-220 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-221",
@@ -376,8 +436,14 @@
         "DRAW_CARD",
         "MODIFY_DECK"
       ],
-      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-221 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-222",
@@ -409,8 +475,14 @@
       "primitiveMapping": [
         "ADD_DAMAGE"
       ],
-      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-222 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-223",
@@ -444,8 +516,14 @@
         "ADD_DAMAGE",
         "DRAW_CARD"
       ],
-      "runtimeStatus": "BLOCKED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-223 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-224",
@@ -479,8 +557,14 @@
         "ADD_DAMAGE",
         "DRAW_CARD"
       ],
-      "runtimeStatus": "BLOCKED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-224 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-225",
@@ -512,8 +596,14 @@
       "primitiveMapping": [
         "DELAY_EFFECT"
       ],
-      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-225 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-226",
@@ -545,8 +635,14 @@
       "primitiveMapping": [
         "ADD_DAMAGE"
       ],
-      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-226 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-227",
@@ -579,8 +675,14 @@
       "primitiveMapping": [
         "ADD_DAMAGE"
       ],
-      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-227 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-228",
@@ -613,8 +715,14 @@
         "DRAW_CARD",
         "MODIFY_DECK"
       ],
-      "runtimeStatus": "BLOCKED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-228 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-229",
@@ -646,8 +754,14 @@
       "primitiveMapping": [
         "ADD_DAMAGE"
       ],
-      "runtimeStatus": "BLOCKED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-229 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-230",
@@ -679,8 +793,14 @@
       "primitiveMapping": [
         "DRAW_CARD"
       ],
-      "runtimeStatus": "BLOCKED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-230 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-231",
@@ -717,8 +837,14 @@
         "SET_DAMAGE",
         "PHYSICAL_CARD_IDENTITY"
       ],
-      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-231 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-232",
@@ -750,8 +876,14 @@
       "primitiveMapping": [
         "ADD_DAMAGE"
       ],
-      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-232 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-233",
@@ -785,8 +917,14 @@
         "DRAW_CARD",
         "DELAY_EFFECT"
       ],
-      "runtimeStatus": "PARTIAL",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-233 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-234",
@@ -818,8 +956,14 @@
       "primitiveMapping": [
         "ADD_DAMAGE"
       ],
-      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-234 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-235",
@@ -856,8 +1000,14 @@
         "DELAY_EFFECT",
         "OVERRIDE_BASE_RULE"
       ],
-      "runtimeStatus": "BLOCKED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-235 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-236",
@@ -891,8 +1041,14 @@
         "ADD_DAMAGE",
         "DRAW_CARD"
       ],
-      "runtimeStatus": "BLOCKED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-236 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-237",
@@ -925,8 +1081,14 @@
       "primitiveMapping": [
         "HEAL"
       ],
-      "runtimeStatus": "BLOCKED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-237 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-238",
@@ -959,8 +1121,14 @@
         "SPEND_RESOURCE",
         "MODIFY_NUMBER"
       ],
-      "runtimeStatus": "BLOCKED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-238 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-239",
@@ -992,8 +1160,14 @@
       "primitiveMapping": [
         "ADD_STACK"
       ],
-      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-239 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     },
     {
       "id": "aug-240",
@@ -1030,8 +1204,36 @@
         "DELAY_EFFECT",
         "DAMAGE_SELF"
       ],
-      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
-      "tests": "NOT_EXECUTED_IN_CHAT"
+      "runtimeStatus": "EXECUTABLE",
+      "tests": {
+        "positive": "tests/pve-content-005c-c-gambler-repair.test.mjs: actual positive/negative effect matrix",
+        "negative": "same matrix: aug-240 negative callback",
+        "integration": "tests/pve-content-005c-c-gambler-integration.test.mjs"
+      },
+      "parityStatus": "MATCH",
+      "handlerReference": "supabase/functions/game-api/pve/gambler.js"
     }
-  ]
+  ],
+  "initialAudit": {
+    "head": "37843a9fb3e1334f90c23888b98bda74d08f155c",
+    "MATCH": 0,
+    "IMPLEMENTED_UNVERIFIED": 26,
+    "PARTIAL": 4,
+    "BLOCKED": 0,
+    "MISSING": 0,
+    "partialIds": [
+      "aug-211",
+      "aug-221",
+      "aug-225",
+      "aug-227"
+    ]
+  },
+  "completionGate": {
+    "requiredHead": "CURRENT_DOCUMENTATION_HEAD",
+    "workflow": "Project Checks",
+    "requiredStatus": "completed",
+    "requiredConclusion": "success",
+    "pendingFlags": false,
+    "successFlags": true
+  }
 }
