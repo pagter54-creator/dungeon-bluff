@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/pve/model.js';
@@ -175,6 +176,24 @@ for(const id of SEER_CONTRACT_IDS)test('005C-A positive runtime registration '+i
   const rt=EXECUTABLE_AUGMENT_RUNTIME[id];
   assert.equal(rt.executable,true);assert.ok(rt.specialHandlers.includes('SEER_V02'));
   assert.equal(rt.candidatePool.classId,'prophet');
+});
+
+test('005C-A DESIGN-C parity is 30/30 for executable contract semantics',()=>{
+  const design=JSON.parse(fs.readFileSync(new URL('../docs/PVE_CONTENT_005Q_DESIGN_C.json',import.meta.url),'utf8'));
+  const source=Object.fromEntries(design.cards.filter(x=>SEER_CONTRACT_IDS.includes(x.augmentId)).map(x=>[x.augmentId,x]));
+  const mappings=[
+    ['name','name'],['archetype','archetype'],['stage','stage'],['trigger','trigger'],['condition','condition'],
+    ['effectType','effectType'],['effectValue','effectValue'],['roomApplicability','roomApplicability'],['onceScope','onceScope'],
+    ['resetScope','resetScope'],['persistenceScope','persistenceScope'],['visibility','visibility'],
+    ['runtimePrimitivesRequired','runtimePrimitivesRequired']
+  ];
+  for(const id of SEER_CONTRACT_IDS){
+    assert.ok(source[id],id);
+    for(const [a,b] of mappings)assert.deepEqual(SEER_CONTRACTS[id][a],source[id][b],id+':'+a);
+    assert.equal(SEER_CONTRACTS[id].tooltip,source[id].tooltipBetaV02,id+':tooltip');
+    assert.equal(source[id].executable,false,id+':design-source-must-remain-non-executable');
+    assert.equal(SEER_CONTRACTS[id].executable,true,id+':runtime-contract-executable');
+  }
 });
 
 test('005C-A tooltip parity is exact for aug-151..180 and all contracts retain explicit room matrices',()=>{
