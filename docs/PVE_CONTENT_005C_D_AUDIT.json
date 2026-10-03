@@ -146,7 +146,7 @@
   "productionUnchanged": true,
   "balancePolicy": "NO_TUNING_NO_GOLDEN_CHANGES",
   "evidence": {
-    "runtimeHead": "4141c5ca8d47d862f520ff656743b9246e830110",
+    "runtimeHead": "ce27d541559f0f93e7fb9c0ead45debbe7bf835d",
     "previousTestsChecksSmokeRun": 37116197455,
     "previousRunNumber": 870,
     "finalHead": "CURRENT_DOCUMENTATION_HEAD",
@@ -189,5 +189,8 @@
     "merge": false,
     "readyForReview": false,
     "followingPhase": "005C-FINAL is only marked eligible after final CI; no implementation in this PR"
+  },
+  "executionRulePatchNotes": {
+    "aug-253": "Restored activation consumption clears preservedForCycleId immediately, keeps preservationUsedThisCombat=true; root retry restores resolved fields without rearming."
   }
 }
