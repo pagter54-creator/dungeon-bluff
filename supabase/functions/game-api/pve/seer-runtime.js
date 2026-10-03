@@ -211,7 +211,11 @@ function predictionSuccess(p,cards){
 }
 function evaluatePrediction(run,owner,ctx){
   const s=scopedSeerState(run,owner),p=s.prediction,turn=currentTurn(run);
-  if(!p||p.status!=='ARMED'||p.targetTurn!==turn||!Array.isArray(ctx.cards))return false;
+  if(!p||p.status!=='ARMED')return false;
+  if(run.phase!=='COMBAT'||p.originCombatId&&p.originCombatId!==run.combat?.id||p.originRoomId&&p.originRoomId!==(run.currentRoomNodeId||run.combat?.id)){
+    p.status='CANCELLED';telemetry(run,'aug-171','PREDICTION_CANCELLED',true,{predictionCancelled:1,reason:'SOURCE_SCOPE_CHANGED'});return false;
+  }
+  if(p.targetTurn!==turn||!Array.isArray(ctx.cards))return false;
   const success=predictionSuccess(p,ctx.cards);p.status=success?'CONDITION_MET':'CONSUMED';p.evaluatedTurn=turn;p.success=success;
   telemetry(run,'aug-171','PREDICTION_RESOLVED',success,{predictionResolved:1,predictionType:p.type});
   if(!success){s.foresightStreak=0;p.status='CONSUMED';return false;}
@@ -431,7 +435,7 @@ export function applySeerRuntime(run,trigger,ctx={}){
     const direct=Math.max(0,Number(ctx.resolved.seerRuntimeBonus)||0);
     if(direct>0&&addDamage(ctx,direct,'SEER_RUNTIME_BONUS'))out.push({augmentId:'SEER_RUNTIME_BONUS',applied:true,bonusDamage:direct});
     const s=scopedSeerState(run,p);
-    if(s.foresight>0){const amount=s.foresight;if(addDamage(ctx,amount,'aug-171')){s.foresight=0;telemetry(run,'aug-171','PRE_DAMAGE',true,{bonusDamage:amount});out.push({augmentId:'aug-171',applied:true,bonusDamage:amount});}}
+    if(run.phase==='COMBAT'&&s.foresight>0){const amount=s.foresight;if(addDamage(ctx,amount,'aug-171')){s.foresight=0;telemetry(run,'aug-171','PRE_DAMAGE',true,{bonusDamage:amount});out.push({augmentId:'aug-171',applied:true,bonusDamage:amount});}}
   }
   if(trigger==='TURN_END'){
     const s=scopedSeerState(run,p),turn=currentTurn(run);
