@@ -119,9 +119,12 @@ export function applyImpPreCollisionSteal(run,cards,events=[]){
   const imps=run.players.filter(p=>p.characterId==='imp'&&p.status!=='DOWNED'&&cardByPlayer(cards,p.playerId)).sort((a,b)=>a.seat-b.seat||a.playerId.localeCompare(b.playerId));
   for(const imp of imps){
     const actor=cardByPlayer(cards,imp.playerId),priv=run.combat?.privateByPlayer?.[imp.playerId],pending=priv?.impSubmission?.turn===turn(run)?priv.impSubmission:{spent:0};
+    const rootActionId=`steal:${run.combat?.id||run.id}:${turn(run)}:${imp.playerId}`;
+    if(root(run).processedRoots[rootActionId])continue;
+    root(run).processedRoots[rootActionId]=true;
     actor.stolenNumberSpent=Math.max(0,Number(pending?.spent)||0);actor.workingNumber+=actor.stolenNumberSpent;
-    const actorStart=actor.workingNumber,rootActionId=`steal:${run.combat?.id||run.id}:${turn(run)}:${imp.playerId}`;
-    const eligible=cards.filter(card=>card.playerId!==imp.playerId&&byId(run,card.playerId)?.characterId!=='imp'&&card.workingNumber===actorStart)
+    const actorStart=actor.workingNumber;
+    const eligible=cards.filter(card=>card.playerId!==imp.playerId&&byId(run,card.playerId)?.characterId!=='imp'&&byId(run,card.playerId)?.status!=='DOWNED'&&card.workingNumber===actorStart)
       .sort((a,b)=>(byId(run,a.playerId)?.seat??999)-(byId(run,b.playerId)?.seat??999)||a.playerId.localeCompare(b.playerId));
     let total=0;const victimIds=[],lowVictimIds=[];actor.stealEvents=[];
     for(const targetCard of eligible){
