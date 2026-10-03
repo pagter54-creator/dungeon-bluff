@@ -1,6 +1,6 @@
 import {choose} from './rng.js';
 import {persistCardCycles} from './card-cycle.js';
-import {drawGamblerHand,settleGamblerHand,prepareGamblerAllIn,gamblerSetDamage,finalizeGamblerAllIn,applyGamblerValidated} from './gambler.js';
+import {drawGamblerHand,settleGamblerHand,prepareGamblerAllIn,gamblerSetDamage,finalizeGamblerAllIn,applyGamblerValidated,initializeGamblerCombat,prepareGamblerForcedAutoSubmission} from './gambler.js';
 import {
   onTurnStartCharacter,onCycleStartCharacter,onTurnEndCharacter,selfModifyCard,collisionImmunity,onValidAttack,
   isCardSelectableForCharacter,validateCharacterSkillIntent,resolvePostCollisionCharacter,resolvePostCollisionEffects,resolveGuardianWallCollisions,
@@ -105,6 +105,7 @@ function reviveAfterVictory(run){
 function autoSubmitStunned(run){
   const c=run.combat;
   for(const p of run.players.filter(p=>p.status==='STUNNED_NEXT_TURN').sort((a,b)=>a.seat-b.seat)){
+    if(c.turnSubmissions[p.playerId])continue;
     const priv=c.privateByPlayer[p.playerId];
     if(!priv.remainingCardIds.length)resetCycleIfNeeded(run,p);
     const choices=selectableIds(run,p);
@@ -166,12 +167,17 @@ function autoSubmitAi(run){
 export function beginTurn(run){
   const c=run.combat;if(!c||run.phase!=='COMBAT')return;
   if(!c.telemetry)initCombatTelemetry(run,c.roomType||'NORMAL_COMBAT');
-  if(!c.combatStartEffectsApplied){for(const p of run.players){if(p.characterId==='imp')initializeImpCombat(run,p);applyOwnedEffects(run,'COMBAT_START',{player:p,events:[]});}c.combatStartEffectsApplied=true;}
+  if(!c.combatStartEffectsApplied){for(const p of run.players){if(p.characterId==='imp')initializeImpCombat(run,p);if(p.characterId==='gambler')initializeGamblerCombat(run,p,c.privateByPlayer[p.playerId]);applyOwnedEffects(run,'COMBAT_START',{player:p,events:[]});}c.combatStartEffectsApplied=true;}
   c.phase='TURN_START';
   for(const p of run.players){onTurnStartCharacter(p,run);applyOwnedEffects(run,'TURN_START',{player:p,events:[]});}
-  for(const p of run.players)if(p.characterId==='gambler')drawGamblerHand(run,p,c.privateByPlayer[p.playerId]);
+  for(const p of run.players)if(p.characterId==='gambler'&&!c.privateByPlayer[p.playerId].forcedAutoSubmitNext)drawGamblerHand(run,p,c.privateByPlayer[p.playerId]);
   c.phase='INTENT_PUBLISH';publishMonsterIntent(run);
-  c.phase='SELECTION_OPEN';for(const p of run.players)applyOwnedEffects(run,'PRE_SELECT',{player:p,privateState:c.privateByPlayer[p.playerId]});autoSubmitStunned(run);autoSubmitAi(run);
+  c.phase='SELECTION_OPEN';for(const p of run.players)applyOwnedEffects(run,'PRE_SELECT',{player:p,privateState:c.privateByPlayer[p.playerId]});
+  for(const p of run.players.filter(p=>p.characterId==='gambler'&&p.status!=='DOWNED').sort((a,b)=>a.seat-b.seat)){
+    if(c.turnSubmissions[p.playerId])continue;const priv=c.privateByPlayer[p.playerId],cardId=prepareGamblerForcedAutoSubmission(run,p,priv);if(!cardId)continue;
+    c.turnSubmissions[p.playerId]={playerId:p.playerId,cardInstanceId:cardId,skillIntent:false,submittedAt:new Date().toISOString(),autoSubmitted:true,forcedByAugment:'aug-235'};priv.selectedCardId=cardId;priv.skillIntent=false;
+  }
+  autoSubmitStunned(run);autoSubmitAi(run);
   const active=run.players.filter(p=>p.status!=='DOWNED').map(p=>p.playerId);
   if(active.length&&active.every(pid=>c.turnSubmissions[pid]?.autoSubmitted))return resolveBasicTurn(run);
 }
