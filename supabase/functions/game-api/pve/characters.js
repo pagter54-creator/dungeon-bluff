@@ -105,6 +105,10 @@ export function initializeCombatCharacter(player){
   if(player.characterId==='berserker'&&player.augments.includes('aug-131'))player.publicResources.revenge=0;
   if(player.characterId==='vampire'&&player.augments.includes('aug-321'))player.publicResources.blood=0;
   if(player.characterId==='gunner'){
+    // Construct the starting magazine before its first physical cycle exists.
+    // Later acquisitions preserve identities through ensureGunnerMagazine.
+    if(!player.persistentCharacterState.gunnerMagazineInitialized&&player.augments.includes('aug-241'))setCanonicalBaseDeck(player,[1,2,2,3]);
+    player.persistentCharacterState.gunnerMagazineInitialized=true;
     if(player.augments.includes('aug-241'))ensureGunnerMagazine({players:[player]},player);
     player.publicResources.fullBurstReady=true;
     player.publicResources.burstReadyCycle=1;
