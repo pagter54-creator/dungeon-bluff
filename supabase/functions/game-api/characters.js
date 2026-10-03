@@ -103,7 +103,7 @@ export function ensureCharacterState(player, character) {
   if(player.skillId==='amplify')player.characterRuntimeState.mana??=0;
   if(current?.definition.balanceRevision===5&&player.character.definition?.balanceRevision!==5){
     player.character=structuredClone(current);player.skillType=current.definition.skill.type;
-    if(player.skillId==='revelation')player.characterRuntimeState.revelationStacks=Math.min(1,player.characterRuntimeState.revelationStacks||0);
+    if(player.skillId==='revelation')player.characterRuntimeState.revelationStacks=Math.min(3,player.characterRuntimeState.revelationStacks||0);
     if(player.skillId==='random_hand'&&player.cycleCards?.length)ensureGamblerDeck(player);
   }
   if(player.skillId==='soul_slash'&&player.character.definition?.balanceRevision!==6){player.character=structuredClone(CHARACTER_CATALOG.demonsword);player.skillType=player.character.definition.skill.type;}
