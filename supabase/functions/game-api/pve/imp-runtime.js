@@ -144,7 +144,7 @@ export function applyImpPreCollisionSteal(run,cards,events=[]){
         for(const p of run.players.filter(x=>x.status!=='DOWNED'))addBuff(run,{sourceAugmentId:'aug-188',ownerId:imp.playerId,targetId:p.playerId,amount:3});
       }
     }
-    for(const id of IMP_CONTRACT_IDS.filter(id=>owned(imp,id)))if(['aug-181','aug-182','aug-184','aug-185','aug-188','aug-189','aug-191','aug-201'].includes(id)&&impRoomAllowed(run,id))telemetry(run,id,'PRE_COLLISION',total>0,{stealAttempts:eligible.length,successfulSteals:actor.stealTargetCount,actualStolenAmount:total,distinctVictims:actor.stealTargetCount});
+    for(const id of ['aug-181','aug-182','aug-184','aug-185','aug-188','aug-189','aug-191','aug-201'])if(owned(imp,id)&&impRoomAllowed(run,id))telemetry(run,id,'PRE_COLLISION',total>0,{stealAttempts:eligible.length,successfulSteals:actor.stealTargetCount,actualStolenAmount:total,distinctVictims:actor.stealTargetCount});
   }
   for(const card of cards){card.finalNumber=card.workingNumber;if(card.numberHistory)card.numberHistory.postStealNumber=card.workingNumber;}
   return cards;
