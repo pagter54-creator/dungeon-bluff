@@ -49,8 +49,8 @@ export function revelationGauge(player) {
   }
   if (player.skillId === 'combo') return `<div class="revelation-gauge" role="meter" aria-label="연격 중첩" aria-valuemin="0" aria-valuemax="3" aria-valuenow="${player.characterRuntimeState?.comboStacks||0}">${[0,1,2].map(i=>`<i class="revelation-pip ${i<(player.characterRuntimeState?.comboStacks||0)?'filled':''}" aria-hidden="true"></i>`).join('')}</div><small class="combo-previous">직전 카드: ${html(player.characterRuntimeState?.comboPrevious ?? '-')}</small>`;
   if (player.skillId !== 'revelation') return '';
-  const stacks = Math.max(0, Math.min(1, player.characterRuntimeState?.revelationStacks || 0));
-  return resourceGauge('계시',stacks,1,'seer-gauge');
+  const stacks = Math.max(0, Math.min(3, player.characterRuntimeState?.revelationStacks || 0));
+  return resourceGauge('계시',stacks,3,'seer-gauge');
 }
 export function resourceGauge(label,value,max,extra='') {
   return `<div class="revelation-gauge ${extra}" role="meter" aria-label="${label}" aria-valuemin="0" aria-valuemax="${max}" aria-valuenow="${value}">${Array.from({length:max},(_,i)=>`<i class="revelation-pip ${i<value?'filled':''}" aria-hidden="true"></i>`).join('')}</div>`;
