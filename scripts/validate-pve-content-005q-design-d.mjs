@@ -30,6 +30,7 @@ need(allowedOrigin.has(e.sourceClassification),`${id}:origin`);
 for(const [key,value] of Object.entries(e.provenance?.fieldOrigins||{}))for(const o of Array.isArray(value)?value:[value])need(allowedOrigin.has(o),`${id}:origin${key}`);
 need(Array.isArray(e.trigger)&&e.trigger.length>0,`${id}:trigger`);
 need(e.condition?.expression?.length>4,`${id}:condition`);
+for (const token of e.condition?.expression?.match(/\b[A-Z][A-Z_0-9]*\b/g) || []) need(doc.executionModel?.conditions?.[token] || doc.executionModel?.stateDictionary?.[token], `${id}:undeclared predicate ${token}`);
 need(e.effectValue?.operations?.length>0,`${id}:effectops`);
 need(rooms.every(k=>typeof e.roomApplicability?.[k]==="boolean"),`${id}:rooms`);
 need(once.has(e.onceScope)&&resets.has(e.resetScope)&&persists.has(e.persistenceScope),`${id}:scope`);
