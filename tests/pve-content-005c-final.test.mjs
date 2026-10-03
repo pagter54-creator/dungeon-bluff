@@ -15,7 +15,7 @@ import {PVE_EXECUTABLE_AUGMENT_UI} from '../src/pve-ui-catalog.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 import {setGamblerDrawPreference} from '../supabase/functions/game-api/pve/gambler.js';
 import {cleanupSeerCombat,scopedSeerState,applySeerRuntime} from '../supabase/functions/game-api/pve/seer-runtime.js';
-import {initializeImpCombat,cleanupImpCombat,applyImpCardValidated,applyImpBeforeDamage} from '../supabase/functions/game-api/pve/imp-runtime.js';
+import {initializeImpCombat,cleanupImpCombat,scopedImpState,applyImpCardValidated,applyImpBeforeDamage} from '../supabase/functions/game-api/pve/imp-runtime.js';
 import {cleanupGamblerCombat} from '../supabase/functions/game-api/pve/gambler.js';
 import {applyOwnedEffects} from '../supabase/functions/game-api/pve/effects.js';
 import {activateImmediateCharacterSkill} from '../supabase/functions/game-api/pve/characters.js';
@@ -236,4 +236,14 @@ test('005C FINAL old partial Gunner snapshot fills missing fields and preserves 
  assert.equal(s.aug253.preservationUsedThisCombat,false);
  applyOwnedEffects(restored,'TURN_START',{player:owner});assert.equal(s.overheat,2);
  assert.deepEqual(projectRun(restored,'p0').privateGunnerState,s);
+});
+
+test('005C FINAL old partial Seer/Imp state fills prediction fields and arrays while preserving stacks',()=>{
+ const run=make(['prophet','imp','gambler','gunner']);
+ run.augmentFramework.cardState['p0:seer']={ownerId:'p0',foresight:2};
+ run.augmentFramework.imp.state.p1={greed:3,excitement:2};
+ const restored=structuredClone(run),s=scopedSeerState(restored,restored.players[0]),i=scopedImpState(restored,restored.players[1]);
+ assert.equal(s.foresight,2);assert.equal(s.prediction,null);assert.deepEqual(s.predictionSuccessTypes,[]);assert.deepEqual(s.repeatedRecoveredNumbers,{});
+ assert.equal(i.greed,3);assert.equal(i.excitement,2);assert.deepEqual(i.markedThisTurn,[]);assert.deepEqual(i.mischiefValidTurn,[]);
+ assert.doesNotThrow(()=>applySeerRuntime(restored,'CARD_VALIDATED',{player:restored.players[0],resolved:{valid:true},cards:[]}));
 });
