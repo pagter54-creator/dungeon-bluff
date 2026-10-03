@@ -44,8 +44,8 @@ test('005C-B base steal uses actual amount floor 0 and recomputes collision afte
   const ev=out.mutationEvents.find(x=>x.effectId==='imp-steal');assert.equal(ev.requestedAmount,1);assert.equal(ev.actualAmount,1);assert.equal(ev.before,1);assert.equal(ev.after,0);
 });
 test('005C-B steal can create a new collision from post-steal FINAL_NUMBER',()=>{
-  const {run}=make(['imp','adventurer','warrior','mage']);const out=submitNums(run,[1,2,1,4]),by=Object.fromEntries(out.cards.map(x=>[x.playerId,x]));
-  assert.equal(by.p0.finalNumber,2);assert.equal(by.p1.finalNumber,2);assert.equal(by.p0.invalidReason,'COLLISION');assert.equal(by.p1.invalidReason,'COLLISION');
+  const {run}=make(['imp','adventurer','warrior','mage']);const out=submitNums(run,[2,3,2,4]),by=Object.fromEntries(out.cards.map(x=>[x.playerId,x]));
+  assert.equal(by.p0.finalNumber,3);assert.equal(by.p1.finalNumber,3);assert.equal(by.p0.invalidReason,'COLLISION');assert.equal(by.p1.invalidReason,'COLLISION');
 });
 test('005C-B multiple Imps resolve sequentially by seat and later Imp sees mutated victim value',()=>{
   const {run}=make(['imp','imp','adventurer','mage']);const out=submitNums(run,[1,1,1,4]);
