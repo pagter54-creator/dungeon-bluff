@@ -127,15 +127,24 @@ test('005C-A aug-161 explicit ally recovery uses same eligible BASE physical car
   const prov=run.augmentFramework.seer.recoveredCards[second];assert.equal(prov.recoveredByPlayerId,'p0');assert.equal(prov.targetPlayerId,'p1');
 });
 
-test('005C-A owner-only inspection does not leak selected number to ally/target projection',()=>{
-  const {run,p}=fixture();p.publicResources.revelation=1;
-  submitCard(run,'p1',available(run,run.players[1],4));moveToSpent(run,p,5);
-  activateImmediateCharacterSkill(run,p);
-  const owner=projectRun(run,'p0'),ally=projectRun(run,'p2'),target=projectRun(run,'p1');
-  assert.equal(owner.privateCombat.revelationPeek.selectedNumber,4);
-  assert.equal(ally.privateCombat?.revelationPeek,undefined);
-  assert.equal(target.privateCombat?.revelationPeek,undefined);
-  assert.ok(!JSON.stringify(ally).includes('"selectedNumber":4'));
+test('005C-A base Revelation never inspects selected numbers; aug-177 is owner-only',()=>{
+  {
+    const {run,p}=fixture();p.publicResources.revelation=1;
+    submitCard(run,'p1',available(run,run.players[1],4));moveToSpent(run,p,5);
+    activateImmediateCharacterSkill(run,p);
+    for(const viewer of ['p0','p1','p2'])assert.equal(projectRun(run,viewer).privateCombat?.revelationPeek,undefined);
+  }
+  {
+    const {run,p}=fixture(['aug-171','aug-177']);p.publicResources.revelation=1;
+    submitCard(run,'p1',available(run,run.players[1],4));moveToSpent(run,p,5);
+    activateImmediateCharacterSkill(run,p,{prediction:{type:'COLLISION'}});
+    const owner=projectRun(run,'p0'),target=projectRun(run,'p1'),other=projectRun(run,'p2');
+    assert.equal(owner.privateCombat.revelationPeek.selectedNumber,4);
+    assert.equal(target.privateCombat?.revelationPeek,undefined);
+    assert.equal(other.privateCombat?.revelationPeek,undefined);
+    assert.ok(!JSON.stringify(target).includes('"selectedNumber":4'));
+    assert.ok(!JSON.stringify(other).includes('"selectedNumber":4'));
+  }
 });
 
 test('005C-A aug-171 prediction persists through reconnect and cannot leak to another combat',()=>{
@@ -144,9 +153,10 @@ test('005C-A aug-171 prediction persists through reconnect and cannot leak to an
   assert.ok(event.predictionId);
   const snap=structuredClone(run),state=scopedSeerState(snap,snap.players[0]);
   assert.equal(state.prediction.originCombatId,'seer-combat');assert.equal(state.prediction.targetTurn,2);
-  applySeerRuntime(snap,'COMBAT_END',{player:snap.players[0]});assert.equal(scopedSeerState(snap,snap.players[0]).prediction.status,'CANCELLED');
+  applySeerRuntime(snap,'COMBAT_END',{player:snap.players[0]});
+  assert.equal(snap.augmentFramework.cardState['p0:seer'],undefined);
   snap.combat=newCombatState(snap.players,999);snap.combat.id='next-combat';beginTurn(snap);
-  assert.notEqual(scopedSeerState(snap,snap.players[0]).prediction?.status,'ARMED');
+  assert.equal(scopedSeerState(snap,snap.players[0]).prediction,null);
 });
 
 test('005C-A all thirty cards have explicit positive/negative runtime contracts and no silent-noop registry entries',()=>{
