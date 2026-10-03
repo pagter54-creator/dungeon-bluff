@@ -219,6 +219,7 @@ export function cleanupImpCombat(run,p){
   r.buffs=r.buffs.filter(b=>b.ownerId!==p.playerId&&b.combatId!==combatId);
   delete r.state[p.playerId];
   for(const k of Object.keys(r.once))if(k.includes(p.playerId+':B:'+combatId)||k.includes(p.playerId+':T:'+combatId)||k.includes(p.playerId+':C:'+combatId))delete r.once[k];
+  for(const k of Object.keys(r.processedRoots))if(k.includes(combatId)||k.startsWith('incoming:'))delete r.processedRoots[k];
 }
 export function assertImpHandler(id){if(!IMP_CONTRACTS[id]||!IMP_HANDLER_IDS.includes(id))throw new Error('MISSING_IMP_HANDLER:'+id);}
 export const IMP_HANDLER_IDS=Object.freeze([...IMP_CONTRACT_IDS]);
