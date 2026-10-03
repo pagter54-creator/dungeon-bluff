@@ -1,0 +1,130 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/pve/model.js';
+import {applyOwnedEffects} from '../supabase/functions/game-api/pve/effects.js';
+import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-api/pve/combat.js';
+import {GUNNER_CONTRACTS,GUNNER_CONTRACT_IDS} from '../supabase/functions/game-api/pve/gunner-contracts.js';
+import {gunnerState,ensureGunnerMagazine,resolveGunnerSelected,gunnerPenetration,gunnerExtraComponent} from '../supabase/functions/game-api/pve/gunner-runtime.js';
+import {AUGMENT_BY_ID,augmentCandidates} from '../supabase/functions/game-api/pve/augment-catalog.js';
+import {EXECUTABLE_AUGMENT_RUNTIME} from '../supabase/functions/game-api/pve/augment-runtime.js';
+import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
+function fixture(ids=[]){
+ const players=['gunner','prophet','imp','mage'].map((character_id,i)=>newPlayerRunState({id:'p'+i,character_id,seat_index:i,member_type:'human'}));
+ players[0].augments=ids;
+ const run={id:'gunner-test',seed:'gunner-seed',rngCounter:0,phase:'COMBAT',floor:1,depth:1,currentRoomNodeId:'room',players,flame:5,maxFlame:5};
+ run.combat=newCombatState(players,9999);run.combat.id='gunner-combat';beginTurn(run);
+ const p=players[0],priv=run.combat.privateByPlayer.p0,s=gunnerState(run,p);
+ return {run,p,priv,s};
+}
+function shot(x,{valid=true,skill=true,remaining=null,spent=null}={}){
+ if(remaining!==null){x.priv.remainingCardIds=x.p.cardPool.slice(-remaining).map(c=>c.id);x.priv.spentCardIds=x.p.cardPool.filter(c=>!x.priv.remainingCardIds.includes(c.id)).map(c=>c.id);}
+ if(spent!==null){x.priv.spentCardIds=x.p.cardPool.slice(0,spent).map(c=>c.id);x.priv.remainingCardIds=x.p.cardPool.slice(spent).map(c=>c.id);}
+ const card=x.p.cardPool.find(c=>c.id===x.priv.remainingCardIds[0]);
+ const r={playerId:'p0',cardInstanceId:card.id,baseNumber:card.baseNumber,finalNumber:card.baseNumber,valid,...(!valid?{invalidReason:'COLLISION'}:{})};
+ if(skill)applyOwnedEffects(x.run,'ON_SKILL_USE',{player:x.p,resolved:r});
+ resolveGunnerSelected(x.run,x.p,r,{skillIntent:skill},[]);
+ return r;
+}
+function damage(x,r,followUp=false,id=null){const d={amount:0};applyOwnedEffects(x.run,'BEFORE_DAMAGE',{player:x.p,resolved:r,damage:d,followUp,sourceCardId:id});return d.amount;}
+const baseFor=id=>Number(id.slice(4))>=251&&Number(id.slice(4))<=260?['aug-251']:Number(id.slice(4))>=261?['aug-261']:[];
+
+test('005C-D all 30 cards are executable/candidate reachable with 3/9/9/9 and three locked lines',()=>{
+ assert.equal(GUNNER_CONTRACT_IDS.length,30);
+ for(const c of Object.values(GUNNER_CONTRACTS)){
+   assert.equal(AUGMENT_BY_ID[c.augmentId].executable,true);
+   assert.ok(augmentCandidates('gunner',c.stage,c.stage===1?undefined:c.archetype).some(d=>d.id===c.augmentId));
+   if(c.stage>1)assert.ok(augmentCandidates('gunner',c.stage,c.archetype).every(d=>d.build===c.archetype));
+ }
+ assert.deepEqual([1,2,3,4].map(n=>Object.values(GUNNER_CONTRACTS).filter(c=>c.stage===n).length),[3,9,9,9]);
+ const ids=Object.keys(EXECUTABLE_AUGMENT_RUNTIME).filter(id=>EXECUTABLE_AUGMENT_RUNTIME[id].executable===true);
+ assert.equal(ids.filter(id=>Number(id.slice(4))>=151&&Number(id.slice(4))<=270).length,120);
+ assert.equal(ids.filter(id=>Number(id.slice(4))<=270).length,270);
+});
+
+const positives={
+ 'aug-241':()=>{const x=fixture();const before=structuredClone(x.p.cardPool);x.p.augments=['aug-241'];assert.equal(ensureGunnerMagazine(x.run,x.p),true);assert.deepEqual(x.p.cardPool.map(c=>c.baseNumber),[1,2,2,3]);for(const c of before)assert.deepEqual(x.p.cardPool.find(d=>d.id===c.id),c);assert.equal(ensureGunnerMagazine(x.run,x.p),false);},
+ 'aug-242':()=>{const x=fixture(['aug-242']),r=shot(x);assert.equal(damage(x,r,true,r.followUpCardIds[0]),1);},
+ 'aug-243':()=>{const x=fixture(['aug-243']);x.s.afterBurstCycle=1;assert.equal(damage(x,shot(x,{skill:false})),1);},
+ 'aug-244':()=>{const x=fixture(['aug-244']);assert.equal(damage(x,shot(x)),1);},
+ 'aug-245':()=>{const x=fixture(['aug-245']);x.s.afterBurstCycle=1;assert.equal(damage(x,shot(x,{skill:false})),1);},
+ 'aug-246':()=>{const x=fixture(['aug-241','aug-246']);assert.equal(damage(x,shot(x)),4);},
+ 'aug-247':()=>{const x=fixture(['aug-247']);assert.equal(damage(x,shot(x,{remaining:2})),3);},
+ 'aug-248':()=>{const x=fixture(['aug-241','aug-248']),r=shot(x),c=gunnerExtraComponent(x.run,x.p,r);assert.equal(c.amount,5);assert.equal(c.createsSeparateHit,false);assert.equal(gunnerExtraComponent(x.run,x.p,r),null);},
+ 'aug-249':()=>{const x=fixture(['aug-249']);x.s.afterBurstCycle=1;shot(x,{skill:false});assert.equal(x.s.nextBurstBonus,3);x.run.combat.turn++;assert.equal(damage(x,shot(x)),3);},
+ 'aug-250':()=>{const x=fixture(['aug-250']);assert.equal(damage(x,shot(x,{remaining:1})),5);},
+ 'aug-251':()=>{const x=fixture(['aug-251']);assert.equal(damage(x,shot(x,{spent:2})),3);},
+ 'aug-252':()=>{const x=fixture(['aug-251','aug-252']);shot(x,{skill:false});assert.equal(x.s.precisionSetup,true);x.run.combat.turn++;assert.equal(damage(x,shot(x)),1);assert.equal(x.s.precisionSetup,false);},
+ 'aug-253':()=>{const x=fixture(['aug-251','aug-253']),r=shot(x,{valid:false});assert.equal(x.s.precisionShot.armed,true);assert.equal(x.s.aug253.preservationUsedThisCombat,true);const saved=structuredClone(x.s);resolveGunnerSelected(x.run,x.p,r,{skillIntent:true});assert.deepEqual(x.s,saved);x.run.combat.turn++;shot(x);assert.equal(x.s.precisionShot.armed,false);},
+ 'aug-254':()=>{const x=fixture(['aug-251','aug-254']);assert.equal(damage(x,shot(x,{remaining:1})),5);},
+ 'aug-255':()=>{const x=fixture(['aug-251','aug-255']);x.s.previousFinal=3;assert.equal(damage(x,shot(x)),2);},
+ 'aug-256':()=>{const x=fixture(['aug-251','aug-256']);shot(x);assert.equal(x.s.weakness,1);},
+ 'aug-257':()=>{const x=fixture(['aug-251','aug-257']),r=shot(x);assert.equal(gunnerPenetration(x.run,x.p,r,3),1);assert.equal(x.s.telemetry.defensePenetrated,1);},
+ 'aug-258':()=>{const x=fixture(['aug-251','aug-258']);x.s.precisionSetup=true;assert.equal(damage(x,shot(x,{remaining:1})),8);},
+ 'aug-259':()=>{const x=fixture(['aug-251','aug-259']);shot(x);assert.equal(x.s.accuracy,1);},
+ 'aug-260':()=>{const x=fixture(['aug-251','aug-260']);x.s.weakness=3;assert.equal(damage(x,shot(x,{remaining:1})),10);assert.equal(x.s.weakness,0);},
+ 'aug-261':()=>{const x=fixture(['aug-261']);shot(x);assert.equal(x.s.overheat,1);},
+ 'aug-262':()=>{const x=fixture(['aug-261','aug-262']);assert.equal(damage(x,shot(x)),1);},
+ 'aug-263':()=>{const x=fixture(['aug-261','aug-263']);x.s.overheat=3;applyOwnedEffects(x.run,'TURN_END',{player:x.p});assert.equal(x.s.overheat,1);},
+ 'aug-264':()=>{const x=fixture(['aug-261','aug-264']);x.s.overheat=2;assert.equal(damage(x,shot(x)),1);},
+ 'aug-265':()=>{const x=fixture(['aug-261','aug-265']);x.s.overheat=1;assert.equal(damage(x,shot(x)),3);},
+ 'aug-266':()=>{const x=fixture(['aug-261','aug-266']);shot(x);assert.equal(x.s.output,1);},
+ 'aug-267':()=>{const x=fixture(['aug-261','aug-267']);x.s.overheat=2;shot(x);assert.equal(x.s.overheat,1);assert.equal(x.s.once['aug-267:combat'],true);},
+ 'aug-268':()=>{const x=fixture(['aug-261','aug-268']);x.s.overheat=2;assert.equal(damage(x,shot(x)),4);},
+ 'aug-269':()=>{const x=fixture(['aug-269']);shot(x);assert.equal(x.s.output269,1);assert.equal(x.p.publicResources.burstReadyCycle,2);},
+ 'aug-270':()=>{const x=fixture(['aug-261','aug-270']);x.s.overheat=3;x.s.blockedTurn=1;assert.equal(damage(x,shot(x)),8);assert.equal(x.s.once['aug-270:combat'],true);}
+};
+for(const id of GUNNER_CONTRACT_IDS){
+ test('005C-D actual effect positive '+id,positives[id]);
+ test('005C-D contract negative wrong room '+id,()=>{
+  const x=fixture([...new Set([...baseFor(id),id])]);x.run.phase='EVENT';
+  const before=structuredClone(x.s),r={playerId:'p0',cardInstanceId:x.priv.remainingCardIds[0],baseNumber:1,finalNumber:1,valid:true};
+  for(const trigger of ['ON_SKILL_USE','CARD_VALIDATED','BEFORE_DAMAGE','TURN_END'])applyOwnedEffects(x.run,trigger,{player:x.p,resolved:r,damage:{amount:1}});
+  assert.deepEqual(x.s,before);assert.equal(resolveGunnerSelected(x.run,x.p,r,{skillIntent:true}),false);assert.equal(gunnerPenetration(x.run,x.p,r,3),0);assert.equal(gunnerExtraComponent(x.run,x.p,r),null);
+ });
+}
+test('005C-D 253 preserves only activation and expires at cycle end; success/noncollision/general collision do not preserve',()=>{
+ const x=fixture(['aug-251','aug-253']);x.s.precisionSetup=true;x.s.accuracy=2;x.s.weakness=3;
+ shot(x,{valid:false});assert.equal(x.s.precisionSetup,true);assert.equal(x.s.accuracy,2);assert.equal(x.s.weakness,3);
+ applyOwnedEffects(x.run,'CYCLE_END',{player:x.p});assert.equal(x.s.aug253.preservedForCycleId,null);assert.equal(x.s.aug253.preservationUsedThisCombat,true);
+ const y=fixture(['aug-251','aug-253']);shot(y,{skill:false,valid:false});assert.equal(y.s.aug253.preservationUsedThisCombat,false);
+ const z=fixture(['aug-251','aug-253']);shot(z);assert.equal(z.s.aug253.preservationUsedThisCombat,false);
+});
+
+test('005C-D same root activation resolution damage penetration and heat are retry safe',()=>{
+ const x=fixture(['aug-261','aug-266','aug-269']),r=shot(x);const amount=damage(x,r),before=structuredClone(x.s);
+ applyOwnedEffects(x.run,'ON_SKILL_USE',{player:x.p,resolved:r});resolveGunnerSelected(x.run,x.p,r,{skillIntent:true});assert.equal(damage(x,r),amount);assert.deepEqual(x.s,before);
+});
+
+test('005C-D defense zero never gives penetration free damage',()=>{
+ const x=fixture(['aug-251','aug-257']),r=shot(x);assert.equal(gunnerPenetration(x.run,x.p,r,0),0);assert.equal(x.s.telemetry.defensePenetrated,0);
+});
+
+test('005C-D owner-only magazine/activation/once state survives reconnect at Heat 0..3',()=>{
+ for(const heat of [0,1,2,3]){
+  const x=fixture(['aug-261']);x.s.overheat=heat;x.s.activation={rootActionId:'pending',cycleId:1};
+  const clone=structuredClone(x.run);assert.deepEqual(projectRun(clone,'p0').privateGunnerState,x.s);
+  assert.equal(projectRun(clone,'p1').privateGunnerState,undefined);assert.equal(projectRun(clone,null).privateGunnerState,undefined);
+  assert.equal(JSON.stringify(projectRun(clone,'p1')).includes('pending'),false);
+ }
+});
+
+for(const build of ['전탄 난사','정밀 사수','과열 기관']){
+ test('005C-D full '+build+' build with Seer Imp Mage preserves one collision participant and deterministic state',()=>{
+  const ids=GUNNER_CONTRACT_IDS.filter(id=>GUNNER_CONTRACTS[id].archetype===build);
+  const a=fixture(ids),b=fixture(ids);
+  for(const x of [a,b]){
+   for(const p of x.run.players){p.hp=100;p.maxHp=100;}
+   for(let t=0;t<8;t++){
+    for(const p of x.run.players){
+     const priv=x.run.combat.privateByPlayer[p.playerId];
+     if(!x.run.combat.turnSubmissions[p.playerId])submitCard(x.run,p.playerId,priv.remainingCardIds[0],p.playerId==='p0'&&p.publicResources.fullBurstReady===true);
+    }
+    x.run.combat.monster.intent={type:'CHARGE',payload:{}};
+    const result=resolveBasicTurn(x.run);assert.equal(result.cards.length,4);
+    assert.equal(new Set(result.damagePackets.map(p=>p.damageEventId)).size,result.damagePackets.length);
+    assert.ok(gunnerState(x.run,x.p).overheat>=0&&gunnerState(x.run,x.p).overheat<=3);
+   }
+  }
+  assert.deepEqual(gunnerState(a.run,a.p),gunnerState(b.run,b.p));
+ });
+}
