@@ -45,7 +45,7 @@ export function projectRun(run,viewerPlayerId){
     }
   }
   if(out.combat?.pendingDownPlayerIds)delete out.combat.pendingDownPlayerIds;
-  for(const result of [out.combat?.publicTurnResult,out.floorTransitionResult?.publicTurnResult].filter(Boolean)){
+  for(const result of [out.combat?.publicTurnResult,out.floorTransitionResult?.publicTurnResult,out.roomState?.publicTurnResult].filter(Boolean)){
     const mutations=result.mutationEvents||[];
     result.presentationMutations=mutations.map(event=>{
       const safe={phase:event.phase,effectId:event.effectId,actorId:event.actorId??null,targetId:event.targetId??null};
@@ -56,6 +56,10 @@ export function projectRun(run,viewerPlayerId){
     delete result.numberHistories;
     delete result.mutationEvents;
     for(const card of result.cards||[]){
+      // All-In partner identities/printed values and borrowed deck information are owner-private.
+      if(card.playerId!==viewerPlayerId){
+        for(const key of ['allInCardIds','allInValues','allInSum','allInRootActionId','gamblerBorrowBonus','doubleDownSecond','allAssets','aug237Reduced'])delete card[key];
+      }
       delete card.numberHistory;
       delete card.stealTargets;
       delete card.dominanceBefore;
