@@ -54,7 +54,8 @@
     "readyTransition": false,
     "merge": false,
     "started005D": false,
-    "userConfirmedGameplaySupplement": true
+    "userConfirmedGameplaySupplement": true,
+    "supplementSource": "USER_CONFIRMED_005C_FINAL_PATCH"
   },
   "fixes": [
     {
@@ -139,7 +140,13 @@
       "activationTurnCollisionInvalidGain": 0,
       "reconnect": "Restore authoritative value; never rerun fresh-combat constructor.",
       "idempotency": "Fresh combat constructor assigns1; repeated COMBAT_START dispatch has no grant; beginTurn combatStartEffectsApplied guard.",
-      "sourceReclassification": false
+      "sourceReclassification": false,
+      "historicalGoldenVerification": {
+        "file": "tests/pve-t06-recovery-loop.test.mjs",
+        "immutableOriginalFingerprint": "6d183d4304b1d1f9fabcc84df757880f5e93391af06024bdd19ead7062fde68a",
+        "confirmedOverlayFingerprint": "a622988f744176176663eaffa83b5f891e8ab925058d5bc9d508192e711d6a1c",
+        "onlyDelta": "Revelation0->1 in F6,F11,F16,F18,F19 untouched Seer observations; historical projection differs in those5 fields only; original golden file unchanged."
+      }
     }
   },
   "verification": {
@@ -206,7 +213,7 @@
       "usesRealApi": true,
       "fixture": "Test-only commit adapter sets enemyHP999 before turn3, thenHP1, passive intent and full partyHP/Flame. Starting owned augment stages/build are pinned. At least three actual combat turns allow required real Seer recovery/aug151 success. Checks routing/runtime/serialization, not natural balance clearability.",
       "productionEffect": false,
-      "status": "PENDING_USER_CONFIRMED_BOOTSTRAP_VERIFICATION"
+      "status": "PASS"
     },
     "settlement": {
       "realSqlTests": "tests/database.test.mjs",
@@ -254,11 +261,144 @@
       "mode": "stress",
       "workflow": "Eight independent final_005c_stress matrix jobs, needs:test",
       "hardFailureRequired": 0,
-      "balancePolicy": "Record BALANCE_WARNING_005C_FINAL from emitted reports without tuning; warnings do not block acceptance."
+      "balancePolicy": "Record BALANCE_WARNING_005C_FINAL from emitted reports without tuning; warnings do not block acceptance.",
+      "observed": [
+        {
+          "scenario": "T00",
+          "jobId": 111225247215,
+          "seeds": 500,
+          "passedSeeds": 500,
+          "hardFailures": 0,
+          "balanceWarnings": 1,
+          "warningCodes": [
+            "REFERENCE_CLASS_COLLISION_2X_SAME_AVAILABILITY"
+          ],
+          "status": "BALANCE_WARNING"
+        },
+        {
+          "scenario": "T02",
+          "jobId": 111225247257,
+          "seeds": 500,
+          "passedSeeds": 500,
+          "hardFailures": 0,
+          "balanceWarnings": 500,
+          "warningCodes": [
+            "REPEATED_BURST"
+          ],
+          "status": "BALANCE_WARNING"
+        },
+        {
+          "scenario": "T03",
+          "jobId": 111225247231,
+          "seeds": 500,
+          "passedSeeds": 500,
+          "hardFailures": 0,
+          "balanceWarnings": 500,
+          "warningCodes": [
+            "TURN_LENGTH_OUTSIDE_35_PERCENT"
+          ],
+          "status": "BALANCE_WARNING"
+        },
+        {
+          "scenario": "T04",
+          "jobId": 111225247266,
+          "seeds": 500,
+          "passedSeeds": 500,
+          "hardFailures": 0,
+          "balanceWarnings": 266,
+          "warningCodes": [
+            "TURN_LENGTH_OUTSIDE_35_PERCENT"
+          ],
+          "status": "BALANCE_WARNING"
+        },
+        {
+          "scenario": "T05",
+          "jobId": 111225247267,
+          "seeds": 500,
+          "passedSeeds": 500,
+          "hardFailures": 0,
+          "balanceWarnings": 496,
+          "warningCodes": [
+            "TURN_LENGTH_OUTSIDE_35_PERCENT"
+          ],
+          "status": "BALANCE_WARNING"
+        },
+        {
+          "scenario": "T06",
+          "jobId": 111225247292,
+          "seeds": 500,
+          "passedSeeds": 500,
+          "hardFailures": 0,
+          "balanceWarnings": 500,
+          "warningCodes": [
+            "SAME_CARD_RECOVERY_HIGH",
+            "CARD_REUSE_HIGH",
+            "RECOVERY_DOMINATES",
+            "TURN_LENGTH_OUTSIDE_35_PERCENT"
+          ],
+          "status": "BALANCE_WARNING"
+        },
+        {
+          "scenario": "T09",
+          "jobId": 111225247227,
+          "seeds": 500,
+          "passedSeeds": 500,
+          "hardFailures": 0,
+          "balanceWarnings": 500,
+          "warningCodes": [
+            "TURN_LENGTH_OUTSIDE_35_PERCENT"
+          ],
+          "status": "BALANCE_WARNING"
+        },
+        {
+          "scenario": "T14",
+          "jobId": 111225247283,
+          "seeds": 500,
+          "passedSeeds": 500,
+          "hardFailures": 0,
+          "balanceWarnings": 0,
+          "warningCodes": [],
+          "status": "PASS"
+        }
+      ],
+      "balanceWarningCount": 2763,
+      "balanceWarningDefinition": "Existing harness balanceWarningCount: seed rows marked BALANCE_WARNING plus fairness warnings; not a raw individual-warning-event count."
     },
     "immutableSourcePolicy": "DESIGN-C/BETA/005Q/005R/stable IDs/golden unchanged; matrix points to existing contracts and USER_CONFIRMED overlays.",
-    "currentHeadResult": "Requires final documentation HEAD completed/success; verified exact HEAD/run/jobs are recorded in PR body without creating another documentation commit.",
-    "mixedFullBuildLimit": "Fresh Seer starts1 by explicit user patch; full builds and actual expedition triggers must pass current-head CI."
+    "currentHeadResult": "Exact final documentation HEAD must rerun full CI; effective completion recorded in PR metadata, no follow-up documentation commit.",
+    "mixedFullBuildLimit": "All12 full owned archetype builds and actual unseeded-Seer bootstrap expedition skill/aug151 triggers pass.",
+    "seerBootstrapCases": [
+      "FRESH_COMBAT_INITIAL_1_MAX_3",
+      "IMMEDIATE_ACTIVATION_1_TO_0",
+      "ACTIVATION_VALID_0_TO_1",
+      "ACTIVATION_COLLISION_0",
+      "ORDINARY_VALID_NO_GAIN",
+      "RECONNECT_AUTHORITATIVE_VALUE_NO_INIT",
+      "NEXT_COMBAT_REPLACES_0_1_2_3_WITH_1",
+      "COMBAT_START_AND_RESOLVE_RETRY_NO_DUPLICATE"
+    ],
+    "changedFiles": [
+      ".github/workflows/check.yml",
+      "docs/PVE_CONTENT_005C_FINAL.md",
+      "docs/PVE_CONTENT_005C_FINAL_AUDIT.json",
+      "docs/PVE_CONTENT_005C_FINAL_MATRIX.json",
+      "supabase/functions/game-api/pve/gambler.js",
+      "supabase/functions/game-api/pve/gunner-runtime.js",
+      "supabase/functions/game-api/pve/imp-runtime.js",
+      "supabase/functions/game-api/pve/number-mutation.js",
+      "supabase/functions/game-api/pve/seer-runtime.js",
+      "tests/pve-content-005c-final-expedition.test.mjs",
+      "tests/pve-content-005c-final-rooms.test.mjs",
+      "tests/pve-content-005c-final.test.mjs",
+      "tests/pve-t06-recovery-loop.test.mjs"
+    ],
+    "sourceIntegrity": {
+      "protectedPaths": 24,
+      "unchanged": true,
+      "baseline": "c59573dc58343c603aa00ab49cf9271e065a3267",
+      "testEvidence": "Immutable blob hash regression plus GitHub recursive tree comparison.",
+      "goldenOverlay": "T06 original fixture immutable; only five untouched initial Revelation observations differ. Historical projection equals original fingerprint; current full fingerprint asserted separately."
+    }
   },
   "blockerPolicy": {
     "RELEASE_BLOCKERS": "Any required gate failure",
@@ -281,40 +421,123 @@
     },
     "instructions": "Flags evaluate to true only after exact current documentation HEAD CI success. Keep Draft and do not merge or start005D."
   },
-  "acceptanceStatus": "USER_CONFIRMED_PATCH_PENDING_VERIFICATION",
-  "blockers": {
-    "RELEASE_BLOCKERS": [
+  "acceptanceStatus": "ACCEPTED_IF_CURRENT_DOCUMENTATION_HEAD_CI_SUCCESS",
+  "blockers": [],
+  "observedCI": {
+    "head": "f074880e6f46042ba2993ea5245928f0da62f68d",
+    "run": 37130143127,
+    "number": 932,
+    "status": "completed",
+    "conclusion": "success",
+    "tests": 1409,
+    "passed": 1409,
+    "failed": 0,
+    "skipped": 0,
+    "stress": [
       {
-        "id": "CURRENT_HEAD_ACCEPTANCE_PENDING"
+        "scenario": "T00",
+        "jobId": 111225247215,
+        "seeds": 500,
+        "passedSeeds": 500,
+        "hardFailures": 0,
+        "balanceWarnings": 1,
+        "warningCodes": [
+          "REFERENCE_CLASS_COLLISION_2X_SAME_AVAILABILITY"
+        ],
+        "status": "BALANCE_WARNING"
+      },
+      {
+        "scenario": "T02",
+        "jobId": 111225247257,
+        "seeds": 500,
+        "passedSeeds": 500,
+        "hardFailures": 0,
+        "balanceWarnings": 500,
+        "warningCodes": [
+          "REPEATED_BURST"
+        ],
+        "status": "BALANCE_WARNING"
+      },
+      {
+        "scenario": "T03",
+        "jobId": 111225247231,
+        "seeds": 500,
+        "passedSeeds": 500,
+        "hardFailures": 0,
+        "balanceWarnings": 500,
+        "warningCodes": [
+          "TURN_LENGTH_OUTSIDE_35_PERCENT"
+        ],
+        "status": "BALANCE_WARNING"
+      },
+      {
+        "scenario": "T04",
+        "jobId": 111225247266,
+        "seeds": 500,
+        "passedSeeds": 500,
+        "hardFailures": 0,
+        "balanceWarnings": 266,
+        "warningCodes": [
+          "TURN_LENGTH_OUTSIDE_35_PERCENT"
+        ],
+        "status": "BALANCE_WARNING"
+      },
+      {
+        "scenario": "T05",
+        "jobId": 111225247267,
+        "seeds": 500,
+        "passedSeeds": 500,
+        "hardFailures": 0,
+        "balanceWarnings": 496,
+        "warningCodes": [
+          "TURN_LENGTH_OUTSIDE_35_PERCENT"
+        ],
+        "status": "BALANCE_WARNING"
+      },
+      {
+        "scenario": "T06",
+        "jobId": 111225247292,
+        "seeds": 500,
+        "passedSeeds": 500,
+        "hardFailures": 0,
+        "balanceWarnings": 500,
+        "warningCodes": [
+          "SAME_CARD_RECOVERY_HIGH",
+          "CARD_REUSE_HIGH",
+          "RECOVERY_DOMINATES",
+          "TURN_LENGTH_OUTSIDE_35_PERCENT"
+        ],
+        "status": "BALANCE_WARNING"
+      },
+      {
+        "scenario": "T09",
+        "jobId": 111225247227,
+        "seeds": 500,
+        "passedSeeds": 500,
+        "hardFailures": 0,
+        "balanceWarnings": 500,
+        "warningCodes": [
+          "TURN_LENGTH_OUTSIDE_35_PERCENT"
+        ],
+        "status": "BALANCE_WARNING"
+      },
+      {
+        "scenario": "T14",
+        "jobId": 111225247283,
+        "seeds": 500,
+        "passedSeeds": 500,
+        "hardFailures": 0,
+        "balanceWarnings": 0,
+        "warningCodes": [],
+        "status": "PASS"
       }
     ],
-    "DESIGN_BLOCKERS": [],
-    "RUNTIME_BLOCKERS": [],
-    "TEST_BLOCKERS": [
-      {
-        "id": "PATCH_AND_FULL_CI_PENDING"
-      }
-    ]
-  },
-  "observedCI": {
-    "head": "8a1d6d31b8164bd3de7689f5e196d287965a68a5",
-    "run": 37122453711,
-    "number": 923,
-    "status": "completed",
-    "conclusion": "failure",
-    "tests": 1408,
-    "passed": 1406,
-    "failed": 2,
-    "skipped": 0,
-    "failure": "Both expedition routes reached RUN_CLEAR but had0 Seer activations. Required actual effect assertion failed.",
-    "stress500": "NOT_EXECUTED; needs:test failed",
-    "hardFailureCount": "NOT_MEASURED_FOR_FINAL500",
-    "historical": true
+    "role": "Verified code and all acceptance evidence before final documentation commit; current documentation HEAD revalidation recorded in PR body."
   },
   "completionFlags": {
-    "PVE_CONTENT_005C_FINAL_ACCEPTED": false,
-    "MERGE_RECOMMENDED": false,
-    "READY_FOR_PVE_CONTENT_005D_DESIGN": false
+    "PVE_CONTENT_005C_FINAL_ACCEPTED": true,
+    "MERGE_RECOMMENDED": true,
+    "READY_FOR_PVE_CONTENT_005D_DESIGN": true
   },
   "resolvedBlockers": {
     "RELEASE_BLOCKERS": [
@@ -353,5 +576,99 @@
         "seedsRequiredEach": 500
       }
     ]
+  },
+  "target": 120,
+  "registered": 120,
+  "executable": 120,
+  "dataOnly": 0,
+  "missing": 0,
+  "unsupported": 0,
+  "candidateReachable": 120,
+  "designParity": 120,
+  "tooltipParity": 120,
+  "designParityBasis": "Existing DESIGN-C runtime contracts plus explicit USER_CONFIRMED_005C_D_PATCH and USER_CONFIRMED_005C_FINAL_PATCH; original source never reclassified.",
+  "blockerCategories": {
+    "RELEASE_BLOCKERS": [],
+    "DESIGN_BLOCKERS": [],
+    "RUNTIME_BLOCKERS": [],
+    "TEST_BLOCKERS": []
+  },
+  "resolution": {
+    "ruleId": "SEER_COMBAT_START_REVELATION_1",
+    "executionRuleSource": "USER_CONFIRMED_005C_FINAL_PATCH",
+    "resolvedDesignBlocker": "SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED",
+    "runtimeAndExpeditionVerified": true
+  },
+  "completionFlagsValidity": "These values are conditional until the exact current documentation HEAD CI completes/success with all8 500-seed jobs; PR body records exact run/head and effective flags. Failed/pending current CI means false.",
+  "reconnectPass": true,
+  "privacyPass": true,
+  "roomIsolationPass": true,
+  "crossClassPass": true,
+  "fullExpeditionPass": true,
+  "stress500Pass": true,
+  "hardFailures": 0,
+  "BALANCE_WARNING_005C_FINAL": {
+    "blocking": false,
+    "count": 2763,
+    "byScenario": [
+      {
+        "scenario": "T00",
+        "count": 1,
+        "codes": [
+          "REFERENCE_CLASS_COLLISION_2X_SAME_AVAILABILITY"
+        ]
+      },
+      {
+        "scenario": "T02",
+        "count": 500,
+        "codes": [
+          "REPEATED_BURST"
+        ]
+      },
+      {
+        "scenario": "T03",
+        "count": 500,
+        "codes": [
+          "TURN_LENGTH_OUTSIDE_35_PERCENT"
+        ]
+      },
+      {
+        "scenario": "T04",
+        "count": 266,
+        "codes": [
+          "TURN_LENGTH_OUTSIDE_35_PERCENT"
+        ]
+      },
+      {
+        "scenario": "T05",
+        "count": 496,
+        "codes": [
+          "TURN_LENGTH_OUTSIDE_35_PERCENT"
+        ]
+      },
+      {
+        "scenario": "T06",
+        "count": 500,
+        "codes": [
+          "SAME_CARD_RECOVERY_HIGH",
+          "CARD_REUSE_HIGH",
+          "RECOVERY_DOMINATES",
+          "TURN_LENGTH_OUTSIDE_35_PERCENT"
+        ]
+      },
+      {
+        "scenario": "T09",
+        "count": 500,
+        "codes": [
+          "TURN_LENGTH_OUTSIDE_35_PERCENT"
+        ]
+      },
+      {
+        "scenario": "T14",
+        "count": 0,
+        "codes": []
+      }
+    ],
+    "balanceTuning": false
   }
 }
