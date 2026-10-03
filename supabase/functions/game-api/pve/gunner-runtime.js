@@ -6,7 +6,7 @@ const root=(run,p,r)=>'action:'+run.combat?.id+':'+turn(run)+':'+p.playerId+':'+
 export function gunnerState(run,p){
   run.augmentFramework||={};run.augmentFramework.cardState||={};
   return run.augmentFramework.cardState[p.playerId+':gunner']||={
-    ownerId:p.playerId,scope:'COMBAT',sourceAugmentId:'aug-261',overheatCap:3,overheatResetScope:'COMBAT_END',overheat:0,accuracy:0,weakness:0,output:0,output269:0,
+    ownerId:p.playerId,scope:'RUN',resetScope:'RUN',sourceAugmentId:'GUNNER_RUNTIME',overheatCap:3,overheatResetScope:'COMBAT_END',overheat:0,accuracy:0,weakness:0,output:0,output269:0,
     precisionShot:{armed:true,activationId:null},aug253:{preservationUsedThisCombat:false,preservedForCycleId:null},
     applied:{},once:{},telemetry:{augment:{},burstAttempts:0,burstSuccess:0,burstFailures:0,derivedCardsUsed:0,burstDamage:0,failureSelfDamage:0,precisionTriggers:0,defensePenetrated:0,overheatGained:0,overheatConsumed:0,maxOverheatReached:0}
   };
@@ -119,25 +119,27 @@ export function applyGunnerRuntime(run,trigger,ctx={}){
     if(run.phase!=='COMBAT'&&trigger!=='COMBAT_END')continue;
     const s=gunnerState(run,p),r=ctx.resolved,key=root(run,p,r)+':'+trigger+':'+(ctx.followUp?ctx.sourceCardId||'derived':'primary');
     if(trigger==='COMBAT_START'){
+      if(s.combatId===run.combat?.id)continue;
       const persistent=s.output269,telemetry=s.telemetry;delete run.augmentFramework.cardState[p.playerId+':gunner'];
-      const fresh=gunnerState(run,p);fresh.output269=persistent;fresh.telemetry=telemetry;ensureGunnerMagazine(run,p);continue;
+      const fresh=gunnerState(run,p);fresh.combatId=run.combat?.id;fresh.output269=persistent;fresh.telemetry=telemetry;ensureGunnerMagazine(run,p);continue;
     }
     if(trigger==='COMBAT_END'){
-      s.overheat=0;s.accuracy=0;s.weakness=0;s.output=0;s.precisionSetup=false;s.activation=null;s.precisionShot={armed:false,activationId:null};s.once={};s.aug253={preservationUsedThisCombat:false,preservedForCycleId:null};continue;
+      s.overheat=0;s.accuracy=0;s.weakness=0;s.output=0;s.precisionSetup=false;s.activation=null;s.precisionShot={armed:false,activationId:null};s.once={};s.applied={};s.burstActions={};s.blockedTurn=null;s.blockedResolvedTurn=null;s.burstUsedTurn=null;s.previousFinal=null;s.setupSeenCycle=false;s.nextBurstBonus=0;s.afterBurstCycle=null;s.aug253={preservationUsedThisCombat:false,preservedForCycleId:null};continue;
     }
     if(trigger==='CYCLE_END'){
       s.precisionShot={armed:true,activationId:null};s.aug253.preservedForCycleId=null;s.precisionSetup=false;s.setupSeenCycle=false;continue;
     }
     if(s.applied[key]){if(trigger==='BEFORE_DAMAGE'&&ctx.damage)ctx.damage.amount=s.applied[key].amount;continue;}
     if(trigger==='TURN_START'){
+      syncGunnerMagazine(run,p);
       const priv=run.combat?.privateByPlayer?.[p.playerId];
-      if(priv)s.magazine={magazineCardInstanceIds:p.cardPool.map(c=>c.id),remaining:[...priv.remainingCardIds],used:[...priv.spentCardIds],magazineSize:p.cardPool.length,cycleIndex:priv.cycleIndex,burstReadyCycle:p.publicResources.burstReadyCycle};
+      // Availability is refreshed below and mirrored after its predicate is final.
       if(owns(p,'aug-251'))p.publicResources.fullBurstReady=s.precisionShot.armed;
       else if(owns(p,'aug-261'))p.publicResources.fullBurstReady=cycle(run,p)>=(p.publicResources.burstReadyCycle||1);
       if(s.blockedTurn===turn(run)){
         if(!(owns(p,'aug-270')&&!s.once['aug-270:combat'])){p.publicResources.fullBurstReady=false;s.overheat=1;s.blockedResolvedTurn=turn(run);}
       }
-      continue;
+      syncGunnerMagazine(run,p);continue;
     }
     if(trigger==='ON_SKILL_USE'&&!ctx.followUp){
       if(owns(p,'aug-251')){if(!s.precisionShot.armed)throw new Error('PRECISION_SHOT_UNAVAILABLE');s.precisionShot.activationId=root(run,p,r);}
