@@ -56,7 +56,7 @@ export function normalizeGamblerState(run,player,state){
   state.unlockSerial=Number(state.unlockSerial)||0;
   state.luck=Math.max(0,Math.min(1,Number(state.luck)||0));
   state.specialCharge=Math.max(0,Number(state.specialCharge)||0);
-  state.history=Array.isArray(state.history)?state.history:[];
+  state.history=Array.isArray(state.history)?state.history.slice(-48):[];
   state.processedActions=state.processedActions&&typeof state.processedActions==='object'?state.processedActions:{};
   state.pendingAllIn=state.pendingAllIn||null;
   state.runtimeOnce=state.runtimeOnce&&typeof state.runtimeOnce==='object'?state.runtimeOnce:{};
@@ -100,6 +100,7 @@ export function freshGamblerState(player){
 export function initializeGamblerCombat(run,player,state){
   normalizeGamblerState(run,player,state);
   state.runtimeOnce={};
+  state.sequenceHistory=[];state.sequenceArmed=false;state.discardMemoryNumber=null;state.lastValidCardValue=null;
   state.aug219Used=false;state.insuranceUsed=false;state.fortuneStack=0;state.fortuneLastSpecial=null;state.fortuneOrdinarySeen=[];
   state.allInWinStreak=0;state.houseUsed=false;state.aug237Used=false;state.aug238Used=false;
   state.doubleDownReady=false;state.forcedAutoSubmitNext=false;state.drawPenaltyTurns=0;
@@ -121,8 +122,7 @@ function reshuffle(run,player,state){
   state.sixProgress=[];state.sevenProgress=[];
   state.aug214Run=[];state.aug214TriggeredShuffle=false;
   state.countedOrdinary=[];state.cardCounter=0;state.cardCounterArmed=false;
-  state.shuffleOrdinarySeen=[];state.fiveMemoryArmed=false;
-  state.sequenceArmed=false;
+  state.shuffleOrdinarySeen=[];state.fiveMemoryArmed=false;state.aug227UsedShuffle=false;
   state.aug228UsedShuffle=false;state.aug230UsedShuffle=false;
   state.firstDrawAfterShuffle=true;state.drawPreference=null;state.drawChoicePending=null;state.guaranteedDrawIds=[];
   boundedHistory(state,{type:'SHUFFLE',turn:run.combat?.turn||run.roomState?.turn||0,shuffleCount:state.shuffleCount});
@@ -342,11 +342,21 @@ export function applyGamblerValidated(run,player,state,resolved){
   let bonus=0;
   const effectKey=id=>`${run.combat?.id||run.currentRoomNodeId||'room'}:${turn}:${resolved?.cardInstanceId||'card'}:${id}`;
   const fire=id=>recordGamblerAugmentTelemetry(state,id,effectKey(id),true);
+  const validationKey=`validated:${effectKey('GAMBLER')}`;
+  const prior=state.processedActions[validationKey];
+  if(prior){resolved.gamblerBonusDamage=prior.bonus;resolved.gamblerDamagePenalty=prior.penalty;return prior.bonus;}
+  // Reward only grants Luck. Combat counting/risk history cannot advance in other rooms.
+  if(gamblerRoomScope(run)!=='COMBAT'){
+    if(valid&&[6,7].includes(value)&&hasGamblerAugment(run,player,'aug-211')){
+      if(addGamblerLuck(run,player,state,validationKey))fire('aug-211');
+    }
+    state.processedActions[validationKey]={bonus:0,penalty:0};return 0;
+  }
   const onceTurn=(id)=>{const k=`${id}:turn:${turn}`;if(state.runtimeOnce[k])return false;state.runtimeOnce[k]=true;return true;};
   if(!valid){
     if(hasGamblerAugment(run,player,'aug-214'))state.aug214Run=[];
     if(resolved?.allIn)state.allInFailedThisTurn=true;
-    return 0;
+    state.processedActions[validationKey]={bonus:0,penalty:0};return 0;
   }
   const counterWasArmed=Boolean(state.cardCounterArmed);
   const sequenceWasArmed=Boolean(state.sequenceArmed);
@@ -355,8 +365,8 @@ export function applyGamblerValidated(run,player,state,resolved){
   if(value>=1&&value<=5&&state.luckDamageArmed){bonus+=1;state.luckDamageArmed=false;}
   if(value>=1&&value<=5&&hasGamblerAugment(run,player,'aug-223')&&state.discardMemoryNumber===value&&onceTurn('aug-223')){bonus+=1;fire('aug-223');}
   if(value>=1&&value<=5&&hasGamblerAugment(run,player,'aug-224')&&Array.isArray(state.currentPrediction)&&state.currentPrediction.includes(value)&&onceTurn('aug-224')){bonus+=1;fire('aug-224');}
-  if(counterWasArmed){bonus+=2;state.cardCounter=0;state.cardCounterArmed=false;state.countedOrdinary=[];}
-  if(sequenceWasArmed){bonus+=3;state.sequenceArmed=false;state.validOrdinaryHistory=[];}
+  if(counterWasArmed){bonus+=2;state.cardCounter=0;state.cardCounterArmed=false;}
+  if(sequenceWasArmed){bonus+=3;state.sequenceArmed=false;state.sequenceHistory=[];}
   if(value===6){
     if(hasGamblerAugment(run,player,'aug-212')&&onceTurn('aug-212')){bonus+=2;state.specialCharge=(Number(state.specialCharge)||0)+1;fire('aug-212');}
     if(hasGamblerAugment(run,player,'aug-218')&&onceTurn('aug-218')){bonus+=3;fire('aug-218');}
@@ -378,6 +388,8 @@ export function applyGamblerValidated(run,player,state,resolved){
     state.lastValidSpecial=value;
   }else if(value>=1&&value<=5){
     if(hasGamblerAugment(run,player,'aug-215')&&[6,7].includes(state.lastValidCardValue)&&onceTurn('aug-215')){bonus+=2;fire('aug-215');}
+    state.sequenceHistory=Array.isArray(state.sequenceHistory)?state.sequenceHistory:[];
+    state.sequenceHistory.push(value);if(state.sequenceHistory.length>3)state.sequenceHistory.shift();
     state.validOrdinaryHistory.push(value);if(state.validOrdinaryHistory.length>8)state.validOrdinaryHistory.shift();
     if(!state.shuffleOrdinarySeen.includes(value))state.shuffleOrdinarySeen.push(value);
     state.fortuneOrdinarySeen=Array.isArray(state.fortuneOrdinarySeen)?state.fortuneOrdinarySeen:[];if(!state.fortuneOrdinarySeen.includes(value))state.fortuneOrdinarySeen.push(value);
@@ -398,19 +410,32 @@ export function applyGamblerValidated(run,player,state,resolved){
       if(copies>=2){bonus+=1;fire('aug-222');}
     }
     if(hasGamblerAugment(run,player,'aug-225')){
-      const h=state.validOrdinaryHistory.slice(-3);if(h.length===3&&Math.abs(h[1]-h[0])===1&&h[2]-h[1]===h[1]-h[0]){state.sequenceArmed=true;countingCombo='SEQUENCE3';fire('aug-225');}
+      const h=state.sequenceHistory.slice(-3);if(h.length===3&&Math.abs(h[1]-h[0])===1&&h[2]-h[1]===h[1]-h[0]){state.sequenceArmed=true;countingCombo='SEQUENCE3';fire('aug-225');}
     }
     if(hasGamblerAugment(run,player,'aug-226')&&onceTurn('aug-226')){
       const h=state.validOrdinaryHistory.slice(-5);if(h.length===5){const counts=Object.values(h.reduce((m,n)=>(m[n]=(m[n]||0)+1,m),{})).sort((a,b)=>b-a);if(counts.length===4&&counts[0]===2){bonus+=2;countingCombo='FULL_HOUSE';fire('aug-226');}}
     }
-    if(hasGamblerAugment(run,player,'aug-227')&&state.shuffleOrdinarySeen.length===5){state.fiveMemoryArmed=true;countingCombo='FIVE_MEMORY';fire('aug-227');}
+    if(hasGamblerAugment(run,player,'aug-227')&&!state.aug227UsedShuffle&&state.shuffleOrdinarySeen.length===5){state.aug227UsedShuffle=true;state.fiveMemoryArmed=true;countingCombo='FIVE_MEMORY';fire('aug-227');}
     if(countingCombo&&hasGamblerAugment(run,player,'aug-229')&&countingCombo!==state.lastCountingCombo&&onceTurn('aug-229')){bonus+=3;state.lastCountingCombo=countingCombo;fire('aug-229');}
   }
   if(state.fiveMemoryArmed&&[6,7].includes(value)){bonus+=4;state.fiveMemoryArmed=false;if(hasGamblerAugment(run,player,'aug-227'))fire('aug-227');}
   resolved.gamblerBonusDamage=(Number(resolved.gamblerBonusDamage)||0)+bonus;
+  state.processedActions[validationKey]={bonus:resolved.gamblerBonusDamage,penalty:Number(resolved.gamblerDamagePenalty)||0};
   state.lastValidCardValue=value;
   boundedHistory(state,{type:'VALID',turn,cardInstanceId:resolved.cardInstanceId,value,bonus});
   return bonus;
+}
+
+export function cleanupGamblerCombat(run,player){
+  const state=run.combat?.privateByPlayer?.[player.playerId];if(!state)return;
+  state.luck=0;state.luckDamageArmed=false;state.pendingAllIn=null;state.runtimeOnce={};
+  state.fortuneStack=0;state.fortuneLastSpecial=null;state.fortuneOrdinarySeen=[];
+  state.sequenceArmed=false;state.sequenceHistory=[];state.discardMemoryNumber=null;
+  state.currentPrediction=[];state.lastValidCardValue=null;state.weakenedBorrowedIds=[];
+  state.doubleDownReady=false;state.forcedAutoSubmitNext=false;state.drawPenaltyTurns=0;
+  state.allInFailedThisTurn=false;state.allInWinStreak=0;
+  // Zone/cycle state survives combat cleanup; snapshots must contain the cleaned state.
+  if(run.cardCycles?.[player.playerId])run.cardCycles[player.playerId]=structuredClone(state);
 }
 
 export function gamblerSetDamage(run,player,state,resolved,damage){
