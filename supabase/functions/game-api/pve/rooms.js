@@ -21,6 +21,7 @@ function finishRoom(run){
   cleanupImpRoom(run);
   cleanupAugmentScope(run,'ROOM');
   clearCombatResourcesForPlayers(run.players);
+  if(run.roomState?.privateByPlayer)persistCardCycles(run,run.roomState.privateByPlayer);
   run.phase='ROOM_RESULT';
   run.roomResult={roomNodeId:run.currentRoomNodeId,readyPlayerIds:run.players.filter(p=>p.memberType==='ai').map(p=>p.playerId)};
 }
@@ -229,6 +230,7 @@ export function useRewardGamblerLuck(run,playerId,mode,rootActionId=''){
   if(mode==='ATTACK')state.luckDamageArmed=true;
   else state.specialCharge=(Number(state.specialCharge)||0)+1;
   window.phase='CONSUMED';window.usedMode=mode;window.actionKey=actionKey;
+  persistCardCycles(run,room.privateByPlayer);
   return true;
 }
 function autoAssignRemaining(run,playerIds){
