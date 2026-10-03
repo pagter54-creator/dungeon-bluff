@@ -36,6 +36,7 @@ const regressions = [
   ['D07 incorrect five-card override', d => operation(d,358,'OVERRIDE_TRANSFORM_POOL').value=[3,4,5,6], /D07pool/],
   ['D07 missing dependent card reference', d => entry(d,360).provenance.userConfirmedDecisionIds= ['D03'], /D07card360/],
   ['Q08 random instead of recent recovery', d => operation(d,390,'RECOVER_CARD').selector='RANDOM', /Q08recent/],
+  ['undeclared condition symbol', d => entry(d,271).condition.expression='MISSING_PREDICATE', /undeclared predicate/],
   ['source row rewritten', d => entry(d,283).sourceValueV01='defense shred1', /source wording/]
 ];
 for (const [name, mutate, expected] of regressions) test('DESIGN-D rejects ' + name, () => {
