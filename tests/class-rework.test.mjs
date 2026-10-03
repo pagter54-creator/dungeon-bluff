@@ -18,12 +18,12 @@ test('revelation restores actual used instances, can restore the same instance a
  assert.equal(activateRevelation(g,p,()=>0),true);assert.equal(c.used,false);assert.ok(p.remainingCards.includes(2));assert.equal(p.characterRuntimeState.revelationStacks,0);assert.equal(activateRevelation(g,p),false);
  c.used=true;g.turn_index++;p.characterRuntimeState.revelationStacks=1;activateRevelation(g,p,()=>0);assert.equal(c.used,false);
 });
-test('revelation without spent cards reveals normally; cast turns gain only on collision',()=>{
- for(const clash of [false,true]){const {g,p}=setup('seer');p.characterRuntimeState.revelationStacks=1;activateRevelation(g,p);assert.equal(p.cycleCards.length,5);const s=submit(g,[1,clash?1:2,3,4]);assert.equal(privateKnowledge(g,'p0',s).revealedCards.length,3);resolveTurn(g,s);assert.equal(p.characterRuntimeState.revelationStacks,clash?1:0);}
+test('revelation without spent cards stays private; cast turns regain only on valid pass',()=>{
+ for(const clash of [false,true]){const {g,p}=setup('seer');p.characterRuntimeState.revelationStacks=1;activateRevelation(g,p);assert.equal(p.cycleCards.length,5);const s=submit(g,[1,clash?1:2,3,4]);assert.equal(privateKnowledge(g,'p0',s).revealedCards.length,0);resolveTurn(g,s);assert.equal(p.characterRuntimeState.revelationStacks,clash?0:1);}
 });
-test('ordinary revelation clash gains a stack, duplicate-number instances restore independently',()=>{
- const {g,p}=setup('seer');resolveTurn(g,submit(g,[1,1,3,4]));assert.equal(p.characterRuntimeState.revelationStacks,1);
- p.cycleCards=[{id:'one',value:2,used:true},{id:'two',value:2,used:true}];p.characterRuntimeState.revelationStacks=1;activateRevelation(g,p,()=>.99);assert.equal(p.cycleCards[0].used,true);assert.equal(p.cycleCards[1].used,false);
+test('ordinary revelation clash gives no stack; duplicate-number instances restore independently',()=>{
+ const {g,p}=setup('seer');resolveTurn(g,submit(g,[1,1,3,4]));assert.equal(p.characterRuntimeState.revelationStacks,0);
+ p.cycleCards=[{id:'one',value:2,used:true},{id:'two',value:2,used:true}];p.characterRuntimeState.revelationStacks=1;g.turn_index++;activateRevelation(g,p,()=>.99);assert.equal(p.cycleCards[0].used,true);assert.equal(p.cycleCards[1].used,false);
 });
 test('gunner misfire knocks out once, penalizes once, skips next selection and then revives',()=>{
  const {g,p,members}=setup('gunner');p.hp=1;p.score=20;p.gold=10;const r=resolveTurn(g,submit(g,[1,1,3,4],0,true));assert.equal(p.hp,0);assert.equal(p.knockedOut,true);assert.equal(p.score,10);assert.equal(p.gold,7);assert.equal(r.effects.filter(e=>e.type==='knockout').length,1);
