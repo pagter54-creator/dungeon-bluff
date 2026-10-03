@@ -36,7 +36,7 @@ test('005C-A full build 운명 조작자 preserves ally physical identity, pre-c
   submitCard(run,'p0',idFor(run,p,5));submitCard(run,'p1',aid);submitCard(run,'p2',idFor(run,run.players[2],2));submitCard(run,'p3',idFor(run,run.players[3],4));
   const out=resolveBasicTurn(run),a=out.cards.find(x=>x.playerId==='p1'),owner=out.cards.find(x=>x.playerId==='p0');
   assert.equal(a.finalNumber,3);assert.equal(a.valid,true);assert.ok((a.seerRuntimeBonus||0)>=2);
-  assert.ok((owner.damageValue||0)>=7);
+  assert.ok((owner.numberHistory?.damage||0)>=7);
 });
 
 test('005C-A full build 불길한 예언 keeps owner-only inspection and fulfills three-type prediction reward',()=>{
