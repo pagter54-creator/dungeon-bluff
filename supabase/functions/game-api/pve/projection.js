@@ -9,6 +9,7 @@ export function projectRun(run,viewerPlayerId){
   }
   const ownGunner=run.augmentFramework?.cardState?.[viewerPlayerId+':gunner'];
   if(ownGunner)out.privateGunnerState=structuredClone(ownGunner);
+  if(out.combat)delete out.combat.martialEnemy;
   delete out.augmentFramework;
   delete out.frameworkEffects;
   if(publicFramework)out.augmentStatuses=publicFramework.statuses;
