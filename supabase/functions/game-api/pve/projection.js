@@ -68,6 +68,7 @@ export function projectRun(run,viewerPlayerId){
     for(const card of result.cards||[]){
       // All-In partner identities/printed values and borrowed deck information are owner-private.
       if(card.playerId!==viewerPlayerId){
+        for(const key of Object.keys(card))if(key.startsWith('gunner'))delete card[key];
         for(const key of ['allInCardIds','allInValues','allInSum','allInRootActionId','gamblerBorrowBonus','doubleDownSecond','allAssets','aug237Reduced'])delete card[key];
       }
       delete card.numberHistory;
