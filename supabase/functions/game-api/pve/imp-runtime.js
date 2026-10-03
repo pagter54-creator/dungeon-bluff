@@ -4,7 +4,7 @@ import {IMP_CONTRACTS,IMP_CONTRACT_IDS} from './imp-contracts.js';
 const roomType=run=>run.phase==='COMBAT'?'COMBAT':run.phase==='EVENT'?'EVENT':run.phase==='REWARD_ROOM'?'REWARD':run.phase==='SHOP'?'SHOP':run.phase==='REST'?'REST':null;
 const byId=(run,id)=>run.players.find(p=>p.playerId===id)||null;
 const cardByPlayer=(cards,id)=>cards.find(c=>c.playerId===id)||null;
-const turn=run=>Number(run.combat?.turn||run.roomState?.turn||1);
+const turn=run=>Number(run.combat?.turn||run.roomState?.turn||run.roomState?.attempt||1);
 const cycle=(run,p)=>Number(run.combat?.privateByPlayer?.[p.playerId]?.cycleIndex||run.roomState?.privateByPlayer?.[p.playerId]?.cycleIndex||1);
 const owned=(p,id)=>p?.augments?.includes(id);
 const root=run=>{
@@ -62,7 +62,7 @@ function consumeBuffs(run,p,resolved){
 export function initializeImpCombat(run,p){
   if(p.characterId!=='imp')return;
   scopedImpState(run,p);
-  if(owned(p,'aug-198')&&impRoomAllowed(run,'aug-198')){p.publicResources.stolenNumber=Math.max(1,Number(p.publicResources.stolenNumber)||0);clampStored(p);telemetry(run,'aug-198','COMBAT_START',true,{stolenNumber:p.publicResources.stolenNumber});}
+  if(owned(p,'aug-198')&&impRoomAllowed(run,'aug-198')&&impRoomAllowed(run,'aug-198')){p.publicResources.stolenNumber=Math.max(1,Number(p.publicResources.stolenNumber)||0);clampStored(p);telemetry(run,'aug-198','COMBAT_START',true,{stolenNumber:p.publicResources.stolenNumber});}
 }
 export function prepareImpSubmission(run,p,skillData=null){
   if(p.characterId!=='imp')return {spent:0};
@@ -104,7 +104,7 @@ function applyMischiefOnSteal(run,owner,target,rootActionId,events){
     if(amount>0&&target.status!=='DOWNED'){
       target.hp-=amount;run.combat.pendingDownPlayerIds||=[];if(target.hp<=0&&!run.combat.pendingDownPlayerIds.includes(target.playerId))run.combat.pendingDownPlayerIds.push(target.playerId);
       events.push({type:'IMP_MISCHIEF_EXPLOSION',phase:'PRE_COLLISION_STEAL',sourcePlayerId:owner.playerId,sourceAugmentId:'aug-201',targetPlayerId:target.playerId,amount,rootActionId,chainDepth:1});
-      if(owned(owner,'aug-206')&&claim(run,owner,'aug-206','explosion'))addBuff(run,{sourceAugmentId:'aug-206',ownerId:owner.playerId,targetId:owner.playerId,amount:1});
+      if(owned(owner,'aug-206')&&impRoomAllowed(run,'aug-206')&&claim(run,owner,'aug-206','explosion'))addBuff(run,{sourceAugmentId:'aug-206',ownerId:owner.playerId,targetId:owner.playerId,amount:1});
     }else if(prevented)events.push({type:'IMP_MISCHIEF_EXPLOSION_PREVENTED',sourcePlayerId:owner.playerId,targetPlayerId:target.playerId,rootActionId});
     telemetry(run,'aug-201','MISCHIEF_REPEAT_STEAL',true,{mischiefConsumed:1,bonusDamage:amount});
     return;
@@ -113,7 +113,7 @@ function applyMischiefOnSteal(run,owner,target,rootActionId,events){
   r.mischief[key]={ownerId:owner.playerId,targetId:target.playerId,sourceAugmentId:'aug-201',appliedTurn:t,validFromTurn:t+1,expiryTurn:t+1,bonusDamage:bonus,weak:false,rootActionId};
   const s=scopedImpState(run,owner);if(!s.markedThisTurn.includes(target.playerId))s.markedThisTurn.push(target.playerId);
   telemetry(run,'aug-201','PRE_COLLISION_STEAL',true,{mischiefGained:1,targetPlayerId:target.playerId});
-  if(owned(owner,'aug-204')&&s.markedThisTurn.length>=2&&claim(run,owner,'aug-204','multi'))addBuff(run,{sourceAugmentId:'aug-204',ownerId:owner.playerId,targetId:owner.playerId,amount:1});
+  if(owned(owner,'aug-204')&&impRoomAllowed(run,'aug-204')&&s.markedThisTurn.length>=2&&claim(run,owner,'aug-204','multi'))addBuff(run,{sourceAugmentId:'aug-204',ownerId:owner.playerId,targetId:owner.playerId,amount:1});
 }
 export function applyImpPreCollisionSteal(run,cards,events=[]){
   const imps=run.players.filter(p=>p.characterId==='imp'&&p.status!=='DOWNED'&&cardByPlayer(cards,p.playerId)).sort((a,b)=>a.seat-b.seat||a.playerId.localeCompare(b.playerId));
@@ -139,8 +139,8 @@ export function applyImpPreCollisionSteal(run,cards,events=[]){
     imp.publicResources.greed=total;
     if(total>0){
       events.push({phase:'PRE_COLLISION_STEAL',effectId:'imp-steal-summary',sourcePlayerId:imp.playerId,sourceAugmentId:'IMP_BASE',actorId:imp.playerId,before:actorStart,after:actor.workingNumber,totalActuallyStolen:total,distinctVictimCount:actor.stealTargetCount,targetIds:[...actor.stealTargets],rootActionId});
-      if(owned(imp,'aug-189')&&impRoomAllowed(run,'aug-189')){const s=scopedImpState(run,imp);s.greed=Math.min(4,(s.greed||0)+1);telemetry(run,'aug-189','PRE_COLLISION',true,{stack:s.greed});}
-      if(owned(imp,'aug-188')&&actor.stealTargetCount>=2&&actor.stealTargetCount===eligible.filter(x=>x.workingNumber>=0).length&&claim(run,imp,'aug-188','sweep')){
+      if(owned(imp,'aug-189')&&impRoomAllowed(run,'aug-189')&&impRoomAllowed(run,'aug-189')){const s=scopedImpState(run,imp);s.greed=Math.min(4,(s.greed||0)+1);telemetry(run,'aug-189','PRE_COLLISION',true,{stack:s.greed});}
+      if(owned(imp,'aug-188')&&impRoomAllowed(run,'aug-188')&&actor.stealTargetCount>=2&&actor.stealTargetCount===eligible.filter(x=>x.workingNumber>=0).length&&claim(run,imp,'aug-188','sweep')){
         for(const p of run.players.filter(x=>x.status!=='DOWNED'))addBuff(run,{sourceAugmentId:'aug-188',ownerId:imp.playerId,targetId:p.playerId,amount:3});
       }
     }
@@ -166,11 +166,11 @@ export function applyImpCardValidated(run,{player,resolved,cards=[],events=[]}={
     const owner=byId(run,m.ownerId);if(!owner||owner.status==='DOWNED'){delete r.mischief[key];continue;}
     bonus+=Number(m.bonusDamage)||0;delete r.mischief[key];
     telemetry(run,m.sourceAugmentId||'aug-201','ON_VALID',true,{mischiefConsumed:1,bonusDamage:m.bonusDamage,targetPlayerId:player.playerId});
-    if(owned(owner,'aug-205')&&resolved.finalNumber>=4&&claim(run,owner,'aug-205','marked-valid'))bonus+=2;
+    if(owned(owner,'aug-205')&&impRoomAllowed(run,'aug-205')&&resolved.finalNumber>=4&&claim(run,owner,'aug-205','marked-valid'))bonus+=2;
     if(owned(owner,'aug-210')){const s=scopedImpState(run,owner);s.excitement=Math.min(4,(s.excitement||0)+1);telemetry(run,'aug-210','ON_VALID',true,{stack:s.excitement});}
     spreadWeakMischief(run,owner,player.playerId,`mischief:${run.combat?.id}:${t}:${player.playerId}`);
     const s=scopedImpState(run,owner);if(!s.mischiefValidTurn.includes(player.playerId))s.mischiefValidTurn.push(player.playerId);
-    if(owned(owner,'aug-208')&&s.mischiefValidTurn.length>=2&&claim(run,owner,'aug-208','riot')){
+    if(owned(owner,'aug-208')&&impRoomAllowed(run,'aug-208')&&s.mischiefValidTurn.length>=2&&claim(run,owner,'aug-208','riot')){
       for(const p of run.players.filter(x=>x.status!=='DOWNED'))addBuff(run,{sourceAugmentId:'aug-208',ownerId:owner.playerId,targetId:p.playerId,amount:2});
     }
   }
@@ -178,11 +178,11 @@ export function applyImpCardValidated(run,{player,resolved,cards=[],events=[]}={
   if(player.characterId==='imp'){
     const s=scopedImpState(run,player);
     if((resolved.stealTotal||0)>0){
-      if(owned(player,'aug-183')&&claim(run,player,'aug-183','next-turn'))addBuff(run,{sourceAugmentId:'aug-183',ownerId:player.playerId,targetId:player.playerId,amount:1,validFromTurn:t+1,expiryTurn:t+1});
-      if(owned(player,'aug-187')&&claim(run,player,'aug-187','next-cycle')){const c=cycle(run,player)+1;addBuff(run,{sourceAugmentId:'aug-187',ownerId:player.playerId,targetId:player.playerId,amount:2,validFromCycle:c,expiryCycle:c});}
+      if(owned(player,'aug-183')&&impRoomAllowed(run,'aug-183')&&claim(run,player,'aug-183','next-turn'))addBuff(run,{sourceAugmentId:'aug-183',ownerId:player.playerId,targetId:player.playerId,amount:1,validFromTurn:t+1,expiryTurn:t+1});
+      if(owned(player,'aug-187')&&impRoomAllowed(run,'aug-187')&&claim(run,player,'aug-187','next-cycle')){const c=cycle(run,player)+1;addBuff(run,{sourceAugmentId:'aug-187',ownerId:player.playerId,targetId:player.playerId,amount:2,validFromCycle:c,expiryCycle:c});}
     }
-    if(owned(player,'aug-196')&&Number(resolved.stolenNumberSpent)>=2&&claim(run,player,'aug-196','refund'))addStored(player,1);
-    if(owned(player,'aug-200')&&Number(resolved.stolenNumberSpent)>0){const refund=Math.min(2,Math.floor(Number(resolved.stolenNumberSpent)/2));if(refund)addStored(player,refund);}
+    if(owned(player,'aug-196')&&impRoomAllowed(run,'aug-196')&&Number(resolved.stolenNumberSpent)>=2&&claim(run,player,'aug-196','refund'))addStored(player,1);
+    if(owned(player,'aug-200')&&impRoomAllowed(run,'aug-200')&&Number(resolved.stolenNumberSpent)>0){const refund=Math.min(2,Math.floor(Number(resolved.stolenNumberSpent)/2));if(refund)addStored(player,refund);}
     bonus+=Math.max(0,Number(s.excitement)||0);
   }
   if(bonus>0){resolved.impRuntimeBonus=(resolved.impRuntimeBonus||0)+bonus;}
@@ -192,14 +192,14 @@ export function applyImpBeforeDamage(run,{player,resolved,damage,followUp=false}
   if(!player||!resolved?.valid||followUp)return 0;let bonus=0;
   if(player.characterId==='imp'){
     const d=Number(resolved.stealTargetCount)||0,total=Number(resolved.stealTotal)||0;
-    if(owned(player,'aug-181')&&d>=2&&claim(run,player,'aug-181','damage'))bonus+=2;
-    if(owned(player,'aug-182')&&d>=2&&claim(run,player,'aug-182','damage'))bonus+=2;
-    if(owned(player,'aug-184')&&Number(resolved.lowStealVictimCount)>0&&claim(run,player,'aug-184','damage'))bonus+=1;
-    if(owned(player,'aug-185')&&total>=2&&claim(run,player,'aug-185','damage'))bonus+=2;
-    if(owned(player,'aug-186')&&resolved.finalNumber>=5&&claim(run,player,'aug-186','damage'))bonus+=2;
-    if(owned(player,'aug-190')&&total>=2&&claim(run,player,'aug-190','damage'))bonus+=Math.min(3,Math.floor(resolved.finalNumber/2));
-    if(owned(player,'aug-197')&&Number(resolved.stolenNumberSpent)>=3&&claim(run,player,'aug-197','damage'))bonus+=2;
-    if(owned(player,'aug-199')&&Number(resolved.stolenNumberSpent)>=4&&claim(run,player,'aug-199','damage'))bonus+=4;
+    if(owned(player,'aug-181')&&impRoomAllowed(run,'aug-181')&&d>=2&&claim(run,player,'aug-181','damage'))bonus+=2;
+    if(owned(player,'aug-182')&&impRoomAllowed(run,'aug-182')&&d>=2&&claim(run,player,'aug-182','damage'))bonus+=2;
+    if(owned(player,'aug-184')&&impRoomAllowed(run,'aug-184')&&Number(resolved.lowStealVictimCount)>0&&claim(run,player,'aug-184','damage'))bonus+=1;
+    if(owned(player,'aug-185')&&impRoomAllowed(run,'aug-185')&&total>=2&&claim(run,player,'aug-185','damage'))bonus+=2;
+    if(owned(player,'aug-186')&&impRoomAllowed(run,'aug-186')&&resolved.finalNumber>=5&&claim(run,player,'aug-186','damage'))bonus+=2;
+    if(owned(player,'aug-190')&&impRoomAllowed(run,'aug-190')&&total>=2&&claim(run,player,'aug-190','damage'))bonus+=Math.min(3,Math.floor(resolved.finalNumber/2));
+    if(owned(player,'aug-197')&&impRoomAllowed(run,'aug-197')&&Number(resolved.stolenNumberSpent)>=3&&claim(run,player,'aug-197','damage'))bonus+=2;
+    if(owned(player,'aug-199')&&impRoomAllowed(run,'aug-199')&&Number(resolved.stolenNumberSpent)>=4&&claim(run,player,'aug-199','damage'))bonus+=4;
     if(owned(player,'aug-189'))bonus+=Math.max(0,Number(scopedImpState(run,player).greed)||0);
   }
   bonus+=Math.max(0,Number(resolved.impRuntimeBonus)||0);
