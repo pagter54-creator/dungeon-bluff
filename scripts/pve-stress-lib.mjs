@@ -662,6 +662,10 @@ function assertT03SustainTurn(run,result,policyPlan){
 
 export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterDef=F1_MONSTER_DEFINITIONS.f1_armored_boar,policy='reference',flame=4,maxTurns=HARD_MAX_TURNS,caseId='generic-combat'}){
   const run=makeCombatRun(seed,{caseId,characterIds,augmentIdsByPlayer,flame,monsterDef});
+  if(policy==='resource_starvation'){
+    const prophet=run.players.find(p=>p.characterId==='prophet');
+    if(prophet)prophet.publicResources.revelation=Math.min(resourceMax(prophet,'revelation',3),1);
+  }
   let actions=0,resolves=0;
   const referenceTurns=[],numberMutationTurns=[],resourceTimeline=[],collisionTurns=[],sustainTurns=[],burstTurns=[],recoveryTurns=[];
   const t09PriorResource=new Map(run.players.map(p=>[p.playerId,t09ResourceValue(p)]));
