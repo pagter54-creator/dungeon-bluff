@@ -1,0 +1,255 @@
+{
+  "schemaVersion": 1,
+  "task": "PVE_CONTENT_005C_FINAL",
+  "repository": "pagter54-creator/dungeon-bluff",
+  "branch": "feat/pve-content-005c-final",
+  "pullRequest": 23,
+  "baseline": {
+    "pullRequest": 22,
+    "head": "c59573dc58343c603aa00ab49cf9271e065a3267",
+    "projectChecks": {
+      "run": 37118035955,
+      "number": 887,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    "GUNSLINGER_RUNTIME_COMPLETE": true,
+    "READY_FOR_PVE_CONTENT_005C_FINAL": true
+  },
+  "counts": {
+    "target": 120,
+    "registered": 120,
+    "executable": 120,
+    "dataOnly": 0,
+    "missing": 0,
+    "unsupported": 0,
+    "duplicates": 0,
+    "byClass": {
+      "Seer": 30,
+      "Imp": 30,
+      "Gambler": 30,
+      "Gunslinger": 30
+    },
+    "archetypes": 12,
+    "cardsPerArchetype": 10,
+    "stagesPerClass": [
+      3,
+      9,
+      9,
+      9
+    ],
+    "previous005B": 150,
+    "global001to270": 270,
+    "all390InformationalExecutable": 276,
+    "legacyOutside270": 6,
+    "new271Plus": 0
+  },
+  "scope": {
+    "newGameplaySemantics": false,
+    "balanceTuning": false,
+    "productionDeploy": false,
+    "databaseMutation": false,
+    "schemaMutation": false,
+    "sourceOverwrites": false,
+    "readyTransition": false,
+    "merge": false,
+    "started005D": false
+  },
+  "fixes": [
+    {
+      "id": "FINAL_FIX_01",
+      "file": "supabase/functions/game-api/pve/number-mutation.js",
+      "issue": "Different Mischief explosion victims shared an empty mutation validation key and crashed mixed full builds.",
+      "change": "Use existing event type/source/target identity in diagnostic mutation uniqueness key; preserve all damage."
+    },
+    {
+      "id": "FINAL_FIX_02",
+      "file": "supabase/functions/game-api/pve/seer-runtime.js",
+      "issue": "Completed owner claim tokens survived resetting Revelation activation serial.",
+      "change": "Clear completed owner's custom claim ledger at combat cleanup; preserve other owners."
+    },
+    {
+      "id": "FINAL_FIX_03",
+      "file": "supabase/functions/game-api/pve/seer-runtime.js",
+      "issue": "Restored stale prediction was not fenced by declared origin combat/room; stale Foresight/global combat bonuses could leak outside scope.",
+      "change": "Cancel explicit origin mismatch and enforce declared source room; tolerate missing legacy origin fields."
+    },
+    {
+      "id": "FINAL_FIX_04",
+      "file": "supabase/functions/game-api/pve/imp-runtime.js",
+      "issue": "Legacy retained Mischief/damage state could be consumed outside combat.",
+      "change": "Enforce existing combat-only validated/before-damage contract."
+    },
+    {
+      "id": "FINAL_FIX_05",
+      "file": "supabase/functions/game-api/pve/gambler.js",
+      "issue": "Completed combat receipts carried indefinitely in persistent physical snapshots.",
+      "change": "Clear combat action receipts at combat end, retaining all deck zones, IDs, unlocks, counters and history."
+    },
+    {
+      "id": "FINAL_FIX_06",
+      "files": [
+        "supabase/functions/game-api/pve/seer-runtime.js",
+        "supabase/functions/game-api/pve/imp-runtime.js"
+      ],
+      "issue": "Diagnostic event rows grew across repeated combat scopes.",
+      "change": "Keep latest2048 diagnostic rows plus exact aggregate trigger/success counters; no gameplay or once-scope change."
+    }
+  ],
+  "userConfirmedPatches": {
+    "aug248": {
+      "executionRuleSource": "USER_CONFIRMED_005C_D_PATCH",
+      "damageTaxonomy": "EXTRA_DAMAGE_COMPONENT",
+      "damage": 5,
+      "root": "FULL_BURST_ROOT_ACTION",
+      "separateHit": false,
+      "retrigger": false,
+      "remainingCountAtActivation": 3
+    },
+    "aug253": {
+      "executionRuleSource": "USER_CONFIRMED_005C_D_PATCH",
+      "preservedState": "PRECISION_SHOT_ARMED_ACTIVATION_ONLY",
+      "cause": "COLLISION_ONLY",
+      "once": "ONCE_PER_COMBAT",
+      "expiry": "SAME_CYCLE_END",
+      "incomingDamageMitigation": false
+    }
+  },
+  "verification": {
+    "testsExpected": 1406,
+    "testsCommand": "npm test",
+    "projectCommand": "npm run check",
+    "smokeCommand": "npm run pve:stress:smoke",
+    "newTests": [
+      "tests/pve-content-005c-final.test.mjs",
+      "tests/pve-content-005c-final-rooms.test.mjs",
+      "tests/pve-content-005c-final-expedition.test.mjs"
+    ],
+    "candidate": "120 individual real beginAugmentChoices/chooseAugment tests, no duplicate/retry mutation; 12 exact four-stage EXP progressions; deterministic AI thresholds.",
+    "mixedParties": [
+      [
+        "prophet",
+        "imp",
+        "gambler",
+        "gunner"
+      ],
+      [
+        "prophet",
+        "imp",
+        "warrior",
+        "gunner"
+      ],
+      [
+        "mage",
+        "imp",
+        "gambler",
+        "gunner"
+      ],
+      [
+        "prophet",
+        "rogue",
+        "gambler",
+        "gunner"
+      ],
+      [
+        "warrior",
+        "imp",
+        "gambler",
+        "gunner"
+      ]
+    ],
+    "mixedCases": 15,
+    "mixedTurnsPerCase": 16,
+    "sameClassPairs": 4,
+    "sameClassTurns": 24,
+    "replay": "Clone actual pending card submission; compare all gameplay state; exclude submittedAt wall-clock audit field only.",
+    "roomMatrices": 120,
+    "fullBuilds": 12,
+    "physicalAssertions": "Unique global card IDs; one physical zone; exactly four collision participants; unique packet IDs; history<=48; owner/ally/spectator projection.",
+    "expedition": {
+      "parties": [
+        "FOUR_005C",
+        "MIXED_005B_005C"
+      ],
+      "route": "Floor1 -> Floor2 -> Floor3 -> final boss -> RUN_CLEAR",
+      "reconnects": [
+        "F1_COMBAT",
+        "F3_MAP_ENTRY"
+      ],
+      "usesRealApi": true,
+      "fixture": "Test-only committed combat snapshots set enemyHP1 and refill HP/Flame. This checks routing/runtime/serialization, not natural balance clearability.",
+      "productionEffect": false
+    },
+    "settlement": {
+      "realSqlTests": "tests/database.test.mjs",
+      "clear": "REWARD-PVE-01/04/05/06 clear pays authoritative runGold once and ignores forged Gold/RP",
+      "failure": "REWARD-PVE-02 failed run forfeits runGold, preserves RP, and settles idempotently",
+      "abandon": "REWARD-PVE-03 abandoned run forfeits authoritative runGold and never mutates RP",
+      "rewardsCommitted": true,
+      "rpDelta": 0
+    },
+    "failureSpineTests": [
+      "tests/pve-005-006.test.mjs",
+      "tests/pve-content-003.test.mjs"
+    ],
+    "memory": {
+      "repeatedCombats": 80,
+      "diagnosticEvents": 2400,
+      "historyMax": 48,
+      "diagnosticRowsMax": 2048,
+      "aggregateCountersRetained": true,
+      "completedSeerClaims": 0,
+      "completedGamblerReceipts": 0,
+      "completedMischief": 0,
+      "completedBurstInstances": 0
+    },
+    "performance": {
+      "ownedOnlyDispatch": true,
+      "full120RegistryScanPerTrigger": false,
+      "evidence": "definitionsFor uses owner augments/relics; class predicates use ownership; fixed diagnostic caps; stress harness rejects max actions/turn ceilings."
+    },
+    "backwardCompatibility": "Existing missing-array/counter/zone normalization and all-class reconnect suites; explicit stale prediction origins cancelled, missing old origin fields tolerated.",
+    "stress": {
+      "command": "npm run pve:stress:full -- --scenario <scenario> --output artifacts/pve-stress-005c-final/<scenario>",
+      "scenarios": [
+        "T00",
+        "T02",
+        "T03",
+        "T04",
+        "T05",
+        "T06",
+        "T09",
+        "T14"
+      ],
+      "seedsEach": 500,
+      "totalSeeds": 4000,
+      "mode": "stress",
+      "workflow": "Eight independent final_005c_stress matrix jobs, needs:test",
+      "hardFailureRequired": 0,
+      "balancePolicy": "Record BALANCE_WARNING_005C_FINAL from emitted reports without tuning; warnings do not block acceptance."
+    },
+    "immutableSourcePolicy": "DESIGN-C/BETA/005Q/005R/stable IDs/golden unchanged; matrix points to existing contracts and USER_CONFIRMED overlays.",
+    "currentHeadResult": "Requires final documentation HEAD completed/success; verified exact HEAD/run/jobs are recorded in PR body without creating another documentation commit."
+  },
+  "blockerPolicy": {
+    "RELEASE_BLOCKERS": "Any required gate failure",
+    "DESIGN_BLOCKERS": "Any required new gameplay interpretation; stop",
+    "RUNTIME_BLOCKERS": "Any remaining crash/state/privacy/scope defect",
+    "TEST_BLOCKERS": "Any missing or failed required acceptance",
+    "BALANCE_WARNING_005C_FINAL": "Nonblocking only; use actual stress output"
+  },
+  "completionGate": {
+    "condition": "CURRENT_DOCUMENTATION_HEAD_PROJECT_CHECKS_COMPLETED_SUCCESS_AND_ALL_8_500_SEED_JOBS_SUCCESS",
+    "pendingFlags": {
+      "PVE_CONTENT_005C_FINAL_ACCEPTED": false,
+      "MERGE_RECOMMENDED": false,
+      "READY_FOR_PVE_CONTENT_005D_DESIGN": false
+    },
+    "successFlags": {
+      "PVE_CONTENT_005C_FINAL_ACCEPTED": true,
+      "MERGE_RECOMMENDED": true,
+      "READY_FOR_PVE_CONTENT_005D_DESIGN": true
+    },
+    "instructions": "Flags evaluate to true only after exact current documentation HEAD CI success. Keep Draft and do not merge or start005D."
+  }
+}
