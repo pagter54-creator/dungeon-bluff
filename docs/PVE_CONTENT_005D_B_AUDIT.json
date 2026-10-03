@@ -9,9 +9,9 @@
   "acquisition": 30,
   "fullBuilds": 3,
   "stageProgressionBuilds": 3,
-  "testsPrepared": 175,
+  "testsPrepared": 182,
   "inMemoryRepositoryModuleCheck": {
-    "pass": 175,
+    "pass": 182,
     "fail": 0,
     "limitation": "Supplemental in-memory module checks use deterministic UUID and clone shims; required GitHub Node CI remains authoritative."
   },
@@ -25,5 +25,46 @@
     "VAMPIRE_RUNTIME_COMPLETE": false,
     "READY_FOR_PVE_CONTENT_005D_C_GHOST": false
   },
-  "status": "PREPARED_WAITING_FOR_A_FINAL_HEAD_CI"
+  "status": "DESIGN_BLOCKER_CANONICAL_RULES_VS_HISTORICAL_GOLDEN",
+  "githubEvidence": {
+    "head": "9a4000c20fe3da7e5e6f36c05bbd16be7a1867c6",
+    "runId": 37155628837,
+    "tests": 1760,
+    "pass": 1753,
+    "fail": 7,
+    "skip": 0,
+    "newTests": 175,
+    "newPass": 175,
+    "projectCheckFiles": 225,
+    "smokeHardFailures": 10
+  },
+  "unaffectedFixes": [
+    "Stable Vampire names populated; follow-up comma syntax error repaired",
+    "Base aug-321 numeric config metadata preserved",
+    "Blood gain event compatibility restored",
+    "Shop/Rest rejection and Event/Reward number-only branch tests added",
+    "Alternate Beta UI exposes Blood Command when a Thrall mark is present"
+  ],
+  "designBlockers": [
+    {
+      "id": "005D_B_GOLDEN_RULE_DOMAIN_CONFLICT",
+      "currentAuthority": "DESIGN-D CLOSEOUT",
+      "differences": [
+        {
+          "field": "Thrall target ranking",
+          "current": "player.score",
+          "historicalT04": "growthExp"
+        },
+        {
+          "field": "aug-321 trigger",
+          "current": "automatic after damage before DOWN_RESOLVE",
+          "historicalT03": "manual SELECTION_OPEN activation"
+        }
+      ],
+      "decisionPending": true,
+      "existingPermission": "PR25comment5973473233 only authorized historical count/catalog hash updates",
+      "goldensChanged": false,
+      "behaviorTestsChanged": false
+    }
+  ]
 }

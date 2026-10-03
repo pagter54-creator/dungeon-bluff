@@ -1,3 +1,4 @@
+import {augmentUi} from '../src/pve-ui-catalog.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/pve/model.js';
@@ -184,4 +185,24 @@ test('Vampire emergency transfusion precedes auto transfusion and resolves owner
 test('Vampire pending protection reduces DIRECT only and clears at Combat end',()=>{
  const f=fixture([314,311]);valid(f);const before=projectRun(f.run,'p1');assert.equal(before.augmentFramework,undefined);
  cleanupVampire(f.run,f.p);assert.equal(f.p.publicResources.pact,undefined);assert.equal(f.p.publicResources.vampireProtection,undefined);assert.equal(f.run.augmentFramework.cardState['p0:vampire'],undefined);
+});
+
+for(const phase of ['EVENT','REWARD_ROOM','REST'])test('Vampire Combat-only secondary effects do not leak to '+phase,()=>{
+ for(let n=302;n<=330;n++){
+ const f=fixture([n]);f.run.phase=phase;command(f);const before=JSON.stringify(f.p.publicResources);
+ valid(f);post(f);vampirePreDown(f.run,f.cards);assert.equal(JSON.stringify(f.p.publicResources),before);assert.equal(f.rc.vampireBonus,undefined);
+ }
+});
+for(const phase of ['EVENT','REWARD_ROOM'])test('Vampire 301 explicit number-only swap in '+phase,()=>{
+ const f=fixture([301,308]);f.run.phase=phase;f.run.roomState=f.run.combat;delete f.run.combat;f.p.publicResources.thrallPlayerId='p1';
+ const physical=f.run.players.map(p=>p.cardPool.map(c=>c.id));performVampireSwap(f.run,f.p,f.rc,f.other,f.cards,[],f.run.roomState);
+ assert.equal(f.rc.workingNumber,2);assert.equal(f.other.workingNumber,1);assert.deepEqual(f.run.players.map(p=>p.cardPool.map(c=>c.id)),physical);
+ assert.equal(f.p.publicResources.dominance,0);assert.equal(f.s.dominanceCharge,null);valid(f);assert.equal(f.rc.vampireBonus,undefined);
+});
+test('Vampire numeric swap rejects Shop and Rest before changing cards or mark',()=>{
+ for(const phase of ['SHOP','REST']){const f=fixture([301]);f.run.phase=phase;f.p.publicResources.thrallPlayerId='p1';const before=JSON.stringify(f.cards);assert.throws(()=>performVampireSwap(f.run,f.p,f.rc,f.other,f.cards),/현재 방/);assert.equal(JSON.stringify(f.cards),before);assert.equal(f.p.publicResources.thrallPlayerId,'p1');}
+});
+
+test('Vampire all names and readable Korean tooltips match current registered cards',()=>{
+ for(let n=301;n<=330;n++){const d=AUGMENT_BY_ID['aug-'+n],ui=augmentUi(d.id,d.tier);assert.equal(ui.name,d.name);assert.equal(ui.build,d.build);assert.ok(ui.description.length>10);assert.equal(ui.description.includes('"op"'),false);}
 });

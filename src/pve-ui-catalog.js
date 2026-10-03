@@ -334,7 +334,7 @@ export const PVE_AUGMENT_NAMES=Object.freeze({
 "aug-297":"잔심",
 "aug-298":"일격필살",
 "aug-299":"무념무상",
-"aug-300":"일격 후 일격"
+"aug-300":"일격 후 일격",
 "aug-302":"선명한 낙인",
 "aug-303":"피의 명령권",
 "aug-304":"귀족의 특권",

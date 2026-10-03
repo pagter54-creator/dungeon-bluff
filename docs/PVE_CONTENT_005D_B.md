@@ -18,3 +18,11 @@ VAMPIRE_RUNTIME_COMPLETE=false
 READY_FOR_PVE_CONTENT_005D_C_GHOST=false
 
 Draft 유지, merge/Ready/deploy/Supabase/DB/schema 변경0.
+
+## DESIGN_BLOCKER — 현행 계약과 과거 golden의 규칙 차이
+
+B 신규175개 Node 테스트는 PASS했으나 전체1760개 중1753 PASS/7 FAIL이었다. UI 이름/기본config 누락2건은 runtime/metadata에서 보완했다. 후속 UI 이름 삽입 comma 오류도 수정했다. 테스트 기대값이나 golden을 수정하지 않았다.
+
+남은 의미 충돌: DESIGN-D의 score 기준 권속 선택/자동 수혈321과 T04의 growthExp 기준 표식·T03의 SELECTION_OPEN 수동 수혈은 동일 runtime에서 그대로 동시에 일치할 수 없다. 원본 golden 불변 및 전체 성공 요구를 지키려면 과거 규칙 버전의 검증과 현행 규칙 검증을 구분할지, 실행 계약을 재확정할지 사용자 결정이 필요하다. 기존 승인은3개 과거count/hash 검사만 대상으로 하므로 행동/golden 검사 변경을 포함하지 않는다.
+
+방별범위/숫자교환/한국어이름·툴팁을 포함한 신규182개 보조 module 검증은 PASS이며 실제 Node 최종 HEAD CI를 다시 실행한다. 이 blocker 해결과 최종 전체CI SUCCESS 전까지 B 수락 및 C/D/FINAL 진입을 하지 않는다.

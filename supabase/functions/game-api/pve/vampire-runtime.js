@@ -33,7 +33,7 @@ function refresh(run,p){
 function bind(s,target){if(s.bound===target)return;s.bound=target;s.pact=0;s.jointStreak=0;}
 export function assignVampireMarks(run,cards,groups,events=[]){
  if(![...groups.values()].some(g=>g.length>=2))return;
- for(const p of run.players.filter(p=>p.characterId==='vampire'&&live(p)).sort(sort)){
+ for(const p of run.players.filter(p=>p.characterId==='vampire'&&live(p)&&(combat(run)||(has(p,301)&&['EVENT','REWARD_ROOM'].includes(run.phase)))).sort(sort)){
  const s=refresh(run,p);if(s.mark?.active)continue;
  const target=run.players.filter(q=>q.playerId!==p.playerId&&live(q)).sort((a,b)=>(Number(b.score)||0)-(Number(a.score)||0)||sort(a,b))[0];
  if(!target)continue;
@@ -46,6 +46,7 @@ function reserve(run,p,n){
  const s=vampireState(run,p);if(!s.reserve)s.reserve={source:'aug-'+n,earnedSequence:s.sequence,earnedTurn:(run.combat||run.roomState).turn};
 }
 export function performVampireSwap(run,p,actor,target,cards,events=[],state=run.combat){
+ if(!combat(run)&&(!has(p,301)||!['EVENT','REWARD_ROOM'].includes(run.phase)))throw new Error('현재 방에서는 피의 명령 숫자 교환을 사용할 수 없습니다.');
  const s=refresh(run,p),root=state.turn+':'+actor.cardInstanceId;
  if(s.results['swap:'+root])return false;
  if(!live(p)||!live(player(run,target.playerId))||!s.mark?.active||s.mark.thrallPlayerId!==target.playerId)throw new Error('피의 명령 대상이 이번 턴 판정에 없습니다.');
@@ -112,7 +113,7 @@ export function resolveVampireValidity(run,cards,events=[]){
  if(p.characterId==='vampire'&&has(p,308)&&!rc.bloodCommandUsed&&s.dominanceCharge&&s.dominanceCharge.root!==root){bonus(rc,Number(p.publicResources.dominance)||0);s.dominanceCharge=null;}
  }
 }
-function blood(run,p,value,n){const before=Number(p.publicResources.blood)||0;p.publicResources.blood=Math.min(bloodCap(p),before+value);claim(run,p,n);return p.publicResources.blood-before;}
+function blood(run,p,value,n,events=[],rc=null){const before=Number(p.publicResources.blood)||0;p.publicResources.blood=Math.min(bloodCap(p),before+value);claim(run,p,n);const gain=p.publicResources.blood-before;if(gain>0)events.push({type:'VAMPIRE_BLOOD_GAINED',phase:'POST_DAMAGE',playerId:p.playerId,amount:gain,before,after:p.publicResources.blood,sourceCardId:rc?.cardInstanceId||null});return gain;}
 function heal(run,p,target,n,events){
  const before=target.hp;target.hp=Math.min(target.maxHp,before+1);if(target.hp<=before)return false;
  const root=run.combat.turn+':'+(card(run.combat._vampireCards||[],p.playerId)?.cardInstanceId||p.playerId),s=vampireState(run,p);
@@ -129,11 +130,11 @@ export function vampirePostDamage(run,cards,packets,events=[],enemyHpBefore=null
  const actual=id=>packets.filter(q=>q.sourcePlayerId===id&&!q.followUp&&!q.extraDamageComponent).reduce((a,q)=>a+q.amount,0);
  const target=player(run,s.bound),br=target?card(cards,target.playerId):null;
  if(rc?.valid){
- if(has(p,321))blood(run,p,1,321);
- if(has(p,322)&&actual(p.playerId)>=4)blood(run,p,1,322);
- if(has(p,326)&&((enemyHpBefore??c.monster.hp)*2>=c.monster.maxHp||c.roomType==='BOSS'))blood(run,p,2,326);
+ if(has(p,321))blood(run,p,1,321,events,rc);
+ if(has(p,322)&&actual(p.playerId)>=4)blood(run,p,1,322,events,rc);
+ if(has(p,326)&&((enemyHpBefore??c.monster.hp)*2>=c.monster.maxHp||c.roomType==='BOSS'))blood(run,p,2,326,events,rc);
  }
- s.receipts=s.receipts.filter(r=>{const tr=card(cards,r.targetId);if(c.turn>r.afterTurn&&tr?.valid){blood(run,p,1,330);return false;}return true;});
+ s.receipts=s.receipts.filter(r=>{const tr=card(cards,r.targetId);if(c.turn>r.afterTurn&&tr?.valid){blood(run,p,1,330,events,rc);return false;}return true;});
  if(br?.valid&&has(p,315)&&actual(target.playerId)>=4&&claim(run,p,315))arm(run,p,2,'pair',root,c.turn);
  if(s.pact===3&&rc?.valid&&br?.valid&&has(p,320)&&claim(run,p,320,'TURN','success')){arm(run,p,1,'pact',root);arm(run,target,1,'pact',root);}
  }
