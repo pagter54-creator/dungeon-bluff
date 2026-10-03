@@ -322,60 +322,60 @@ export function applyGamblerValidated(run,player,state,resolved){
   }
   const counterWasArmed=Boolean(state.cardCounterArmed);
   const sequenceWasArmed=Boolean(state.sequenceArmed);
-  if(player.augments?.includes('aug-220'))bonus+=Math.max(0,Math.min(4,Number(state.fortuneStack)||0));
+  if(hasGamblerAugment(run,player,'aug-220'))bonus+=Math.max(0,Math.min(4,Number(state.fortuneStack)||0));
   if(state.weakenedBorrowedIds.includes(resolved?.cardInstanceId)){resolved.gamblerDamagePenalty=(Number(resolved.gamblerDamagePenalty)||0)+1;state.weakenedBorrowedIds=state.weakenedBorrowedIds.filter(id=>id!==resolved.cardInstanceId);}
   if(value>=1&&value<=5&&state.luckDamageArmed){bonus+=1;state.luckDamageArmed=false;}
-  if(value>=1&&value<=5&&player.augments?.includes('aug-223')&&state.discardMemoryNumber===value&&onceTurn('aug-223'))bonus+=1;
-  if(value>=1&&value<=5&&player.augments?.includes('aug-224')&&Array.isArray(state.currentPrediction)&&state.currentPrediction.includes(value)&&onceTurn('aug-224'))bonus+=1;
+  if(value>=1&&value<=5&&hasGamblerAugment(run,player,'aug-223')&&state.discardMemoryNumber===value&&onceTurn('aug-223'))bonus+=1;
+  if(value>=1&&value<=5&&hasGamblerAugment(run,player,'aug-224')&&Array.isArray(state.currentPrediction)&&state.currentPrediction.includes(value)&&onceTurn('aug-224'))bonus+=1;
   if(counterWasArmed){bonus+=2;state.cardCounter=0;state.cardCounterArmed=false;state.countedOrdinary=[];}
   if(sequenceWasArmed){bonus+=3;state.sequenceArmed=false;state.validOrdinaryHistory=[];}
   if(value===6){
-    if(player.augments?.includes('aug-212')&&onceTurn('aug-212')){bonus+=2;state.specialCharge=(Number(state.specialCharge)||0)+1;}
-    if(player.augments?.includes('aug-218')&&onceTurn('aug-218'))bonus+=3;
+    if(hasGamblerAugment(run,player,'aug-212')&&onceTurn('aug-212')){bonus+=2;state.specialCharge=(Number(state.specialCharge)||0)+1;}
+    if(hasGamblerAugment(run,player,'aug-218')&&onceTurn('aug-218'))bonus+=3;
   }
   if(value===7){
-    if(player.augments?.includes('aug-213'))bonus+=4;
-    if(player.augments?.includes('aug-219')&&!state.aug219Used){bonus+=7;state.aug219Used=true;}
+    if(hasGamblerAugment(run,player,'aug-213'))bonus+=4;
+    if(hasGamblerAugment(run,player,'aug-219')&&!state.aug219Used){bonus+=7;state.aug219Used=true;}
   }
   if([6,7].includes(value)){
-    if(player.augments?.includes('aug-211'))addGamblerLuck(run,player,state,`valid:${run.combat?.id||run.currentRoomNodeId||'room'}:${turn}:${resolved.cardInstanceId}`);
-    if(player.augments?.includes('aug-216')&&state.aug216Cycle!==state.shuffleCount){state.specialCharge=(Number(state.specialCharge)||0)+1;state.aug216Cycle=state.shuffleCount;}
-    if(player.augments?.includes('aug-217')&&state.lastValidSpecial&&state.lastValidSpecial!==value&&onceTurn('aug-217'))bonus+=3;
-    if(player.augments?.includes('aug-220')){
+    if(hasGamblerAugment(run,player,'aug-211'))addGamblerLuck(run,player,state,`valid:${run.combat?.id||run.currentRoomNodeId||'room'}:${turn}:${resolved.cardInstanceId}`);
+    if(hasGamblerAugment(run,player,'aug-216')&&state.aug216Cycle!==state.shuffleCount){state.specialCharge=(Number(state.specialCharge)||0)+1;state.aug216Cycle=state.shuffleCount;}
+    if(hasGamblerAugment(run,player,'aug-217')&&state.lastValidSpecial&&state.lastValidSpecial!==value&&onceTurn('aug-217'))bonus+=3;
+    if(hasGamblerAugment(run,player,'aug-220')){
       state.fortuneOrdinarySeen=Array.isArray(state.fortuneOrdinarySeen)?state.fortuneOrdinarySeen:[];
       if(state.fortuneLastSpecial&&state.fortuneLastSpecial!==value&&state.fortuneOrdinarySeen.length>=3)state.fortuneStack=Math.min(4,(Number(state.fortuneStack)||0)+1);
       state.fortuneLastSpecial=value;
     }
     state.lastValidSpecial=value;
   }else if(value>=1&&value<=5){
-    if(player.augments?.includes('aug-215')&&[6,7].includes(state.lastValidCardValue)&&onceTurn('aug-215'))bonus+=2;
+    if(hasGamblerAugment(run,player,'aug-215')&&[6,7].includes(state.lastValidCardValue)&&onceTurn('aug-215'))bonus+=2;
     state.validOrdinaryHistory.push(value);if(state.validOrdinaryHistory.length>8)state.validOrdinaryHistory.shift();
     if(!state.shuffleOrdinarySeen.includes(value))state.shuffleOrdinarySeen.push(value);
     state.fortuneOrdinarySeen=Array.isArray(state.fortuneOrdinarySeen)?state.fortuneOrdinarySeen:[];if(!state.fortuneOrdinarySeen.includes(value))state.fortuneOrdinarySeen.push(value);
     let countingCombo=null;
-    if(player.augments?.includes('aug-214')){
+    if(hasGamblerAugment(run,player,'aug-214')){
       state.aug214Run=Array.isArray(state.aug214Run)?state.aug214Run:[];
       if(!state.aug214Run.includes(value))state.aug214Run.push(value);else state.aug214Run=[value];
       if(state.aug214Run.length>=3&&!state.aug214TriggeredShuffle){state.specialCharge=(Number(state.specialCharge)||0)+1;state.aug214TriggeredShuffle=true;state.aug214Run=[];}
     }
-    if(player.augments?.includes('aug-221')){
+    if(hasGamblerAugment(run,player,'aug-221')){
       state.countedOrdinary=Array.isArray(state.countedOrdinary)?state.countedOrdinary:[];
       if(!state.countedOrdinary.includes(value)){state.countedOrdinary.push(value);state.cardCounter=Math.min(3,(Number(state.cardCounter)||0)+1);}
       if(state.cardCounter>=3){state.cardCounterArmed=true;countingCombo='COUNTER3';}
     }
-    if(player.augments?.includes('aug-222')&&onceTurn('aug-222')){
+    if(hasGamblerAugment(run,player,'aug-222')&&onceTurn('aug-222')){
       const ids=[...(state.drawPileIds||[]),...(state.remainingCardIds||[])];
       const copies=ids.filter(id=>player.cardPool.find(card=>card.id===id)?.baseNumber===value).length;
       if(copies>=2)bonus+=1;
     }
-    if(player.augments?.includes('aug-225')){
+    if(hasGamblerAugment(run,player,'aug-225')){
       const h=state.validOrdinaryHistory.slice(-3);if(h.length===3&&Math.abs(h[1]-h[0])===1&&h[2]-h[1]===h[1]-h[0]){state.sequenceArmed=true;countingCombo='SEQUENCE3';}
     }
-    if(player.augments?.includes('aug-226')&&onceTurn('aug-226')){
+    if(hasGamblerAugment(run,player,'aug-226')&&onceTurn('aug-226')){
       const h=state.validOrdinaryHistory.slice(-5);if(h.length===5){const counts=Object.values(h.reduce((m,n)=>(m[n]=(m[n]||0)+1,m),{})).sort((a,b)=>b-a);if(counts.length===4&&counts[0]===2){bonus+=2;countingCombo='FULL_HOUSE';}}
     }
-    if(player.augments?.includes('aug-227')&&state.shuffleOrdinarySeen.length===5){state.fiveMemoryArmed=true;countingCombo='FIVE_MEMORY';}
-    if(countingCombo&&player.augments?.includes('aug-229')&&countingCombo!==state.lastCountingCombo&&onceTurn('aug-229')){bonus+=3;state.lastCountingCombo=countingCombo;}
+    if(hasGamblerAugment(run,player,'aug-227')&&state.shuffleOrdinarySeen.length===5){state.fiveMemoryArmed=true;countingCombo='FIVE_MEMORY';}
+    if(countingCombo&&hasGamblerAugment(run,player,'aug-229')&&countingCombo!==state.lastCountingCombo&&onceTurn('aug-229')){bonus+=3;state.lastCountingCombo=countingCombo;}
   }
   if(state.fiveMemoryArmed&&[6,7].includes(value)){bonus+=4;state.fiveMemoryArmed=false;}
   resolved.gamblerBonusDamage=(Number(resolved.gamblerBonusDamage)||0)+bonus;
