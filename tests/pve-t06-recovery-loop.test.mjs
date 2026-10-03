@@ -75,7 +75,22 @@ test('T06 F1-F26 cover recovery, cycle reset, Full Burst, Acrobatics, Ghost Slas
 test('T06 fixed semantic golden fingerprint is deterministic',()=>{
   const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/pve-stress-t06-golden.json',import.meta.url),'utf8'));
   const r=replayScenario('T06',golden.seed);
-  assert.equal(semanticFingerprint(t06GoldenComparable(r)),golden.fingerprint);
+  const current=t06GoldenComparable(r);
+  // USER_CONFIRMED_005C_FINAL_PATCH / SEER_COMBAT_START_REVELATION_1.
+  // Preserve the immutable historical golden and prove that ONLY these five
+  // untouched-Seer initial-resource observations changed from0 to1.
+  const bootstrapOnly=new Set([
+    'F6_FULL_BURST_RESET','F11_TWINS_ACROBATICS_RESET','F16_GHOST_SLASH_REACTIVATION',
+    'F18_GHOST_SLASH_NEXT_ACTION_REUSE','F19_NO_REACTIVATION_RECURSION'
+  ]);
+  const historical=structuredClone(current);
+  assert.equal(historical.fixtures.filter(f=>bootstrapOnly.has(f.id)).length,5);
+  for(const f of historical.fixtures)if(bootstrapOnly.has(f.id)){
+    assert.equal(f.resources.p0.revelation,1,f.id+' confirmed initial resource');
+    f.resources.p0.revelation=0;
+  }
+  assert.equal(semanticFingerprint(historical),golden.fingerprint,'all unaffected semantics equal immutable historical golden');
+  assert.equal(semanticFingerprint(current),'a622988f744176176663eaffa83b5f891e8ab925058d5bc9d508192e711d6a1c','confirmed bootstrap overlay fingerprint');
   const b=replayScenario('T06',golden.seed);
   assert.equal(r.replayFingerprint,b.replayFingerprint);
   assert.deepEqual(t06GoldenComparable(r),t06GoldenComparable(b));
