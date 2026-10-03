@@ -9,7 +9,11 @@ export function projectRun(run,viewerPlayerId){
   }
   const ownGunner=run.augmentFramework?.cardState?.[viewerPlayerId+':gunner'];
   if(ownGunner)out.privateGunnerState=structuredClone(ownGunner);
-  if(out.combat)delete out.combat.martialEnemy;
+  if(out.combat){
+    const shatter=run.combat?.martialEnemy;
+    if(shatter&&run.players.some(p=>p.augments?.includes('aug-281')))out.combat.shatter={count:shatter.units.length,suppliers:shatter.units.map(u=>u.supplierOwnerId)};
+    delete out.combat.martialEnemy;
+  }
   delete out.augmentFramework;
   delete out.frameworkEffects;
   if(publicFramework)out.augmentStatuses=publicFramework.statuses;

@@ -1,3 +1,4 @@
+import {recordEffectTelemetry} from './telemetry.js';
 // 005D-A: authoritative DESIGN-D Martial mechanics; state is serialized server-side.
 const has=(p,n)=>p.augments?.includes('aug-'+n);
 export const martialCap=p=>has(p,292)?5:has(p,271)?4:3;
@@ -11,7 +12,7 @@ export function martialState(run,p){
 function claim(run,p,n,scope='TURN'){
  const s=martialState(run,p),cycle=run.combat.privateByPlayer?.[p.playerId]?.cycleIndex||1;
  const key=n+':'+(scope==='COMBAT'?'combat':scope==='CYCLE'?'cycle:'+cycle:'turn:'+run.combat.turn);
- if(s.guards[key])return false;s.guards[key]=true;s.metrics[n]=(s.metrics[n]||0)+1;return true;
+ if(s.guards[key])return false;s.guards[key]=true;recordEffectTelemetry(run,{id:'aug-'+n},p.playerId,true);s.metrics[n]=(s.metrics[n]||0)+1;return true;
 }
 function enemyState(run){
  const c=run.combat;c.martialEnemy||={enemyId:c.monster.id,units:[],sequence:0,firstThree:false,vulnerabilityTurn:null,shredEnabled:false};
@@ -59,6 +60,7 @@ export function resolveMartial(run,p,rc,submission={},events=[]){
  }
  if(!rc.valid&&rc.invalidReason!=='COLLISION'&&has(p,274)&&claim(run,p,274))arm(run,p,1,root);
  if(finisher){
+ claim(run,p,291,'CYCLE');
  const priv=run.combat.privateByPlayer?.[p.playerId];if(priv)priv.finisherUsedCycle=priv.cycleIndex||1;
  rc.skillUsed='one_hit_kill';rc.finisherComboBefore=before;rc.finisherComboConsumed=rc.valid?before:0;
  rc.finisherOutcome=rc.valid?'SUCCESS':collision?'FAIL_COLLISION':'FAIL_INVALID';
@@ -82,13 +84,14 @@ export function resolveMartial(run,p,rc,submission={},events=[]){
  if(has(p,273)&&combo>=2&&claim(run,p,273))bonus++;
  if(has(p,277)&&rising&&rc.finalNumber-previous>=2&&claim(run,p,277))bonus+=2;
  if(has(p,275)||has(p,278)){
+ if(combo===cap){claim(run,p,has(p,278)?278:275);}
  if(combo===cap)s.exaltation=Math.min(has(p,278)?4:3,s.exaltation+1);
  bonus+=s.exaltation;
  }
  s.maxStreak=combo===cap?s.maxStreak+1:0;
  if(has(p,279)&&combo===cap&&s.maxStreak%3===0&&claim(run,p,279))extra+=3;
  if(has(p,295)&&rising&&before===cap)s.qi=Math.min(3,s.qi+1);
- if(has(p,281)&&rising)grant(run,p,has(p,286)&&combo>=2&&claim(run,p,286)?2:1);
+ if(has(p,281)&&rising){claim(run,p,281);grant(run,p,has(p,286)&&combo>=2&&claim(run,p,286)?2:1);}
  }
  if(!normal)s.maxStreak=0;
  if(rc.valid&&s.pending&&s.pending.root!==root){bonus+=s.pending.value;s.pending=null;}

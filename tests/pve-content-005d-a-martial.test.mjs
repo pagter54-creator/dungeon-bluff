@@ -1,3 +1,4 @@
+import {beginAugmentChoices,chooseAugment,AUGMENT_THRESHOLDS} from '../supabase/functions/game-api/pve/augments.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/pve/model.js';
@@ -129,7 +130,7 @@ for(const character of ['imp','warrior','mage','vampire','gunner','prophet'])tes
  const f=fixture([273]);const other=newPlayerRunState({id:'p1',user_id:'u1',character_id:character,member_type:'human',seat_index:1});f.run.players[1]=other;
  f.run.combat=newCombatState(f.run.players,999,'NORMAL_COMBAT');f.run.combat.id='mixed-'+character;beginTurn(f.run);
  for(let i=0;i<4;i++){
- const p=f.run.players[i],number=[4,1,2,3][i],card=p.cardPool.find(c=>c.baseNumber===number);
+ const p=f.run.players[i],number=[4,character==='warrior'?5:1,2,3][i],card=p.cardPool.find(c=>c.baseNumber===number);
  if(character==='mage'&&i===1)p.publicResources.mana=2;
  if(character==='vampire'&&i===1)p.publicResources.thrallPlayerId='p2';
  submitCard(f.run,p.playerId,card.id,i===1&&['mage','vampire','gunner'].includes(character));
@@ -138,4 +139,45 @@ for(const character of ['imp','warrior','mage','vampire','gunner','prophet'])tes
  const clone=structuredClone(f.run),a=resolveBasicTurn(f.run),b=resolveBasicTurn(clone);assert.deepEqual(a,b);
  assert.deepEqual(a.phaseTrace.slice(1,5),['PRE_COLLISION_SELF_MODIFY','PRE_COLLISION_SWAP','PRE_COLLISION_STEAL','FINAL_NUMBER_REVEAL']);
  for(const rc of a.cards){assert.equal(rc.finalNumber,rc.numberHistory.finalNumber);if(rc.playerId==='p0')assert.equal(rc.comboAfter,f.run.players[0].publicResources.combo);}
+});
+
+for(const start of [271,281,291])test('Martial actual full build thirty-turn lifecycle '+start,()=>{
+ const f=fixture(Array.from({length:10},(_,i)=>start+i));for(const p of f.run.players){p.hp=1000;p.maxHp=1000;}
+ beginTurn(f.run);
+ for(let t=0;t<30;t++){
+  const used=new Set();
+  for(const p of f.run.players){
+   const priv=f.run.combat.privateByPlayer[p.playerId],id=priv.remainingCardIds.find(id=>!used.has(p.cardPool.find(c=>c.id===id).baseNumber))||priv.remainingCardIds[0];used.add(p.cardPool.find(c=>c.id===id).baseNumber);
+   const use=p.playerId==='p0'&&start===291&&(p.publicResources.combo||0)>0&&priv.finisherUsedCycle!==priv.cycleIndex;
+   submitCard(f.run,p.playerId,id,use);
+  }
+  f.run.combat.monster.intent={type:'CHARGE',payload:{}};
+  const clone=structuredClone(f.run);assert.deepEqual(resolveBasicTurn(f.run),resolveBasicTurn(clone));
+  const s=martialState(f.run,f.p);assert.ok(Object.keys(s.guards).length<=60);assert.ok(Object.keys(s.results).length<=1);assert.ok(f.run.combat.martialEnemy.units.length<=3);
+ }
+ assert.ok(f.run.combat.privateByPlayer.p0.cycleIndex>=6);
+});
+for(let buildIndex=0;buildIndex<3;buildIndex++)test('Martial actual EXP stage1 through4 '+buildIndex,()=>{
+ const p=newPlayerRunState({id:'p0',character_id:'martial_artist',seat_index:0,member_type:'human'});
+ const run={id:'martial-growth',seed:'martial-growth',rngCounter:0,version:0,phase:'ROOM_RESULT',floor:1,players:[p]};
+ let build=null;
+ for(let stage=1;stage<=4;stage++){
+  p.growthExp=AUGMENT_THRESHOLDS[stage-1]-1;assert.equal(beginAugmentChoices(run),false);
+  p.growthExp++;assert.equal(beginAugmentChoices(run),true);const offers=run.augmentChoice.offersByPlayer.p0;assert.equal(offers.length,3);
+  chooseAugment(run,'p0',offers[stage===1?buildIndex:0]);build||=p.augmentBuild;assert.equal(p.augmentBuild,build);
+ }
+ assert.deepEqual(p.persistentCharacterState.augmentTiers,[1,2,3,4]);assert.equal(p.augments.length,4);
+});
+for(let n=271;n<=300;n++)test('Martial actual offer/acquisition/retry aug-'+n,()=>{
+ const id='aug-'+n,def=AUGMENT_BY_ID[id],p=newPlayerRunState({id:'p0',character_id:'martial_artist',seat_index:0,member_type:'human'});
+ if(def.tier>1){p.augments=[augmentCandidates('martial_artist',1).find(c=>c.build===def.build).id];p.augmentBuild=def.build;p.persistentCharacterState.augmentTiers=Array.from({length:def.tier-1},(_,i)=>i+1);}
+ p.growthExp=AUGMENT_THRESHOLDS[def.tier-1];const run={id:'acquire-'+id,seed:id,rngCounter:0,version:0,phase:'ROOM_RESULT',floor:1,players:[p]};
+ assert.equal(beginAugmentChoices(run),true);assert.ok(run.augmentChoice.offersByPlayer.p0.includes(id));chooseAugment(run,'p0',id);const after=structuredClone(run);assert.throws(()=>chooseAugment(run,'p0',id));assert.deepEqual(run,after);
+});
+for(const room of ['EVENT','REWARD_ROOM','SHOP','REST'])test('Martial thirty cards isolate room '+room,()=>{
+ const f=fixture(Array.from({length:30},(_,i)=>271+i));f.run.phase=room;const before=structuredClone(f.run);go(f,true);prepareMartialCollision(f.run,[f.rc]);martialPacket(f.run,f.p,f.rc,2);afterMartialDamage(f.run,f.p,f.rc);assert.deepEqual(f.run,before);
+});
+test('Martial telemetry is once per effect root and private guards stay hidden',()=>{
+ const f=fixture([273]);go(f);const count=f.run._telemetryPending.filter(x=>x.logType==='EFFECT'&&x.payload.effect_id==='aug-273').length;assert.equal(count,1);go(f);assert.equal(f.run._telemetryPending.filter(x=>x.logType==='EFFECT'&&x.payload.effect_id==='aug-273').length,1);
+ const view=projectRun(f.run,'p1');assert.equal(view._telemetryPending,undefined);
 });
