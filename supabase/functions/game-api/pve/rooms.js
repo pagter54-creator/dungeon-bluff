@@ -2,7 +2,7 @@ import {adventurerShopPrice} from './adventurer-runtime.js';
 import {choose,drawIndex} from './rng.js';
 import {selfModifyCard,collisionImmunity,resolveGuardianWallCollisions,isCardSelectableForCharacter,validateCharacterSkillIntent,onCycleStartCharacter,onTurnStartCharacter,onTurnEndCharacter,initializeCombatCharacter,baseDamageForCharacter} from './characters.js';
 import {restoreCardCycle,persistCardCycles} from './card-cycle.js';
-import {drawGamblerHand,settleGamblerHand} from './gambler.js';
+import {drawGamblerHand,settleGamblerHand,prepareGamblerAllIn,gamblerSetDamage,finalizeGamblerAllIn,applyGamblerValidated} from './gambler.js';
 import {initializeNumberHistories,recordSelfModification,applyPreCollisionSwap,applyPreCollisionSteal,finalizeNumbers,attachCollisionGroups,attachValidity,assignVampireThralls,validateNumberMutationState} from './number-mutation.js';
 import {applyOwnedEffects} from './effects.js';
 import {cleanupAugmentScope} from './augment-framework.js';
@@ -40,7 +40,7 @@ function spendRoomCards(run,resolved){
   for(const rc of resolved){
     const state=room.privateByPlayer[rc.playerId],player=playerFor(run,rc.playerId);
     if(player.characterId==='gambler'){
-      settleGamblerHand(run,player,state,rc.cardInstanceId,rc.finalNumber);
+      settleGamblerHand(run,player,state,rc.cardInstanceId,rc.finalNumber,{rootActionId:`reward:${run.currentRoomNodeId}:${run.roomState.attempt}:${rc.playerId}:${rc.cardInstanceId}`});
       delete state.selectedCardId;delete state.skillIntent;
       continue;
     }
@@ -226,6 +226,7 @@ export function resolveRewardAttempt(run){
   const cards=active.map(p=>{const sub=room.turnSubmissions[p.playerId],card=cardFor(p,sub.cardInstanceId);return {playerId:p.playerId,seat:p.seat,cardInstanceId:card.id,baseNumber:card.baseNumber,workingNumber:card.baseNumber,finalNumber:card.baseNumber,collisionImmune:false,valid:true};});
   const mutationEvents=[];
   initializeNumberHistories(cards);
+  for(const rc of cards){const p=playerFor(run,rc.playerId);if(p?.characterId==='gambler')prepareGamblerAllIn(run,p,room.privateByPlayer[p.playerId],room.turnSubmissions[p.playerId],rc);}
   for(const rc of cards){const p=playerFor(run,rc.playerId),sub=room.turnSubmissions[rc.playerId];if(sub.skillIntent)applyOwnedEffects(run,'ON_SKILL_USE',{player:p,resolved:rc,submission:sub,privateState:room.privateByPlayer[rc.playerId]});selfModifyCard(p,rc,sub);applyOwnedEffects(run,'PRE_COLLISION_SELF_MODIFY',{player:p,resolved:rc,privateState:room.privateByPlayer[rc.playerId],events:[]});}
   recordSelfModification(cards,mutationEvents);
   for(const rc of cards)applyOwnedEffects(run,'PRE_COLLISION',{player:playerFor(run,rc.playerId),resolved:rc,privateState:room.privateByPlayer[rc.playerId]});
@@ -240,17 +241,18 @@ export function resolveRewardAttempt(run){
   assignVampireThralls(run,cards,groups,[]);
   for(const rc of cards)applyOwnedEffects(run,'POST_COLLISION',{player:playerFor(run,rc.playerId),resolved:rc,submission:room.turnSubmissions[rc.playerId],privateState:room.privateByPlayer[rc.playerId]});
   attachValidity(cards);
+  for(const rc of cards){const p=playerFor(run,rc.playerId);if(p?.characterId==='gambler')finalizeGamblerAllIn(run,p,room.privateByPlayer[p.playerId],rc);}
   for(const card of cards)if(card.invalidReason==='COLLISION'){
     const player=playerFor(run,card.playerId);
     if(player.characterId==='martial_artist')player.score=(Number(player.score)||0)-1;
   }
   validateNumberMutationState(run,cards,mutationEvents);
   const counts=Object.fromEntries([...groups].map(([number,group])=>[number,group.length]));
-  for(const c of cards){const player=playerFor(run,c.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player,resolved:c,privateState:room.privateByPlayer[c.playerId],events:[]});applyImpCardValidated(run,{player,resolved:c,cards,events:[]});}
+  for(const c of cards){const player=playerFor(run,c.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player,resolved:c,privateState:room.privateByPlayer[c.playerId],events:[]});applyImpCardValidated(run,{player,resolved:c,cards,events:[]});if(player.characterId==='gambler')applyGamblerValidated(run,player,room.privateByPlayer[c.playerId],c);}
   for(const c of cards){
     const p=playerFor(run,c.playerId),sub=room.turnSubmissions[c.playerId],st=room.privateByPlayer[c.playerId];
     if(p.characterId==='gunner'&&sub.skillIntent){p.publicResources.fullBurstReady=false;if(c.valid){c.followUpCardIds=st.remainingCardIds.filter(id=>id!==c.cardInstanceId);p.publicResources.burstReadyCycle=(st.cycleIndex||1)+2;}else{p.publicResources.burstReadyCycle=(st.cycleIndex||1)+1;p.hp=Math.max(0,p.hp-1);}}
-    const engrave=Number(p.engravings?.[String(c.finalNumber)])||0;const primary={amount:Math.max(0,baseDamageForCharacter(p,c)+engrave)},queued=[];
+    const engrave=Number(p.engravings?.[String(c.finalNumber)])||0;const ordinaryAmount=Math.max(0,baseDamageForCharacter(p,c)+engrave);const primary={amount:p.characterId==='gambler'?gamblerSetDamage(run,p,st,c,ordinaryAmount):ordinaryAmount},queued=[];
     applyOwnedEffects(run,'BEFORE_DAMAGE',{player:p,resolved:c,damage:primary,followUps:queued,followUp:false,privateState:room.privateByPlayer[c.playerId],events:[]});
     applyImpBeforeDamage(run,{player:p,resolved:c,damage:primary,followUp:false,events:[]});
     c.damage=Math.max(0,primary.amount)+queued.reduce((s,x)=>s+Math.max(0,Number(x.amount)||0),0);
