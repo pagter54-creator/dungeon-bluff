@@ -5,10 +5,11 @@ import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/p
 import {EXECUTABLE_AUGMENT_RUNTIME} from '../supabase/functions/game-api/pve/augment-runtime.js';
 import {GAMBLER_CONTRACTS,GAMBLER_CONTRACT_IDS} from '../supabase/functions/game-api/pve/gambler-contracts.js';
 import {
-  freshGamblerState,normalizeGamblerState,drawGamblerHand,settleGamblerHand,
-  prepareGamblerAllIn,finalizeGamblerAllIn,gamblerSetDamage,applyGamblerValidated
+  freshGamblerState,normalizeGamblerState,drawGamblerHand,settleGamblerHand,setGamblerDrawPreference,
+  prepareGamblerAllIn,finalizeGamblerAllIn,gamblerSetDamage,applyGamblerValidated,initializeGamblerCombat,prepareGamblerForcedAutoSubmission
 } from '../supabase/functions/game-api/pve/gambler.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
+import {useRewardGamblerLuck} from '../supabase/functions/game-api/pve/rooms.js';
 
 const member=(id,character_id,seat_index)=>({id,user_id:'u'+seat_index,member_type:'human',character_id,seat_index});
 function fixture(augments=[]){
@@ -123,4 +124,92 @@ test('005C-C owner projection keeps exact counter/history state private from all
   assert.equal(serialized.includes('"history"'),false);
   assert.equal(serialized.includes(x.state.drawPileIds[0]),false);
   assert.equal(ally.players[0].gamblerDeck.drawComposition.reduce((a,b)=>a+b,0),x.state.drawPileIds.length);
+});
+
+
+test('005C-C aug-228 owner choice guarantees LOW/HIGH first draw and rejects invalid choices',()=>{
+  const x=fixture(['aug-228']);
+  assert.deepEqual(drawGamblerHand(x.run,x.p,x.state),[]);
+  assert.equal(x.state.drawChoicePending,'AUG_228');
+  assert.throws(()=>setGamblerDrawPreference(x.run,x.p,x.state,'MIDDLE'),/GAMBLER_DRAW_RANGE_INVALID/);
+  const drawn=setGamblerDrawPreference(x.run,x.p,x.state,'LOW');
+  assert.equal(drawn.length,2);
+  const values=x.state.remainingCardIds.map(id=>x.p.cardPool.find(c=>c.id===id).baseNumber);
+  assert.ok(values.some(v=>[1,2,3].includes(v)));
+  assert.equal(x.state.aug228UsedShuffle,true);
+});
+
+test('005C-C aug-230 owner can choose any three ordinary numbers and guarantee one',()=>{
+  const x=fixture(['aug-230']);
+  assert.deepEqual(drawGamblerHand(x.run,x.p,x.state),[]);
+  assert.equal(x.state.drawChoicePending,'AUG_230');
+  assert.throws(()=>setGamblerDrawPreference(x.run,x.p,x.state,[1,1,2]),/GAMBLER_DRAW_NUMBERS_INVALID/);
+  const drawn=setGamblerDrawPreference(x.run,x.p,x.state,[1,4,5]);
+  assert.equal(drawn.length,2);
+  const values=x.state.remainingCardIds.map(id=>x.p.cardPool.find(c=>c.id===id).baseNumber);
+  assert.ok(values.some(v=>[1,4,5].includes(v)));
+  assert.equal(x.state.aug230UsedShuffle,true);
+});
+
+test('005C-C aug-211 Reward Luck is server-authoritative, once-only, and closes after confirmation',()=>{
+  const x=fixture(['aug-211']);x.run.phase='REWARD_ROOM';x.state.luck=1;
+  x.run.roomState={type:'REWARD_ROOM',attempt:1,pickOrder:['p0'],privateByPlayer:{p0:x.state},gamblerLuckWindows:{},relicIds:['r1'],picks:{}};
+  assert.equal(useRewardGamblerLuck(x.run,'p0','ATTACK','luck-action'),true);
+  assert.equal(x.state.luck,0);assert.equal(x.state.luckDamageArmed,true);
+  assert.equal(useRewardGamblerLuck(x.run,'p0','ATTACK','luck-action'),false);
+  x.state.luck=1;x.run.roomState.gamblerLuckWindows.p0.phase='CONFIRMED';
+  assert.throws(()=>useRewardGamblerLuck(x.run,'p0','SPECIAL','late'),/행운 사용 창/);
+});
+
+test('005C-C aug-235 Double Down enables exactly one second All-In and failed second hand becomes forced auto submit',()=>{
+  const x=fixture(['aug-231','aug-235']);initializeGamblerCombat(x.run,x.p,x.state);
+  let [a]=setHand(x,[2,5]);let r=resolvedFor(a,2,true);
+  prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);finalizeGamblerAllIn(x.run,x.p,x.state,r);
+  settleGamblerHand(x.run,x.p,x.state,a,2,{rootActionId:'dd-first'});
+  assert.equal(x.state.doubleDownReady,true);assert.equal(x.state.remainingCardIds.length,2);
+  a=x.state.remainingCardIds[0];const value=x.p.cardPool.find(c=>c.id===a).baseNumber;r=resolvedFor(a,value,true);
+  prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);
+  assert.equal(r.doubleDownSecond,true);
+  assert.equal(gamblerSetDamage(x.run,x.p,x.state,r,value),r.allInSum+2);
+  r.valid=false;finalizeGamblerAllIn(x.run,x.p,x.state,r);
+  settleGamblerHand(x.run,x.p,x.state,a,value,{rootActionId:'dd-second'});
+  assert.equal(x.state.forcedAutoSubmitNext,true);assert.equal(x.state.remainingCardIds.length,0);
+  const forced=prepareGamblerForcedAutoSubmission(x.run,x.p,x.state);
+  assert.ok(forced);assert.equal(x.state.remainingCardIds.length,1);assert.equal(x.state.forcedAutoSubmitNext,false);
+});
+
+test('005C-C aug-236 borrows one future draw modifier once per turn and weakens that physical card later',()=>{
+  const x=fixture(['aug-231','aug-236']);initializeGamblerCombat(x.run,x.p,x.state);
+  const [a]=setHand(x,[2,5]),r=resolvedFor(a,2,true);
+  prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);
+  assert.equal(r.gamblerBorrowBonus,1);assert.ok(x.state.pendingAllIn.borrowedCardId);
+  const borrowed=x.state.pendingAllIn.borrowedCardId;
+  assert.ok(x.state.weakenedBorrowedIds.includes(borrowed));
+  assert.equal(gamblerSetDamage(x.run,x.p,x.state,r,2),r.allInSum+1);
+  const card=x.p.cardPool.find(c=>c.id===borrowed),later=resolvedFor(borrowed,card.baseNumber,true);
+  applyGamblerValidated(x.run,x.p,x.state,later);
+  assert.equal(gamblerSetDamage(x.run,x.p,x.state,later,card.baseNumber),Math.max(0,card.baseNumber-1));
+});
+
+test('005C-C aug-237 removes one upcoming All-In draw-penalty turn once per combat at 8+ damage',()=>{
+  const x=fixture(['aug-231','aug-237']);initializeGamblerCombat(x.run,x.p,x.state);
+  const [a]=setHand(x,[2,6]),r=resolvedFor(a,2,true);
+  prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);
+  assert.equal(gamblerSetDamage(x.run,x.p,x.state,r,2),8);
+  assert.equal(x.state.aug237Used,true);assert.equal(x.state.pendingAllIn.aug237Reduced,true);
+  finalizeGamblerAllIn(x.run,x.p,x.state,r);settleGamblerHand(x.run,x.p,x.state,a,2,{rootActionId:'winner-dividend'});
+  assert.equal(x.state.remainingCardIds.length,2);
+});
+
+test('005C-C aug-238 consumes two ordinary hand cards plus one owned special and applies SUM_OF_THREE_PLUS_4 with two-turn draw penalty',()=>{
+  const x=fixture(['aug-231','aug-238']);initializeGamblerCombat(x.run,x.p,x.state);
+  const [a]=setHand(x,[2,5]),special=x.p.cardPool.find(c=>c.baseNumber===6).id,r=resolvedFor(a,2,true);
+  const pending=prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);
+  assert.equal(pending.allAssets,true);assert.equal(pending.cardIds.length,3);assert.ok(pending.cardIds.includes(special));
+  assert.equal(gamblerSetDamage(x.run,x.p,x.state,r,2),17);
+  finalizeGamblerAllIn(x.run,x.p,x.state,r);settleGamblerHand(x.run,x.p,x.state,a,2,{rootActionId:'all-assets'});
+  assert.ok(x.state.vanishedCardIds.includes(special));assert.equal(x.state.remainingCardIds.length,1);assert.equal(x.state.drawPenaltyTurns,1);
+  const next=x.state.remainingCardIds[0],value=x.p.cardPool.find(c=>c.id===next).baseNumber;
+  settleGamblerHand(x.run,x.p,x.state,next,value,{rootActionId:'all-assets-recovery'});
+  assert.equal(x.state.remainingCardIds.length,1);assert.equal(x.state.drawPenaltyTurns,0);
 });
