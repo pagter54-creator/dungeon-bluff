@@ -271,9 +271,14 @@ test('AI seer waiting for a human releases its card when the human seer activate
 test('skill controls label knight and seer correctly and show canonical Revelation max 3 without visible stack digits',()=>{
  const {g}=setup(['seer','warrior','mage','imp']);const p=g.state.players.p0;
  p.characterRuntimeState.revelationStacks=1;
- const gauge=revelationGauge(p);
- assert.equal((gauge.match(/class="revelation-pip/g)||[]).length,3);
- assert.equal((gauge.match(/revelation-pip filled/g)||[]).length,1);
+ for(const [current,filled] of [[0,0],[1,1],[3,3]]){
+   p.characterRuntimeState.revelationStacks=current;
+   const gauge=revelationGauge(p);
+   assert.equal((gauge.match(/class="revelation-pip/g)||[]).length,3);
+   assert.equal((gauge.match(/revelation-pip filled/g)||[]).length,filled);
+   assert.match(gauge,/aria-valuemax="3"/);
+   assert.match(gauge,new RegExp('aria-valuenow="'+current+'"'));
+ }
  assert.match(activeButton(p,false,false),/activate-revelation/);
  const selectedButton=activeButton(p,false,false,[],{},true);
  assert.match(selectedButton,/activate-revelation/);assert.ok(!selectedButton.includes('disabled'));assert.ok(!selectedButton.includes('선택 취소'));
