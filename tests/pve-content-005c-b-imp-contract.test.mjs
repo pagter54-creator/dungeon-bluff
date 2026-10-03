@@ -70,3 +70,14 @@ test('005C-B aug-201 never acts on an already DOWNED victim',()=>{
   const {run,players}=runFor(['aug-201']);players[1].status='DOWNED';players[1].hp=0;const cs=cards(run,[2,2,3,4]);const events=[];applyImpPreCollisionSteal(run,cs,events);
   assert.equal(players[1].hp,0);assert.equal(events.some(e=>e.targetPlayerId==='p1'&&String(e.type||'').includes('MISCHIEF')),false);
 });
+
+test('005C-B aug-201 lethal Mischief explosion remains pending until DOWN_RESOLVE and permits same-resolve rescue',()=>{
+  const {run,players}=runFor(['aug-201']);players[1].hp=1;
+  let cs=cards(run,[2,2,3,4]);applyImpPreCollisionSteal(run,cs,[]);
+  run.combat.turn=2;delete run.augmentFramework.imp.processedRoots['steal:imp-parity-combat:1:p0'];
+  cs=cards(run,[2,2,3,4]);applyImpPreCollisionSteal(run,cs,[]);
+  assert.equal(players[1].hp,0);assert.notEqual(players[1].status,'DOWNED');assert.ok(run.combat.pendingDownPlayerIds.includes('p1'));
+  // Same-resolve protection/heal happens before DOWN_RESOLVE. A rescued HP value therefore remains live.
+  players[1].hp=1;run.combat.pendingDownPlayerIds=run.combat.pendingDownPlayerIds.filter(id=>id!=='p1');
+  assert.equal(players[1].status,'ACTIVE');assert.equal(players[1].hp,1);
+});
