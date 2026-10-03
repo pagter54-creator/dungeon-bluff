@@ -133,6 +133,9 @@ export function recoverSeerPhysicalCard(run,owner,target,cardId,{sourceAugmentId
   if(c){
     c.derivedEventSequence=(Number(c.derivedEventSequence)||0)+1;
     c.pendingSkillEvents||=[];
+    if(recoveryMode==='ALLY'||recoveryMode==='ALLY_CHAIN'){
+      c.pendingSkillEvents.push({type:'FATE_MANIPULATOR_USED',turn:c.turn,playerId:owner.playerId,targetPlayerId:target.playerId,recoveredCardId:cardId,rootActionId:rootId,recoveryChainId:'recovery:'+rootId,parentEventId:null,chainDepth,sourceEffectId:sourceAugmentId});
+    }
     c.pendingSkillEvents.push({type:'CARD_RECOVERED',cardInstanceId:cardId,eventId:`seer-recovery:${c.id}:${c.turn}:${c.derivedEventSequence}`,turn:c.turn,actorId:owner.playerId,targetPlayerId:target.playerId,fromZone:'SPENT',toZone:'REMAINING',sourceEffectId:sourceAugmentId,rootActionId:rootId,recoveryChainId:'recovery:'+rootId,parentEventId:null,chainDepth:result.chainDepth});
   }
   telemetry(run,sourceAugmentId,'ON_RECOVER_CARD',true,{cardsRecovered:1,allyRecoveries:target.playerId===owner.playerId?0:1});
