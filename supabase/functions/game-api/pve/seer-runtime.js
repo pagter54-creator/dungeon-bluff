@@ -293,6 +293,8 @@ export function cleanupSeerCombat(run,player){
   if(priv){delete priv.revelationPeek;delete priv.seerRecoveryCandidates;}
   const f=framework(run),key=player.playerId+':seer';
   delete f.cardState?.[key];
+  // Revelation serials restart in the next combat; completed owner claims must not carry over.
+  for(const token of Object.keys(r.applied||{}))if(token.startsWith(player.playerId+':'))delete r.applied[token];
   if(combatId)for(const once of Object.keys(f.once||{}))if(once.includes(player.playerId)&&once.includes(combatId))delete f.once[once];
 }
 export function activateSeerImmediateSkill(run,player,skillData=null){
