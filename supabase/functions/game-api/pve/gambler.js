@@ -429,6 +429,8 @@ export function applyGamblerValidated(run,player,state,resolved){
 export function cleanupGamblerCombat(run,player){
   const state=run.combat?.privateByPlayer?.[player.playerId];if(!state)return;
   state.luck=0;state.luckDamageArmed=false;state.pendingAllIn=null;state.runtimeOnce={};
+  // Completed combat actions are fenced by the API phase/version; their local receipts cannot carry into a new combat.
+  state.processedActions={};
   state.fortuneStack=0;state.fortuneLastSpecial=null;state.fortuneOrdinarySeen=[];
   state.sequenceArmed=false;state.sequenceHistory=[];state.discardMemoryNumber=null;
   state.currentPrediction=[];state.lastValidCardValue=null;state.weakenedBorrowedIds=[];
