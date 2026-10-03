@@ -705,9 +705,9 @@ export const GUNNER_CONTRACTS=Object.freeze({
       "decisions": []
     },
     "trigger": [
-      "ON_VALID"
+      "FULL_BURST_REMAINING_CARD_RESOLVED"
     ],
-    "timingPhase": "ON_VALID",
+    "timingPhase": "FULL_BURST_REMAINING_CARD_RESOLUTION",
     "condition": "Combat: activation selected card final VALID, exactly 3 other magazine cards at Burst activation; after remaining-card damage, before cycle advance.",
     "effectType": "ADD_EXTRA_DAMAGE_COMPONENT",
     "effectValue": {
@@ -718,7 +718,7 @@ export const GUNNER_CONTRACTS=Object.freeze({
       "retriggerOnHit": false
     },
     "damageTaxonomy": "EXTRA_DAMAGE_COMPONENT",
-    "targetRule": "OWNER_OR_CURRENT_ACTION",
+    "targetRule": "CURRENT_ENEMY",
     "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
     "stateKey": "NONE",
     "stateType": "NONE",
@@ -735,8 +735,8 @@ export const GUNNER_CONTRACTS=Object.freeze({
       "SHOP": false,
       "REST": false
     },
-    "orderingBefore": "DAMAGE_APPLY_OR_TURN_END_AS_APPLICABLE",
-    "orderingAfter": "TRIGGER_SOURCE_EVENT",
+    "orderingBefore": "CYCLE_ADVANCE",
+    "orderingAfter": "FULL_BURST_REMAINING_CARD_RESOLUTION",
     "visibility": "SERVER_ONLY",
     "reconnectRule": "No mutable state beyond ownership; replay/reconnect cannot duplicate source action.",
     "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
@@ -758,7 +758,12 @@ export const GUNNER_CONTRACTS=Object.freeze({
     "designStatus": "SPEC_COMPLETE",
     "runtimeReady": true,
     "executable": false,
-    "executionRuleSource": "USER_CONFIRMED_005C_D_PATCH"
+    "executionRuleSource": "USER_CONFIRMED_005C_D_PATCH",
+    "ordering": [
+      "FULL_BURST_REMAINING_CARD_RESOLUTION",
+      "AUG_248_EXTRA_BARRAGE",
+      "CYCLE_ADVANCE"
+    ]
   },
   "aug-249": {
     "augmentId": "aug-249",
