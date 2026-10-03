@@ -1,6 +1,6 @@
 import {choose} from './rng.js';
 import {persistCardCycles} from './card-cycle.js';
-import {drawGamblerHand,settleGamblerHand,prepareGamblerAllIn,gamblerSetDamage,finalizeGamblerAllIn,applyGamblerValidated,initializeGamblerCombat,prepareGamblerForcedAutoSubmission} from './gambler.js';
+import {drawGamblerHand,settleGamblerHand,prepareGamblerAllIn,gamblerSetDamage,finalizeGamblerActualDamage,finalizeGamblerAllIn,applyGamblerValidated,initializeGamblerCombat,prepareGamblerForcedAutoSubmission} from './gambler.js';
 import {
   onTurnStartCharacter,onCycleStartCharacter,onTurnEndCharacter,selfModifyCard,collisionImmunity,onValidAttack,
   isCardSelectableForCharacter,validateCharacterSkillIntent,resolvePostCollisionCharacter,resolvePostCollisionEffects,resolveGuardianWallCollisions,
@@ -274,7 +274,7 @@ export function resolveBasicTurn(run){
     const primaryDamage={amount:primary.amount},queued=[];
     applyOwnedEffects(run,'BEFORE_DAMAGE',{player,resolved:rc,damage:primaryDamage,followUps:queued,followUp:false,events:[]});
     applyImpBeforeDamage(run,{player,resolved:rc,damage:primaryDamage,followUp:false,events});
-    primary.amount=Math.max(0,primaryDamage.amount);packets.push(primary);
+    primary.amount=Math.max(0,primaryDamage.amount);if(player.characterId==='gambler')finalizeGamblerActualDamage(run,player,c.privateByPlayer[player.playerId],rc,primary.amount);packets.push(primary);
     for(const q of queued){
       if((Number(q.followUpDepth)||1)>1){const error=new Error('follow-up depth가 Tier-I 허용 범위를 초과했습니다.');error.code='FOLLOW_UP_DEPTH_EXCEEDED';throw error;}
       packets.push(burstPacket({...q,sourceCardId:q.sourceCardId||rc.cardInstanceId,followUp:true},{resolved:rc,player,followUp:true,parentDamageEventId:primary.damageEventId,baseNumber:q.numberUsed??rc.finalNumber,baseDamage:Number(q.amount)||0}));
