@@ -64,7 +64,7 @@ need(doc.baseCanonicals?.vampire.mark.maxPerOwner===1&&doc.baseCanonicals.vampir
 need(doc.baseCanonicals?.demon_swordsman.devour.multipleLevels===true&&doc.baseCanonicals.demon_swordsman.devour.scope==="RUN"&&doc.baseCanonicals.demon_swordsman.devour.defaultThreshold===8,"D03overflow");
 need(doc.baseCanonicals?.twins.parity.source==="D04"&&doc.baseCanonicals.twins.parity.input.includes("baseNumber%2"),"D04printedparity");
 need(refs(303,"D05")&&refs(308,"D05")&&op(303,"GRANT_COMMAND_RESERVE")?.cap===1&&op(303,"GRANT_COMMAND_RESERVE")?.newMarkOnly===true,"D05reserve");
-need(op(308,"GAIN_DOMINANCE_NONCONSUMED")?.cap===4&&op(308,"ARM_COMMAND_DAMAGE_STREAM")?.consumeDominance===false&&op(308,"ARM_COMMAND_DAMAGE_STREAM")?.eligibleFrom==="NEXT_DISTINCT_PRIMARY_ATTACK_AFTER_COMMAND_RESOLVE","D05persistentDominanceordering");
+need(op(308,"GAIN_DOMINANCE_NONCONSUMED")?.cap===4&&op(308,"ARM_COMMAND_DAMAGE_STREAM")?.consumeDominance===false&&op(308,"ARM_COMMAND_DAMAGE_STREAM")?.charges===1&&op(308,"ARM_COMMAND_DAMAGE_STREAM")?.consumeCharge===true&&op(308,"ARM_COMMAND_DAMAGE_STREAM")?.eligibleFrom==="NEXT_DISTINCT_PRIMARY_ATTACK_AFTER_COMMAND_RESOLVE","D05persistentDominanceordering");
 need(refs(307,"D06")&&op(307,"PROTECT_OWNER_COLLISION_VALIDITY")?.leaveOtherMembersInvalid===true&&byId.get("aug-307")?.targetRule==="OWNER_CARD"&&byId.get("aug-307")?.onceScope==="COMBAT","D06owner-onlyprotection");
 need(op(351,"ACTIVATE_TRANSFORMATION")?.cost===6&&op(351,"ACTIVATE_TRANSFORMATION")?.replaceNormalCycle===true&&op(351,"SET_TRANSFORMATION_READY")?.automatic===false,"D07manualactivation");
 for(let n=351;n<=360;n++)need(refs(n,"D07"),"D07card"+n);
