@@ -15,7 +15,7 @@ import {PVE_EXECUTABLE_AUGMENT_UI} from '../src/pve-ui-catalog.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 import {setGamblerDrawPreference} from '../supabase/functions/game-api/pve/gambler.js';
 import {cleanupSeerCombat,scopedSeerState,applySeerRuntime} from '../supabase/functions/game-api/pve/seer-runtime.js';
-import {initializeImpCombat,cleanupImpCombat} from '../supabase/functions/game-api/pve/imp-runtime.js';
+import {initializeImpCombat,cleanupImpCombat,applyImpCardValidated,applyImpBeforeDamage} from '../supabase/functions/game-api/pve/imp-runtime.js';
 import {cleanupGamblerCombat} from '../supabase/functions/game-api/pve/gambler.js';
 import {applyOwnedEffects} from '../supabase/functions/game-api/pve/effects.js';
 import {activateImmediateCharacterSkill} from '../supabase/functions/game-api/pve/characters.js';
@@ -209,4 +209,19 @@ test('005C FINAL repeated 80 combats clear transient ledgers and retain only bou
   assert.ok(run.augmentFramework.imp.telemetry.length<=2048);assert.ok(run.augmentFramework.telemetry.length<=2048);
  }
  assert.equal(run.augmentFramework.telemetryTotals['aug-198:COMBAT_START'].triggerCount,2400);
+});
+
+test('005C FINAL legacy stale combat state cannot leak Seer prediction damage or Mischief into noncombat rooms',()=>{
+ for(const phase of ['EVENT','REWARD_ROOM','SHOP','REST']){
+  const run=make(['prophet','imp','gambler','gunner']),seer=run.players[0],imp=run.players[1];run.phase=phase;
+  const s=scopedSeerState(run,seer);s.foresight=2;
+  run.augmentFramework.seer||={recoveredCards:{},buffs:[],applied:{},sequence:0};
+  run.augmentFramework.seer.buffs=[{sourceAugmentId:'aug-170',ownerId:seer.playerId,targetId:seer.playerId,amount:2,uses:1,validFromTurn:1,combatId:run.combat.id}];
+  const resolved={playerId:'p0',valid:true,finalNumber:1},damage={amount:1};
+  applySeerRuntime(run,'BEFORE_DAMAGE',{player:seer,resolved,damage});assert.equal(damage.amount,1);assert.equal(s.foresight,2);
+  run.augmentFramework.imp.mischief={'p1:p0':{ownerId:'p1',targetId:'p0',validFromTurn:1,expiryTurn:2,bonusDamage:2}};
+  assert.equal(applyImpCardValidated(run,{player:seer,resolved,cards:[resolved]}),0);
+  const impResolved={playerId:'p1',valid:true,finalNumber:5,stealTotal:2,stealTargetCount:2},impDamage={amount:5};
+  assert.equal(applyImpBeforeDamage(run,{player:imp,resolved:impResolved,damage:impDamage}),0);assert.equal(impDamage.amount,5);
+ }
 });
