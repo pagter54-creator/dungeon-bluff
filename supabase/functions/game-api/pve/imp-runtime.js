@@ -35,7 +35,10 @@ function claim(run,p,id,tag='effect',overrideScope=null){
 }
 function telemetry(run,id,trigger,success=true,extra={}){
   const row={augmentId:id,trigger,triggerCount:1,successCount:success?1:0,turn:turn(run),combatId:run.combat?.id||null,...extra};
-  root(run).telemetry.push(row);run.augmentFramework.telemetry||=[];run.augmentFramework.telemetry.push({...row,classId:'imp'});
+  const r=root(run),f=run.augmentFramework;
+  r.telemetry.push(row);if(r.telemetry.length>2048)r.telemetry.splice(0,r.telemetry.length-2048);
+  f.telemetry||=[];f.telemetry.push({...row,classId:'imp'});if(f.telemetry.length>2048)f.telemetry.splice(0,f.telemetry.length-2048);
+  f.telemetryTotals||={};const total=f.telemetryTotals[id+':'+trigger]||={augmentId:id,trigger,triggerCount:0,successCount:0};total.triggerCount++;if(success)total.successCount++;
 }
 export function impTelemetry(run,id){return root(run).telemetry.filter(x=>!id||x.augmentId===id);}
 export function stolenNumberCap(p){return owned(p,'aug-198')?7:owned(p,'aug-192')?5:3;}
