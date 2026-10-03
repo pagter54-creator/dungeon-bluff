@@ -122,10 +122,10 @@ function predictedFromDeck(player,state){
   const max=Math.max(0,...counts.values());
   return max?[...counts.entries()].filter(([,count])=>count===max).map(([value])=>value).sort((a,b)=>a-b):[];
 }
-function requiredDrawChoice(player,state){
+function requiredDrawChoice(run,player,state){
   if(!state.firstDrawAfterShuffle)return null;
-  if(player.augments?.includes('aug-230')&&!state.aug230UsedShuffle)return 'AUG_230';
-  if(player.augments?.includes('aug-228')&&!state.aug228UsedShuffle)return 'AUG_228';
+  if(hasGamblerAugment(run,player,'aug-230')&&!state.aug230UsedShuffle)return 'AUG_230';
+  if(hasGamblerAugment(run,player,'aug-228')&&!state.aug228UsedShuffle)return 'AUG_228';
   return null;
 }
 function applyDrawGuarantee(player,state){
@@ -143,7 +143,7 @@ function applyDrawGuarantee(player,state){
 }
 export function setGamblerDrawPreference(run,player,state,choice){
   normalizeGamblerState(run,player,state);
-  const required=requiredDrawChoice(player,state);
+  const required=requiredDrawChoice(run,player,state);
   if(!required||state.drawChoicePending!==required)throw new Error('GAMBLER_DRAW_CHOICE_NOT_AVAILABLE');
   let values,source;
   if(required==='AUG_228'){
@@ -169,7 +169,7 @@ function drawOne(run,player,state){
 export function drawGamblerHand(run,player,state,count=2){
   if(player.characterId!=='gambler')return [];
   normalizeGamblerState(run,player,state);ensureInitialShuffle(run,player,state);reshuffle(run,player,state);
-  const required=requiredDrawChoice(player,state);
+  const required=requiredDrawChoice(run,player,state);
   if(required&&!state.drawPreference){state.drawChoicePending=required;state.predictedNumbers=predictedFromDeck(player,state);return [];}
   applyDrawGuarantee(player,state);
   const predictionBefore=[...predictedFromDeck(player,state)];
@@ -387,7 +387,7 @@ export function applyGamblerValidated(run,player,state,resolved){
 export function gamblerSetDamage(run,player,state,resolved,damage){
   const validatedBonus=Number(resolved?.gamblerBonusDamage)||0;
   const penalty=Math.max(0,Number(resolved?.gamblerDamagePenalty)||0);
-  if(!resolved?.allIn||!player.augments?.includes('aug-231'))return Math.max(0,(Number(damage)||0)+validatedBonus-penalty);
+  if(!resolved?.allIn||!hasGamblerAugment(run,player,'aug-231'))return Math.max(0,(Number(damage)||0)+validatedBonus-penalty);
   const key=`all-in-damage:${resolved.allInRootActionId}`;
   if(Number.isFinite(state.processedActions[key]))return state.processedActions[key];
   let amount=Math.max(0,Number(resolved.allInSum)||0)+(resolved.allAssets?4:0)+(Number(resolved.gamblerBorrowBonus)||0);
