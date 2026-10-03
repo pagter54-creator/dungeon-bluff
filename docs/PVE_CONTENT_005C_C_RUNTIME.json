@@ -1,0 +1,1037 @@
+{
+  "schemaVersion": "PVE_CONTENT_005C_C_RUNTIME_DRAFT_V1",
+  "baseline": "cbcbdc0306a7de7c73c99cde8bfd7ccdbb349e5a",
+  "cards": [
+    {
+      "id": "aug-211",
+      "name": "운명의 승부사",
+      "archetype": "운명의 승부사",
+      "stage": 1,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "ON_VALID",
+        "ON_DRAW"
+      ],
+      "condition": "Reward options already presented and final confirmation not yet made; Luck available.",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": false,
+        "EVENT": false,
+        "REWARD": true,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "NONE",
+      "reset": "COMBAT_END",
+      "persistence": "COMBAT",
+      "visibility": "PUBLIC",
+      "primitiveMapping": [
+        "REWARD_PRE_CONFIRM_HOOK",
+        "GAIN_RESOURCE",
+        "SPEND_RESOURCE"
+      ],
+      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-212",
+      "name": "행운의 숫자 6",
+      "archetype": "운명의 승부사",
+      "stage": 2,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "condition": "A physical number-6 card is used and valid.",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE",
+        "GAIN_RESOURCE",
+        "MODIFY_NUMBER"
+      ],
+      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-213",
+      "name": "대박의 숫자 7",
+      "archetype": "운명의 승부사",
+      "stage": 2,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "condition": "A physical number-7 card is used and valid.",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "NONE",
+      "reset": "NEVER_WITHIN_RUN",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE",
+        "MODIFY_NUMBER"
+      ],
+      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-214",
+      "name": "좋은 흐름",
+      "archetype": "운명의 승부사",
+      "stage": 2,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "condition": "서로 다른 일반 숫자 3개를 연속 유효 사용하면 특수 카드 충전 진행 +1",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_SHUFFLE",
+      "reset": "ON_SHUFFLE",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "GAIN_RESOURCE"
+      ],
+      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-215",
+      "name": "연승 행진",
+      "archetype": "운명의 승부사",
+      "stage": 3,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "condition": "직전에 유효하게 사용한 physical special card가 6 또는 7이고, 그 다음 ordinary 1~5 카드가 유효하다.",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "COMBAT",
+      "visibility": "PUBLIC",
+      "primitiveMapping": [
+        "ADD_DAMAGE"
+      ],
+      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-216",
+      "name": "두 번 오는 행운",
+      "archetype": "운명의 승부사",
+      "stage": 3,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "condition": "A valid physical 6 or 7 completes a special-card generation progress step.",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_CYCLE",
+      "reset": "CYCLE_END",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "GAIN_RESOURCE"
+      ],
+      "runtimeStatus": "BLOCKED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-217",
+      "name": "운명의 연속",
+      "archetype": "운명의 승부사",
+      "stage": 3,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "condition": "Previous valid special number was 6 and current 7, or previous 7 and current 6.",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE"
+      ],
+      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-218",
+      "name": "황금의 6",
+      "archetype": "운명의 승부사",
+      "stage": 4,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "condition": "A physical number-6 card is valid.",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE"
+      ],
+      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-219",
+      "name": "잭팟 7",
+      "archetype": "운명의 승부사",
+      "stage": 4,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "condition": "The first valid physical number-7 card in this combat.",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_COMBAT",
+      "reset": "COMBAT_END",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE",
+        "MODIFY_NUMBER"
+      ],
+      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-220",
+      "name": "운명은 내 편",
+      "archetype": "운명의 승부사",
+      "stage": 4,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "condition": "6·7 교대 성공과 일반 숫자 다양성을 유지하면 대운 누적으로 전투 화력 상승.",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "NONE",
+      "reset": "COMBAT_END",
+      "persistence": "COMBAT",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_STACK"
+      ],
+      "runtimeStatus": "BLOCKED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-221",
+      "name": "카드 카운터",
+      "archetype": "카드 카운터",
+      "stage": 1,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "ON_VALID",
+        "ON_DRAW"
+      ],
+      "condition": "Valid use of a number 1-5 not previously used in current shuffle cycle",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "NONE",
+      "reset": "CYCLE_END",
+      "persistence": "CYCLE",
+      "visibility": "OWNER_ONLY",
+      "primitiveMapping": [
+        "OWNER_PRIVATE_DECK_PROJECTION",
+        "DRAW_CARD",
+        "MODIFY_DECK"
+      ],
+      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-222",
+      "name": "남은 패 계산",
+      "archetype": "카드 카운터",
+      "stage": 2,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "condition": "Submitted printed number has at least 2 matching copies remaining across DECK+HAND before settlement.",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "COMBAT",
+      "visibility": "OWNER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE"
+      ],
+      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-223",
+      "name": "버린 패 기억",
+      "archetype": "카드 카운터",
+      "stage": 2,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "ON_DRAW",
+        "PRE_DAMAGE"
+      ],
+      "condition": "버린 덱에 같은 숫자가 많이 쌓일수록 다음 셔플 후 해당 숫자 효과 강화.",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "COMBAT_END",
+      "persistence": "COMBAT",
+      "visibility": "OWNER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE",
+        "DRAW_CARD"
+      ],
+      "runtimeStatus": "BLOCKED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-224",
+      "name": "확률 읽기",
+      "archetype": "카드 카운터",
+      "stage": 2,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "ON_DRAW",
+        "PRE_DAMAGE"
+      ],
+      "condition": "다음 드로우의 유력 숫자군을 UI로 요약하고 예상 범위 숫자를 사용하면 보너스.",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "COMBAT_END",
+      "persistence": "COMBAT",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE",
+        "DRAW_CARD"
+      ],
+      "runtimeStatus": "BLOCKED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-225",
+      "name": "연속 수열",
+      "archetype": "카드 카운터",
+      "stage": 3,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "condition": "서로 연속된 숫자 3개를 오름/내림 순서로 유효 사용하면 다음 유효 공격 +3 피해",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "NONE",
+      "reset": "COMBAT_END",
+      "persistence": "COMBAT",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "DELAY_EFFECT"
+      ],
+      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-226",
+      "name": "풀하우스",
+      "archetype": "카드 카운터",
+      "stage": 3,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "condition": "Across last 5 successful ordinary 1-5 cards, counts form one pair plus three other distinct numbers.",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE"
+      ],
+      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-227",
+      "name": "다섯 숫자의 기억",
+      "archetype": "카드 카운터",
+      "stage": 3,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "condition": "1~5를 모두 한 번씩 유효 사용하면 다음 6 또는 7 공격 추가 피해 +4",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_SHUFFLE",
+      "reset": "ON_SHUFFLE",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE"
+      ],
+      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-228",
+      "name": "완전 계산",
+      "archetype": "카드 카운터",
+      "stage": 4,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "ON_DRAW"
+      ],
+      "condition": "First draw after shuffle: owner chooses 1-3 or 3-5; guarantee >=1 eligible drawn card in range.",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_SHUFFLE",
+      "reset": "ON_SHUFFLE",
+      "persistence": "RUN",
+      "visibility": "OWNER_ONLY",
+      "primitiveMapping": [
+        "DRAW_CARD",
+        "MODIFY_DECK"
+      ],
+      "runtimeStatus": "BLOCKED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-229",
+      "name": "카드 카운팅의 달인",
+      "archetype": "카드 카운터",
+      "stage": 4,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "condition": "Owner completes a recognized counting combination different from immediately previous combination.",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE"
+      ],
+      "runtimeStatus": "BLOCKED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-230",
+      "name": "필연의 패",
+      "archetype": "카드 카운터",
+      "stage": 4,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "ON_DRAW"
+      ],
+      "condition": "After shuffle before next draw choose any 3 ordinary numbers; if eligible, next draw contains >=1 chosen number.",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_SHUFFLE",
+      "reset": "ON_SHUFFLE",
+      "persistence": "RUN",
+      "visibility": "OWNER_ONLY",
+      "primitiveMapping": [
+        "DRAW_CARD"
+      ],
+      "runtimeStatus": "BLOCKED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-231",
+      "name": "올인",
+      "archetype": "올인",
+      "stage": 1,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "PRE_SELECT",
+        "ON_SUBMIT",
+        "ON_VALID"
+      ],
+      "condition": "Choose one of two drawn cards for validity; consume both, use their sum for successful damage",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": true,
+        "REWARD": true,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "NONE",
+      "reset": "TURN_END",
+      "persistence": "RUN",
+      "visibility": "OWNER_ONLY",
+      "primitiveMapping": [
+        "ALL_IN_RESOLUTION",
+        "MOVE_CARD_ZONE",
+        "SET_DAMAGE",
+        "PHYSICAL_CARD_IDENTITY"
+      ],
+      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-232",
+      "name": "판돈 올리기",
+      "archetype": "올인",
+      "stage": 2,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "condition": "All-In succeeds; evaluate two consumed printed-number sum.",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE"
+      ],
+      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-233",
+      "name": "보험 배팅",
+      "archetype": "올인",
+      "stage": 2,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "POST_COLLISION",
+        "ON_DRAW"
+      ],
+      "condition": "올인 실패 시 다음 턴 드로우 패널티 제거",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_COMBAT",
+      "reset": "COMBAT_END",
+      "persistence": "COMBAT",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "DRAW_CARD",
+        "DELAY_EFFECT"
+      ],
+      "runtimeStatus": "PARTIAL",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-234",
+      "name": "낮은 패 블러핑",
+      "archetype": "올인",
+      "stage": 2,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "condition": "All-In succeeds using two cards both <=3.",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE"
+      ],
+      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-235",
+      "name": "더블 다운",
+      "archetype": "올인",
+      "stage": 3,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "ON_VALID",
+        "ON_DRAW",
+        "PRE_DAMAGE"
+      ],
+      "condition": "올인 성공 후 다음 턴 올인 재사용 가능",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "NONE",
+      "reset": "TURN_END",
+      "persistence": "COMBAT",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE",
+        "DRAW_CARD",
+        "DELAY_EFFECT",
+        "OVERRIDE_BASE_RULE"
+      ],
+      "runtimeStatus": "BLOCKED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-236",
+      "name": "빚내서 승부",
+      "archetype": "올인",
+      "stage": 3,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "ON_DRAW",
+        "PRE_DAMAGE"
+      ],
+      "condition": "다음 드로우 카드 한 장의 가치를 미리 당겨 올인에 추가. 이후 실제 드로우 약화.",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "COMBAT_END",
+      "persistence": "COMBAT",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE",
+        "DRAW_CARD"
+      ],
+      "runtimeStatus": "BLOCKED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-237",
+      "name": "승자의 배당",
+      "archetype": "올인",
+      "stage": 3,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "ON_KILL",
+        "ON_DRAW"
+      ],
+      "condition": "After a successful All-In attack deals at least 8 actual damage.",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_COMBAT",
+      "reset": "COMBAT_END",
+      "persistence": "COMBAT",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "HEAL"
+      ],
+      "runtimeStatus": "BLOCKED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-238",
+      "name": "전 재산",
+      "archetype": "올인",
+      "stage": 4,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "condition": "Once/combat owner has two normal hand cards and at least one owned 6/7 special card; choose one judgment card.",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_COMBAT",
+      "reset": "COMBAT_END",
+      "persistence": "COMBAT",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "SPEND_RESOURCE",
+        "MODIFY_NUMBER"
+      ],
+      "runtimeStatus": "BLOCKED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-239",
+      "name": "연승 도박",
+      "archetype": "올인",
+      "stage": 4,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "condition": "올인 연속 성공 시 배당이 기하급수적으로 증가. 실패 시 누적 보너스 상실.",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "NONE",
+      "reset": "COMBAT_END",
+      "persistence": "COMBAT",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_STACK"
+      ],
+      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    },
+    {
+      "id": "aug-240",
+      "name": "하우스를 이겨라",
+      "archetype": "올인",
+      "stage": 4,
+      "handler": "GAMBLER_V02",
+      "trigger": [
+        "ON_VALID",
+        "ON_DRAW",
+        "PRE_DAMAGE"
+      ],
+      "condition": "올인 선언 시 유효 성공하면 추가 피해 +8, 실패하면 HP1 감소 및 다음 턴 드로우 1장",
+      "zones": [
+        "DECK",
+        "HAND",
+        "DISCARD",
+        "VANISHED"
+      ],
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_COMBAT",
+      "reset": "COMBAT_END",
+      "persistence": "COMBAT",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE",
+        "DRAW_CARD",
+        "DELAY_EFFECT",
+        "DAMAGE_SELF"
+      ],
+      "runtimeStatus": "IMPLEMENTED_UNVERIFIED",
+      "tests": "NOT_EXECUTED_IN_CHAT"
+    }
+  ]
+}
