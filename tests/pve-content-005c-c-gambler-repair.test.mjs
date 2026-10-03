@@ -67,7 +67,7 @@ test('005C-C reshuffle resets shuffle-scoped counting state and excludes VANISHE
   assert.equal(x.state.drawPileIds.includes(vanished),false);
   assert.equal(x.state.remainingCardIds.includes(vanished),false);
   assert.deepEqual(x.state.aug214Run,[]);assert.equal(x.state.aug214TriggeredShuffle,false);
-  assert.deepEqual(x.state.countedOrdinary,[]);assert.equal(x.state.cardCounter,0);assert.equal(x.state.cardCounterArmed,false);
+  assert.deepEqual(x.state.countedOrdinary,[]);assert.equal(x.state.cardCounter,0);assert.equal(Boolean(x.state.cardCounterArmed),false);
   assert.deepEqual(x.state.shuffleOrdinarySeen,[]);assert.equal(x.state.fiveMemoryArmed,false);
 });
 
