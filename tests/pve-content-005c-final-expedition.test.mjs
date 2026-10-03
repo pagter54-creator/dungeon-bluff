@@ -31,11 +31,12 @@ function legal(run,room=false){
   const privateState=room?run.privateRoomState:run.privateCombat;
   return (privateState.remainingCardIds||[]).map(id=>run.players[0].cardPool.find(card=>card.id===id)).filter(Boolean).sort((a,b)=>b.baseNumber-a.baseNumber||a.id.localeCompare(b.id))[0]?.id;
 }
-test('005C FINAL actual four-class expedition crosses Floor1/2/3 with two reconnects to RUN_CLEAR',async()=>{
-  const classes=['seer','imp','gambler','gunner'];
+for(const [partyName,classes,equipped] of [
+ ['FOUR_005C',['seer','imp','gambler','gunner'],[['aug-151','aug-153'],['aug-181','aug-183'],['aug-231','aug-232'],['aug-261','aug-266']]],
+ ['MIXED_005B_005C',['seer','imp','mage','gunner'],[['aug-151','aug-153'],['aug-181','aug-183'],['aug-091','aug-092'],['aug-261','aug-266']]]
+])test('005C FINAL '+partyName+' actual expedition crosses Floor1/2/3 with two reconnects to RUN_CLEAR',async()=>{
   const members=classes.map((character_id,i)=>({id:'p'+i,user_id:i===0?'u0':undefined,member_type:i===0?'human':'ai',character_id,seat_index:i,display_name:'005B '+i}));
   const initial=buildInitialPveRun({room:{id:'20000000-0000-4000-8000-000000000002'},members},{seed:'005c-final-full-expedition-route',depthCount:8});
-  const equipped=[['aug-151','aug-153'],['aug-181','aug-183'],['aug-231','aug-232'],['aug-261','aug-266']];
   for(let i=0;i<initial.players.length;i++)initial.players[i].augments.push(...equipped[i]);
   const admin=adminFor(initial);let n=1000,run=await call(admin,'getState',0),floors=[],reconnects=[];
   for(let guard=0;guard<700&&!['RUN_CLEAR','RUN_FAILED'].includes(run.phase);guard++){
