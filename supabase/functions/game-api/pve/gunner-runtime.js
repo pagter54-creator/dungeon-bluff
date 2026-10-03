@@ -6,7 +6,7 @@ const root=(run,p,r)=>'gunner:'+run.combat?.id+':'+turn(run)+':'+p.playerId+':'+
 export function gunnerState(run,p){
   run.augmentFramework||={};run.augmentFramework.cardState||={};
   return run.augmentFramework.cardState[p.playerId+':gunner']||={
-    ownerId:p.playerId,scope:'COMBAT',overheat:0,accuracy:0,weakness:0,output:0,output269:0,
+    ownerId:p.playerId,scope:'COMBAT',sourceAugmentId:'aug-261',overheatCap:3,overheatResetScope:'COMBAT_END',overheat:0,accuracy:0,weakness:0,output:0,output269:0,
     precisionShot:{armed:true,activationId:null},aug253:{preservationUsedThisCombat:false,preservedForCycleId:null},
     applied:{},once:{},telemetry:{augment:{},burstAttempts:0,burstSuccess:0,burstFailures:0,derivedCardsUsed:0,burstDamage:0,failureSelfDamage:0,precisionTriggers:0,defensePenetrated:0,overheatGained:0,overheatConsumed:0,maxOverheatReached:0}
   };
@@ -22,7 +22,7 @@ function once(run,p,s,id){
 function heat(run,p,s,delta){
   const before=s.overheat;s.overheat=Math.max(0,Math.min(3,before+delta));
   if(delta>0)s.telemetry.overheatGained+=s.overheat-before;else s.telemetry.overheatConsumed+=before-s.overheat;
-  if(s.overheat===3){s.telemetry.maxOverheatReached++;
+  if(before<3&&s.overheat===3){s.telemetry.maxOverheatReached++;
     if(owns(p,'aug-267')&&once(run,p,s,'aug-267')){s.overheat=1;s.telemetry.overheatConsumed+=2;fire(s,'aug-267');}
     else s.blockedTurn=turn(run)+1;
   }
@@ -46,6 +46,7 @@ export function resolveGunnerSelected(run,p,r,submission,events=[]){
   const s=gunnerState(run,p),key=root(run,p,r)+':selected';
   if(s.applied[key]){Object.assign(r,s.applied[key]);return true;}
   const priv=run.combat.privateByPlayer[p.playerId],isActivation=Boolean(submission?.skillIntent);
+  r.gunnerWeaknessBefore=s.weakness;
   r.gunnerSpentBefore=priv.spentCardIds.length;r.gunnerRemainingBefore=priv.remainingCardIds.length;
   r.gunnerPreviousFinal=s.previousFinal??null;
   if(owns(p,'aug-252')&&r.valid&&!s.setupSeenCycle){s.setupSeenCycle=true;s.precisionSetup=true;fire(s,'aug-252');r.gunnerSetupCreated=true;}
@@ -63,6 +64,8 @@ export function resolveGunnerSelected(run,p,r,submission,events=[]){
     p.publicResources.fullBurstReady=s.precisionShot.armed;
   }else if(isActivation){
     const activation=s.activation||{heatBefore:s.overheat};
+    markGunnerBurstPhase(run,p,r,'SELECTED_CARD_RESOLUTION');
+    markGunnerBurstPhase(run,p,r,'BURST_SUCCESS_OR_FAILURE');
     s.telemetry.burstAttempts++;r.skillUsed='full_burst';r.fullBurstOutcome=r.valid?'SUCCESS':r.invalidReason==='COLLISION'?'FAIL_COLLISION':'FAIL_INVALID';
     r.gunnerHeatBefore=activation.heatBefore;r.gunnerHeatAtResolution=s.overheat;
     r.gunnerForced=Boolean(activation.forced);
@@ -77,6 +80,7 @@ export function resolveGunnerSelected(run,p,r,submission,events=[]){
     }else{
       s.telemetry.burstFailures++;p.publicResources.burstReadyCycle=cycle(run,p)+1;
       if(r.invalidReason==='COLLISION'){r.burstMisfire=true;if(owns(p,'aug-261'))heat(run,p,s,1);}
+      if(r.gunnerForced){r.burstMisfire=true;s.overheat=3;s.blockedTurn=turn(run)+1;}
       if(owns(p,'aug-266')){s.output=Math.max(0,s.output-2);fire(s,'aug-266');}
       if(owns(p,'aug-269')){s.output269=0;fire(s,'aug-269');}
     }
@@ -96,8 +100,8 @@ export function gunnerPenetration(run,p,r,defense){
   if(run.phase!=='COMBAT'||p.characterId!=='gunner'||!r.valid||!r.precisionShot||!owns(p,'aug-257'))return 0;
   const s=gunnerState(run,p),key=root(run,p,r)+':penetration';
   if(key in s.applied)return s.applied[key];
-  const amount=Math.min(1,Math.max(0,defense));s.applied[key]=amount;
-  if(amount&&once(run,p,s,'aug-257')){s.telemetry.defensePenetrated+=amount;fire(s,'aug-257');r.penetratedDefenseAmount=amount;return amount;}
+  const amount=Math.min(1,Math.max(0,defense));s.applied[key]=0;
+  if(amount&&once(run,p,s,'aug-257')){s.applied[key]=amount;s.telemetry.defensePenetrated+=amount;fire(s,'aug-257');r.penetratedDefenseAmount=amount;return amount;}
   return 0;
 }
 export function gunnerExtraComponent(run,p,r){
@@ -131,7 +135,7 @@ export function applyGunnerRuntime(run,trigger,ctx={}){
       if(owns(p,'aug-251'))p.publicResources.fullBurstReady=s.precisionShot.armed;
       else if(owns(p,'aug-261'))p.publicResources.fullBurstReady=cycle(run,p)>=(p.publicResources.burstReadyCycle||1);
       if(s.blockedTurn===turn(run)){
-        if(!(owns(p,'aug-270')&&!s.once['aug-270:combat'])){p.publicResources.fullBurstReady=false;s.overheat=1;}
+        if(!(owns(p,'aug-270')&&!s.once['aug-270:combat'])){p.publicResources.fullBurstReady=false;s.overheat=1;s.blockedResolvedTurn=turn(run);}
       }
       continue;
     }
@@ -140,10 +144,11 @@ export function applyGunnerRuntime(run,trigger,ctx={}){
       else{
         const forced=s.blockedTurn===turn(run)&&owns(p,'aug-270')&&once(run,p,s,'aug-270');
         s.activation={rootActionId:root(run,p,r),cycleId:cycle(run,p),heatBefore:s.overheat,forced};
+        markGunnerBurstPhase(run,p,r,'BURST_ACTIVATION');
         s.burstUsedTurn=turn(run);if(owns(p,'aug-261')){heat(run,p,s,1);fire(s,'aug-261');}
       }
     }
-    if(trigger==='TURN_END'&&owns(p,'aug-261')&&s.burstUsedTurn!==turn(run)){
+    if(trigger==='TURN_END'&&owns(p,'aug-261')&&s.burstUsedTurn!==turn(run)&&s.blockedResolvedTurn!==turn(run)){
       heat(run,p,s,owns(p,'aug-263')?-2:-1);fire(s,owns(p,'aug-263')?'aug-263':'aug-261');
     }
     if(trigger==='BEFORE_DAMAGE'&&r?.valid&&ctx.damage){
@@ -155,13 +160,13 @@ export function applyGunnerRuntime(run,trigger,ctx={}){
       }else{
         bonus+=r.gunnerReloadBonus||0;
         if(r.precisionShot){
-          bonus+=r.gunnerSpentBefore===0?0:r.gunnerSpentBefore===1?1:owns(p,'aug-258')?6:3;
+          bonus+=r.gunnerSpentBefore===0?0:r.gunnerSpentBefore===1?1:owns(p,'aug-258')&&r.gunnerRemainingBefore===1?6:3;
           if(owns(p,'aug-258')&&r.gunnerRemainingBefore===1){fire(s,'aug-258');if(s.precisionSetup)bonus+=2;}
           if(s.precisionSetup&&!r.gunnerSetupCreated){add('aug-252',1);s.precisionSetup=false;}
           add('aug-254',2,r.gunnerRemainingBefore===1);
           add('aug-255',2,r.gunnerPreviousFinal!=null&&Math.abs(r.gunnerPreviousFinal-r.finalNumber)>=2);
           bonus+=(r.gunnerWeaknessBonus||0)+(r.gunnerAccuracyBonus||0);
-          if(s.weakness>=3&&r.gunnerRemainingBefore===1&&owns(p,'aug-260')&&once(run,p,s,'aug-260')){bonus+=7;s.weakness=0;fire(s,'aug-260');}
+          if(r.gunnerWeaknessBefore>=3&&r.gunnerRemainingBefore===1&&owns(p,'aug-260')&&once(run,p,s,'aug-260')){bonus+=7;s.weakness=0;fire(s,'aug-260');}
         }
         if(r.fullBurstOutcome==='SUCCESS'){
           add('aug-244',1,r.gunnerExtraCount>=2);add('aug-246',4,r.gunnerExtraCount===3);
@@ -180,4 +185,17 @@ export function applyGunnerRuntime(run,trigger,ctx={}){
     s.applied[key]=true;
   }
   return results;
+}
+
+export function markGunnerBurstPhase(run,p,r,phase){
+  if(run.phase!=='COMBAT'||p.characterId!=='gunner'||r?.precisionShot)return;
+  const s=gunnerState(run,p),id=root(run,p,r);
+  s.burstActions||={};
+  const action=s.burstActions[id]||={rootActionId:id,ownerId:p.playerId,cycleId:cycle(run,p),phases:[],derivedUse:false};
+  if(!action.phases.includes(phase))action.phases.push(phase);
+}
+export function syncGunnerMagazine(run,p){
+  const priv=run.combat?.privateByPlayer?.[p.playerId];if(!priv||p.characterId!=='gunner')return;
+  const s=gunnerState(run,p);
+  s.magazine={magazineCardInstanceIds:p.cardPool.map(c=>c.id),remaining:[...priv.remainingCardIds],used:[...priv.spentCardIds],magazineSize:p.cardPool.length,cycleIndex:priv.cycleIndex,burstAvailability:p.publicResources.fullBurstReady===true,burstReadyCycle:p.publicResources.burstReadyCycle};
 }
