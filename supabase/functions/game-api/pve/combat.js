@@ -350,7 +350,7 @@ export function resolveBasicTurn(run){
     for(const p of run.players)applyOwnedEffects(run,'MONSTER_KILLED',{player:p,events});
     if(c.roomType==='BOSS')for(const p of run.players)applyOwnedEffects(run,'BOSS_CLEAR',{player:p,events});
     for(const p of run.players){applyOwnedEffects(run,'COMBAT_END',{player:p,events});applyOwnedEffects(run,'ROOM_END',{player:p,events});if(c.roomType==='BOSS')applyOwnedEffects(run,'FLOOR_END',{player:p,events});if(c.roomType==='BOSS'&&run.floor===3)applyOwnedEffects(run,'RUN_END',{player:p,events});}
-    for(const p of run.players)onCombatEndCharacter(p,run);if(p.characterId==='gambler')cleanupGamblerCombat(run,p);
+    for(const p of run.players){onCombatEndCharacter(p,run);if(p.characterId==='gambler')cleanupGamblerCombat(run,p);}
     cleanupAugmentScope(run,'COMBAT');cleanupAugmentScope(run,'ROOM');resolveDelayed(run,Number.MAX_SAFE_INTEGER);
     if(c.roomType==='BOSS'){
       run.phase='FLOOR_CLEAR';
