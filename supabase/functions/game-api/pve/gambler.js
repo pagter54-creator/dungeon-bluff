@@ -43,6 +43,11 @@ export function normalizeGamblerState(run,player,state){
   state.weakenedBorrowedIds=Array.isArray(state.weakenedBorrowedIds)?state.weakenedBorrowedIds:[];
   state.drawPreference=state.drawPreference||null;
   state.drawChoicePending=state.drawChoicePending||null;
+  state.drawPenaltyTurns=Math.max(0,Number(state.drawPenaltyTurns)||0);
+  state.doubleDownReady=Boolean(state.doubleDownReady);
+  state.forcedAutoSubmitNext=Boolean(state.forcedAutoSubmitNext);
+  state.aug237Used=Boolean(state.aug237Used);
+  state.aug238Used=Boolean(state.aug238Used);
   // Old snapshots had no explicit initial shuffle marker. Keep their current order authoritative.
   if(state.deckInitialized==null)state.deckInitialized=true;
   const all=new Set(player.cardPool.map(c=>c.id));
@@ -61,7 +66,15 @@ export function freshGamblerState(player){
   return {playerId:player.playerId,cycleIndex:0,usesStandardCycle:false,remainingCardIds:[],spentCardIds:[],
     drawPileIds:player.cardPool.map(card=>card.id),discardPileIds:[],vanishedCardIds:[],
     sixProgress:[],sevenProgress:[],drawCount:0,shuffleCount:0,unlockSerial:0,luck:0,specialCharge:0,
-    history:[],processedActions:{},pendingAllIn:null,runtimeOnce:{},validOrdinaryHistory:[],shuffleOrdinarySeen:[],countedOrdinary:[],aug214Run:[],predictedNumbers:[],weakenedBorrowedIds:[],drawPreference:null,drawChoicePending:null,firstDrawAfterShuffle:false,deckInitialized:false};
+    history:[],processedActions:{},pendingAllIn:null,runtimeOnce:{},validOrdinaryHistory:[],shuffleOrdinarySeen:[],countedOrdinary:[],aug214Run:[],predictedNumbers:[],weakenedBorrowedIds:[],drawPreference:null,drawChoicePending:null,drawPenaltyTurns:0,doubleDownReady:false,forcedAutoSubmitNext:false,aug237Used:false,aug238Used:false,firstDrawAfterShuffle:false,deckInitialized:false};
+}
+export function initializeGamblerCombat(run,player,state){
+  normalizeGamblerState(run,player,state);
+  state.runtimeOnce={};
+  state.aug219Used=false;state.insuranceUsed=false;state.fortuneStack=0;state.fortuneLastSpecial=null;state.fortuneOrdinarySeen=[];
+  state.allInWinStreak=0;state.houseUsed=false;state.aug237Used=false;state.aug238Used=false;
+  state.doubleDownReady=false;state.forcedAutoSubmitNext=false;state.drawPenaltyTurns=0;
+  state.allInFailedThisTurn=false;state.pendingAllIn=null;
 }
 function ensureInitialShuffle(run,player,state){
   if(state.deckInitialized)return;
@@ -210,12 +223,30 @@ export function settleGamblerHand(run,player,state,selectedId,finalNumber,{rootA
     }
   }
   if(actionKey)state.processedActions[actionKey]=true;
-  const wasAllIn=Boolean(state.pendingAllIn?.finalized&&state.pendingAllIn.judgmentCardId===selectedId);
-  let nextDrawCount=wasAllIn?1:2;
-  if(player.augments?.includes('aug-233')&&state.allInFailedThisTurn&&!state.insuranceUsed){nextDrawCount=2;state.insuranceUsed=true;}
+  const pending=state.pendingAllIn;
+  const wasAllIn=Boolean(pending?.finalized&&pending.judgmentCardId===selectedId);
+  if(wasAllIn&&pending.externalSpecialCardId){
+    const id=pending.externalSpecialCardId,card=player.cardPool.find(c=>c.id===id);
+    state.drawPileIds=state.drawPileIds.filter(x=>x!==id);state.discardPileIds=state.discardPileIds.filter(x=>x!==id);
+    if(card?.baseNumber>=6&&!state.vanishedCardIds.includes(id))state.vanishedCardIds.push(id);
+    boundedHistory(state,{type:'VANISH',turn:run.combat?.turn||0,cardInstanceId:id,value:card?.baseNumber??null,source:'AUG_238'});
+  }
+  let nextDrawCount=2;
+  if(wasAllIn){
+    let penaltyTurns=Math.max(0,Number(state.drawPenaltyTurns)||0);
+    if(pending.allAssets)penaltyTurns=Math.max(penaltyTurns,2);
+    else if(!(pending.valid&&player.augments?.includes('aug-235')&&!pending.doubleDownSecond))penaltyTurns=Math.max(penaltyTurns,1);
+    if(pending.aug237Reduced)penaltyTurns=Math.max(0,penaltyTurns-1);
+    if(penaltyTurns>0){nextDrawCount=1;penaltyTurns--;}
+    state.drawPenaltyTurns=penaltyTurns;
+    if(pending.doubleDownSecond&&!pending.valid&&player.augments?.includes('aug-235')){nextDrawCount=0;state.forcedAutoSubmitNext=true;}
+  }else if(state.drawPenaltyTurns>0){
+    nextDrawCount=1;state.drawPenaltyTurns--;
+  }
+  if(player.augments?.includes('aug-233')&&state.allInFailedThisTurn&&!state.insuranceUsed){nextDrawCount=2;state.insuranceUsed=true;state.drawPenaltyTurns=0;state.forcedAutoSubmitNext=false;}
   state.allInFailedThisTurn=false;
   if(wasAllIn)state.pendingAllIn=null;
-  drawGamblerHand(run,player,state,nextDrawCount);
+  if(nextDrawCount>0)drawGamblerHand(run,player,state,nextDrawCount);
   return true;
 }
 export function prepareGamblerAllIn(run,player,state,submission,resolved){
@@ -228,13 +259,34 @@ export function prepareGamblerAllIn(run,player,state,submission,resolved){
   const partnerId=ids.find(id=>id!==judgmentId);
   const judgment=player.cardPool.find(c=>c.id===judgmentId),partner=player.cardPool.find(c=>c.id===partnerId);
   if(!judgment||!partner)throw new Error('GAMBLER_ALL_IN_CARD_MISSING');
-  const rootActionId=`all-in:${run.combat?.id||run.currentRoomNodeId||'room'}:${run.combat?.turn||0}:${player.playerId}:${judgmentId}`;
-  state.pendingAllIn={rootActionId,judgmentCardId:judgmentId,partnerCardId:partnerId,cardIds:[judgmentId,partnerId],
-    values:[judgment.baseNumber,partner.baseNumber],sum:judgment.baseNumber+partner.baseNumber,finalized:false};
-  if(resolved){resolved.allIn=true;resolved.allInRootActionId=rootActionId;resolved.allInCardIds=[judgmentId,partnerId];resolved.allInValues=[judgment.baseNumber,partner.baseNumber];resolved.allInSum=judgment.baseNumber+partner.baseNumber;}
+  const turn=run.combat?.turn||0;
+  const rootActionId=`all-in:${run.combat?.id||run.currentRoomNodeId||'room'}:${turn}:${player.playerId}:${judgmentId}`;
+  const doubleDownSecond=Boolean(player.augments?.includes('aug-235')&&state.doubleDownReady);
+  const handOrdinary=[judgment,partner].every(card=>card.baseNumber>=1&&card.baseNumber<=5);
+  const specialPool=[...(state.discardPileIds||[]),...(state.drawPileIds||[])]
+    .map(id=>player.cardPool.find(card=>card.id===id)).filter(card=>card&&card.baseNumber>=6&&!state.vanishedCardIds.includes(card.id))
+    .sort((a,b)=>a.baseNumber-b.baseNumber||String(a.id).localeCompare(String(b.id)));
+  const allAssets=Boolean(player.augments?.includes('aug-238')&&!state.aug238Used&&handOrdinary&&specialPool.length);
+  const externalSpecial=allAssets?specialPool[0]:null;
+  const values=[judgment.baseNumber,partner.baseNumber,...(externalSpecial?[externalSpecial.baseNumber]:[])];
+  const cardIds=[judgmentId,partnerId,...(externalSpecial?[externalSpecial.id]:[])];
+  let borrowedCardId=null,borrowBonus=0;
+  const borrowKey=`aug-236:turn:${turn}`;
+  if(player.augments?.includes('aug-236')&&!state.runtimeOnce[borrowKey]){
+    const candidate=(state.drawPileIds||[]).find(id=>!cardIds.includes(id));
+    if(candidate){borrowedCardId=candidate;borrowBonus=1;state.runtimeOnce[borrowKey]=true;if(!state.weakenedBorrowedIds.includes(candidate))state.weakenedBorrowedIds.push(candidate);}
+  }
+  state.pendingAllIn={rootActionId,judgmentCardId:judgmentId,partnerCardId:partnerId,cardIds,values,sum:values.reduce((a,b)=>a+b,0),
+    finalized:false,doubleDownSecond,allAssets,externalSpecialCardId:externalSpecial?.id||null,borrowedCardId,borrowBonus};
+  if(doubleDownSecond)state.doubleDownReady=false;
+  if(allAssets)state.aug238Used=true;
+  if(resolved){
+    resolved.allIn=true;resolved.allInRootActionId=rootActionId;resolved.allInCardIds=[...cardIds];resolved.allInValues=[...values];
+    resolved.allInSum=state.pendingAllIn.sum;resolved.doubleDownSecond=doubleDownSecond;resolved.allAssets=allAssets;resolved.gamblerBorrowBonus=borrowBonus;
+  }
+  boundedHistory(state,{type:'ALL_IN_ATTEMPT',turn,rootActionId,cardIds:[...cardIds],judgmentCardId});
   return state.pendingAllIn;
 }
-
 export function applyGamblerValidated(run,player,state,resolved){
   if(player.characterId!=='gambler')return 0;
   normalizeGamblerState(run,player,state);
@@ -320,14 +372,16 @@ export function gamblerSetDamage(run,player,state,resolved,damage){
   if(!resolved?.allIn||!player.augments?.includes('aug-231'))return Math.max(0,(Number(damage)||0)+validatedBonus-penalty);
   const key=`all-in-damage:${resolved.allInRootActionId}`;
   if(Number.isFinite(state.processedActions[key]))return state.processedActions[key];
-  let amount=Math.max(0,Number(resolved.allInSum)||0);
+  let amount=Math.max(0,Number(resolved.allInSum)||0)+(resolved.allAssets?4:0)+(Number(resolved.gamblerBorrowBonus)||0);
   const values=resolved.allInValues||[];
   if(player.augments.includes('aug-232'))amount+=Math.max(...[0,...(resolved.allInSum>=10?[4]:resolved.allInSum>=8?[2]:[])]);
   if(player.augments.includes('aug-234')&&values.length===2&&values.every(v=>v<=3))amount+=1;
+  if(player.augments.includes('aug-235')&&resolved.doubleDownSecond)amount+=2;
   const streak=Math.max(0,Math.min(4,Number(state.allInWinStreak)||0));
   if(player.augments.includes('aug-239'))amount+=streak;
   if(player.augments.includes('aug-240')&&!state.houseUsed){amount+=8;state.houseUsed=true;}
   amount=Math.max(0,amount+validatedBonus-penalty);
+  if(player.augments.includes('aug-237')&&amount>=8&&!state.aug237Used){state.aug237Used=true;if(state.pendingAllIn)state.pendingAllIn.aug237Reduced=true;resolved.aug237Reduced=true;}
   state.processedActions[key]=amount;
   boundedHistory(state,{type:'ALL_IN_DAMAGE',turn:run.combat?.turn||0,rootActionId:resolved.allInRootActionId,amount});
   return amount;
@@ -337,7 +391,10 @@ export function finalizeGamblerAllIn(run,player,state,resolved){
   const key=`all-in-final:${resolved.allInRootActionId}`;
   if(state.processedActions[key])return;
   state.processedActions[key]=true;
-  if(resolved.valid){state.allInWinStreak=player.augments?.includes('aug-239')?Math.min(4,(Number(state.allInWinStreak)||0)+1):0;}
+  if(resolved.valid){
+    state.allInWinStreak=player.augments?.includes('aug-239')?Math.min(4,(Number(state.allInWinStreak)||0)+1):0;
+    if(player.augments?.includes('aug-235')){if(resolved.doubleDownSecond)state.doubleDownReady=false;else state.doubleDownReady=true;}
+  }
   else{
     state.allInWinStreak=0;state.allInFailedThisTurn=true;
     if(player.augments?.includes('aug-240')&&!state.houseUsed){
@@ -345,8 +402,19 @@ export function finalizeGamblerAllIn(run,player,state,resolved){
       if(run.combat&&player.hp<=0&&!run.combat.pendingDownPlayerIds.includes(player.playerId))run.combat.pendingDownPlayerIds.push(player.playerId);
     }
   }
-  if(state.pendingAllIn)state.pendingAllIn.finalized=true;
+  if(state.pendingAllIn){state.pendingAllIn.finalized=true;state.pendingAllIn.valid=Boolean(resolved.valid);state.pendingAllIn.doubleDownSecond=Boolean(resolved.doubleDownSecond);}
   boundedHistory(state,{type:'ALL_IN_RESULT',turn:run.combat?.turn||0,rootActionId:resolved.allInRootActionId,valid:Boolean(resolved.valid)});
+}
+export function prepareGamblerForcedAutoSubmission(run,player,state){
+  normalizeGamblerState(run,player,state);
+  if(!state.forcedAutoSubmitNext)return null;
+  state.forcedAutoSubmitNext=false;
+  drawGamblerHand(run,player,state,1);
+  const ids=[...(state.remainingCardIds||[])];if(!ids.length)return null;
+  const {index}=drawIndex(run,ids.length,`gambler-double-down-auto:${run.combat?.id||run.currentRoomNodeId||'room'}:${run.combat?.turn||0}:${player.playerId}`);
+  const cardInstanceId=ids[index];
+  boundedHistory(state,{type:'DOUBLE_DOWN_AUTO',turn:run.combat?.turn||0,cardInstanceId});
+  return cardInstanceId;
 }
 export function gamblerOwnerPrivateState(run,player,state){
   normalizeGamblerState(run,player,state);
