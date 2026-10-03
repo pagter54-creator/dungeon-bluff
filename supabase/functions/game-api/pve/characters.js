@@ -8,6 +8,7 @@ import {consumeKnightNextCycleBonus,knightFreeUseAvailable} from './knight-runti
 import {mageNaturalManaRecovery,resolveMageWhiteMagicCollision} from './mage-runtime.js';
 import {planBerserkerCollisionHeal,afterBerserkerAttackCost,notifyBerserkerHeal} from './berserker-runtime.js';
 import {initializeSeerCombat,onSeerTurnStart,resolveSeerBaseValidity,cleanupSeerCombat,activateSeerImmediateSkill} from './seer-runtime.js';
+import {onImpTurnEnd,cleanupImpCombat} from './imp-runtime.js';
 
 export const PVE_CHARACTER_DEFS={
   adventurer:{deck:[1,2,3,4,5],skillId:'gold_bonus'},
@@ -157,6 +158,7 @@ export function onCycleStartCharacter(player,privateState){
   }
 }
 export function onTurnEndCharacter(player,run=null,events=[]){
+  if(player.characterId==='imp'&&run)onImpTurnEnd(run,player);
   if(player.characterId==='twins'&&Number.isInteger(player.publicResources.parity)){
     const before=player.publicResources.parity;player.publicResources.parity=1-before;
     events.push({type:'TWINS_PARITY_FLIPPED',playerId:player.playerId,before,after:player.publicResources.parity,reason:'TURN_END',turn:run?.combat?.turn??null});
@@ -572,6 +574,7 @@ export function baseDamageForCharacter(player,resolved){
 }
 export function onCombatEndCharacter(player,run=null){
   if(player.characterId==='prophet'&&run)cleanupSeerCombat(run,player);
+  if(player.characterId==='imp'&&run)cleanupImpCombat(run,player);
   const priv=run?.combat?.privateByPlayer?.[player.playerId];
   if(player.characterId==='demon_swordsman'&&player.augments.includes('aug-351')){
     if(priv?.demonNormalCardPool){

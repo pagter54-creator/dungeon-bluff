@@ -1,3 +1,4 @@
+import {applyImpPreCollisionSteal} from './imp-runtime.js';
 const cardByPlayer=(cards,playerId)=>cards.find(card=>card.playerId===playerId)||null;
 const playerById=(run,playerId)=>run.players.find(player=>player.playerId===playerId)||null;
 const seatOf=(run,playerId)=>playerById(run,playerId)?.seat??Number.MAX_SAFE_INTEGER;
@@ -84,26 +85,7 @@ export function applyPreCollisionSwap(run,cards,events,state=run.combat){
   for(const card of cards)card.numberHistory.postSwapNumber=card.workingNumber;
 }
 export function applyPreCollisionSteal(run,cards,events){
-  const snapshot=new Map(cards.map(card=>[card.playerId,card.workingNumber]));
-  const imps=run.players.filter(p=>p.characterId==='imp'&&p.status!=='DOWNED'&&cardByPlayer(cards,p.playerId)).sort((a,b)=>a.seat-b.seat||a.playerId.localeCompare(b.playerId));
-  for(const imp of imps){
-    const actor=cardByPlayer(cards,imp.playerId),actorStart=snapshot.get(imp.playerId);
-    const targets=cards
-      .filter(card=>card.playerId!==imp.playerId&&playerById(run,card.playerId)?.characterId!=='imp'&&snapshot.get(card.playerId)===actorStart)
-      .sort((a,b)=>seatOf(run,a.playerId)-seatOf(run,b.playerId)||a.playerId.localeCompare(b.playerId));
-    let total=0;actor.stealTargets=[];
-    for(const target of targets){
-      const before=target.workingNumber,stolen=Math.min(1,Math.max(0,before));
-      if(stolen<=0)continue;
-      target.workingNumber=before-stolen;total+=stolen;actor.stealTargets.push(target.playerId);
-      events.push({phase:'PRE_COLLISION_STEAL',effectId:'imp-steal',actorId:imp.playerId,targetId:target.playerId,before,after:target.workingNumber,stolen});
-    }
-    actor.workingNumber=actorStart+total;
-    actor.stealTotal=total;actor.stealTargetCount=actor.stealTargets.length;actor.greedGained=total;
-    imp.publicResources.greed=total;
-    if(total>0)events.push({phase:'PRE_COLLISION_STEAL',effectId:'imp-steal-summary',actorId:imp.playerId,before:actorStart,after:actor.workingNumber,totalActuallyStolen:total,targetIds:[...actor.stealTargets]});
-  }
-  for(const card of cards)card.numberHistory.postStealNumber=card.workingNumber;
+  return applyImpPreCollisionSteal(run,cards,events);
 }
 export function finalizeNumbers(cards){
   for(const card of cards){

@@ -8,6 +8,7 @@ import {applyOwnedEffects} from './effects.js';
 import {cleanupAugmentScope} from './augment-framework.js';
 import {relicPool} from './relics.js';
 import {clearCombatResourcesForPlayers} from './resources.js';
+import {prepareImpSubmission,applyImpCardValidated,applyImpBeforeDamage,cleanupImpRoom} from './imp-runtime.js';
 
 const CARD_RESERVATION_MS=20_000;
 const playerFor=(run,id)=>run.players.find(p=>p.playerId===id);
@@ -17,6 +18,7 @@ const allIds=run=>run.players.map(p=>p.playerId);
 
 function finishRoom(run){
   for(const player of run.players)applyOwnedEffects(run,'ROOM_END',{player});
+  cleanupImpRoom(run);
   cleanupAugmentScope(run,'ROOM');
   clearCombatResourcesForPlayers(run.players);
   run.phase='ROOM_RESULT';
@@ -186,6 +188,7 @@ export function submitRewardCard(run,playerId,cardInstanceId,skillIntent=false,s
   if(!rewardSelectable(run,p,cardInstanceId))throw new Error('사용 가능한 카드가 아닙니다.');
   if(skillIntent&&!['warrior','mage','vampire','gunner'].includes(p.characterId))throw new Error('이 스킬은 보상방 카드 판정에 사용할 수 없습니다.');
   validateCharacterSkillIntent(p,st,Boolean(skillIntent),cardFor(p,cardInstanceId),skillData);
+  if(p.characterId==='imp')prepareImpSubmission(run,p,skillData);
   room.turnSubmissions[playerId]={playerId,cardInstanceId,skillIntent:Boolean(skillIntent),...(skillData?{skillData:structuredClone(skillData)}:{})};st.selectedCardId=cardInstanceId;st.skillIntent=Boolean(skillIntent);
   applyOwnedEffects(run,'ON_SUBMIT',{player:p,privateState:st,cardInstanceId});
 }
@@ -243,12 +246,13 @@ export function resolveRewardAttempt(run){
   }
   validateNumberMutationState(run,cards,mutationEvents);
   const counts=Object.fromEntries([...groups].map(([number,group])=>[number,group.length]));
-  for(const c of cards)applyOwnedEffects(run,'CARD_VALIDATED',{player:playerFor(run,c.playerId),resolved:c,privateState:room.privateByPlayer[c.playerId],events:[]});
+  for(const c of cards){const player=playerFor(run,c.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player,resolved:c,privateState:room.privateByPlayer[c.playerId],events:[]});applyImpCardValidated(run,{player,resolved:c,cards,events:[]});}
   for(const c of cards){
     const p=playerFor(run,c.playerId),sub=room.turnSubmissions[c.playerId],st=room.privateByPlayer[c.playerId];
     if(p.characterId==='gunner'&&sub.skillIntent){p.publicResources.fullBurstReady=false;if(c.valid){c.followUpCardIds=st.remainingCardIds.filter(id=>id!==c.cardInstanceId);p.publicResources.burstReadyCycle=(st.cycleIndex||1)+2;}else{p.publicResources.burstReadyCycle=(st.cycleIndex||1)+1;p.hp=Math.max(0,p.hp-1);}}
     const engrave=Number(p.engravings?.[String(c.finalNumber)])||0;const primary={amount:Math.max(0,baseDamageForCharacter(p,c)+engrave)},queued=[];
     applyOwnedEffects(run,'BEFORE_DAMAGE',{player:p,resolved:c,damage:primary,followUps:queued,followUp:false,privateState:room.privateByPlayer[c.playerId],events:[]});
+    applyImpBeforeDamage(run,{player:p,resolved:c,damage:primary,followUp:false,events:[]});
     c.damage=Math.max(0,primary.amount)+queued.reduce((s,x)=>s+Math.max(0,Number(x.amount)||0),0);
     for(const id of c.followUpCardIds||[]){const extra=cardFor(p,id);const d={amount:extra.baseNumber+(Number(p.engravings?.[String(extra.baseNumber)])||0)},q=[];applyOwnedEffects(run,'BEFORE_DAMAGE',{player:p,resolved:c,damage:d,followUps:q,followUp:true,privateState:room.privateByPlayer[c.playerId],events:[]});c.damage+=Math.max(0,d.amount)+q.reduce((s,x)=>s+Math.max(0,Number(x.amount)||0),0);}
   }

@@ -9,11 +9,13 @@ import {queueTelemetry} from './telemetry.js';
 import {clearCombatResourcesForPlayers} from './resources.js';
 import {applyOwnedEffects} from './effects.js';
 import {cleanupAugmentScope} from './augment-framework.js';
+import {prepareImpSubmission,applyImpCardValidated,cleanupImpRoom} from './imp-runtime.js';
 
 const playerFor=(run,id)=>run.players.find(p=>p.playerId===id);
 const eventById=id=>F1_EVENT_DEFINITIONS.find(x=>x.id===id)||null;
 function finishEvent(run){
   for(const player of run.players)applyOwnedEffects(run,'ROOM_END',{player});
+  cleanupImpRoom(run);
   cleanupAugmentScope(run,'ROOM');
   clearCombatResourcesForPlayers(run.players);
   run.phase='ROOM_RESULT';
@@ -61,6 +63,7 @@ export function submitEventCard(run,playerId,cardInstanceId,skillIntent=false,sk
   if(!card)throw new Error('이번 사이클에 사용할 수 있는 물리 카드가 아닙니다.');
   if(skillIntent&&!['mage','warrior','vampire'].includes(player.characterId))throw new Error('이 스킬은 이벤트 카드 판정에 사용할 수 없습니다.');
   validateCharacterSkillIntent(player,run.roomState.privateByPlayer[playerId],skillIntent,card,skillData);
+  if(player.characterId==='imp')prepareImpSubmission(run,player,skillData);
   run.roomState.turnSubmissions[playerId]={playerId,cardInstanceId,skillIntent:Boolean(skillIntent),...(skillData?{skillData:structuredClone(skillData)}:{})};
   run.roomState.privateByPlayer[playerId].selectedCardId=cardInstanceId;
   run.roomState.privateByPlayer[playerId].skillIntent=Boolean(skillIntent);
@@ -97,7 +100,7 @@ export function resolveEventTurn(run){
   assignVampireThralls(run,cards,groups,effects);
   for(const card of cards)applyOwnedEffects(run,'POST_COLLISION',{player:playerFor(run,card.playerId),resolved:card,submission:room.turnSubmissions[card.playerId],privateState:room.privateByPlayer[card.playerId]});
   attachValidity(cards);
-  for(const card of cards)applyOwnedEffects(run,'CARD_VALIDATED',{player:playerFor(run,card.playerId),resolved:card,privateState:room.privateByPlayer[card.playerId]});
+  for(const card of cards){const player=playerFor(run,card.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player,resolved:card,privateState:room.privateByPlayer[card.playerId]});applyImpCardValidated(run,{player,resolved:card,cards,events:effects});}
   validateNumberMutationState(run,cards,mutationEvents);
   for(const card of cards){
     const state=room.privateByPlayer[card.playerId];

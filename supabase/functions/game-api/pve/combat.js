@@ -16,6 +16,7 @@ import {beginAugmentChoices} from './augments.js';
 import {applyOwnedEffects} from './effects.js';
 import {rogueArmorPenetration} from './rogue-runtime.js';
 import {applyMageCollisionCorrection} from './mage-runtime.js';
+import {initializeImpCombat,prepareImpSubmission,applyImpCardValidated,applyImpBeforeDamage} from './imp-runtime.js';
 import {cleanupAugmentScope,resolveDelayed,clearAugmentStatusesForOwner} from './augment-framework.js';
 import {initCombatTelemetry,recordCombatTurnTelemetry,finalizeCombatTelemetry} from './telemetry.js';
 import {
@@ -165,7 +166,7 @@ function autoSubmitAi(run){
 export function beginTurn(run){
   const c=run.combat;if(!c||run.phase!=='COMBAT')return;
   if(!c.telemetry)initCombatTelemetry(run,c.roomType||'NORMAL_COMBAT');
-  if(!c.combatStartEffectsApplied){for(const p of run.players)applyOwnedEffects(run,'COMBAT_START',{player:p,events:[]});c.combatStartEffectsApplied=true;}
+  if(!c.combatStartEffectsApplied){for(const p of run.players){if(p.characterId==='imp')initializeImpCombat(run,p);applyOwnedEffects(run,'COMBAT_START',{player:p,events:[]});}c.combatStartEffectsApplied=true;}
   c.phase='TURN_START';
   for(const p of run.players){onTurnStartCharacter(p,run);applyOwnedEffects(run,'TURN_START',{player:p,events:[]});}
   for(const p of run.players)if(p.characterId==='gambler')drawGamblerHand(run,p,c.privateByPlayer[p.playerId]);
@@ -183,6 +184,7 @@ export function submitCard(run,playerId,cardInstanceId,skillIntent=false,skillDa
   if(!isCardSelectableForCharacter(p,card))throw new Error('현재 쌍둥이 홀짝 상태에 맞는 카드만 선택할 수 있습니다.');
   if(skillData?.equipmentCategory!=null&&(!p.augments.includes('aug-020')||!['LOW','UTILITY','WEAPON'].includes(skillData.equipmentCategory)))throw new Error('INVALID_EQUIPMENT_CATEGORY');
   validateCharacterSkillIntent(p,priv,Boolean(skillIntent),card,skillData);
+  if(p.characterId==='imp')prepareImpSubmission(run,p,skillData);
   c.turnSubmissions[playerId]={playerId,cardInstanceId,skillIntent:Boolean(skillIntent),skillData:skillData==null?null:structuredClone(skillData),submittedAt:new Date().toISOString()};
   priv.selectedCardId=cardInstanceId;priv.skillIntent=Boolean(skillIntent);
   applyOwnedEffects(run,'ON_SUBMIT',{player:p,privateState:priv,cardInstanceId});
@@ -222,7 +224,7 @@ export function resolveBasicTurn(run){
   const validCards=cards.filter(x=>x.valid),lowestNumber=validCards.length?Math.min(...validCards.map(x=>x.finalNumber)):null;
   const lowestCards=validCards.filter(x=>x.finalNumber===lowestNumber);
   for(const rc of cards)rc.soloLowest=Boolean(rc.valid&&lowestCards.length===1&&lowestCards[0]===rc);
-  for(const rc of cards){const p=playerFor(run,rc.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player:p,resolved:rc,cards,events});resolvePostCollisionCharacter(run,rc,c.turnSubmissions[rc.playerId],events);}
+  for(const rc of cards){const p=playerFor(run,rc.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player:p,resolved:rc,cards,events});applyImpCardValidated(run,{player:p,resolved:rc,cards,events});resolvePostCollisionCharacter(run,rc,c.turnSubmissions[rc.playerId],events);}
   attachValidity(cards);
   applyMonsterCardRules(run,cards,events);
   c.phase='DAMAGE_BUILD';phaseTrace.push(c.phase);
@@ -261,6 +263,7 @@ export function resolveBasicTurn(run){
       {resolved:rc,player,baseNumber:rc.finalNumber,baseDamage:rc.finalNumber,classBonus,augmentBonus,modifierIds});
     const primaryDamage={amount:primary.amount},queued=[];
     applyOwnedEffects(run,'BEFORE_DAMAGE',{player,resolved:rc,damage:primaryDamage,followUps:queued,followUp:false,events:[]});
+    applyImpBeforeDamage(run,{player,resolved:rc,damage:primaryDamage,followUp:false,events});
     primary.amount=Math.max(0,primaryDamage.amount);packets.push(primary);
     for(const q of queued){
       if((Number(q.followUpDepth)||1)>1){const error=new Error('follow-up depth가 Tier-I 허용 범위를 초과했습니다.');error.code='FOLLOW_UP_DEPTH_EXCEEDED';throw error;}

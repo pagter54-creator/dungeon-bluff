@@ -1,0 +1,114 @@
+{
+  "work": "PVE_CONTENT_005C_B",
+  "branch": "feat/pve-content-005c-b-imp",
+  "pr": 20,
+  "baselineHead": "ddbee335788cf83f518220e4665f6ef130189061",
+  "target": 30,
+  "registered": 30,
+  "executable": 30,
+  "dataOnly": 0,
+  "missing": 0,
+  "unsupported": 0,
+  "candidateReachable": 30,
+  "archetypeCoverage": {
+    "대담한 슬쩍": 10,
+    "소매치기 악동": 10,
+    "장난의 연쇄": 10
+  },
+  "stageDistribution": {
+    "1": 3,
+    "2": 9,
+    "3": 9,
+    "4": 9
+  },
+  "executableCounts": {
+    "range005C_151_270": 61,
+    "global001_270": 211,
+    "legacyOutsideCompletedBatches": [
+      "aug-241"
+    ]
+  },
+  "designParity": {
+    "match": 30,
+    "valueMismatch": 0,
+    "triggerMismatch": 0,
+    "roomMismatch": 0,
+    "semanticMismatch": 0,
+    "missing": 0
+  },
+  "effectPositiveCoverage": 30,
+  "negativeCoverage": 30,
+  "tooltipParity": 30,
+  "dedicatedImpTests": 57,
+  "testBreakdown": {
+    "contractParityCleanupHighRisk": 9,
+    "effectRuntime": 31,
+    "candidateOrderingPrivacyReconnectCounts": 12,
+    "roomAndFullBuild": 5,
+    "effectPositive": 30,
+    "negative": 30,
+    "fullArchetypeBuilds": 3,
+    "highRiskExplicitCards": 2
+  },
+  "baseImp": {
+    "phase": "PRE_COLLISION_STEAL",
+    "victimFloor": 0,
+    "actualAmountOnly": true,
+    "nonImpVictimsOnly": true,
+    "multipleVictimAggregate": true,
+    "multiImpOrder": "LOBBY_SEAT_THEN_PLAYER_ID",
+    "finalNumberRecomputed": true,
+    "collisionRecomputed": true
+  },
+  "highRisk": {
+    "aug181DistinctPositiveVictims": true,
+    "aug201PendingDownBeforeDownResolve": true,
+    "aug201AlreadyDownedNoRevive": true,
+    "aug201RetrySafe": true
+  },
+  "mischief": {
+    "recursiveSteal": false,
+    "rootActionGuard": true,
+    "cleanupPass": true
+  },
+  "roomIsolationPass": true,
+  "reconnectPass": true,
+  "determinismPass": true,
+  "privacyPass": true,
+  "retryPass": true,
+  "cleanupPass": true,
+  "crossClass": {
+    "mage": true,
+    "knight": true,
+    "rogue": true,
+    "seer": true
+  },
+  "regressions": {
+    "fiveBExecutable": 150,
+    "seerExecutable": 30
+  },
+  "sourceIntegrity": {
+    "designCUnchanged": true,
+    "betaV01Unchanged": true,
+    "stableIdsUnchanged": true,
+    "productionSupabaseMutation": false
+  },
+  "balanceWarning": "BALANCE_WARNING_005C_B: no balance tuning performed; existing stress turn-length warnings remain observational.",
+  "frameworkBlockers": [],
+  "runtimeBlockers": [],
+  "testBlockers": [],
+  "blockers": [],
+  "ci": {
+    "finalDocumentationHeadRequired": true,
+    "status": "FINAL_CLOSEOUT_COMMIT",
+    "priorDocumentationGate": {
+      "runId": 37096042703,
+      "status": "completed",
+      "conclusion": "success",
+      "head": "74b0fe7fb278e5f39836b2f56fa12ede59496bf1"
+    },
+    "requirement": "This audit-finalizing commit must itself receive Project Checks completed/success."
+  },
+  "IMP_RUNTIME_COMPLETE": true,
+  "READY_FOR_PVE_CONTENT_005C_C_GAMBLER": true
+}
