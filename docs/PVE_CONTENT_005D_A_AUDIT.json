@@ -1,11 +1,11 @@
 {
   "task": "PVE_CONTENT_005D_A",
-  "status": "ACCEPTANCE_BLOCKED_PENDING_USER_APPROVAL",
+  "status": "RUNTIME_ACCEPTED_PENDING_FINAL_DOCUMENTATION_HEAD_CI",
   "branch": "feat/pve-content-005d-a-martial",
   "pr": 25,
   "baselineHead": "60de86e12132f48ad64b891d3970d5b41b7996e3",
-  "runtimeEvidenceHead": "04a8fbde58185d040e8ec0e57f63005c189a80d1",
-  "latestCodeAndTestHead": "474ef7e6823215c2d603be3ec824e12473971aed",
+  "runtimeEvidenceHead": "ed5d2c40bd4e275c7a6b4980f3a28d6fee1f1f40",
+  "latestCodeAndTestHead": "ed5d2c40bd4e275c7a6b4980f3a28d6fee1f1f40",
   "target": 30,
   "registered": 30,
   "executable": 30,
@@ -25,11 +25,11 @@
   ],
   "verification": {
     "targetedJob": {
-      "runId": 37148754699,
-      "jobId": 111278004050,
+      "runId": 37154168805,
+      "jobId": 111293997327,
       "conclusion": "success",
-      "tests": 148,
-      "pass": 148,
+      "tests": 151,
+      "pass": 151,
       "fail": 0,
       "skip": 0
     },
@@ -57,7 +57,25 @@
         "hardFailures": 0,
         "balanceWarnings": 100,
         "scenarioIds": [
+          "T06"
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hardFailures": 0,
+        "balanceWarnings": 100,
+        "scenarioIds": [
           "T02"
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hardFailures": 0,
+        "balanceWarnings": 1,
+        "scenarioIds": [
+          "T00"
         ]
       },
       {
@@ -75,49 +93,56 @@
         "hardFailures": 0,
         "balanceWarnings": 100,
         "scenarioIds": [
-          "T06"
+          "T09"
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hardFailures": 0,
+        "balanceWarnings": 47,
+        "scenarioIds": [
+          "T04"
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hardFailures": 0,
+        "balanceWarnings": 100,
+        "scenarioIds": [
+          "T03"
         ]
       }
     ],
     "fullSuite": {
-      "runId": 37148656678,
-      "tests": 1582,
-      "pass": 1578,
-      "fail": 4,
+      "runId": 37154168805,
+      "tests": 1585,
+      "pass": 1585,
+      "fail": 0,
       "skip": 0
     },
-    "latestAddedTests": [
-      "Seer physical-card recovery",
-      "two independent Martial Shatter suppliers"
-    ],
-    "latestTargetedTestCount": 150
+    "finalDocumentationHeadVerification": "The exact documentation commit must complete Project Checks successfully before branching B."
   },
   "sourceIntegrity": {
     "count": 25,
     "mismatches": []
   },
-  "existingTestsModified": 0,
+  "existingTestsModified": 3,
   "goldensModified": 0,
   "productionMutations": 0,
   "productionDeployment": false,
   "merged": false,
   "draft": true,
-  "blockingConditions": [
-    {
-      "type": "AUTO_APPROVAL_REJECTION",
-      "reason": "Automatic review rejected changing historical 005A/005C test domains under explicit user prohibition of adjusting existing tests to hide regression.",
-      "pendingQuestion": true,
-      "affectedAssertions": [
-        "005A catalog total305",
-        "005C-C executable total276",
-        "005C-FINAL executable total276",
-        "005C-FINAL catalog git blob hash"
-      ]
-    }
-  ],
+  "blockingConditions": [],
   "flags": {
-    "MARTIAL_RUNTIME_COMPLETE": false,
-    "READY_FOR_PVE_CONTENT_005D_B_VAMPIRE": false
+    "MARTIAL_RUNTIME_COMPLETE": true,
+    "READY_FOR_PVE_CONTENT_005D_B_VAMPIRE": true
   },
-  "nextPhasesStarted": false
+  "nextPhasesStarted": false,
+  "userApproval": {
+    "url": "https://github.com/pagter54-creator/dungeon-bluff/pull/25#issuecomment-5973473233",
+    "scope": "Historical count expectations and extensible runtime catalog hash only",
+    "applied": true
+  }
 }
