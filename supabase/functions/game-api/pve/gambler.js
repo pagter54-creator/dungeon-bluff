@@ -284,7 +284,7 @@ export function prepareGamblerAllIn(run,player,state,submission,resolved){
     resolved.allIn=true;resolved.allInRootActionId=rootActionId;resolved.allInCardIds=[...cardIds];resolved.allInValues=[...values];
     resolved.allInSum=state.pendingAllIn.sum;resolved.doubleDownSecond=doubleDownSecond;resolved.allAssets=allAssets;resolved.gamblerBorrowBonus=borrowBonus;
   }
-  boundedHistory(state,{type:'ALL_IN_ATTEMPT',turn,rootActionId,cardIds:[...cardIds],judgmentCardId});
+  boundedHistory(state,{type:'ALL_IN_ATTEMPT',turn,rootActionId,cardIds:[...cardIds],judgmentCardId:judgmentId});
   return state.pendingAllIn;
 }
 export function applyGamblerValidated(run,player,state,resolved){
