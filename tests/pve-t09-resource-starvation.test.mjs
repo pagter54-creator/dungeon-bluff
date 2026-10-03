@@ -64,17 +64,18 @@ test('T09 F3 Knight Toughness 0 is rejected and normal submission still advances
   assert.equal(f.turnAdvanced,true);
 });
 
-test('T09 F4 Prophet collision gains Revelation 0 to 1',()=>{
-  const f=byId(cases(),'F4_SEER_COLLISION_GAIN');
+test('T09 F4 Prophet activation-turn valid refunds Revelation 0 to 1',()=>{
+  const f=byId(cases(),'F4_SEER_ACTIVATION_VALID_GAIN');
   assert.equal(f.gain,1);
   assert.equal(f.revelation,1);
-  assert.equal(f.valid,false);
+  assert.equal(f.valid,true);
 });
 
-test('T09 F5 Prophet collision at cap remains Revelation 1',()=>{
-  const f=byId(cases(),'F5_SEER_MAX_COLLISION');
+test('T09 F5 Prophet activation-turn collision gains no Revelation',()=>{
+  const f=byId(cases(),'F5_SEER_ACTIVATION_COLLISION_NO_GAIN');
   assert.equal(f.gain,0);
-  assert.equal(f.revelation,1);
+  assert.equal(f.revelation,0);
+  assert.equal(f.valid,false);
 });
 
 test('T09 F6 Revelation consumes one and deterministically recovers an existing physical card',()=>{
@@ -86,8 +87,8 @@ test('T09 F6 Revelation consumes one and deterministically recovers an existing 
   assert.equal(f.peek.targetPlayerId,'p0');
 });
 
-test('T09 F7 Revelation use can regain one from same-turn collision',()=>{
-  const f=byId(cases(),'F7_SEER_USE_COLLISION_REGAIN');
+test('T09 F7 Revelation use regains one only from same-turn valid result',()=>{
+  const f=byId(cases(),'F7_SEER_USE_VALID_REGAIN');
   assert.equal(f.spent,1);
   assert.equal(f.gained,1);
   assert.equal(f.revelation,1);
