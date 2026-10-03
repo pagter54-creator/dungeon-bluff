@@ -57,7 +57,7 @@ export function normalizeGamblerState(run,player,state){
   state.weakenedBorrowedIds=Array.isArray(state.weakenedBorrowedIds)?state.weakenedBorrowedIds:[];
   state.drawPreference=state.drawPreference||null;
   state.drawChoicePending=state.drawChoicePending||null;
-  state.guaranteedDrawIds=Array.isArray(state.guaranteedDrawIds)?state.guaranteedDrawIds.filter(id=>all.has(id)):[];
+  state.guaranteedDrawIds=Array.isArray(state.guaranteedDrawIds)?state.guaranteedDrawIds:[];
   state.drawPenaltyTurns=Math.max(0,Number(state.drawPenaltyTurns)||0);
   state.doubleDownReady=Boolean(state.doubleDownReady);
   state.forcedAutoSubmitNext=Boolean(state.forcedAutoSubmitNext);
@@ -68,6 +68,7 @@ export function normalizeGamblerState(run,player,state){
   // Old snapshots had no explicit initial shuffle marker. Keep their current order authoritative.
   if(state.deckInitialized==null)state.deckInitialized=true;
   const all=new Set(player.cardPool.map(c=>c.id));
+  state.guaranteedDrawIds=state.guaranteedDrawIds.filter(id=>all.has(id));
   const zones=[state.drawPileIds,state.remainingCardIds,state.discardPileIds,state.vanishedCardIds];
   const seen=new Set();
   for(const zone of zones){
