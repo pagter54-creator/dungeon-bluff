@@ -9,12 +9,13 @@ import {queueTelemetry} from './telemetry.js';
 import {clearCombatResourcesForPlayers} from './resources.js';
 import {applyOwnedEffects} from './effects.js';
 import {cleanupAugmentScope} from './augment-framework.js';
-import {prepareImpSubmission,applyImpCardValidated} from './imp-runtime.js';
+import {prepareImpSubmission,applyImpCardValidated,cleanupImpRoom} from './imp-runtime.js';
 
 const playerFor=(run,id)=>run.players.find(p=>p.playerId===id);
 const eventById=id=>F1_EVENT_DEFINITIONS.find(x=>x.id===id)||null;
 function finishEvent(run){
   for(const player of run.players)applyOwnedEffects(run,'ROOM_END',{player});
+  cleanupImpRoom(run);
   cleanupAugmentScope(run,'ROOM');
   clearCombatResourcesForPlayers(run.players);
   run.phase='ROOM_RESULT';
