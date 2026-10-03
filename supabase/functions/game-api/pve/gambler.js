@@ -142,10 +142,11 @@ export function settleGamblerHand(run,player,state,selectedId,finalNumber,{rootA
     }
   }
   if(actionKey)state.processedActions[actionKey]=true;
-  let nextDrawCount=2;
-  if(player.augments?.includes('aug-231'))nextDrawCount=1;
+  const wasAllIn=Boolean(state.pendingAllIn?.finalized&&state.pendingAllIn.judgmentCardId===selectedId);
+  let nextDrawCount=wasAllIn?1:2;
   if(player.augments?.includes('aug-233')&&state.allInFailedThisTurn&&!state.insuranceUsed){nextDrawCount=2;state.insuranceUsed=true;}
   state.allInFailedThisTurn=false;
+  if(wasAllIn)state.pendingAllIn=null;
   drawGamblerHand(run,player,state,nextDrawCount);
   return true;
 }
