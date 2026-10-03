@@ -1,0 +1,104 @@
+{
+  "target": 30,
+  "registered": 30,
+  "executable": 30,
+  "dataOnly": 0,
+  "missing": 0,
+  "unsupported": 0,
+  "candidateReachable": 30,
+  "designParity": 30,
+  "effectPositiveCoverage": 30,
+  "negativeCoverage": 30,
+  "zoneIntegrityPass": true,
+  "drawDeterminismPass": true,
+  "shuffleDeterminismPass": true,
+  "privacyPass": true,
+  "idempotencyPass": true,
+  "reconnectPass": true,
+  "luckPass": true,
+  "allInPass": true,
+  "initialAudit": {
+    "head": "37843a9fb3e1334f90c23888b98bda74d08f155c",
+    "MATCH": 0,
+    "IMPLEMENTED_UNVERIFIED": 26,
+    "PARTIAL": 4,
+    "BLOCKED": 0,
+    "MISSING": 0,
+    "partialIds": [
+      "aug-211",
+      "aug-221",
+      "aug-225",
+      "aug-227"
+    ]
+  },
+  "finalAudit": {
+    "MATCH": 30,
+    "IMPLEMENTED_UNVERIFIED": 0,
+    "PARTIAL": 0,
+    "BLOCKED": 0,
+    "MISSING": 0
+  },
+  "c005UniqueExecutable": 91,
+  "globalExecutable001To270": 241,
+  "globalExecutableAll390": 247,
+  "stageDistribution": [
+    3,
+    9,
+    9,
+    9
+  ],
+  "archetypes": {
+    "운명의 승부사": 10,
+    "카드 카운터": 10,
+    "올인": 10
+  },
+  "regressions": {
+    "c005B": 150,
+    "seer": 30,
+    "imp": 30
+  },
+  "evidence": {
+    "implementationHead": "9fdce061126ef7826c98ed59154adf392f6b1bbb",
+    "workflowRun": 37112765803,
+    "runNumber": 837,
+    "testsPassed": 1034,
+    "testsFailed": 0,
+    "checks": "PASS",
+    "smoke": "PASS",
+    "stress": [
+      "T06",
+      "T02",
+      "T00",
+      "T05",
+      "T09",
+      "T04",
+      "T03"
+    ],
+    "replayStress": "100 seeds x 3 builds x 12 turns, twice; PASS"
+  },
+  "sourceIntegrity": {
+    "designBlob": "4b9b2dab17d0a0138abde0aa97a999a39b83a8d4",
+    "betaUnchanged": true,
+    "stableIdsUnchanged": true,
+    "productionUnchanged": true
+  },
+  "tooltipOverlay": {
+    "aug-237": "Structured effectValue/condition overrides stale HP-heal tooltip; runtime/UI reduce penalty by one after actual All-In damage >=8. Source unchanged."
+  },
+  "blockers": [],
+  "FRAMEWORK_BLOCKERS": 0,
+  "RUNTIME_BLOCKERS": 0,
+  "TEST_BLOCKERS": 0,
+  "completionGate": {
+    "requiredHead": "CURRENT_DOCUMENTATION_HEAD",
+    "workflow": "Project Checks",
+    "requiredStatus": "completed",
+    "requiredConclusion": "success",
+    "pendingFlags": false,
+    "successFlags": true
+  },
+  "completionFlags": {
+    "GAMBLER_RUNTIME_COMPLETE": "Evaluate current documentation HEAD Project Checks: completed/success => true; otherwise false",
+    "READY_FOR_PVE_CONTENT_005C_D_GUNSLINGER": "Same CI gate"
+  }
+}

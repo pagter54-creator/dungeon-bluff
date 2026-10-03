@@ -83,6 +83,7 @@ export function consumeAugmentStatus(run,item){
   return true;
 }
 export function recoverPhysicalCard(run,player,cardInstanceId,ctx={}){
+  if(player.characterId==='gambler')return {applied:false,reason:'GAMBLER_REQUIRES_ZONE_ADAPTER'};
   const priv=ctx.privateState||run.combat?.privateByPlayer?.[player.playerId]||run.roomState?.privateByPlayer?.[player.playerId];
   if(!priv||!player.cardPool?.some(card=>card.id===cardInstanceId)||!priv.spentCardIds?.includes(cardInstanceId)||priv.remainingCardIds?.includes(cardInstanceId)||priv.selectedCardId===cardInstanceId||run.combat?.turnSubmissions?.[player.playerId]?.cardInstanceId===cardInstanceId||run.roomState?.turnSubmissions?.[player.playerId]?.cardInstanceId===cardInstanceId)return {applied:false,reason:'CARD_NOT_RECOVERABLE'};
   const depth=integer(ctx.chainDepth??0),ceiling=integer(ctx.recoveryCeiling??4);

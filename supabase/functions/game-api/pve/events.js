@@ -1,7 +1,7 @@
 import {choose} from './rng.js';
 import {selectF1Event,F1_EVENT_DEFINITIONS} from './content-f1.js';
 import {restoreCardCycle,persistCardCycles} from './card-cycle.js';
-import {drawGamblerHand,settleGamblerHand} from './gambler.js';
+import {drawGamblerHand,settleGamblerHand,prepareGamblerAllIn,finalizeGamblerAllIn} from './gambler.js';
 import {selfModifyCard,collisionImmunity,resolveGuardianWallCollisions,isCardSelectableForCharacter,validateCharacterSkillIntent,onTurnStartCharacter,onTurnEndCharacter,onCycleStartCharacter} from './characters.js';
 import {initializeNumberHistories,recordSelfModification,applyPreCollisionSwap,applyPreCollisionSteal,finalizeNumbers,attachCollisionGroups,attachValidity,assignVampireThralls,validateNumberMutationState} from './number-mutation.js';
 import {resolveEventDefinition} from './event-resolution.js';
@@ -84,6 +84,7 @@ export function resolveEventTurn(run){
   });
   const mutationEvents=[],effects=[];
   initializeNumberHistories(cards);
+  for(const card of cards){const player=playerFor(run,card.playerId);if(player?.characterId==='gambler')prepareGamblerAllIn(run,player,room.privateByPlayer[player.playerId],room.turnSubmissions[player.playerId],card);}
   for(const card of cards){const player=playerFor(run,card.playerId),submission=room.turnSubmissions[card.playerId];if(submission.skillIntent)applyOwnedEffects(run,'ON_SKILL_USE',{player,resolved:card,submission,privateState:room.privateByPlayer[card.playerId]});selfModifyCard(player,card,submission);applyOwnedEffects(run,'PRE_COLLISION_SELF_MODIFY',{player,resolved:card,privateState:room.privateByPlayer[card.playerId]});}
   recordSelfModification(cards,mutationEvents);
   for(const card of cards)applyOwnedEffects(run,'PRE_COLLISION',{player:playerFor(run,card.playerId),resolved:card,privateState:room.privateByPlayer[card.playerId]});
@@ -100,13 +101,14 @@ export function resolveEventTurn(run){
   assignVampireThralls(run,cards,groups,effects);
   for(const card of cards)applyOwnedEffects(run,'POST_COLLISION',{player:playerFor(run,card.playerId),resolved:card,submission:room.turnSubmissions[card.playerId],privateState:room.privateByPlayer[card.playerId]});
   attachValidity(cards);
+  for(const card of cards){const player=playerFor(run,card.playerId);if(player?.characterId==='gambler')finalizeGamblerAllIn(run,player,room.privateByPlayer[player.playerId],card);}
   for(const card of cards){const player=playerFor(run,card.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player,resolved:card,privateState:room.privateByPlayer[card.playerId]});applyImpCardValidated(run,{player,resolved:card,cards,events:effects});}
   validateNumberMutationState(run,cards,mutationEvents);
   for(const card of cards){
     const state=room.privateByPlayer[card.playerId];
     const owner=playerFor(run,card.playerId);
     if(owner.characterId==='gambler'){
-      settleGamblerHand(run,owner,state,card.cardInstanceId,card.finalNumber);
+      settleGamblerHand(run,owner,state,card.cardInstanceId,card.finalNumber,{rootActionId:`event:${run.currentRoomNodeId}:${room.eventId}:${card.playerId}:${card.cardInstanceId}`});
       delete state.selectedCardId;delete state.skillIntent;
       continue;
     }

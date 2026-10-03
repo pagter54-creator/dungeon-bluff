@@ -51,7 +51,10 @@ export function finalizeCombatTelemetry(run,outcome='COMBAT_END'){
     down_count:structuredClone(t.downCount),
     flame_spent:Math.max(0,(t.flameStart||0)-run.flame),
     exp_gained:Object.fromEntries(run.players.map(p=>[p.playerId,p.growthExp-(t.expStart[p.playerId]||0)])),
-    run_gold_gained:Object.fromEntries(run.players.map(p=>[p.playerId,p.runGold-(t.goldStart[p.playerId]||0)]))
+    run_gold_gained:Object.fromEntries(run.players.map(p=>[p.playerId,p.runGold-(t.goldStart[p.playerId]||0)])),
+    gambler_runtime:Object.fromEntries(run.players.filter(p=>p.characterId==='gambler').map(p=>[
+      p.playerId,structuredClone(c.privateByPlayer?.[p.playerId]?.telemetry||{})
+    ]))
   };
   queueTelemetry(run,'COMBAT',log);return log;
 }

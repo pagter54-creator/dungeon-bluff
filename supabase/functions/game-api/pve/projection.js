@@ -19,7 +19,7 @@ export function projectRun(run,viewerPlayerId){
   if(!out.combat&&run.cardCycles?.[viewerPlayerId])out.privateCombat=structuredClone(run.cardCycles[viewerPlayerId]);
   if(out.combat?.monster){delete out.combat.monster.mechanic;delete out.combat.monster.behaviorState;delete out.combat.monster.pattern;}
 
-  // Gambler pile counts and composition are public; ordered physical IDs stay private.
+  // Gambler aggregate pile counts/composition may be public; exact order, identities and history stay owner-only.
   for(const player of out.players||[]){
     if(player.characterId!=='gambler')continue;
     const source=run.players.find(p=>p.playerId===player.playerId);
@@ -28,9 +28,14 @@ export function projectRun(run,viewerPlayerId){
     const composition=ids=>Array.from({length:7},(_,i)=>(ids||[]).filter(id=>source.cardPool.find(c=>c.id===id)?.baseNumber===i+1).length);
     const active=value=>source.cardPool.filter(c=>c.baseNumber===value&&!(state.vanishedCardIds||[]).includes(c.id)).length;
     player.gamblerDeck={handCount:(state.remainingCardIds||[]).length,drawCount:(state.drawPileIds||[]).length,discardCount:(state.discardPileIds||[]).length,
+      vanishedCount:(state.vanishedCardIds||[]).length,
       drawComposition:composition(state.drawPileIds),discardComposition:composition(state.discardPileIds),
-      sixProgress:[...(state.sixProgress||[])],sevenProgress:[...(state.sevenProgress||[])],
       sixCount:active(6),sevenCount:active(7),sixMax:active(6)>=2,sevenMax:active(7)>=2};
+    if(player.playerId===viewerPlayerId){
+      player.gamblerDeck.owner={sixProgress:[...(state.sixProgress||[])],sevenProgress:[...(state.sevenProgress||[])],
+        luck:Number(state.luck)||0,specialCharge:Number(state.specialCharge)||0,
+        cardCounter:Number(state.cardCounter)||0,firstDrawAfterShuffle:Boolean(state.firstDrawAfterShuffle)};
+    }
   }
   // Physical card numbers are public; current-cycle usage stays private.
 
@@ -40,7 +45,7 @@ export function projectRun(run,viewerPlayerId){
     }
   }
   if(out.combat?.pendingDownPlayerIds)delete out.combat.pendingDownPlayerIds;
-  for(const result of [out.combat?.publicTurnResult,out.floorTransitionResult?.publicTurnResult].filter(Boolean)){
+  for(const result of [out.combat?.publicTurnResult,out.floorTransitionResult?.publicTurnResult,out.roomState?.publicTurnResult].filter(Boolean)){
     const mutations=result.mutationEvents||[];
     result.presentationMutations=mutations.map(event=>{
       const safe={phase:event.phase,effectId:event.effectId,actorId:event.actorId??null,targetId:event.targetId??null};
@@ -51,6 +56,10 @@ export function projectRun(run,viewerPlayerId){
     delete result.numberHistories;
     delete result.mutationEvents;
     for(const card of result.cards||[]){
+      // All-In partner identities/printed values and borrowed deck information are owner-private.
+      if(card.playerId!==viewerPlayerId){
+        for(const key of ['allInCardIds','allInValues','allInSum','allInRootActionId','gamblerBorrowBonus','doubleDownSecond','allAssets','aug237Reduced'])delete card[key];
+      }
       delete card.numberHistory;
       delete card.stealTargets;
       delete card.dominanceBefore;
