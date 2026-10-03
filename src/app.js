@@ -202,7 +202,7 @@ function pveSkillData(run){
 }
 function pveImpControls(run){
   const player=pvePlayerForUser(run,api.user?.id),augments=player?.augments||[];
-  if(player?.characterId!=='imp'||!augments.includes('aug-191'))return '';
+  if(!['COMBAT','EVENT','REWARD_ROOM'].includes(run.phase)||player?.characterId!=='imp'||!augments.includes('aug-191'))return '';
   const stored=Math.max(0,Number(player.publicResources?.stolenNumber)||0),maxSpend=augments.includes('aug-193')?stored:Math.min(2,stored);
   const spend=Array.from({length:maxSpend+1},(_,n)=>'<button class="button '+(pveImpSpend===n&&!pveImpTradeMode?'primary':'secondary')+'" data-action="pve-imp-spend" data-spend="'+n+'">'+n+' 사용</button>').join('');
   const trade=augments.includes('aug-195')&&stored>=2?'<div><button class="button '+(pveImpTradeMode==='ATTACK'?'primary':'secondary')+'" data-action="pve-imp-trade" data-mode="ATTACK">2 소비 · 다음 유효 +2</button><button class="button '+(pveImpTradeMode==='DEFENSE'?'primary':'secondary')+'" data-action="pve-imp-trade" data-mode="DEFENSE">2 소비 · 다음 직접 피해 -1</button></div>':'';
