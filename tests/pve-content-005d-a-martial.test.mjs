@@ -204,3 +204,7 @@ test('Two Martial suppliers consume only the other owner FIFO unit',()=>{
  martialPacket(f.run,other,rc,2);assert.equal(f.run.combat.martialEnemy.units.length,0);
  assert.notEqual(martialState(f.run,other),f.s);
 });
+
+test('Martial candidate options match stable physical workbook slots without duplicates',()=>{
+ for(let n=271;n<=300;n++){const d=AUGMENT_BY_ID['aug-'+n],offset=(n-271)%10;assert.equal(d.option,offset===0?1:(offset-1)%3+1);assert.equal(augmentCandidates('martial_artist',d.tier,d.build).filter(x=>x.option===d.option&&x.build===d.build).length,1);}
+});
