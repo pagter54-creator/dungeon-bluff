@@ -34,6 +34,15 @@ export function normalizeGamblerState(run,player,state){
   state.history=Array.isArray(state.history)?state.history:[];
   state.processedActions=state.processedActions&&typeof state.processedActions==='object'?state.processedActions:{};
   state.pendingAllIn=state.pendingAllIn||null;
+  state.runtimeOnce=state.runtimeOnce&&typeof state.runtimeOnce==='object'?state.runtimeOnce:{};
+  state.validOrdinaryHistory=Array.isArray(state.validOrdinaryHistory)?state.validOrdinaryHistory:[];
+  state.shuffleOrdinarySeen=Array.isArray(state.shuffleOrdinarySeen)?state.shuffleOrdinarySeen:[];
+  state.countedOrdinary=Array.isArray(state.countedOrdinary)?state.countedOrdinary:[];
+  state.aug214Run=Array.isArray(state.aug214Run)?state.aug214Run:[];
+  state.predictedNumbers=Array.isArray(state.predictedNumbers)?state.predictedNumbers:[];
+  state.weakenedBorrowedIds=Array.isArray(state.weakenedBorrowedIds)?state.weakenedBorrowedIds:[];
+  state.drawPreference=state.drawPreference||null;
+  state.drawChoicePending=state.drawChoicePending||null;
   // Old snapshots had no explicit initial shuffle marker. Keep their current order authoritative.
   if(state.deckInitialized==null)state.deckInitialized=true;
   const all=new Set(player.cardPool.map(c=>c.id));
@@ -52,15 +61,19 @@ export function freshGamblerState(player){
   return {playerId:player.playerId,cycleIndex:0,usesStandardCycle:false,remainingCardIds:[],spentCardIds:[],
     drawPileIds:player.cardPool.map(card=>card.id),discardPileIds:[],vanishedCardIds:[],
     sixProgress:[],sevenProgress:[],drawCount:0,shuffleCount:0,unlockSerial:0,luck:0,specialCharge:0,
-    history:[],processedActions:{},pendingAllIn:null,deckInitialized:false};
+    history:[],processedActions:{},pendingAllIn:null,runtimeOnce:{},validOrdinaryHistory:[],shuffleOrdinarySeen:[],countedOrdinary:[],aug214Run:[],predictedNumbers:[],weakenedBorrowedIds:[],drawPreference:null,drawChoicePending:null,firstDrawAfterShuffle:false,deckInitialized:false};
 }
 function ensureInitialShuffle(run,player,state){
   if(state.deckInitialized)return;
   state.drawPileIds=shuffleIds(run,state.drawPileIds,`gambler-initial-shuffle:${run.floor}:${run.depth}:${run.currentRoomNodeId||'room'}:${player.playerId}`);
-  state.deckInitialized=true;state.shuffleCount++;
+  state.deckInitialized=true;state.shuffleCount++;state.firstDrawAfterShuffle=true;
 }
 function reshuffle(run,player,state){
   if(state.drawPileIds.length||!state.discardPileIds.length)return false;
+  const discardCounts=new Map();
+  for(const id of state.discardPileIds){const value=player.cardPool.find(c=>c.id===id)?.baseNumber;if(Number.isInteger(value))discardCounts.set(value,(discardCounts.get(value)||0)+1);}
+  const maxDiscard=Math.max(0,...discardCounts.values());
+  state.discardMemoryNumber=maxDiscard>=2?[...discardCounts.entries()].filter(([,count])=>count===maxDiscard).sort((a,b)=>a[0]-b[0])[0]?.[0]??null:null;
   state.drawPileIds=shuffleIds(run,state.discardPileIds,`gambler-reshuffle:${run.floor}:${run.depth}:${run.currentRoomNodeId||'room'}:${player.playerId}:${state.shuffleCount}`);
   state.discardPileIds=[];state.shuffleCount++;
   state.sixProgress=[];state.sevenProgress=[];
@@ -69,9 +82,52 @@ function reshuffle(run,player,state){
   state.shuffleOrdinarySeen=[];state.fiveMemoryArmed=false;
   state.sequenceArmed=false;
   state.aug228UsedShuffle=false;state.aug230UsedShuffle=false;
-  state.firstDrawAfterShuffle=true;
+  state.firstDrawAfterShuffle=true;state.drawPreference=null;state.drawChoicePending=null;
   boundedHistory(state,{type:'SHUFFLE',turn:run.combat?.turn||run.roomState?.turn||0,shuffleCount:state.shuffleCount});
   return true;
+}
+
+function predictedFromDeck(player,state){
+  const counts=new Map();
+  for(const id of state.drawPileIds){const value=player.cardPool.find(c=>c.id===id)?.baseNumber;if(value>=1&&value<=5)counts.set(value,(counts.get(value)||0)+1);}
+  const max=Math.max(0,...counts.values());
+  return max?[...counts.entries()].filter(([,count])=>count===max).map(([value])=>value).sort((a,b)=>a-b):[];
+}
+function requiredDrawChoice(player,state){
+  if(!state.firstDrawAfterShuffle)return null;
+  if(player.augments?.includes('aug-230')&&!state.aug230UsedShuffle)return 'AUG_230';
+  if(player.augments?.includes('aug-228')&&!state.aug228UsedShuffle)return 'AUG_228';
+  return null;
+}
+function applyDrawGuarantee(player,state){
+  if(!state.firstDrawAfterShuffle||!state.drawPreference)return;
+  const values=state.drawPreference.values||[];
+  const firstTwo=state.drawPileIds.slice(0,2);
+  const match=id=>values.includes(player.cardPool.find(c=>c.id===id)?.baseNumber);
+  if(values.length&&!firstTwo.some(match)){
+    const idx=state.drawPileIds.findIndex(match);
+    if(idx>=0){const target=Math.min(1,state.drawPileIds.length-1);[state.drawPileIds[target],state.drawPileIds[idx]]=[state.drawPileIds[idx],state.drawPileIds[target]];}
+  }
+  if(state.drawPreference.source==='aug-228')state.aug228UsedShuffle=true;
+  if(state.drawPreference.source==='aug-230')state.aug230UsedShuffle=true;
+  state.drawChoicePending=null;
+}
+export function setGamblerDrawPreference(run,player,state,choice){
+  normalizeGamblerState(run,player,state);
+  const required=requiredDrawChoice(player,state);
+  if(!required||state.drawChoicePending!==required)throw new Error('GAMBLER_DRAW_CHOICE_NOT_AVAILABLE');
+  let values,source;
+  if(required==='AUG_228'){
+    if(choice!=='LOW'&&choice!=='HIGH')throw new Error('GAMBLER_DRAW_RANGE_INVALID');
+    values=choice==='LOW'?[1,2,3]:[3,4,5];source='aug-228';
+  }else{
+    if(!Array.isArray(choice)||choice.length!==3||new Set(choice).size!==3||choice.some(v=>!Number.isInteger(v)||v<1||v>5))throw new Error('GAMBLER_DRAW_NUMBERS_INVALID');
+    values=[...choice].sort((a,b)=>a-b);source='aug-230';
+  }
+  state.drawPreference={source,values};
+  applyDrawGuarantee(player,state);
+  boundedHistory(state,{type:'DRAW_CHOICE',turn:run.combat?.turn||0,source,values:[...values]});
+  return drawGamblerHand(run,player,state);
 }
 function drawOne(run,player,state){
   normalizeGamblerState(run,player,state);ensureInitialShuffle(run,player,state);reshuffle(run,player,state);
@@ -83,13 +139,17 @@ function drawOne(run,player,state){
 }
 export function drawGamblerHand(run,player,state,count=2){
   if(player.characterId!=='gambler')return [];
-  normalizeGamblerState(run,player,state);
+  normalizeGamblerState(run,player,state);ensureInitialShuffle(run,player,state);reshuffle(run,player,state);
+  const required=requiredDrawChoice(player,state);
+  if(required&&!state.drawPreference){state.drawChoicePending=required;state.predictedNumbers=predictedFromDeck(player,state);return [];}
+  applyDrawGuarantee(player,state);
   const drawn=[];
   while(state.remainingCardIds.length<count){
     const cardId=drawOne(run,player,state);
     if(!cardId)break;
     state.remainingCardIds.push(cardId);drawn.push(cardId);
   }
+  if(drawn.length){state.firstDrawAfterShuffle=false;state.drawPreference=null;state.predictedNumbers=predictedFromDeck(player,state);}
   return drawn;
 }
 function registered(player,state,value){
