@@ -22,6 +22,17 @@ function boundedHistory(state,row){
   state.history.push(row);
   if(state.history.length>48)state.history.splice(0,state.history.length-48);
 }
+function recordGamblerAugmentTelemetry(state,augmentId,key='',success=true){
+  state.telemetry=state.telemetry&&typeof state.telemetry==='object'?state.telemetry:{};
+  state.telemetry.augment=state.telemetry.augment&&typeof state.telemetry.augment==='object'?state.telemetry.augment:{};
+  state.processedActions=state.processedActions&&typeof state.processedActions==='object'?state.processedActions:{};
+  const dedupe=key&&`telemetry:${augmentId}:${key}`;
+  if(dedupe&&state.processedActions[dedupe])return false;
+  if(dedupe)state.processedActions[dedupe]=true;
+  const row=state.telemetry.augment[augmentId]||={augmentId,triggerCount:0,successCount:0};
+  row.triggerCount+=1;if(success)row.successCount+=1;
+  return true;
+}
 function shuffleIds(run,ids,key){
   const out=[...ids];
   for(let i=out.length-1;i>0;i--){
