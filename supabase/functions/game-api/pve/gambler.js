@@ -62,6 +62,8 @@ export function normalizeGamblerState(run,player,state){
   state.forcedAutoSubmitNext=Boolean(state.forcedAutoSubmitNext);
   state.aug237Used=Boolean(state.aug237Used);
   state.aug238Used=Boolean(state.aug238Used);
+  state.telemetry=state.telemetry&&typeof state.telemetry==='object'?state.telemetry:{};
+  state.telemetry.drawCount=Number(state.telemetry.drawCount)||0;state.telemetry.vanishCount=Number(state.telemetry.vanishCount)||0;state.telemetry.reshuffleCount=Number(state.telemetry.reshuffleCount)||0;state.telemetry.luckUsed=Number(state.telemetry.luckUsed)||0;state.telemetry.allInAttempt=Number(state.telemetry.allInAttempt)||0;state.telemetry.allInSuccess=Number(state.telemetry.allInSuccess)||0;state.telemetry.allInDamage=Number(state.telemetry.allInDamage)||0;state.telemetry.augment=state.telemetry.augment&&typeof state.telemetry.augment==='object'?state.telemetry.augment:{};
   // Old snapshots had no explicit initial shuffle marker. Keep their current order authoritative.
   if(state.deckInitialized==null)state.deckInitialized=true;
   const all=new Set(player.cardPool.map(c=>c.id));
@@ -80,7 +82,7 @@ export function freshGamblerState(player){
   return {playerId:player.playerId,cycleIndex:0,usesStandardCycle:false,remainingCardIds:[],spentCardIds:[],
     drawPileIds:player.cardPool.map(card=>card.id),discardPileIds:[],vanishedCardIds:[],
     sixProgress:[],sevenProgress:[],drawCount:0,shuffleCount:0,unlockSerial:0,luck:0,specialCharge:0,
-    history:[],processedActions:{},pendingAllIn:null,runtimeOnce:{},validOrdinaryHistory:[],shuffleOrdinarySeen:[],countedOrdinary:[],aug214Run:[],predictedNumbers:[],weakenedBorrowedIds:[],drawPreference:null,drawChoicePending:null,drawPenaltyTurns:0,doubleDownReady:false,forcedAutoSubmitNext:false,aug237Used:false,aug238Used:false,firstDrawAfterShuffle:false,deckInitialized:false};
+    history:[],processedActions:{},pendingAllIn:null,runtimeOnce:{},validOrdinaryHistory:[],shuffleOrdinarySeen:[],countedOrdinary:[],aug214Run:[],predictedNumbers:[],weakenedBorrowedIds:[],drawPreference:null,drawChoicePending:null,drawPenaltyTurns:0,doubleDownReady:false,forcedAutoSubmitNext:false,aug237Used:false,aug238Used:false,telemetry:{drawCount:0,vanishCount:0,reshuffleCount:0,luckUsed:0,allInAttempt:0,allInSuccess:0,allInDamage:0,augment:{}},firstDrawAfterShuffle:false,deckInitialized:false};
 }
 export function initializeGamblerCombat(run,player,state){
   normalizeGamblerState(run,player,state);
@@ -102,7 +104,7 @@ function reshuffle(run,player,state){
   const maxDiscard=Math.max(0,...discardCounts.values());
   state.discardMemoryNumber=maxDiscard>=2?[...discardCounts.entries()].filter(([,count])=>count===maxDiscard).sort((a,b)=>a[0]-b[0])[0]?.[0]??null:null;
   state.drawPileIds=shuffleIds(run,state.discardPileIds,`gambler-reshuffle:${run.floor}:${run.depth}:${run.currentRoomNodeId||'room'}:${player.playerId}:${state.shuffleCount}`);
-  state.discardPileIds=[];state.shuffleCount++;
+  state.discardPileIds=[];state.shuffleCount++;state.telemetry.reshuffleCount++;
   state.sixProgress=[];state.sevenProgress=[];
   state.aug214Run=[];state.aug214TriggeredShuffle=false;
   state.countedOrdinary=[];state.cardCounter=0;state.cardCounterArmed=false;
@@ -160,7 +162,7 @@ function drawOne(run,player,state){
   normalizeGamblerState(run,player,state);ensureInitialShuffle(run,player,state);reshuffle(run,player,state);
   if(!state.drawPileIds.length)return null;
   const cardId=state.drawPileIds.shift();
-  state.drawCount++;
+  state.drawCount++;state.telemetry.drawCount++;
   boundedHistory(state,{type:'DRAW',turn:run.combat?.turn||run.roomState?.turn||0,cardInstanceId:cardId,drawCount:state.drawCount});
   return cardId;
 }
@@ -207,7 +209,7 @@ export function consumeGamblerLuck(run,player,state,rootActionId=''){
   if(state.luck<=0)return false;
   const key=`luck-spend:${rootActionId}`;if(rootActionId&&state.processedActions[key])return false;
   if(rootActionId)state.processedActions[key]=true;
-  state.luck=0;boundedHistory(state,{type:'LUCK_SPEND',turn:run.combat?.turn||0,rootActionId});return true;
+  state.luck=0;state.telemetry.luckUsed++;boundedHistory(state,{type:'LUCK_SPEND',turn:run.combat?.turn||0,rootActionId});return true;
 }
 export function settleGamblerHand(run,player,state,selectedId,finalNumber,{rootActionId=''}={}){
   if(player.characterId!=='gambler')return false;
@@ -221,7 +223,7 @@ export function settleGamblerHand(run,player,state,selectedId,finalNumber,{rootA
   for(const id of [...state.remainingCardIds]){
     const card=player.cardPool.find(c=>c.id===id);
     if(physicallyUsed.has(id)&&card?.baseNumber>=6){
-      if(!state.vanishedCardIds.includes(id))state.vanishedCardIds.push(id);
+      if(!state.vanishedCardIds.includes(id)){state.vanishedCardIds.push(id);state.telemetry.vanishCount++;}
       boundedHistory(state,{type:'VANISH',turn:run.combat?.turn||0,cardInstanceId:id,value:card.baseNumber});
     }else{
       if(!state.discardPileIds.includes(id))state.discardPileIds.push(id);
@@ -242,7 +244,7 @@ export function settleGamblerHand(run,player,state,selectedId,finalNumber,{rootA
   if(wasAllIn&&pending.externalSpecialCardId){
     const id=pending.externalSpecialCardId,card=player.cardPool.find(c=>c.id===id);
     state.drawPileIds=state.drawPileIds.filter(x=>x!==id);state.discardPileIds=state.discardPileIds.filter(x=>x!==id);
-    if(card?.baseNumber>=6&&!state.vanishedCardIds.includes(id))state.vanishedCardIds.push(id);
+    if(card?.baseNumber>=6&&!state.vanishedCardIds.includes(id)){state.vanishedCardIds.push(id);state.telemetry.vanishCount++;}
     boundedHistory(state,{type:'VANISH',turn:run.combat?.turn||0,cardInstanceId:id,value:card?.baseNumber??null,source:'AUG_238'});
   }
   let nextDrawCount=2;
@@ -275,6 +277,7 @@ export function prepareGamblerAllIn(run,player,state,submission,resolved){
   if(!judgment||!partner)throw new Error('GAMBLER_ALL_IN_CARD_MISSING');
   const turn=run.combat?.turn||0;
   const rootActionId=`all-in:${run.combat?.id||run.currentRoomNodeId||'room'}:${turn}:${player.playerId}:${judgmentId}`;
+  if(state.pendingAllIn?.rootActionId===rootActionId){const prior=state.pendingAllIn;if(resolved){resolved.allIn=true;resolved.allInRootActionId=rootActionId;resolved.allInCardIds=[...(prior.cardIds||[])];resolved.allInValues=[...(prior.values||[])];resolved.allInSum=prior.sum;resolved.doubleDownSecond=Boolean(prior.doubleDownSecond);resolved.allAssets=Boolean(prior.allAssets);resolved.gamblerBorrowBonus=Number(prior.borrowBonus)||0;}return prior;}
   const doubleDownSecond=Boolean(hasGamblerAugment(run,player,'aug-235')&&state.doubleDownReady);
   const handOrdinary=[judgment,partner].every(card=>card.baseNumber>=1&&card.baseNumber<=5);
   const specialPool=[...(state.discardPileIds||[]),...(state.drawPileIds||[])]
@@ -298,6 +301,7 @@ export function prepareGamblerAllIn(run,player,state,submission,resolved){
     resolved.allIn=true;resolved.allInRootActionId=rootActionId;resolved.allInCardIds=[...cardIds];resolved.allInValues=[...values];
     resolved.allInSum=state.pendingAllIn.sum;resolved.doubleDownSecond=doubleDownSecond;resolved.allAssets=allAssets;resolved.gamblerBorrowBonus=borrowBonus;
   }
+  state.telemetry.allInAttempt++;
   boundedHistory(state,{type:'ALL_IN_ATTEMPT',turn,rootActionId,cardIds:[...cardIds],judgmentCardId:judgmentId});
   return state.pendingAllIn;
 }
@@ -396,7 +400,7 @@ export function gamblerSetDamage(run,player,state,resolved,damage){
   if(hasGamblerAugment(run,player,'aug-240')&&!state.houseUsed){amount+=8;state.houseUsed=true;}
   amount=Math.max(0,amount+validatedBonus-penalty);
   if(hasGamblerAugment(run,player,'aug-237')&&amount>=8&&!state.aug237Used){state.aug237Used=true;if(state.pendingAllIn)state.pendingAllIn.aug237Reduced=true;resolved.aug237Reduced=true;}
-  state.processedActions[key]=amount;
+  state.processedActions[key]=amount;state.telemetry.allInDamage+=amount;
   boundedHistory(state,{type:'ALL_IN_DAMAGE',turn:run.combat?.turn||0,rootActionId:resolved.allInRootActionId,amount});
   return amount;
 }
@@ -406,6 +410,7 @@ export function finalizeGamblerAllIn(run,player,state,resolved){
   if(state.processedActions[key])return;
   state.processedActions[key]=true;
   if(resolved.valid){
+    state.telemetry.allInSuccess++;
     state.allInWinStreak=hasGamblerAugment(run,player,'aug-239')?Math.min(4,(Number(state.allInWinStreak)||0)+1):0;
     if(hasGamblerAugment(run,player,'aug-235')){if(resolved.doubleDownSecond)state.doubleDownReady=false;else state.doubleDownReady=true;}
   }
