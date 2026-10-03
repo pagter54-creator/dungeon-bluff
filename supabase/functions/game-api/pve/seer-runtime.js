@@ -11,12 +11,15 @@ const root=run=>{
 };
 export function scopedSeerState(run,player){
   const f=framework(run);f.cardState||={};
-  return f.cardState[player.playerId+':seer']||={
+  const defaults={
     resetScope:'COMBAT',ownerId:player.playerId,turnStartRevelation:0,
     activationTurn:null,activationSerial:0,activationResolvedTurn:null,
     foresight:0,foresightStreak:0,prediction:null,predictionSuccessTypes:[],
     repeatedRecoveredNumbers:{},sharedForesight:0
   };
+  const s=f.cardState[player.playerId+':seer']||=structuredClone(defaults);
+  for(const [key,value] of Object.entries(defaults))if(s[key]==null)s[key]=structuredClone(value);
+  return s;
 }
 const owned=(p,id)=>Boolean(p?.augments?.includes(id));
 const inSeerRange=id=>/^aug-(15[1-9]|16\d|17\d|180)$/.test(String(id||''));
