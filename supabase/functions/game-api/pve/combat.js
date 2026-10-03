@@ -1,4 +1,4 @@
-import {gunnerPenetration,gunnerExtraComponent,gunnerState} from './gunner-runtime.js';
+import {gunnerPenetration,gunnerExtraComponent,gunnerState,markGunnerBurstPhase,syncGunnerMagazine} from './gunner-runtime.js';
 import {choose} from './rng.js';
 import {persistCardCycles} from './card-cycle.js';
 import {drawGamblerHand,settleGamblerHand,prepareGamblerAllIn,gamblerSetDamage,finalizeGamblerActualDamage,finalizeGamblerAllIn,applyGamblerValidated,initializeGamblerCombat,cleanupGamblerCombat,prepareGamblerForcedAutoSubmission} from './gambler.js';
@@ -64,6 +64,7 @@ function spendResolvedCards(run,cards,events=[]){
       if(run.combat.turnSubmissions[rc.playerId]?.autoSubmitted&&player.status==='STUNNED_NEXT_TURN')player.status='ACTIVE';
       continue;
     }
+    if(player.characterId==='gunner'&&rc.skillUsed==='full_burst'&&gunnerState(run,player).burstActions?.['gunner:'+run.combat.id+':'+run.combat.turn+':'+player.playerId+':'+rc.cardInstanceId]?.completed)continue;
     const consume=[rc.cardInstanceId,...(rc.followUpCardIds||[])];
     for(const id of consume){
       priv.remainingCardIds=priv.remainingCardIds.filter(x=>x!==id);
@@ -73,6 +74,13 @@ function spendResolvedCards(run,cards,events=[]){
     if(run.combat.turnSubmissions[rc.playerId]?.autoSubmitted&&player.status==='STUNNED_NEXT_TURN')player.status='ACTIVE';
     const rootActionId=`action:${run.combat.id}:${run.combat.turn}:${rc.playerId}:${rc.cardInstanceId}`;
     resetCycleIfNeeded(run,player,events,{reason:(rc.followUpCardIds||[]).length?'FULL_BURST':'NATURAL_EXHAUSTION',rootActionId,recoveryChainId:`recovery:${rootActionId}`,parentEventId:null,chainDepth:1,sourceEffectId:(rc.followUpCardIds||[]).length?'FULL_BURST':'CYCLE_EXHAUSTION'});
+    if(player.characterId==='gunner'){
+      if(rc.skillUsed==='full_burst'){
+        markGunnerBurstPhase(run,player,rc,'MAGAZINE/CYCLE_ADVANCE');markGunnerBurstPhase(run,player,rc,'COOLDOWN/RECHARGE');
+        gunnerState(run,player).burstActions['gunner:'+run.combat.id+':'+run.combat.turn+':'+player.playerId+':'+rc.cardInstanceId].completed=true;
+      }
+      syncGunnerMagazine(run,player);
+    }
   }
   persistCardCycles(run,run.combat.privateByPlayer);
 }
@@ -282,6 +290,7 @@ export function resolveBasicTurn(run){
       packets.push(burstPacket({...q,sourceCardId:q.sourceCardId||rc.cardInstanceId,followUp:true},{resolved:rc,player,followUp:true,parentDamageEventId:primary.damageEventId,baseNumber:q.numberUsed??rc.finalNumber,baseDamage:Number(q.amount)||0}));
     }
     const followSeen=new Set();
+    if(player.characterId==='gunner'&&rc.skillUsed==='full_burst')markGunnerBurstPhase(run,player,rc,'REMAINING_CARD_USE');
     for(const extraId of rc.followUpCardIds||[]){
       if(followSeen.has(extraId)){const error=new Error('Full Burst가 동일 physical card를 두 번 사용했습니다.');error.code='FOLLOW_UP_CARD_DUPLICATE';throw error;}followSeen.add(extraId);
       const extra=cardFor(run,rc.playerId,extraId);if(!extra)continue;
@@ -297,6 +306,7 @@ export function resolveBasicTurn(run){
       if(component)packets.push(burstPacket({...component,sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,tags:['AUG_248_EXTRA_DAMAGE_COMPONENT'],followUp:false},{resolved:rc,player,baseDamage:0,modifierIds:['aug-248']}));
     }
   }
+  for(const rc of cards){const p=playerFor(run,rc.playerId);if(p.characterId==='gunner'&&rc.skillUsed==='full_burst')markGunnerBurstPhase(run,p,rc,'DAMAGE_RESOLUTION');}
   c.monster.defense=0;
   c.phase='DAMAGE_BATCH_APPLY';phaseTrace.push(c.phase);
   const totalDamage=packets.reduce((s,p)=>s+p.amount,0);
@@ -323,7 +333,9 @@ export function resolveBasicTurn(run){
   for(const rc of cards.filter(x=>x.valid))applyPostPlayerAttackCharacter(run,rc,events);
   for(const rc of cards.filter(x=>x.burstMisfire)){
     const p=playerFor(run,rc.playerId);
-    const before=p.hp;p.hp=Math.max(0,p.hp-1);gunnerState(run,p).telemetry.failureSelfDamage+=before-p.hp;
+    const state=gunnerState(run,p),guard='gunner:'+c.id+':'+c.turn+':'+p.playerId+':'+rc.cardInstanceId+':self-damage';
+    if(state.applied[guard])continue;state.applied[guard]=true;
+    const before=p.hp;p.hp=Math.max(0,p.hp-1);state.telemetry.failureSelfDamage+=before-p.hp;
     events.push({type:'FULL_BURST_MISFIRE',playerId:p.playerId,amount:before-p.hp,hp:p.hp,source:'GUNSLINGER_FULL_BURST_FAILURE',damageType:'SELF',canDown:true,minHP:0,timing:'POST_PLAYER_ATTACK'});
   }
   resolveF2AfterDamage(run,events,applyMonsterDamage);
