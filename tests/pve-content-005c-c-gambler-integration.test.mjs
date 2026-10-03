@@ -4,13 +4,13 @@ import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/p
 import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-api/pve/combat.js';
 import {AUGMENT_BY_ID,augmentCandidates} from '../supabase/functions/game-api/pve/augment-catalog.js';
 import {GAMBLER_CONTRACT_IDS,GAMBLER_CONTRACTS} from '../supabase/functions/game-api/pve/gambler-contracts.js';
-import {addGamblerLuck,freshGamblerState,prepareGamblerAllIn,finalizeGamblerAllIn,settleGamblerHand,applyGamblerValidated} from '../supabase/functions/game-api/pve/gambler.js';
+import {addGamblerLuck,freshGamblerState,prepareGamblerAllIn,finalizeGamblerAllIn,settleGamblerHand,applyGamblerValidated,setGamblerDrawPreference} from '../supabase/functions/game-api/pve/gambler.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 
-function make(ids=['gambler','prophet','imp','mage'],augments=[]){
+function make(ids=['gambler','prophet','imp','mage'],augments=[],seed='gambler-int-seed'){
   const players=ids.map((character_id,i)=>newPlayerRunState({id:'p'+i,user_id:'u'+i,character_id,member_type:'human',seat_index:i}));
   players[0].augments=[...augments];
-  const run={id:'gambler-int',seed:'gambler-int-seed',rngCounter:0,version:0,phase:'COMBAT',floor:1,depth:1,flame:4,maxFlame:5,currentRoomNodeId:'gambler-node',players};
+  const run={id:'gambler-int',seed,rngCounter:0,version:0,phase:'COMBAT',floor:1,depth:1,flame:4,maxFlame:5,currentRoomNodeId:'gambler-node',players};
   run.combat=newCombatState(players,999,'NORMAL_COMBAT',{id:'dummy',name:'dummy',tier:'NORMAL',baseHp:999,pattern:[{type:'CHARGE',telegraphText:'wait',payload:{}}]});
   run.combat.id='gambler-int-combat';beginTurn(run);return {run,players,p:players[0]};
 }
@@ -79,4 +79,67 @@ test('005C-C room isolation: aug-231 settles both cards in Event, combat-only Ga
   settleGamblerHand(run,p,state,ids[0],resolved.finalNumber,{rootActionId:'event-isolation'});
   assert.equal(state.remainingCardIds.length,1);
   assert.ok(pending.cardIds.every(id=>state.discardPileIds.includes(id)||state.vanishedCardIds.includes(id)));
+});
+
+function exactGamblerSnapshot(run){
+  const state=priv(run,run.players[0]);return {
+    zones:[state.drawPileIds,state.remainingCardIds,state.discardPileIds,state.vanishedCardIds],
+    history:state.history,sixProgress:state.sixProgress,sevenProgress:state.sevenProgress,
+    shuffleCount:state.shuffleCount,drawCount:state.drawCount,unlockSerial:state.unlockSerial,
+    pendingAllIn:state.pendingAllIn,telemetry:state.telemetry,rngCounter:run.rngCounter
+  };
+}
+function executeFullBuild(run,turns){
+  for(const player of run.players){player.hp=100;player.maxHp=100;}
+  const summaries=[];
+  for(let turn=0;turn<turns;turn++){
+    assert.equal(run.phase,'COMBAT');
+    for(const player of run.players){
+      const state=priv(run,player);
+      if(player.characterId==='gambler'){
+        while(state.drawChoicePending){
+          setGamblerDrawPreference(run,player,state,state.drawChoicePending==='AUG_230'?[1,3,5]:'LOW');
+        }
+        assert.equal(state.usesStandardCycle,false);
+        const ids=[...state.drawPileIds,...state.remainingCardIds,...state.discardPileIds,...state.vanishedCardIds];
+        assert.equal(new Set(ids).size,ids.length);assert.equal(ids.length,player.cardPool.length);
+        assert.ok(state.vanishedCardIds.every(id=>!state.drawPileIds.includes(id)));
+      }
+      if(!run.combat.turnSubmissions[player.playerId])submitCard(run,player.playerId,state.remainingCardIds[0]);
+    }
+    // A passive monster isolates player runtime without balance/golden changes.
+    run.combat.monster.intent={type:'CHARGE',payload:{},telegraphText:'wait'};
+    const result=resolveBasicTurn(run);assert.ok(result);
+    const g=result.cards.find(card=>card.playerId==='p0');
+    if(g.allIn){
+      assert.equal(result.cards.filter(card=>g.allInCardIds.slice(1).includes(card.cardInstanceId)).length,0);
+      const packet=result.damagePackets.find(p=>p.sourcePlayerId==='p0'&&!p.followUp);
+      if(g.valid){assert.ok(packet.tags.includes('SET_DAMAGE'));assert.ok(packet.amount>=0);}
+    }
+    const snapshot=exactGamblerSnapshot(run);assert.ok(snapshot.history.length<=48);
+    const spectator=projectRun(run,null);assert.equal(spectator.privateCombat,null);
+    assert.equal(spectator.players[0].gamblerDeck.owner,undefined);
+    summaries.push({snapshot,result:result.cards.map(c=>({playerId:c.playerId,valid:c.valid,finalNumber:c.finalNumber,damage:c.damage})),totalDamage:result.totalDamage});
+  }
+  return summaries;
+}
+
+for(const build of ['운명의 승부사','카드 카운터','올인']){
+  test('005C-C full '+build+' build executes 12 mixed-party turns and reconnect replay exactly',()=>{
+    const ids=GAMBLER_CONTRACT_IDS.filter(id=>GAMBLER_CONTRACTS[id].archetype===build);
+    const {run}=make(['gambler','prophet','imp','mage'],ids);
+    const reconnected=structuredClone(run);
+    assert.deepEqual(executeFullBuild(run,12),executeFullBuild(reconnected,12));
+  });
+}
+
+test('005C-C deterministic replay stress: 100 seeds x three complete builds x 12 turns',()=>{
+  for(let seed=0;seed<100;seed++){
+    for(const build of ['운명의 승부사','카드 카운터','올인']){
+      const ids=GAMBLER_CONTRACT_IDS.filter(id=>GAMBLER_CONTRACTS[id].archetype===build);
+      const a=make(['gambler','prophet','imp','mage'],ids,'005C-C-replay-'+seed).run;
+      const b=make(['gambler','prophet','imp','mage'],ids,'005C-C-replay-'+seed).run;
+      assert.deepEqual(executeFullBuild(a,12),executeFullBuild(b,12),build+' seed '+seed);
+    }
+  }
 });
