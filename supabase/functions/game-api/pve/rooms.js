@@ -285,7 +285,7 @@ export function resolveRewardAttempt(run){
   for(const c of cards){const player=playerFor(run,c.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player,resolved:c,privateState:room.privateByPlayer[c.playerId],events:[]});applyImpCardValidated(run,{player,resolved:c,cards,events:[]});if(player.characterId==='gambler')applyGamblerValidated(run,player,room.privateByPlayer[c.playerId],c);}
   for(const c of cards){
     const p=playerFor(run,c.playerId),sub=room.turnSubmissions[c.playerId],st=room.privateByPlayer[c.playerId];
-    if(p.characterId==='gunner'&&sub.skillIntent){p.publicResources.fullBurstReady=false;if(c.valid){c.followUpCardIds=st.remainingCardIds.filter(id=>id!==c.cardInstanceId);p.publicResources.burstReadyCycle=(st.cycleIndex||1)+2;}else{p.publicResources.burstReadyCycle=(st.cycleIndex||1)+1;p.hp=Math.max(0,p.hp-1);}}
+    // Combat-only Gunslinger skills never mutate Reward damage, HP or magazine, even in older saved submissions.
     const engrave=Number(p.engravings?.[String(c.finalNumber)])||0;const ordinaryAmount=Math.max(0,baseDamageForCharacter(p,c)+engrave);const primary={amount:ordinaryAmount},queued=[];
     applyOwnedEffects(run,'BEFORE_DAMAGE',{player:p,resolved:c,damage:primary,followUps:queued,followUp:false,privateState:room.privateByPlayer[c.playerId],events:[]});
     applyImpBeforeDamage(run,{player:p,resolved:c,damage:primary,followUp:false,events:[]});
