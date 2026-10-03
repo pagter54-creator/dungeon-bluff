@@ -9,7 +9,7 @@ import {GUNNER_CONTRACTS,GUNNER_CONTRACT_IDS} from '../supabase/functions/game-a
 import {gunnerState,ensureGunnerMagazine,resolveGunnerSelected,gunnerPenetration,gunnerExtraComponent} from '../supabase/functions/game-api/pve/gunner-runtime.js';
 import {AUGMENT_BY_ID,augmentCandidates} from '../supabase/functions/game-api/pve/augment-catalog.js';
 import {EXECUTABLE_AUGMENT_RUNTIME} from '../supabase/functions/game-api/pve/augment-runtime.js';
-import {enterRewardRoom,submitRewardCard} from '../supabase/functions/game-api/pve/rooms.js';
+import {enterRewardRoom,submitRewardCard,resolveRewardAttempt} from '../supabase/functions/game-api/pve/rooms.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 function fixture(ids=[],fourth='mage'){
  const players=['gunner','prophet','imp',fourth].map((character_id,i)=>newPlayerRunState({id:'p'+i,character_id,seat_index:i,member_type:'human'}));
@@ -278,4 +278,13 @@ test('005C-D aug248 uses activation-time remaining count even when an ally recov
  resolveGunnerSelected(x.run,x.p,r,{skillIntent:true});
  assert.equal(r.gunnerExtraCount,3);assert.equal(r.gunnerExtraCountAtActivation,2);
  assert.equal(gunnerExtraComponent(x.run,x.p,r),null);assert.equal(x.s.telemetry.augment['aug-248'],undefined);
+});
+
+test('005C-D saved legacy Reward skill intent cannot trigger Burst, misfire or remaining-card use',()=>{
+ const x=fixture(['aug-241','aug-248']);enterRewardRoom(x.run);
+ for(const p of x.run.players){const st=x.run.roomState.privateByPlayer[p.playerId];submitRewardCard(x.run,p.playerId,st.remainingCardIds[0],false);}
+ x.run.roomState.turnSubmissions.p0.skillIntent=true;
+ const hp=x.p.hp,ready=x.p.publicResources.fullBurstReady;resolveRewardAttempt(x.run);
+ const card=x.run.roomState.publicTurnResult.cards.find(c=>c.playerId==='p0');
+ assert.equal(card.followUpCardIds,undefined);assert.equal(x.p.hp,hp);assert.equal(x.p.publicResources.fullBurstReady,ready);
 });
