@@ -6,10 +6,11 @@ import {EXECUTABLE_AUGMENT_RUNTIME} from '../supabase/functions/game-api/pve/aug
 import {GAMBLER_CONTRACTS,GAMBLER_CONTRACT_IDS} from '../supabase/functions/game-api/pve/gambler-contracts.js';
 import {
   freshGamblerState,normalizeGamblerState,drawGamblerHand,settleGamblerHand,setGamblerDrawPreference,
-  prepareGamblerAllIn,finalizeGamblerAllIn,gamblerSetDamage,finalizeGamblerActualDamage,applyGamblerValidated,initializeGamblerCombat,prepareGamblerForcedAutoSubmission,consumeGamblerLuck
+  prepareGamblerAllIn,finalizeGamblerAllIn,gamblerSetDamage,finalizeGamblerActualDamage,applyGamblerValidated,initializeGamblerCombat,cleanupGamblerCombat,prepareGamblerForcedAutoSubmission,consumeGamblerLuck
 } from '../supabase/functions/game-api/pve/gambler.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
-import {useRewardGamblerLuck} from '../supabase/functions/game-api/pve/rooms.js';
+import {recoverPhysicalCard} from '../supabase/functions/game-api/pve/augment-framework.js';
+import {useRewardGamblerLuck,chooseRewardRelic} from '../supabase/functions/game-api/pve/rooms.js';
 
 const member=(id,character_id,seat_index)=>({id,user_id:'u'+seat_index,member_type:'human',character_id,seat_index});
 function fixture(augments=[]){
@@ -403,4 +404,99 @@ test('005C-C Gambler telemetry is retry-safe for All-In attempt success damage a
   assert.equal(consumeGamblerLuck(x.run,x.p,x.state,'luck-retry'),true);
   assert.equal(consumeGamblerLuck(x.run,x.p,x.state,'luck-retry'),false);
   assert.equal(x.state.telemetry.luckUsed,1);
+});
+
+test('005C-C same physical validation retry preserves damage history resources and counters',()=>{
+  for(const id of GAMBLER_CONTRACT_IDS){
+    const x=fixture([id]);x.state.lastValidSpecial=7;x.state.lastValidCardValue=7;
+    const r=resolvedFor('retry',6,true);
+    const first=applyGamblerValidated(x.run,x.p,x.state,r),snapshot=structuredClone(x.state);
+    assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('retry',6,true)),first,id);
+    assert.deepEqual(x.state,snapshot,id);
+  }
+});
+
+test('005C-C Counter never recounts a used number within the same shuffle and Five Memory cannot rearm',()=>{
+  const x=fixture(['aug-221','aug-227']);
+  for(const v of [1,2,3])applyGamblerValidated(x.run,x.p,x.state,resolvedFor('a'+v,v,true));
+  x.run.combat.turn=2;applyGamblerValidated(x.run,x.p,x.state,resolvedFor('pay',4,true));
+  assert.deepEqual(x.state.countedOrdinary,[1,2,3,4]);assert.equal(x.state.cardCounter,1);
+  x.run.combat.turn=3;applyGamblerValidated(x.run,x.p,x.state,resolvedFor('repeat',1,true));
+  assert.equal(x.state.cardCounter,1);
+  applyGamblerValidated(x.run,x.p,x.state,resolvedFor('five',5,true));
+  assert.equal(x.state.fiveMemoryArmed,true);
+  x.run.combat.turn=4;assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('six',6,true)),4);
+  x.run.combat.turn=5;applyGamblerValidated(x.run,x.p,x.state,resolvedFor('repeat-five',5,true));
+  assert.equal(x.state.fiveMemoryArmed,false);
+  assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('six-again',6,true)),0);
+});
+
+test('005C-C Sequence survives shuffle but ends with combat, exact zone/cycle state persists',()=>{
+  const x=fixture(['aug-225','aug-221']);
+  for(const v of [1,2,3])applyGamblerValidated(x.run,x.p,x.state,resolvedFor('s'+v,v,true));
+  x.state.remainingCardIds=[];x.state.discardPileIds=[...x.state.drawPileIds];x.state.drawPileIds=[];x.state.deckInitialized=true;
+  drawGamblerHand(x.run,x.p,x.state);
+  assert.equal(x.state.sequenceArmed,true);
+  x.state.luck=1;x.state.pendingAllIn={rootActionId:'pending'};x.state.doubleDownReady=true;
+  x.run.cardCycles={p0:structuredClone(x.state)};
+  const zones=['drawPileIds','remainingCardIds','discardPileIds','vanishedCardIds'];
+  const before=Object.fromEntries(zones.map(k=>[k,structuredClone(x.state[k])]));
+  cleanupGamblerCombat(x.run,x.p);
+  for(const k of zones)assert.deepEqual(x.state[k],before[k]);
+  assert.equal(x.state.sequenceArmed,false);assert.equal(x.state.pendingAllIn,null);assert.equal(x.state.doubleDownReady,false);assert.equal(x.state.luck,0);
+  assert.deepEqual(x.run.cardCycles.p0,x.state);
+});
+
+test('005C-C owner ally spectator projection strips partner IDs/values in combat and floor transition results',()=>{
+  const x=fixture(['aug-231','aug-221']),[a,b]=setHand(x,[2,5]),r=resolvedFor(a,2,true);
+  prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);
+  x.run.combat.publicTurnResult={cards:[r]};x.run.floorTransitionResult={publicTurnResult:{cards:[structuredClone(r)]}};
+  const owner=projectRun(x.run,'p0');assert.deepEqual(owner.privateCombat.remainingCardIds,[a,b]);assert.deepEqual(owner.combat.publicTurnResult.cards[0].allInCardIds,[a,b]);
+  for(const viewer of ['p1',null]){
+    const out=projectRun(x.run,viewer),text=JSON.stringify(out);
+    assert.equal(out.players[0].gamblerDeck.owner,undefined);
+    assert.equal(text.includes(b),false);assert.equal(text.includes('allInValues'),false);assert.equal(text.includes('pendingAllIn'),false);assert.equal(text.includes('drawPileIds'),false);assert.equal(text.includes('history'),false);
+    assert.equal(out.players[0].gamblerDeck.handCount,2);
+  }
+});
+
+test('005C-C Reward Luck reconnect persists chosen benefit and closes window without reroll',()=>{
+  const x=fixture(['aug-211']);x.run.phase='REWARD_ROOM';x.state.luck=1;
+  x.run.roomState={type:'REWARD_ROOM',attempt:1,pickOrder:['p0','p1'],privateByPlayer:{p0:x.state},gamblerLuckWindows:{},relicIds:['r1','r2'],picks:{}};
+  const before=structuredClone(x.run.roomState.relicIds);
+  assert.equal(useRewardGamblerLuck(x.run,'p0','SPECIAL','reconnect-luck'),true);
+  assert.equal(x.run.cardCycles.p0.specialCharge,1);assert.equal(x.run.cardCycles.p0.luck,0);
+  const restored=structuredClone(x.run);
+  assert.deepEqual(restored.roomState.relicIds,before);
+  assert.equal(useRewardGamblerLuck(restored,'p0','SPECIAL','reconnect-luck'),false);
+  assert.equal(restored.roomState.privateByPlayer.p0.specialCharge,1);
+  chooseRewardRelic(restored,'p0','r1');
+  assert.equal(restored.roomState.gamblerLuckWindows.p0.phase,'CONFIRMED');
+  assert.equal(useRewardGamblerLuck(restored,'p0','ATTACK','after-confirm'),false);
+  assert.deepEqual(restored.players[0].relics,['r1']);
+});
+
+test('005C-C generic SPENT recovery rejects Gambler including VANISHED specials and ordinary cards',()=>{
+  const x=fixture(),special=x.p.cardPool.find(c=>c.baseNumber===6).id,ordinary=x.p.cardPool[0].id;
+  x.state.vanishedCardIds=[special];x.state.drawPileIds=x.state.drawPileIds.filter(id=>id!==special);
+  // Even an old malformed standard-cycle snapshot cannot bypass the zone adapter.
+  x.state.spentCardIds=[special,ordinary];
+  for(const id of [special,ordinary])assert.equal(recoverPhysicalCard(x.run,x.p,id,{privateState:x.state}).applied,false);
+  assert.deepEqual(x.state.vanishedCardIds,[special]);
+});
+
+test('005C-C Event Shop Rest cannot advance combat counting or consume armed damage',()=>{
+  for(const phase of ['EVENT','SHOP','REST','REWARD_ROOM']){
+    const x=fixture(['aug-212','aug-214','aug-220','aug-221','aug-225','aug-227']);x.run.phase=phase;
+    x.state.sequenceArmed=true;x.state.cardCounterArmed=true;x.state.fiveMemoryArmed=true;
+    for(const v of [1,2,3,4,5,6,7])assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('r'+v,v,true)),0);
+    assert.equal(x.state.sequenceArmed,true);assert.equal(x.state.cardCounterArmed,true);assert.equal(x.state.fiveMemoryArmed,true);
+    assert.deepEqual(x.state.validOrdinaryHistory,[]);assert.equal(x.state.specialCharge,0);
+  }
+});
+
+test('005C-C history normalization is bounded and duplicate physical zone IDs are rejected',()=>{
+  const x=fixture();x.state.history=Array.from({length:100},(_,i)=>({i}));
+  normalizeGamblerState(x.run,x.p,x.state);assert.equal(x.state.history.length,48);assert.equal(x.state.history[0].i,52);
+  x.state.remainingCardIds=[x.state.drawPileIds[0]];assert.throws(()=>normalizeGamblerState(x.run,x.p,x.state),/GAMBLER_ZONE_INTEGRITY/);
 });
