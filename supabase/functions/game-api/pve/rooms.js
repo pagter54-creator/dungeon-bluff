@@ -2,7 +2,7 @@ import {adventurerShopPrice} from './adventurer-runtime.js';
 import {choose,drawIndex} from './rng.js';
 import {selfModifyCard,collisionImmunity,resolveGuardianWallCollisions,isCardSelectableForCharacter,validateCharacterSkillIntent,onCycleStartCharacter,onTurnStartCharacter,onTurnEndCharacter,initializeCombatCharacter,baseDamageForCharacter} from './characters.js';
 import {restoreCardCycle,persistCardCycles} from './card-cycle.js';
-import {drawGamblerHand,settleGamblerHand,prepareGamblerAllIn,gamblerSetDamage,finalizeGamblerAllIn,applyGamblerValidated,consumeGamblerLuck} from './gambler.js';
+import {drawGamblerHand,settleGamblerHand,prepareGamblerAllIn,finalizeGamblerAllIn,applyGamblerValidated,consumeGamblerLuck} from './gambler.js';
 import {initializeNumberHistories,recordSelfModification,applyPreCollisionSwap,applyPreCollisionSteal,finalizeNumbers,attachCollisionGroups,attachValidity,assignVampireThralls,validateNumberMutationState} from './number-mutation.js';
 import {applyOwnedEffects} from './effects.js';
 import {cleanupAugmentScope} from './augment-framework.js';
@@ -284,7 +284,7 @@ export function resolveRewardAttempt(run){
   for(const c of cards){
     const p=playerFor(run,c.playerId),sub=room.turnSubmissions[c.playerId],st=room.privateByPlayer[c.playerId];
     if(p.characterId==='gunner'&&sub.skillIntent){p.publicResources.fullBurstReady=false;if(c.valid){c.followUpCardIds=st.remainingCardIds.filter(id=>id!==c.cardInstanceId);p.publicResources.burstReadyCycle=(st.cycleIndex||1)+2;}else{p.publicResources.burstReadyCycle=(st.cycleIndex||1)+1;p.hp=Math.max(0,p.hp-1);}}
-    const engrave=Number(p.engravings?.[String(c.finalNumber)])||0;const ordinaryAmount=Math.max(0,baseDamageForCharacter(p,c)+engrave);const primary={amount:p.characterId==='gambler'?gamblerSetDamage(run,p,st,c,ordinaryAmount):ordinaryAmount},queued=[];
+    const engrave=Number(p.engravings?.[String(c.finalNumber)])||0;const ordinaryAmount=Math.max(0,baseDamageForCharacter(p,c)+engrave);const primary={amount:ordinaryAmount},queued=[];
     applyOwnedEffects(run,'BEFORE_DAMAGE',{player:p,resolved:c,damage:primary,followUps:queued,followUp:false,privateState:room.privateByPlayer[c.playerId],events:[]});
     applyImpBeforeDamage(run,{player:p,resolved:c,damage:primary,followUp:false,events:[]});
     c.damage=Math.max(0,primary.amount)+queued.reduce((s,x)=>s+Math.max(0,Number(x.amount)||0),0);
