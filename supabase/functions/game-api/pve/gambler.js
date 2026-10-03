@@ -317,6 +317,7 @@ export function applyGamblerValidated(run,player,state,resolved){
   let bonus=0;
   const onceTurn=(id)=>{const k=`${id}:turn:${turn}`;if(state.runtimeOnce[k])return false;state.runtimeOnce[k]=true;return true;};
   if(!valid){
+    if(hasGamblerAugment(run,player,'aug-214'))state.aug214Run=[];
     if(resolved?.allIn)state.allInFailedThisTurn=true;
     return 0;
   }
@@ -338,6 +339,7 @@ export function applyGamblerValidated(run,player,state,resolved){
     if(hasGamblerAugment(run,player,'aug-219')&&!state.aug219Used){bonus+=7;state.aug219Used=true;}
   }
   if([6,7].includes(value)){
+    if(hasGamblerAugment(run,player,'aug-214'))state.aug214Run=[];
     if(hasGamblerAugment(run,player,'aug-211'))addGamblerLuck(run,player,state,`valid:${run.combat?.id||run.currentRoomNodeId||'room'}:${turn}:${resolved.cardInstanceId}`);
     if(hasGamblerAugment(run,player,'aug-216')&&state.aug216Cycle!==state.shuffleCount){state.specialCharge=(Number(state.specialCharge)||0)+1;state.aug216Cycle=state.shuffleCount;}
     if(hasGamblerAugment(run,player,'aug-217')&&state.lastValidSpecial&&state.lastValidSpecial!==value&&onceTurn('aug-217'))bonus+=3;
