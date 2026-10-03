@@ -208,6 +208,20 @@ function pveImpControls(run){
   const trade=augments.includes('aug-195')&&stored>=2?'<div><button class="button '+(pveImpTradeMode==='ATTACK'?'primary':'secondary')+'" data-action="pve-imp-trade" data-mode="ATTACK">2 소비 · 다음 유효 +2</button><button class="button '+(pveImpTradeMode==='DEFENSE'?'primary':'secondary')+'" data-action="pve-imp-trade" data-mode="DEFENSE">2 소비 · 다음 직접 피해 -1</button></div>':'';
   return '<section class="pve-context-panel"><h3>훔친 숫자 · '+stored+'</h3><p class="muted">제출 전에 이번 카드에 사용할 양을 정합니다.</p>'+spend+trade+'</section>';
 }
+function pveGamblerCounterPanel(run){
+  const player=pvePlayerForUser(run,api.user?.id),state=run.privateCombat,deck=player?.gamblerDeck;
+  if(player?.characterId!=='gambler'||state?.playerId!==player.playerId||!deck)return '';
+  const hasCounter=(player.augments||[]).includes('aug-221'),hasPrediction=(player.augments||[]).includes('aug-224');
+  if(!hasCounter&&!hasPrediction)return '';
+  const composition=values=>(values||[]).map((count,i)=>count?String(i+1)+'×'+count:null).filter(Boolean).join(' · ')||'없음';
+  const counter=hasCounter
+    ? '<p><b>덱</b> '+composition(deck.drawComposition)+'</p><p><b>버림패</b> '+composition(deck.discardComposition)+'</p><p><b>카운트</b> '+Number(deck.owner?.cardCounter||0)+' / 3</p>'
+    : '';
+  const prediction=hasPrediction
+    ? '<p><b>다음 드로우 예상</b> '+((state.predictedNumbers||state.currentPrediction||[]).join(' · ')||'계산 중')+'</p>'
+    : '';
+  return '<section class="pve-context-panel"><div class="eyebrow">CARD COUNTER · PRIVATE</div>'+counter+prediction+'</section>';
+}
 function pveGamblerDrawChoiceControls(run){
   const player=pvePlayerForUser(run,api.user?.id),state=run.privateCombat;
   if(run.phase!=='COMBAT'||player?.characterId!=='gambler'||state?.playerId!==player.playerId||!state.drawChoicePending)return '';
@@ -224,7 +238,7 @@ function renderPveGameplay(run,{presentation=null}={}){
   const adaptedBundle=pveGameplayBundle(bundle,run,{scope:'combat'}),players=pveGameplayPlayers(bundle,run,{scope:'combat'}),member=mine(),mePlayer=players[member?.id];
   const stage=pveStageModel(run),monster=presentation?.monsterBefore||run.combat?.monster,intent=run.combat?.monster?.intent;
   const locked=Boolean((run.combat?.readyPlayerIds||[]).includes(member?.id));
-  app.innerHTML=pveTopMarkup(run)+(presentation?'':pveImpControls(run)+pveGamblerDrawChoiceControls(run))+((run.phase==='COMBAT'&&pvePlayerForUser(run,api.user?.id)?.augments?.includes('aug-020')&&!presentation)?'<section class="pve-context-panel"><h3>이번 장비 선택</h3>'+[['LOW','방어'],['UTILITY','탐험'],['WEAPON','무기']].map(([id,label])=>'<button class="button '+(pveEquipmentChoice===id?'primary':'secondary')+'" data-action="pve-equipment-choice" data-category="'+id+'">'+label+'</button>').join('')+'</section>':'')+sharedEncounterMarkup({categoryLabel:PVE_ROOM_LABELS[run.combat?.roomType]||'COMBAT',name:monster?.name||stage.name,subtitle:stage.subtitle,color:stage.color,enemyArt:pveEncounterArt(run),monster:monster?{...monster,boss:run.combat?.roomType==='BOSS',imminent:!presentation&&intent?.type&&!['CHARGE','DEFEND'].includes(intent.type)}:null,turnIndex:presentation?.turnIndex||run.combat?.turn||1,revealing:Boolean(presentation),threatLabel:run.combat?.roomType==='BOSS'?'BOSS PATTERN':'THREAT',threatValue:run.combat?.roomType==='BOSS'?'Ⅲ':'Ⅱ',threatDetail:presentation?'판정 중':'행동 예고',intentLabel:presentation?'◇ 카드 판정':intent?.type?'⚠ '+intent.type:'◇ 몬스터 의도',intentText:presentation?'동시 공개 결과를 판정하고 있습니다.':intent?.telegraphText||'몬스터의 행동을 주시하세요.',bossStatus:monster?.presentation?.statusText||''})+pveRelicStripMarkup(bundle,run)+'<section class="party-grid">'+partyPanels(adaptedBundle,players,{me:member,result:presentation,selected:pveSelected,useSkill:pveUseSkill,statLabel:'EXP'})+'</section>'+(presentation?'':mobileSelection(mePlayer,{result:null,locked,selected:pveSelected,useSkill:pveUseSkill,twoCards:false}));
+  app.innerHTML=pveTopMarkup(run)+(presentation?'':pveImpControls(run)+pveGamblerCounterPanel(run)+pveGamblerDrawChoiceControls(run))+((run.phase==='COMBAT'&&pvePlayerForUser(run,api.user?.id)?.augments?.includes('aug-020')&&!presentation)?'<section class="pve-context-panel"><h3>이번 장비 선택</h3>'+[['LOW','방어'],['UTILITY','탐험'],['WEAPON','무기']].map(([id,label])=>'<button class="button '+(pveEquipmentChoice===id?'primary':'secondary')+'" data-action="pve-equipment-choice" data-category="'+id+'">'+label+'</button>').join('')+'</section>':'')+sharedEncounterMarkup({categoryLabel:PVE_ROOM_LABELS[run.combat?.roomType]||'COMBAT',name:monster?.name||stage.name,subtitle:stage.subtitle,color:stage.color,enemyArt:pveEncounterArt(run),monster:monster?{...monster,boss:run.combat?.roomType==='BOSS',imminent:!presentation&&intent?.type&&!['CHARGE','DEFEND'].includes(intent.type)}:null,turnIndex:presentation?.turnIndex||run.combat?.turn||1,revealing:Boolean(presentation),threatLabel:run.combat?.roomType==='BOSS'?'BOSS PATTERN':'THREAT',threatValue:run.combat?.roomType==='BOSS'?'Ⅲ':'Ⅱ',threatDetail:presentation?'판정 중':'행동 예고',intentLabel:presentation?'◇ 카드 판정':intent?.type?'⚠ '+intent.type:'◇ 몬스터 의도',intentText:presentation?'동시 공개 결과를 판정하고 있습니다.':intent?.telegraphText||'몬스터의 행동을 주시하세요.',bossStatus:monster?.presentation?.statusText||''})+pveRelicStripMarkup(bundle,run)+'<section class="party-grid">'+partyPanels(adaptedBundle,players,{me:member,result:presentation,selected:pveSelected,useSkill:pveUseSkill,statLabel:'EXP'})+'</section>'+(presentation?'':mobileSelection(mePlayer,{result:null,locked,selected:pveSelected,useSkill:pveUseSkill,twoCards:false}));
   bindEventArtFallback(app);
   for(const p of Object.values(players))if(p.knockedOut)void setKnockoutPose(app.querySelector('[data-player="'+p.memberId+'"]'),true);
   if(pveMapOpen&&!presentation)app.insertAdjacentHTML('beforeend',pveMapOverlayMarkup(run,api.user?.id,{visitedNodes:[...pveVisitedNodes]}));
