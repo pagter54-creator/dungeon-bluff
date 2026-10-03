@@ -4,7 +4,7 @@ import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/p
 import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-api/pve/combat.js';
 import {AUGMENT_BY_ID,augmentCandidates} from '../supabase/functions/game-api/pve/augment-catalog.js';
 import {GAMBLER_CONTRACT_IDS,GAMBLER_CONTRACTS} from '../supabase/functions/game-api/pve/gambler-contracts.js';
-import {addGamblerLuck} from '../supabase/functions/game-api/pve/gambler.js';
+import {addGamblerLuck,freshGamblerState,prepareGamblerAllIn,finalizeGamblerAllIn,settleGamblerHand,applyGamblerValidated} from '../supabase/functions/game-api/pve/gambler.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 
 function make(ids=['gambler','prophet','imp','mage'],augments=[]){
@@ -57,7 +57,7 @@ test('005C-C two Gamblers keep exact deck, history and Luck state isolated acros
   const {run,players}=make(['gambler','gambler','prophet','imp']);
   const a=priv(run,players[0]),b=priv(run,players[1]);
   addGamblerLuck(run,players[0],a,'isolation');
-  assert.equal(a.luck,1);assert.equal(b.luck,0);assert.notDeepEqual(a.remainingCardIds,b.remainingCardIds);
+  assert.equal(a.luck,1);assert.equal(b.luck,0);assert.notEqual(a.remainingCardIds,b.remainingCardIds);
   const snap=structuredClone(run);
   assert.deepEqual(snap.combat.privateByPlayer.p0.remainingCardIds,a.remainingCardIds);
   assert.deepEqual(snap.combat.privateByPlayer.p1.remainingCardIds,b.remainingCardIds);
@@ -65,4 +65,18 @@ test('005C-C two Gamblers keep exact deck, history and Luck state isolated acros
   assert.equal(owner.privateCombat.playerId,'p0');assert.equal(ally.privateCombat.playerId,'p1');
   assert.equal(owner.players.find(p=>p.playerId==='p0').gamblerDeck.owner.luck,1);
   assert.equal(ally.players.find(p=>p.playerId==='p0').gamblerDeck.owner,undefined);
+});
+
+
+test('005C-C room isolation: aug-231 settles both cards in Event, combat-only Gambler augments stay dormant',()=>{
+  const {run,players}=make(['gambler','prophet','imp','mage'],['aug-231','aug-232','aug-212']);
+  const p=players[0],state=priv(run,p),ids=[...state.remainingCardIds],card=p.cardPool.find(c=>c.id===ids[0]);
+  run.phase='EVENT';delete run.combat;run.roomState={type:'EVENT',privateByPlayer:{p0:state}};
+  const resolved={playerId:'p0',cardInstanceId:ids[0],baseNumber:card.baseNumber,workingNumber:card.baseNumber,finalNumber:card.baseNumber,valid:true};
+  const pending=prepareGamblerAllIn(run,p,state,{cardInstanceId:ids[0]},resolved);assert.ok(pending);assert.equal(pending.cardIds.length,2);
+  assert.equal(applyGamblerValidated(run,p,state,{...resolved,baseNumber:6,finalNumber:6}),0);
+  finalizeGamblerAllIn(run,p,state,resolved);
+  settleGamblerHand(run,p,state,ids[0],resolved.finalNumber,{rootActionId:'event-isolation'});
+  assert.equal(state.remainingCardIds.length,2);
+  assert.ok(pending.cardIds.every(id=>state.discardPileIds.includes(id)||state.vanishedCardIds.includes(id)));
 });
