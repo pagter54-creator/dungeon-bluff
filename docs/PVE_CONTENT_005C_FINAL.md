@@ -54,7 +54,7 @@ GitHub 직접 수정. [Draft PR #23](https://github.com/pagter54-creator/dungeon
 |36|full archetype builds|각 archetype10장을 동시에 소유하여 총12 full build 검증. 실제 Seer 즉시 스킬/아군 복구/예언도 실행.|
 |37|candidate progression|12개 class/build 실제4단계. 모든120카드 개별 취득 가능; 임계값 직전/도달/완료·중복 처리.|
 |38|AI augment progression|실제 선택 경계 호출과 seed replay, 네 직업 모두 4단계 취득/빌드 lock. EXP750 일괄 도달은 기존 경계 반복 처리 의미 유지.|
-|39|Full Expedition RUN_CLEAR|실제 API로 네005C직업 파티 및 Mage 포함005B+005C 파티 각각 Floor1/2/3/final boss/RUN_CLEAR.|
+|39|Full Expedition RUN_CLEAR|실제 API로 네005C직업 파티 및 Mage 포함005B+005C 파티 각각 Floor1/2/3/final boss/RUN_CLEAR. 실제 계시 복구와 aug151 성공 trigger 필수.|
 |40|Expedition reconnect|각 파티 F1_COMBAT /F3_MAP_ENTRY 두 번 getState. 실제 특수 state 상세 복원은 개별/혼합 파티 검사 병행.|
 |41|settlement|실제 PGlite SQL/API REWARD-PVE-01/04/05/06: authoritative runGold,RP0,rewards_committed,동일요청 정산 once.|
 |42|failure path|기존005-006 Flame0+전원DOWN→RUN_FAILED 및 SQL REWARD-PVE-02 Gold0/RP불변/정산 once.|
