@@ -158,7 +158,9 @@ test('005C-C aug-211 Reward Luck is server-authoritative, once-only, and closes 
   assert.equal(x.state.luck,0);assert.equal(x.state.luckDamageArmed,true);
   assert.equal(useRewardGamblerLuck(x.run,'p0','ATTACK','luck-action'),false);
   x.state.luck=1;x.run.roomState.gamblerLuckWindows.p0.phase='CONFIRMED';
-  assert.throws(()=>useRewardGamblerLuck(x.run,'p0','SPECIAL','late'),/행운 사용 창/);
+  assert.equal(useRewardGamblerLuck(x.run,'p0','SPECIAL','late'),false);
+  const y=fixture(['aug-211']);y.run.phase='REWARD_ROOM';y.state.luck=1;y.run.roomState={type:'REWARD_ROOM',attempt:1,pickOrder:[],privateByPlayer:{p0:y.state},gamblerLuckWindows:{}};
+  assert.equal(useRewardGamblerLuck(y.run,'p0','ATTACK','before-presentation'),false);
 });
 
 test('005C-C aug-235 Double Down enables exactly one second All-In and failed second hand becomes forced auto submit',()=>{
@@ -220,9 +222,9 @@ test('005C-C actual positive/negative effect matrix covers aug-211..240 30/30',(
   const runCase=(id,positiveCase,negativeCase)=>{positiveCase();covered.add(id);negativeCase();negative.add(id);};
 
   runCase('aug-211',()=>{
-    const x=fixture(['aug-211']),six=x.p.cardPool.find(c=>c.baseNumber===6);applyGamblerValidated(x.run,x.p,x.state,resolvedFor(six.id,6,true));assert.equal(x.state.luck,1);
+    const x=fixture(['aug-211']),six=x.p.cardPool.find(c=>c.baseNumber===6);x.run.phase='REWARD_ROOM';applyGamblerValidated(x.run,x.p,x.state,resolvedFor(six.id,6,true));assert.equal(x.state.luck,1);
   },()=>{
-    const x=fixture(['aug-211']),six=x.p.cardPool.find(c=>c.baseNumber===6);applyGamblerValidated(x.run,x.p,x.state,resolvedFor(six.id,6,false));assert.equal(x.state.luck,0);
+    const x=fixture(['aug-211']),six=x.p.cardPool.find(c=>c.baseNumber===6);applyGamblerValidated(x.run,x.p,x.state,resolvedFor(six.id,6,true));assert.equal(x.state.luck,0);
   });
   runCase('aug-212',()=>{
     const x=fixture(['aug-212']),r=resolvedFor('six',6,true);const before=x.state.specialCharge;assert.equal(applyGamblerValidated(x.run,x.p,x.state,r),2);assert.equal(x.state.specialCharge,before+1);
