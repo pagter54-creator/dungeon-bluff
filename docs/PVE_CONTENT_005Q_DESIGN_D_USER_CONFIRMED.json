@@ -23,12 +23,165 @@
       "doesNotReclassifyBetaV01AsSourceExplicit": true,
       "runtimeImplemented": false,
       "interpretationBoundary": "The user confirmed the effect identity, threshold and combat scope. Selection among simultaneous allied attacks and reservation ordering must be specified in the subsequent complete contract; this decision record does not silently choose them."
+    },
+    {
+      "selectedOption": "USER_CONFIRMED",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "sourceClassification": "USER_CONFIRMED",
+      "doesNotReclassifyBetaV01AsSourceExplicit": true,
+      "runtimeImplemented": false,
+      "decisionId": "D02",
+      "ruleId": "VAMPIRE_THRALL_MARK_OWNER_SCOPED",
+      "topic": "Vampire multi-thrall policy",
+      "confirmedRule": {
+        "maxActiveMarksPerOwner": 1,
+        "sharedTargetAcrossOwners": true,
+        "identityFields": [
+          "ownerVampireId",
+          "thrallPlayerId",
+          "sourceAugmentOrBase",
+          "active",
+          "createdRootActionId"
+        ],
+        "consumeAndReplaceScope": "OWNER_VAMPIRE_ONLY",
+        "reapplyWhileUnconsumed": false,
+        "excludeOwnerFromTargetCandidates": true,
+        "targetRule": "HIGHEST_SCORE_AMONG_ELIGIBLE_PLAYERS_EXCLUDING_OWNER",
+        "tieRule": [
+          "EARLIEST_LOBBY_SEAT",
+          "PLAYER_ID"
+        ],
+        "simultaneousCreation": "Each Vampire independently computes its target from the same collision result; another owner's mark does not exclude that target.",
+        "reconnectRule": "Restore the persisted owner/target relationship without reselection."
+      }
+    },
+    {
+      "selectedOption": "USER_CONFIRMED",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "sourceClassification": "USER_CONFIRMED",
+      "doesNotReclassifyBetaV01AsSourceExplicit": true,
+      "runtimeImplemented": false,
+      "decisionId": "D03",
+      "ruleId": "DEVOUR_THRESHOLD_OVERFLOW_CARRY",
+      "topic": "Ghost Swordsman Devour threshold overflow",
+      "confirmedRule": {
+        "defaultThreshold": 8,
+        "levelsGained": "floor((oldDevour + gainedDevour) / threshold)",
+        "newDevour": "(oldDevour + gainedDevour) % threshold",
+        "sourceLevelCap": "Apply an existing source-defined level cap if present; this patch introduces no level cap.",
+        "perLevelUp": [
+          "Increase Ghost Slash level by 1 subject to an existing source cap.",
+          "Rearm Ghost Slash if already used and inactive."
+        ],
+        "multipleThresholdsPerAtomicGain": true,
+        "reactivationRepresentation": "BOOLEAN_NO_DUPLICATE_ACTIVATIONS",
+        "persistenceScope": "RUN",
+        "combatEndRule": "Retain Devour remainder.",
+        "idempotencyRule": "Do not apply the same atomic Devour gain more than once.",
+        "examples": [
+          {
+            "oldDevour": 7,
+            "gainedDevour": 3,
+            "threshold": 8,
+            "levelsGained": 1,
+            "remainder": 2
+          },
+          {
+            "oldDevour": 15,
+            "gainedDevour": 2,
+            "threshold": 8,
+            "levelsGained": 2,
+            "remainder": 1
+          }
+        ]
+      }
+    },
+    {
+      "selectedOption": "USER_CONFIRMED",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "sourceClassification": "USER_CONFIRMED",
+      "doesNotReclassifyBetaV01AsSourceExplicit": true,
+      "runtimeImplemented": false,
+      "decisionId": "D04",
+      "ruleId": "TWINS_PARITY_CHECK_ON_PRINTED_CARD_SELECTION",
+      "topic": "Twins parity eligibility phase",
+      "confirmedRule": {
+        "checkNumber": "PHYSICAL_CARD_PRINTED_BASE_NUMBER",
+        "timingPhases": [
+          "CARD_SELECTION",
+          "CARD_SUBMISSION"
+        ],
+        "ordering": [
+          "PRINTED_PARITY_ELIGIBILITY",
+          "SELF_MODIFY",
+          "PRE_COLLISION_SWAP",
+          "PRE_COLLISION_STEAL",
+          "FINAL_NUMBER"
+        ],
+        "illegalSubmissionRule": "Reject at the server before submission; later number modification cannot legalize an illegal printed card.",
+        "finalNumberParityRule": "A parity change after legal submission does not invalidate the submitted card.",
+        "classification": "INPUT_ELIGIBILITY_NOT_FINAL_NUMBER_VALIDITY",
+        "recoveryRule": "Recovery ignores parity and preserves cardInstanceId; later selection rechecks current required parity against printed number.",
+        "acrobaticsRule": "A parity flip immediately updates selection validation.",
+        "reconnectRule": "Restore persisted required parity and cycle state without reseeding or rerolling.",
+        "specialIntegerRule": "Use ordinary integer parity, including 0 and 6, when explicitly present in the Twins pool; an explicit augment override takes precedence.",
+        "examples": [
+          {
+            "requiredParity": "ODD",
+            "printedNumber": 3,
+            "finalNumber": 4,
+            "submissionLegal": true
+          },
+          {
+            "requiredParity": "ODD",
+            "printedNumber": 2,
+            "plannedModification": 1,
+            "submissionLegal": false
+          }
+        ]
+      }
     }
   ],
-  "remainingDecisionBundles": [
-    "D02",
-    "D03",
-    "D04"
+  "remainingDecisionBundles": [],
+  "readyForRuntime": false,
+  "unresolvedPriorQuestions": [
+    {
+      "questionId": "VAMPIRE_COMMAND_AVAILABILITY_303_308",
+      "previousQuestionLabel": "D02",
+      "affected": [
+        "aug-303",
+        "aug-308"
+      ],
+      "status": "UNRESOLVED",
+      "reason": "The new D02 confirms mark ownership, but does not define Blood Command cooldown/additional-use semantics."
+    },
+    {
+      "questionId": "VAMPIRE_307_COLLISION_PROTECTION_MEANING",
+      "previousQuestionLabel": "D03",
+      "affected": [
+        "aug-307"
+      ],
+      "status": "UNRESOLVED",
+      "reason": "The new D03 confirms Devour overflow, but does not choose between collision validity protection and incoming-damage mitigation."
+    },
+    {
+      "questionId": "GHOST_TRANSFORMATION_ACTIVATION_PHASE",
+      "previousQuestionLabel": "D04",
+      "affected": [
+        "aug-351",
+        "aug-352",
+        "aug-353",
+        "aug-354",
+        "aug-355",
+        "aug-356",
+        "aug-357",
+        "aug-358",
+        "aug-359",
+        "aug-360"
+      ],
+      "status": "UNRESOLVED",
+      "reason": "The new D04 confirms Twins input eligibility, but does not specify manual versus automatic transformation activation."
+    }
   ],
-  "readyForRuntime": false
+  "decisionIdentityRule": "Use ruleId as canonical identity. User-provided D02-D04 labels refer to the topics recorded here, not the differently worded prior questions."
 }
