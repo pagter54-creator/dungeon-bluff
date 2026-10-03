@@ -2,13 +2,13 @@
 
 GitHub 직접 수정. [Draft PR #23](https://github.com/pagter54-creator/dungeon-bluff/pull/23). 기준은 PR22의 최종 문서 HEAD와 Project Checks #887 성공입니다.
 
-## 현재 상태: DESIGN_BLOCKED — 최종 수락 불가
+## 현재 상태: 사용자 보완 규칙 반영 / 최종 검증 진행 중
 
-실제 신규 전투에서 Seer는 계시0으로 시작합니다. 스킬은 계시1을 소비하며, DESIGN-C는 스킬 활성화 턴의 유효 성공 후 +1만 명시합니다. 복구·예언 기반 추가 획득도 첫 스킬 사용을 전제로 하므로 첫 계시를 얻는 경로가 없습니다. 첫 계시 지급 또는 일반 공격 획득을 추가하면 새로운 게임플레이 규칙이 됩니다. 요청문의 STOP / DESIGN_BLOCKER 조건에 따라 사용자 결정 전에는 추가하지 않습니다.
+SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED는 사용자 결정으로 해소했습니다. executionRuleSource=USER_CONFIRMED_005C_FINAL_PATCH, ruleId=SEER_COMBAT_START_REVELATION_1.
 
-[Project Checks #923](https://github.com/pagter54-creator/dungeon-bluff/actions/runs/37122453711): 1408 tests /1406 PASS /2 FAIL /0 SKIP. 두 원정 경로는 RUN_CLEAR에 도달했지만 실제 계시 발동0으로 필수 증강발동 검사를 실패했습니다. 500seed8개 job은 test 실패에 따라 실행되지 않았습니다. 이전 seeded 단위 테스트나 등록 수를 live 수락 증거로 대체하지 않습니다.
+매 전투 초기 Revelation=1, 최대3입니다. +1 획득이 아니라 초기값 대입이며 이전 전투 값을 이월하지 않습니다. 일반 공격 획득은 추가하지 않습니다. 활성화 턴 valid/pass의 +1, collision/invalid의 +0, 증강별 획득·환급은 기존 계약을 유지합니다. 재접속은 저장된 authoritative 값을 복원하며 초기화를 다시 실행하지 않습니다. DESIGN-C 원본은 변경하거나 source-explicit으로 재분류하지 않습니다.
 
-PVE_CONTENT_005C_FINAL_ACCEPTED=false /MERGE_RECOMMENDED=false /READY_FOR_PVE_CONTENT_005D_DESIGN=false.
+이전 #923의 1406/1408 결과는 보완 전 역사적 실패입니다. 보완 후 정확한 현재 HEAD의 전체 검증과 8개500seed 결과가 필요합니다. 완료 flag는 검증 전까지 false입니다.
 
 ## 완료 게이트
 
@@ -51,7 +51,7 @@ DESIGN/RUNTIME/TEST 차단이 모두0이고, 이 문서가 포함된 **현재 HE
 |25|room applicability|120장 DESIGN-C 5방 행렬 동일성 + 각 금지 방 실제 CARD_VALIDATED/BEFORE_DAMAGE gate. Reward Luck/허용 회복·저장숫자 예외는 기존 테스트.|
 |26|tooltip parity|120개 실제 UI description과 실행 contract overlay 일치. source 대신 overlay가 필요한 기존237/248/253/257 의미 보존.|
 |27|telemetry sanity|실제 trigger/success 기록 유지; 최신2048 진단행과 정확한 누적 counter 병행.2400 이벤트 반복 검사.|
-|28|Seer final acceptance|30 등록/개별 seeded 효과검사 존재. 실제 계시0 시작의 첫 자원 경로 미명시로 live acceptance BLOCKED.|
+|28|Seer final acceptance|사용자 확정 초기값1 적용; 실제 발동과 30장 회귀를 현재 HEAD에서 재검증.|
 |29|Imp final acceptance|30 실제 효과/피해/저장숫자/장난 회귀. 여러 폭발 대상의 진단키 충돌 수정; 전투 밖 보너스 차단.|
 |30|Gambler final acceptance|30 실제 효과/물리6·7 VANISHED/셔플/All-In/Luck/정확한 deck/history 복원 회귀.|
 |31|Gunner final acceptance|30 실제 효과/물리탄창/단계/derived packet/Heat/관통/실패SELF/DOWN 회귀.|
@@ -59,21 +59,21 @@ DESIGN/RUNTIME/TEST 차단이 모두0이고, 이 문서가 포함된 **현재 HE
 |33|aug-253 confirmed rule|충돌로 잃을 armed activation만 combat once 보존; 같은cycle 만료/복원. HP감소보호/setup/accuracy/weakness 보존 효과 아님. USER_CONFIRMED_005C_D_PATCH.|
 |34|mixed-party matrix|A Seer/Imp/Gambler/Gunner; B Seer/Imp/Knight/Gunner; C Mage/Imp/Gambler/Gunner; D Seer/Rogue/Gambler/Gunner; E Knight/Imp/Gambler/Gunner. 각3 build ×16턴 복원 재생.|
 |35|same-class party isolation|2Seer/2Imp/2Gambler/2Gunner 각24턴; 고유 물리ID/독립 영역/소유자별 기록/복원 동일성.|
-|36|full archetype builds|12 owned full build 재생검사 존재. Seer 3개라인의 자연 시작 스킬발동은 BLOCKED; seeded 검사로 수락 대체하지 않음.|
+|36|full archetype builds|12 owned full build와 Seer 초기값1에서 실제 스킬발동·복원 재생 검증.|
 |37|candidate progression|12개 class/build 실제4단계. 모든120카드 개별 취득 가능; 임계값 직전/도달/완료·중복 처리.|
 |38|AI augment progression|실제 선택 경계 호출과 seed replay, 네 직업 모두 4단계 취득/빌드 lock. EXP750 일괄 도달은 기존 경계 반복 처리 의미 유지.|
-|39|Full Expedition RUN_CLEAR|두 파티의 원정 경로는 RUN_CLEAR 도달. 필수 실제 Seer augment trigger는0으로 FAIL.|
+|39|Full Expedition RUN_CLEAR|보완 후 두 파티의 RUN_CLEAR 및 실제 계시/aug151 발동 재검증.|
 |40|Expedition reconnect|각 파티 F1_COMBAT /F3_MAP_ENTRY 두 번 getState. 실제 특수 state 상세 복원은 개별/혼합 파티 검사 병행.|
 |41|settlement|실제 PGlite SQL/API REWARD-PVE-01/04/05/06: authoritative runGold,RP0,rewards_committed,동일요청 정산 once.|
 |42|failure path|기존005-006 Flame0+전원DOWN→RUN_FAILED 및 SQL REWARD-PVE-02 Gold0/RP불변/정산 once.|
 |43|boss kill + wipe priority|기존CONTENT003 final boss 사망 동시 전원wipe/Flame0→RUN_FAILED 우선, finalSummary없음.|
 |44|abandon path|실제 SQL REWARD-PVE-03 및 last-human departure ABANDONED Gold0/RP불변/once.|
-|45|npm test|#923:1408 tests /1406 PASS /2 FAIL /0 SKIP. 두 실제 원정 Seer 발동 검사 실패.|
-|46|npm run check|최종 실패 HEAD에서는 실행 안 됨. 이전 구현HEAD 성공을 최종 gate로 사용하지 않음.|
-|47|stress smoke|최종 실패 HEAD에서는 실행 안 됨.|
-|48|final500 stress|미실행. test 실패로8개500seed job skipped.4000seed 성공을 주장하지 않음.|
-|49|hard failure count|최종500seed hard failure는 미측정. 발견한 실원정 Seer 발동불가1건은 release blocker.|
-|50|stress warnings|최종500seed warning 미수집. 기존 경고를 최종 결과처럼 표시하지 않음.|
+|45|npm test|현재 HEAD 검증 진행 중. 정확한 결과는 PR 본문에 기록.|
+|46|npm run check|현재 HEAD 검증 진행 중. 정확한 결과는 PR 본문에 기록.|
+|47|stress smoke|현재 HEAD 검증 진행 중. 정확한 결과는 PR 본문에 기록.|
+|48|final500 stress|현재 HEAD 검증 진행 중. 정확한 결과는 PR 본문에 기록.|
+|49|hard failure count|현재 HEAD 검증 진행 중. 정확한 결과는 PR 본문에 기록.|
+|50|stress warnings|현재 HEAD 검증 진행 중. 정확한 결과는 PR 본문에 기록.|
 |51|performance sanity|effect dispatch는 소유 augment/relic 기준; trigger당120장 전체 조회 없음. 기존 turn/action ceiling 및500seed 실행. 이 작업은 성능 benchmark 자체를 주장하지 않음.|
 |52|memory/state sanity|Gambler history<=48, 반복80 combat2400 이벤트 후 diagnostic<=2048, 누적count2400유지; 완료 prediction/Mischief/Burst/custom claim/action receipt 정리.|
 |53|backward compatibility|실제 Gunner/Seer/Imp partial snapshot 필드 복원 검사 + 기존 Gambler normalize 및 전체직업 reconnect. Heat/armed/once/stack 보존; 명시적 origin mismatch만취소.|
@@ -84,13 +84,13 @@ DESIGN/RUNTIME/TEST 차단이 모두0이고, 이 문서가 포함된 **현재 HE
 |58|BETA / stable ID / golden|BETA원본행·stablecatalog·golden 불변. DESIGN-C/005Q/catalog/T02/T06 Git blob hash 실제 테스트.|
 |59|production deploy / DB mutation|0 /0 /schema0. Draft FINAL branch는 production release job 조건에 해당하지 않음. SQL 검사는 독립 PGlite.|
 |60|documentation|PVE_CONTENT_005C_FINAL.md /_AUDIT.json /_MATRIX.json|
-|61|Project Checks CI|#923 /run37122453711 completed/failure. 최종 blocked 문서HEAD의 CI는 별도로 기록; success 아님.|
-|62|RELEASE_BLOCKERS|1: SEER_BOOTSTRAP_RESOURCE_UNSPECIFIED.|
-|63|DESIGN_BLOCKERS|1: 첫 계시 획득/지급 원천이 DESIGN-C에 없음. 사용자 실행 규칙 필요; STOP.|
-|64|RUNTIME_BLOCKERS|1: fresh Seer COMBAT revelation0에서 첫 스킬이 도달불가. DESIGN 결정 의존.|
-|65|TEST_BLOCKERS|2 bundle: 두 원정의 실제 Seer trigger FAIL, 최종8개500seed 미실행.|
-|66|BALANCE_WARNING_005C_FINAL|미측정(최종500seed 미실행). 밸런스 튜닝 없음.|
-|67|PVE_CONTENT_005C_FINAL_ACCEPTED|false — DESIGN_BLOCKED.|
+|61|Project Checks CI|현재 HEAD 검증 진행 중. 정확한 결과는 PR 본문에 기록.|
+|62|RELEASE_BLOCKERS|최종 CI 게이트 검증 대기.|
+|63|DESIGN_BLOCKERS|0 — USER_CONFIRMED_005C_FINAL_PATCH로 첫 계시 규칙 확정.|
+|64|RUNTIME_BLOCKERS|보완 후 실제 runtime 검증 대기.|
+|65|TEST_BLOCKERS|전체 테스트와8개500seed 검증 대기.|
+|66|BALANCE_WARNING_005C_FINAL|최종500seed 실제 결과 수집 예정; 튜닝 없음.|
+|67|PVE_CONTENT_005C_FINAL_ACCEPTED|false — 현재 HEAD 검증 전.|
 |68|MERGE_RECOMMENDED|false — Draft 유지, merge 없음.|
 |69|READY_FOR_PVE_CONTENT_005D_DESIGN|false —005D 진행하지 않음.|
 
