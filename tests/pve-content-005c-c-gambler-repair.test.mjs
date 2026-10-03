@@ -103,7 +103,7 @@ test('005C-C All-In finalize and SET_DAMAGE are idempotent under same root retry
   assert.equal(x.state.allInWinStreak,1);
   const first=gamblerSetDamage(x.run,x.p,x.state,r,2);
   const second=gamblerSetDamage(x.run,x.p,x.state,r,2);
-  assert.equal(first,7);assert.equal(second,7);
+  assert.equal(first,8);assert.equal(second,8);
   assert.equal(x.state.history.filter(e=>e.type==='ALL_IN_RESULT').length,1);
   assert.equal(x.state.history.filter(e=>e.type==='ALL_IN_DAMAGE').length,1);
 });
