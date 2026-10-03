@@ -14,9 +14,9 @@ export function gunnerState(run,p){
 function fire(s,id){
   const row=s.telemetry.augment[id]||={augmentId:id,triggerCount:0,successCount:0};row.triggerCount++;row.successCount++;
 }
-function once(run,p,s,id){
+function once(run,p,s,id,r=null){
   const contract=GUNNER_CONTRACTS[id];const scope=contract.onceScope;
-  const key=id+':'+(scope==='ONCE_PER_COMBAT'?'combat':scope==='ONCE_PER_TURN'?'turn:'+turn(run):'cycle:'+cycle(run,p));
+  const key=id+':'+(scope==='ONCE_PER_COMBAT'?'combat':scope==='ONCE_PER_TURN'?'turn:'+turn(run):scope==='ONCE_PER_BURST'?'burst:'+root(run,p,r):'cycle:'+cycle(run,p));
   if(scope==='NONE')return true;if(s.once[key])return false;s.once[key]=true;return true;
 }
 function heat(run,p,s,delta){
@@ -157,7 +157,7 @@ export function applyGunnerRuntime(run,trigger,ctx={}){
     }
     if(trigger==='BEFORE_DAMAGE'&&r?.valid&&ctx.damage){
       let bonus=0;
-      const add=(id,n,condition=true)=>{if(owns(p,id)&&condition&&once(run,p,s,id)){bonus+=n;fire(s,id);}};
+      const add=(id,n,condition=true)=>{if(owns(p,id)&&condition&&once(run,p,s,id,r)){bonus+=n;fire(s,id);}};
       if(ctx.followUp){
         if(r.fullBurstOutcome==='SUCCESS'&&owns(p,'aug-242')&&s.extraBonusRoot!==root(run,p,r)){s.extraBonusRoot=root(run,p,r);s.extraBonusCount=0;}
         if(r.fullBurstOutcome==='SUCCESS'&&owns(p,'aug-242')&&s.extraBonusCount<3){bonus++;s.extraBonusCount++;fire(s,'aug-242');}
