@@ -1,0 +1,25 @@
+{
+  "target": 30,
+  "registered": 30,
+  "executableVerified": 0,
+  "implementedUnverified": 18,
+  "partial": 1,
+  "blocked": 11,
+  "candidateReachable": "NOT_VERIFIED",
+  "effectPositiveCoverage": "NOT_RUN",
+  "negativeCoverage": "NOT_RUN",
+  "zoneIntegrityPass": "NOT_RUN",
+  "deckDeterminismPass": "NOT_RUN",
+  "privacyPass": "NOT_RUN",
+  "allInPass": "NOT_RUN",
+  "reconnectPass": "NOT_RUN",
+  "blockers": [
+    "aug-216/220/223/224/228/229/230/235/236/237/238 require remaining runtime/UI/state hooks",
+    "aug-211 Reward presentation -> Luck decision -> final confirm hook is not yet wired",
+    "owner-only Card Counter projection requires dedicated regression verification",
+    "no local npm test/check/stress execution was available in this chat after Work handoff was declined",
+    "final documentation-head Project Checks not verified"
+  ],
+  "GAMBLER_RUNTIME_COMPLETE": false,
+  "READY_FOR_PVE_CONTENT_005C_D_GUNSLINGER": false
+}
