@@ -131,7 +131,7 @@ test('seer Revelation caps at three, collisions do not gain, and cycle changes p
   p.characterRuntimeState.revelationStacks=3;resolveTurn(g,submit(g,[3,3,3,5]));assert.equal(p.characterRuntimeState.revelationStacks,3);
   startCycle(p,p.character);assert.equal(p.characterRuntimeState.revelationStacks,3);
   p.characterRuntimeState.revelationStacks=2;const request={session_id:g.id,turn_index:g.turn_index};
-  activateSkill(g,members[0],'u0',request,[]);resolveTurn(g,submit(g,[1,2,3,4]));assert.equal(p.characterRuntimeState.revelationStacks,2);
+  activateSkill(g,members[0],'u0',request,[]);resolveTurn(g,submit(g,[1,2,4,3]));assert.equal(p.characterRuntimeState.revelationStacks,2);
 });
 test('imp steals numbers before collision, including newly created collisions',()=>{
   const {g}=setup(['imp','adventurer','warrior','mage']);
