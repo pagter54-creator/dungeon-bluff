@@ -80,6 +80,7 @@ export function prepareImpSubmission(run,p,skillData=null){
   if(owned(p,'aug-195')&&impRoomAllowed(run,'aug-195')&&data.impTradeMode!=null){
     tradeMode=String(data.impTradeMode).toUpperCase();if(!['ATTACK','DEFENSE'].includes(tradeMode))throw new Error('INVALID_IMP_TRADE_MODE');
     const have=clampStored(p);if(have<2)throw new Error('INSUFFICIENT_STOLEN_NUMBER');
+    if(!claim(run,p,'aug-195','choice'))throw new Error('AUGMENT_ONCE_PER_TURN_CONSUMED');
     p.publicResources.stolenNumber=have-2;
     if(tradeMode==='ATTACK')addBuff(run,{sourceAugmentId:'aug-195',ownerId:p.playerId,targetId:p.playerId,amount:2,validFromTurn:turn(run)});
     else scopedImpState(run,p).directReduction=(scopedImpState(run,p).directReduction||0)+1;
