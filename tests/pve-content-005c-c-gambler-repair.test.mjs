@@ -78,7 +78,7 @@ test('005C-C Card Counter and sequence bonuses arm now and pay on the next valid
   r=resolvedFor('c',3);assert.equal(applyGamblerValidated(x.run,x.p,x.state,r),0);
   assert.equal(x.state.cardCounterArmed,true);assert.equal(x.state.sequenceArmed,true);
   r=resolvedFor('d',4);assert.equal(applyGamblerValidated(x.run,x.p,x.state,r),5);
-  assert.equal(Boolean(x.state.cardCounterArmed),false);assert.equal(x.state.sequenceArmed,false);
+  assert.equal(Boolean(x.state.cardCounterArmed),false);assert.equal(Boolean(x.state.sequenceArmed),false);
 });
 
 test('005C-C All-In only judges selected card, consumes both physical cards, and vanishes used 6',()=>{
@@ -278,7 +278,7 @@ test('005C-C actual positive/negative effect matrix covers aug-211..240 30/30',(
     ()=>{const x=fixture(['aug-224']);x.state.currentPrediction=[2,3];assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('p',4,true)),0);});
   runCase('aug-225',()=>{
     const x=fixture(['aug-225']);for(const v of [1,2,3])applyGamblerValidated(x.run,x.p,x.state,resolvedFor('q'+v,v,true));assert.equal(x.state.sequenceArmed,true);x.run.combat.turn=2;assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('pay',5,true)),3);
-  },()=>{const x=fixture(['aug-225']);for(const v of [1,3,5])applyGamblerValidated(x.run,x.p,x.state,resolvedFor('q'+v,v,true));assert.equal(x.state.sequenceArmed,false);});
+  },()=>{const x=fixture(['aug-225']);for(const v of [1,3,5])applyGamblerValidated(x.run,x.p,x.state,resolvedFor('q'+v,v,true));assert.equal(Boolean(x.state.sequenceArmed),false);});
   runCase('aug-226',()=>{
     const x=fixture(['aug-226']);let last=0;for(const [i,v] of [1,1,2,3,4].entries()){x.run.combat.turn=i+1;last=applyGamblerValidated(x.run,x.p,x.state,resolvedFor('h'+i,v,true));}assert.equal(last,2);
   },()=>{
