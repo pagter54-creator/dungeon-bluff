@@ -5,6 +5,7 @@ import {GAME_MODE,roomGameMode} from '../game-mode.js';
 import {beginEntryLoading,finishEntryLoading} from '../entry-loading.js';
 import {generateFloorMap,connectedNodeIds,resolveVote} from './map.js';
 import {restoreCardCycle} from './card-cycle.js';
+import {setGamblerDrawPreference} from './gambler.js';
 import {projectRun} from './projection.js';
 import {submitCard,resolveBasicTurn,beginTurn} from './combat.js';
 import {activateImmediateCharacterSkill} from './characters.js';
@@ -217,6 +218,11 @@ export async function handlePveAction({admin,user,body,json}){
     if(run.phase!=='COMBAT')return fail(json,'현재 전투 중이 아닙니다.');
     activateImmediateCharacterSkill(run,me,body.skill_data??null);
     applyOwnedEffects(run,'ON_SKILL_USE',{player:me,skillData:body.skill_data??null});
+  } else if(action==='pve.gamblerDrawChoice'){
+    if(run.phase!=='COMBAT'||run.combat?.phase!=='SELECTION_OPEN')return fail(json,'현재 도박사 드로우 선택 단계가 아닙니다.');
+    if(me.memberType!=='human'||me.characterId!=='gambler')return fail(json,'도박사 플레이어만 드로우 선택을 할 수 있습니다.',403);
+    const state=run.combat?.privateByPlayer?.[me.playerId];if(!state)return fail(json,'도박사 상태를 찾을 수 없습니다.',409);
+    try{setGamblerDrawPreference(run,me,state,body.choice);}catch(error){return fail(json,error.message||'드로우 선택을 적용할 수 없습니다.',409);}
   } else if(action==='pve.submitCard'){
     if(run.phase!=='COMBAT')return fail(json,'현재 전투 중이 아닙니다.');
     if(typeof body.card_instance_id!=='string')return fail(json,'card_instance_id가 필요합니다.');
