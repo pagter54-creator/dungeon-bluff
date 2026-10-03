@@ -175,7 +175,7 @@ test('revelation activation commits once under concurrent retries and exposes on
  await db.query('update public.game_sessions set state=$1 where id=$2',[JSON.stringify(session.state),session.id]);
  const params={room_id,session_id:session.id,turn_index:session.turn_index,member_id:owner.id};
  const responses=await Promise.all([api(a,'activate_skill',params),api(a,'activate_skill',params)]);
- for(const r of responses){assert.equal(r.status,200,r.error);assert.equal(r.session.state.players[owner.id].characterRuntimeState.revelationStacks,0);assert.equal(r.privateState.revealedCards.length,2);}
+ for(const r of responses){assert.equal(r.status,200,r.error);assert.equal(r.session.state.players[owner.id].characterRuntimeState.revelationStacks,0);assert.equal(r.privateState.revealedCards.length,0);}
  assert.equal((await api(b,'activate_skill',params)).status,400);
  const version=responses[0].room.version;
  const repeated=await api(a,'activate_skill',params);assert.equal(repeated.room.version,version);
@@ -183,8 +183,7 @@ test('revelation activation commits once under concurrent retries and exposes on
  const card=session.state.players[peer.id].cycleCards[0];
  const locked=await api(b,'submit_card',{...params,member_id:peer.id,card_id:card.id});assert.equal(locked.status,200,locked.error);
  assert.deepEqual(locked.privateState.revealedCards,[]);
- const seen=await api(a,'get_room_state',{room_id});assert.equal(seen.privateState.revealedCards.length,3);
- assert.ok(seen.privateState.revealedCards.some(c=>c.memberId===peer.id&&c.value===card.value));
+ const seen=await api(a,'get_room_state',{room_id});assert.equal(seen.privateState.revealedCards.length,0);
  assert.ok(!JSON.stringify(seen.session.state).includes('revealedCards'));
  const mine=player.cycleCards[0];
  await api(a,'submit_card',{...params,card_id:mine.id});
@@ -334,25 +333,23 @@ test('character selection authorizes self and host AI only, permits duplicates, 
   assert.equal((await api(2,'set_character',{room_id:lobby.room.id,member_id:me.id,character_id:'imp'})).status,400);
 });
 
-test('seer responses reveal only entitled current submissions, never broadcast or another caller', async () => {
+test('base Seer responses keep current submissions hidden even if legacy reveal state is injected', async () => {
   const state=await api(2,'get_room_state');const me=state.members.find(m=>m.user_id===users[2]), other=state.members.find(m=>m.user_id===users[3]);
   const ai=state.members.find(m=>m.member_type==='ai');const session=state.session;
-  session.state.players[me.id].characterRuntimeState={revealTargets:[ai.id,other.id],revealExpiresTurn:session.turn_index};
+  session.state.players[me.id].characterRuntimeState={revelationStacks:1,revealTargets:[ai.id,other.id],revealExpiresTurn:session.turn_index};
   await db.query('update public.game_sessions set state=$1 where id=$2',[JSON.stringify(session.state),session.id]);
-  const aiSubmission=(await db.query('select * from public.turn_submissions where session_id=$1 and member_id=$2 and turn_index=$3',[session.id,ai.id,session.turn_index])).rows[0];
-  const seen=await api(2,'get_room_state');assert.deepEqual(seen.privateState.revealedCards,[{memberId:ai.id,value:aiSubmission.card_value}]);
+  const seen=await api(2,'get_room_state');assert.deepEqual(seen.privateState.revealedCards,[]);
   const hidden=await api(3,'get_room_state',{room_id:state.room.id,member_id:me.id});assert.deepEqual(hidden.privateState.revealedCards,[]);
   assert.ok(!JSON.stringify(seen.session.state).includes('revealedCards'));assert.ok(!JSON.stringify(seen.session.state).includes('card_value'));
   const card=session.state.players[other.id].cycleCards[0];
   const submitted=await api(3,'submit_card',{room_id:state.room.id,session_id:session.id,turn_index:session.turn_index,member_id:other.id,card_id:card.id,use_skill:false});
   assert.equal(submitted.status,200,submitted.error);assert.deepEqual(submitted.privateState.revealedCards,[]);
-  const next=await api(2,'get_room_state');assert.equal(next.privateState.revealedCards.length,2);
-  assert.ok(next.privateState.revealedCards.some(c=>c.memberId===other.id&&c.value===card.value));
+  const next=await api(2,'get_room_state');assert.deepEqual(next.privateState.revealedCards,[]);
   const messages=(await db.query('select payload from realtime.messages')).rows;
   assert.ok(!JSON.stringify(messages).includes('revealedCards'));assert.ok(!JSON.stringify(messages).includes('card_value'));
   const mine=next.session.state.players[me.id].cycleCards[0];
   await api(2,'submit_card',{room_id:state.room.id,session_id:session.id,turn_index:session.turn_index,member_id:me.id,card_id:mine.id,use_skill:false});
-  const expired=await api(2,'get_room_state');assert.deepEqual(expired.privateState.revealedCards,[]);assert.deepEqual(expired.privateState.revealTargets,[]);
+  const expired=await api(2,'get_room_state');assert.deepEqual(expired.privateState.revealedCards,[]);
 });
 
 test('room expiry preserves connected rooms, closes abandoned sessions and releases membership', async () => {
@@ -804,7 +801,7 @@ test('amplification persists effective number and level atomically, retries and 
   assert.equal((await api(ids[0],'submit_card',{...body,amplify_level:3})).status,400);
   const responses=await Promise.all([1,2].map(()=>api(ids[0],'submit_card',body)));assert.ok(responses.every(r=>r.status===200),JSON.stringify({responses:responses.map(r=>({status:r.status,error:r.error})),rows:(await db.query('select card_value,use_skill,amplify_level from public.turn_submissions where session_id=$1',[session])).rows}));
   const stored=(await db.query('select card_value,amplify_level,card_id from public.turn_submissions where session_id=$1 and member_id=$2',[session,members[0].id])).rows[0];assert.equal(stored.card_value,6);assert.equal(stored.amplify_level,2);assert.equal(stored.card_id,card.id);
-  const vision=await api(ids[1],'activate_skill',{room_id:room.id,session_id:session,turn_index:1,member_id:members[1].id});assert.equal(vision.privateState.revealedCards.find(c=>c.memberId===members[0].id).value,6);
+  const vision=await api(ids[1],'activate_skill',{room_id:room.id,session_id:session,turn_index:1,member_id:members[1].id});assert.deepEqual(vision.privateState.revealedCards,[]);
   const before=await api(ids[0],'get_room_state',{room_id:room.id});const after=await api(ids[0],'get_room_state',{room_id:room.id});assert.equal(before.room.version,after.room.version);assert.equal(after.session.state.players[members[0].id].characterRuntimeState.mana,4);
   for(let i=1;i<4;i++){const c=state.players[members[i].id].cycleCards.find(c=>c.value===i);assert.equal((await api(ids[i],'submit_card',{room_id:room.id,session_id:session,turn_index:1,member_id:members[i].id,card_id:c.id})).status,200);}
   b=await api(ids[0],'get_room_state',{room_id:room.id});assert.equal(b.session.turn_index,2);assert.equal(b.session.state.lastResult.cards.find(c=>c.memberId===members[0].id).value,6);assert.equal(b.session.state.players[members[0].id].characterRuntimeState.mana,1);
