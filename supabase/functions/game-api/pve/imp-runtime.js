@@ -12,7 +12,8 @@ const root=run=>{
   return run.augmentFramework.imp||=( {state:{},once:{},mischief:{},buffs:[],telemetry:[],processedRoots:{}} );
 };
 export function scopedImpState(run,p){
-  const r=root(run);return r.state[p.playerId]||=( {greed:0,markedThisTurn:[],mischiefValidTurn:[],excitement:0} );
+  const r=root(run),s=r.state[p.playerId]||={};
+  s.greed??=0;s.markedThisTurn??=[];s.mischiefValidTurn??=[];s.excitement??=0;return s;
 }
 export function impRoomAllowed(run,id){
   const c=IMP_CONTRACTS[id],rt=roomType(run);return Boolean(c&&rt&&c.roomApplicability?.[rt]);
@@ -35,7 +36,10 @@ function claim(run,p,id,tag='effect',overrideScope=null){
 }
 function telemetry(run,id,trigger,success=true,extra={}){
   const row={augmentId:id,trigger,triggerCount:1,successCount:success?1:0,turn:turn(run),combatId:run.combat?.id||null,...extra};
-  root(run).telemetry.push(row);run.augmentFramework.telemetry||=[];run.augmentFramework.telemetry.push({...row,classId:'imp'});
+  const r=root(run),f=run.augmentFramework;
+  r.telemetry.push(row);if(r.telemetry.length>2048)r.telemetry.splice(0,r.telemetry.length-2048);
+  f.telemetry||=[];f.telemetry.push({...row,classId:'imp'});if(f.telemetry.length>2048)f.telemetry.splice(0,f.telemetry.length-2048);
+  f.telemetryTotals||={};const total=f.telemetryTotals[id+':'+trigger]||={augmentId:id,trigger,triggerCount:0,successCount:0};total.triggerCount++;if(success)total.successCount++;
 }
 export function impTelemetry(run,id){return root(run).telemetry.filter(x=>!id||x.augmentId===id);}
 export function stolenNumberCap(p){return owned(p,'aug-198')?7:owned(p,'aug-192')?5:3;}
@@ -164,7 +168,7 @@ function spreadWeakMischief(run,owner,excludeTargetId,rootActionId){
   telemetry(run,'aug-207','ON_VALID',true,{mischiefGained:1,targetPlayerId:target.playerId});return target;
 }
 export function applyImpCardValidated(run,{player,resolved,cards=[],events=[]}={}){
-  if(!player||!resolved?.valid)return 0;
+  if(run.phase!=='COMBAT'||!player||!resolved?.valid)return 0;
   let bonus=0;const r=root(run),t=turn(run);
   // Consume Mischief owned by any living Imp. Each owner is independent.
   for(const [key,m] of Object.entries({...r.mischief})){
@@ -193,7 +197,7 @@ export function applyImpCardValidated(run,{player,resolved,cards=[],events=[]}={
   return bonus;
 }
 export function applyImpBeforeDamage(run,{player,resolved,damage,followUp=false}={}){
-  if(!player||!resolved?.valid||followUp)return 0;let bonus=0;
+  if(run.phase!=='COMBAT'||!player||!resolved?.valid||followUp)return 0;let bonus=0;
   if(player.characterId==='imp'){
     const d=Number(resolved.stealTargetCount)||0,total=Number(resolved.stealTotal)||0;
     const rule=(id,condition,amount,extra={})=>{if(!owned(player,id)||!impRoomAllowed(run,id))return;const ok=Boolean(condition)&&claim(run,player,id,'damage');const value=ok?(typeof amount==='function'?amount():amount):0;telemetry(run,id,'PRE_DAMAGE',ok,{bonusDamage:value,...extra});if(ok)bonus+=value;};

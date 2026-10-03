@@ -5,6 +5,10 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
+concurrency:
+  group: project-checks-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.head_ref == 'feat/pve-content-005c-final' }}
+
 permissions:
   contents: read
 
@@ -156,6 +160,35 @@ jobs:
           path: artifacts/pve-stress-005b-final/
           if-no-files-found: error
 
+
+  final_005c_stress:
+    name: 005C FINAL 500 seeds / ${{ matrix.scenario }}
+    if: github.event_name == 'pull_request' && github.head_ref == 'feat/pve-content-005c-final'
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: [T00, T02, T03, T04, T05, T06, T09, T14]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Run existing PVE 500-seed command
+        run: npm run pve:stress:full -- --scenario "${{ matrix.scenario }}" --output "artifacts/pve-stress-005c-final/${{ matrix.scenario }}"
+      - name: Upload 500-seed reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pve-stress-005c-final-${{ matrix.scenario }}-${{ github.sha }}
+          path: artifacts/pve-stress-005c-final/
+          if-no-files-found: error
 
   production_release_backend:
     name: PVE production backend release

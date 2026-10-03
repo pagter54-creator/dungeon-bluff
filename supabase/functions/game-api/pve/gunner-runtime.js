@@ -5,11 +5,15 @@ const turn=run=>run.combat?.turn||0;
 const root=(run,p,r)=>'action:'+run.combat?.id+':'+turn(run)+':'+p.playerId+':'+(r?.cardInstanceId||'turn');
 export function gunnerState(run,p){
   run.augmentFramework||={};run.augmentFramework.cardState||={};
-  return run.augmentFramework.cardState[p.playerId+':gunner']||={
+  const defaults={
     ownerId:p.playerId,scope:'RUN',resetScope:'RUN',sourceAugmentId:'GUNNER_RUNTIME',overheatCap:3,overheatResetScope:'COMBAT_END',overheat:0,accuracy:0,weakness:0,output:0,output269:0,
     precisionShot:{armed:true,activationId:null},aug253:{preservationUsedThisCombat:false,preservedForCycleId:null},
     applied:{},once:{},telemetry:{augment:{},burstAttempts:0,burstSuccess:0,burstFailures:0,derivedCardsUsed:0,burstDamage:0,failureSelfDamage:0,precisionTriggers:0,defensePenetrated:0,overheatGained:0,overheatConsumed:0,maxOverheatReached:0}
   };
+  const s=run.augmentFramework.cardState[p.playerId+':gunner']||=structuredClone(defaults);
+  for(const [key,value] of Object.entries(defaults))if(s[key]==null)s[key]=structuredClone(value);
+  for(const key of ['precisionShot','aug253','telemetry'])for(const [field,value] of Object.entries(defaults[key]))if(s[key][field]==null)s[key][field]=structuredClone(value);
+  return s;
 }
 function fire(s,id){
   const row=s.telemetry.augment[id]||={augmentId:id,triggerCount:0,successCount:0};row.triggerCount++;row.successCount++;
