@@ -84,7 +84,11 @@ export function pveRewardPromptMarkup(run,me){
   const room=run.roomState||{};
   if(room.pickOrder?.[0]===me?.playerId){
     const cards=(room.relicIds||[]).map(id=>{const relic=relicUi(id);return '<button data-action="pve-reward-relic" data-relic-id="'+esc(id)+'"><i>✦</i><b>'+esc(relic.name)+'</b><p>'+esc(relic.text)+'</p></button>';}).join('');
-    return '<div class="pve-modal-layer"><section class="pve-choice-popup"><div class="eyebrow">RELIC REWARD</div><h2>유물을 선택하세요.</h2><div class="pve-choice-cards">'+cards+'</div></section></div>';
+    const luck=room.gamblerLuckWindows?.[me.playerId];
+    const luckControls=luck?.phase==='LUCK_AVAILABLE'
+      ? '<div class="pve-context-panel"><div class="eyebrow">LUCK WINDOW</div><h3>행운 1을 사용할 수 있습니다.</h3><p>유물을 확정하기 전에 사용할 효과를 고르세요.</p><div class="pve-action-grid"><button class="button secondary" data-action="pve-reward-gambler-luck" data-mode="ATTACK">다음 일반 유효 공격 +1</button><button class="button secondary" data-action="pve-reward-gambler-luck" data-mode="SPECIAL">특수 카드 충전 +1</button></div></div>'
+      : '';
+    return '<div class="pve-modal-layer"><section class="pve-choice-popup"><div class="eyebrow">RELIC REWARD</div><h2>유물을 선택하세요.</h2>'+luckControls+'<div class="pve-choice-cards">'+cards+'</div></section></div>';
   }
   if(room.pickOrder?.length)return '<section class="pve-context-panel"><div class="eyebrow">RELIC REWARD</div><h3>유물 선택 대기 중</h3><p>다른 플레이어가 유물을 선택하고 있습니다.</p></section>';
   if(room.readyPlayerIds?.includes(me?.playerId))return '<section class="pve-context-panel"><div class="eyebrow">REWARD CONTEST</div><h3>카드 제출 완료</h3><p>동료의 선택을 기다리고 있습니다.</p></section>';
