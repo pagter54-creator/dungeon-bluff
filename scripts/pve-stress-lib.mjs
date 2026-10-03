@@ -148,16 +148,11 @@ export const CANONICAL_RULES=Object.freeze([
   {id:'RULE-T02-B',topic:'One-Hit Kill failure cost',rule:'일격필살은 유효 공격 성공 시에만 현재 Combo를 전부 소비하며 collision/invalid 실패 시 Combo를 소비하지 않는다.'},
   {id:'RULE-T02-C',topic:'Demon kill Devour precedence',rule:'귀검사 포식은 일반 유효 공격 총 +1, 막타 총 +3, 막타이면서 처치 턴 최고 피해면 총 +5이며 한 공격에는 가장 높은 조건 하나만 적용한다.'},
   {id:'RULE-T02-D',topic:'Released Demon Sword card lifecycle',rule:'해방된 귀검은 전투 포식 6에서 귀화하고 카드풀을 2/4/5/6 임시 풀로 교체한다. 4장을 모두 사용하거나 전투가 끝나면 원래 physical card pool과 zone을 복원하며 귀화 종료 포식은 0이다.'},
-  {id:'RULE-T02-E',topic:'Full Burst follow-up trigger scope',rule:'전탄발사 follow-up은 남은 physical card별 피해 packet이며, 턴당 1회/첫 유효 공격/기본 ON_VALID_ATTACK 계열은 명시적 multi-hit 허용 없이는 follow-up마다 반복 발동하지 않는다.'}
+  {id:'RULE-T02-E',topic:'Full Burst follow-up trigger scope',rule:'전탄발사 follow-up은 남은 physical card별 피해 packet이며, 턴당 1회/첫 유효 공격/기본 ON_VALID_ATTACK 계열은 명시적 multi-hit 허용 없이는 follow-up마다 반복 발동하지 않는다.'},
+  {id:'RULE-T05-A',topic:'Multiple Imp PRE_COLLISION_STEAL ordering',rule:'같은 resolve의 여러 Imp는 lobby seat 오름차순, 동률이면 playerId 순서로 처리하며 뒤 Imp는 앞 Imp가 이미 변경한 현재 working number를 본다. victim은 0 아래로 내려가지 않고 actual stolen amount만 source에 더한다.'}
 ]);
 
 export const SPEC_AMBIGUITIES=Object.freeze([
-  {
-    id:'AMB-T05-MULTI-IMP',
-    scenarioId:'T05',
-    topic:'multiple Imp PRE_COLLISION_STEAL ordering',
-    detail:'The current BETA rules define one Imp stealing from matching non-Imp players but do not define simultaneous ordering when multiple Imps are present. T05 contains exactly one Imp. The mutation resolver hard-fails MULTI_IMP_STEAL_UNDEFINED instead of inventing a rule.'
-  },
   {
     id:'AMB-T09-SEER-PEEK-TARGET',
     scenarioId:'T09',
