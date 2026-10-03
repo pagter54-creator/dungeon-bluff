@@ -2,7 +2,7 @@ import {GUNNER_CONTRACTS} from './gunner-contracts.js';
 const owns=(p,id)=>p.augments?.includes(id);
 const cycle=(run,p)=>run.combat?.privateByPlayer?.[p.playerId]?.cycleIndex||1;
 const turn=run=>run.combat?.turn||0;
-const root=(run,p,r)=>'gunner:'+run.combat?.id+':'+turn(run)+':'+p.playerId+':'+(r?.cardInstanceId||'turn');
+const root=(run,p,r)=>'action:'+run.combat?.id+':'+turn(run)+':'+p.playerId+':'+(r?.cardInstanceId||'turn');
 export function gunnerState(run,p){
   run.augmentFramework||={};run.augmentFramework.cardState||={};
   return run.augmentFramework.cardState[p.playerId+':gunner']||={
