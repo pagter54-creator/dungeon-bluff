@@ -154,7 +154,7 @@ export function validateNumberMutationState(run,cards,events,{minimum=0,packets=
   for(const event of events||[]){
     if(!['SELF_MODIFY','PRE_COLLISION_SWAP','PRE_COLLISION_STEAL'].includes(event.phase))continue;
     if(event.effectId==='imp-steal-summary')continue;
-    const key=`${event.phase}:${event.effectId}:${event.actorId||''}:${event.targetId||''}`;
+    const key=`${event.phase}:${event.effectId||event.type}:${event.actorId||event.sourcePlayerId||''}:${event.targetId||event.targetPlayerId||event.victimPlayerId||''}`;
     if(uniqueMutationKeys.has(key))throw new Error('NUMBER_07_DUPLICATE_MUTATION');
     uniqueMutationKeys.add(key);
   }
