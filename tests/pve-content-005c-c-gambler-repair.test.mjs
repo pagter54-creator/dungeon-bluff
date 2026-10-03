@@ -213,3 +213,130 @@ test('005C-C aug-238 consumes two ordinary hand cards plus one owned special and
   settleGamblerHand(x.run,x.p,x.state,next,value,{rootActionId:'all-assets-recovery'});
   assert.equal(x.state.remainingCardIds.length,1);assert.equal(x.state.drawPenaltyTurns,0);
 });
+
+
+test('005C-C actual positive/negative effect matrix covers aug-211..240 30/30',()=>{
+  const covered=new Set(),negative=new Set();
+  const runCase=(id,positiveCase,negativeCase)=>{positiveCase();covered.add(id);negativeCase();negative.add(id);};
+
+  runCase('aug-211',()=>{
+    const x=fixture(['aug-211']),six=x.p.cardPool.find(c=>c.baseNumber===6);applyGamblerValidated(x.run,x.p,x.state,resolvedFor(six.id,6,true));assert.equal(x.state.luck,1);
+  },()=>{
+    const x=fixture(['aug-211']),six=x.p.cardPool.find(c=>c.baseNumber===6);applyGamblerValidated(x.run,x.p,x.state,resolvedFor(six.id,6,false));assert.equal(x.state.luck,0);
+  });
+  runCase('aug-212',()=>{
+    const x=fixture(['aug-212']),r=resolvedFor('six',6,true);const before=x.state.specialCharge;assert.equal(applyGamblerValidated(x.run,x.p,x.state,r),2);assert.equal(x.state.specialCharge,before+1);
+  },()=>{const x=fixture(['aug-212']);assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('five',5,true)),0);});
+  runCase('aug-213',()=>{const x=fixture(['aug-213']);assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('seven',7,true)),4);},
+    ()=>{const x=fixture(['aug-213']);assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('six',6,true)),0);});
+  runCase('aug-214',()=>{
+    const x=fixture(['aug-214']);for(const v of [1,2,3])applyGamblerValidated(x.run,x.p,x.state,resolvedFor('c'+v,v,true));assert.equal(x.state.specialCharge,1);
+  },()=>{
+    const x=fixture(['aug-214']);for(const [i,v] of [1,2,1].entries())applyGamblerValidated(x.run,x.p,x.state,resolvedFor('d'+i,v,true));assert.equal(x.state.specialCharge,0);
+  });
+  runCase('aug-215',()=>{const x=fixture(['aug-215']);x.state.lastValidCardValue=6;assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('o',2,true)),2);},
+    ()=>{const x=fixture(['aug-215']);x.state.lastValidCardValue=3;assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('o',2,true)),0);});
+  runCase('aug-216',()=>{
+    const x=fixture(['aug-216']);applyGamblerValidated(x.run,x.p,x.state,resolvedFor('s1',6,true));assert.equal(x.state.specialCharge,1);applyGamblerValidated(x.run,x.p,x.state,resolvedFor('s2',7,true));assert.equal(x.state.specialCharge,1);
+  },()=>{const x=fixture(['aug-216']);applyGamblerValidated(x.run,x.p,x.state,resolvedFor('o',4,true));assert.equal(x.state.specialCharge,0);});
+  runCase('aug-217',()=>{const x=fixture(['aug-217']);x.state.lastValidSpecial=6;assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('s',7,true)),3);},
+    ()=>{const x=fixture(['aug-217']);x.state.lastValidSpecial=6;assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('s',6,true)),0);});
+  runCase('aug-218',()=>{const x=fixture(['aug-218']);assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('s',6,true)),3);},
+    ()=>{const x=fixture(['aug-218']);assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('s',7,true)),0);});
+  runCase('aug-219',()=>{
+    const x=fixture(['aug-219']);assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('s1',7,true)),7);x.run.combat.turn=2;assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('s2',7,true)),0);
+  },()=>{const x=fixture(['aug-219']);assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('s',6,true)),0);});
+  runCase('aug-220',()=>{
+    const x=fixture(['aug-220']);applyGamblerValidated(x.run,x.p,x.state,resolvedFor('s6',6,true));for(const v of [1,2,3])applyGamblerValidated(x.run,x.p,x.state,resolvedFor('o'+v,v,true));x.run.combat.turn=2;applyGamblerValidated(x.run,x.p,x.state,resolvedFor('s7',7,true));assert.equal(x.state.fortuneStack,1);x.run.combat.turn=3;assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('pay',4,true)),1);
+  },()=>{const x=fixture(['aug-220']);assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('o',4,true)),0);assert.equal(x.state.fortuneStack||0,0);});
+  runCase('aug-221',()=>{
+    const x=fixture(['aug-221']);for(const v of [1,2,3])applyGamblerValidated(x.run,x.p,x.state,resolvedFor('n'+v,v,true));assert.equal(x.state.cardCounterArmed,true);x.run.combat.turn=2;assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('pay',4,true)),2);
+  },()=>{const x=fixture(['aug-221']);for(const [i,v] of [1,1,2].entries())applyGamblerValidated(x.run,x.p,x.state,resolvedFor('n'+i,v,true));assert.equal(x.state.cardCounterArmed,false);});
+  runCase('aug-222',()=>{
+    const x=fixture(['aug-222']),ones=x.p.cardPool.filter(c=>c.baseNumber===1);x.state.remainingCardIds=[ones[0].id];x.state.drawPileIds=[ones[1].id,...x.state.drawPileIds.filter(id=>!ones.some(c=>c.id===id))];assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor(ones[0].id,1,true)),1);
+  },()=>{
+    const x=fixture(['aug-222']),one=x.p.cardPool.find(c=>c.baseNumber===1);x.state.remainingCardIds=[one.id];x.state.drawPileIds=x.state.drawPileIds.filter(id=>x.p.cardPool.find(c=>c.id===id)?.baseNumber!==1);assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor(one.id,1,true)),0);
+  });
+  runCase('aug-223',()=>{const x=fixture(['aug-223']);x.state.discardMemoryNumber=2;assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('m',2,true)),1);},
+    ()=>{const x=fixture(['aug-223']);x.state.discardMemoryNumber=2;assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('m',3,true)),0);});
+  runCase('aug-224',()=>{const x=fixture(['aug-224']);x.state.currentPrediction=[2,3];assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('p',2,true)),1);},
+    ()=>{const x=fixture(['aug-224']);x.state.currentPrediction=[2,3];assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('p',4,true)),0);});
+  runCase('aug-225',()=>{
+    const x=fixture(['aug-225']);for(const v of [1,2,3])applyGamblerValidated(x.run,x.p,x.state,resolvedFor('q'+v,v,true));assert.equal(x.state.sequenceArmed,true);x.run.combat.turn=2;assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('pay',5,true)),3);
+  },()=>{const x=fixture(['aug-225']);for(const v of [1,3,5])applyGamblerValidated(x.run,x.p,x.state,resolvedFor('q'+v,v,true));assert.equal(x.state.sequenceArmed,false);});
+  runCase('aug-226',()=>{
+    const x=fixture(['aug-226']);let last=0;for(const [i,v] of [1,1,2,3,4].entries()){x.run.combat.turn=i+1;last=applyGamblerValidated(x.run,x.p,x.state,resolvedFor('h'+i,v,true));}assert.equal(last,2);
+  },()=>{
+    const x=fixture(['aug-226']);let last=0;for(const [i,v] of [1,2,3,4,5].entries()){x.run.combat.turn=i+1;last=applyGamblerValidated(x.run,x.p,x.state,resolvedFor('h'+i,v,true));}assert.equal(last,0);
+  });
+  runCase('aug-227',()=>{
+    const x=fixture(['aug-227']);for(const v of [1,2,3,4,5])applyGamblerValidated(x.run,x.p,x.state,resolvedFor('f'+v,v,true));assert.equal(x.state.fiveMemoryArmed,true);x.run.combat.turn=2;assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('s',6,true)),4);
+  },()=>{
+    const x=fixture(['aug-227']);for(const v of [1,2,3,4])applyGamblerValidated(x.run,x.p,x.state,resolvedFor('f'+v,v,true));assert.equal(applyGamblerValidated(x.run,x.p,x.state,resolvedFor('s',6,true)),0);
+  });
+  runCase('aug-228',()=>{
+    const x=fixture(['aug-228']);drawGamblerHand(x.run,x.p,x.state);setGamblerDrawPreference(x.run,x.p,x.state,'LOW');const values=x.state.remainingCardIds.map(id=>x.p.cardPool.find(c=>c.id===id).baseNumber);assert.ok(values.some(v=>v<=3));
+  },()=>{const x=fixture(['aug-228']);drawGamblerHand(x.run,x.p,x.state);assert.throws(()=>setGamblerDrawPreference(x.run,x.p,x.state,'BAD'));});
+  runCase('aug-229',()=>{
+    const x=fixture(['aug-221','aug-229']);let last=0;for(const v of [1,2,3])last=applyGamblerValidated(x.run,x.p,x.state,resolvedFor('k'+v,v,true));assert.equal(last,3);assert.equal(x.state.lastCountingCombo,'COUNTER3');
+  },()=>{
+    const x=fixture(['aug-221','aug-229']);x.state.lastCountingCombo='COUNTER3';let last=0;for(const v of [1,2,3])last=applyGamblerValidated(x.run,x.p,x.state,resolvedFor('k'+v,v,true));assert.equal(last,0);
+  });
+  runCase('aug-230',()=>{
+    const x=fixture(['aug-230']);drawGamblerHand(x.run,x.p,x.state);setGamblerDrawPreference(x.run,x.p,x.state,[1,4,5]);const values=x.state.remainingCardIds.map(id=>x.p.cardPool.find(c=>c.id===id).baseNumber);assert.ok(values.some(v=>[1,4,5].includes(v)));
+  },()=>{const x=fixture(['aug-230']);drawGamblerHand(x.run,x.p,x.state);assert.throws(()=>setGamblerDrawPreference(x.run,x.p,x.state,[1,1,5]));});
+  runCase('aug-231',()=>{
+    const x=fixture(['aug-231']),[a]=setHand(x,[2,5]),r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);assert.equal(gamblerSetDamage(x.run,x.p,x.state,r,2),7);assert.equal(r.allIn,true);
+  },()=>{
+    const x=fixture(['aug-231']),[a]=setHand(x,[2,5]),r=resolvedFor(a,2,false);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);finalizeGamblerAllIn(x.run,x.p,x.state,r);assert.equal(x.state.history.some(e=>e.type==='ALL_IN_DAMAGE'),false);
+  });
+  runCase('aug-232',()=>{
+    const x=fixture(['aug-231','aug-232']),[a]=setHand(x,[3,5]),r=resolvedFor(a,3,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);assert.equal(gamblerSetDamage(x.run,x.p,x.state,r,3),10);
+  },()=>{
+    const x=fixture(['aug-231','aug-232']),[a]=setHand(x,[2,5]),r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);assert.equal(gamblerSetDamage(x.run,x.p,x.state,r,2),7);
+  });
+  runCase('aug-233',()=>{
+    const x=fixture(['aug-231','aug-233']),[a]=setHand(x,[2,5]),r=resolvedFor(a,2,false);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);finalizeGamblerAllIn(x.run,x.p,x.state,r);settleGamblerHand(x.run,x.p,x.state,a,2,{rootActionId:'insurance'});assert.equal(x.state.remainingCardIds.length,2);assert.equal(x.state.insuranceUsed,true);
+  },()=>{
+    const x=fixture(['aug-231','aug-233']),[a]=setHand(x,[2,5]),r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);finalizeGamblerAllIn(x.run,x.p,x.state,r);settleGamblerHand(x.run,x.p,x.state,a,2,{rootActionId:'insurance-ok'});assert.equal(x.state.insuranceUsed||false,false);assert.equal(x.state.remainingCardIds.length,1);
+  });
+  runCase('aug-234',()=>{
+    const x=fixture(['aug-231','aug-234']),[a]=setHand(x,[2,3]),r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);assert.equal(gamblerSetDamage(x.run,x.p,x.state,r,2),6);
+  },()=>{
+    const x=fixture(['aug-231','aug-234']),[a]=setHand(x,[2,4]),r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);assert.equal(gamblerSetDamage(x.run,x.p,x.state,r,2),6);
+  });
+  runCase('aug-235',()=>{
+    const x=fixture(['aug-231','aug-235']),[a]=setHand(x,[2,5]),r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);finalizeGamblerAllIn(x.run,x.p,x.state,r);assert.equal(x.state.doubleDownReady,true);
+  },()=>{
+    const x=fixture(['aug-231','aug-235']),[a]=setHand(x,[2,5]),r=resolvedFor(a,2,false);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);finalizeGamblerAllIn(x.run,x.p,x.state,r);assert.equal(x.state.doubleDownReady,false);
+  });
+  runCase('aug-236',()=>{
+    const x=fixture(['aug-231','aug-236']),[a]=setHand(x,[2,5]),r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);assert.equal(r.gamblerBorrowBonus,1);assert.equal(x.state.weakenedBorrowedIds.length,1);
+  },()=>{
+    const x=fixture(['aug-231','aug-236']),[a]=setHand(x,[2,5]);x.state.drawPileIds=[];const r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);assert.equal(r.gamblerBorrowBonus,0);assert.equal(x.state.weakenedBorrowedIds.length,0);
+  });
+  runCase('aug-237',()=>{
+    const x=fixture(['aug-231','aug-237']),[a]=setHand(x,[2,6]),r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);gamblerSetDamage(x.run,x.p,x.state,r,2);assert.equal(x.state.aug237Used,true);assert.equal(x.state.pendingAllIn.aug237Reduced,true);
+  },()=>{
+    const x=fixture(['aug-231','aug-237']),[a]=setHand(x,[2,5]),r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);gamblerSetDamage(x.run,x.p,x.state,r,2);assert.equal(x.state.aug237Used,false);
+  });
+  runCase('aug-238',()=>{
+    const x=fixture(['aug-231','aug-238']),[a]=setHand(x,[2,5]),r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);assert.equal(r.allAssets,true);assert.equal(r.allInValues.length,3);assert.equal(gamblerSetDamage(x.run,x.p,x.state,r,2),17);
+  },()=>{
+    const x=fixture(['aug-231','aug-238']),special=x.p.cardPool.find(c=>c.baseNumber===6).id;setHand(x,[2,5]);x.state.drawPileIds=x.state.drawPileIds.filter(id=>id!==special);x.state.vanishedCardIds=[special];const a=x.state.remainingCardIds[0],r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);assert.equal(r.allAssets,false);assert.equal(r.allInValues.length,2);
+  });
+  runCase('aug-239',()=>{
+    const x=fixture(['aug-231','aug-239']),[a]=setHand(x,[2,5]),r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);finalizeGamblerAllIn(x.run,x.p,x.state,r);assert.equal(x.state.allInWinStreak,1);assert.equal(gamblerSetDamage(x.run,x.p,x.state,r,2),8);
+  },()=>{
+    const x=fixture(['aug-231','aug-239']),[a]=setHand(x,[2,5]),r=resolvedFor(a,2,false);x.state.allInWinStreak=2;prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);finalizeGamblerAllIn(x.run,x.p,x.state,r);assert.equal(x.state.allInWinStreak,0);
+  });
+  runCase('aug-240',()=>{
+    const x=fixture(['aug-231','aug-240']),[a]=setHand(x,[2,5]),r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);assert.equal(gamblerSetDamage(x.run,x.p,x.state,r,2),15);assert.equal(x.state.houseUsed,true);
+  },()=>{
+    const x=fixture(['aug-231','aug-240']),[a]=setHand(x,[2,5]);x.state.houseUsed=true;const r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);assert.equal(gamblerSetDamage(x.run,x.p,x.state,r,2),7);
+  });
+
+  const expected=Array.from({length:30},(_,i)=>'aug-'+String(211+i).padStart(3,'0'));
+  assert.deepEqual([...covered].sort(),expected);
+  assert.deepEqual([...negative].sort(),expected);
+});
