@@ -94,6 +94,16 @@
       ],
       "issue": "Diagnostic event rows grew across repeated combat scopes.",
       "change": "Keep latest2048 diagnostic rows plus exact aggregate trigger/success counters; no gameplay or once-scope change."
+    },
+    {
+      "id": "FINAL_FIX_07",
+      "files": [
+        "supabase/functions/game-api/pve/gunner-runtime.js",
+        "supabase/functions/game-api/pve/seer-runtime.js",
+        "supabase/functions/game-api/pve/imp-runtime.js"
+      ],
+      "issue": "Partial legacy class snapshots lacked nested activation/prediction/telemetry/marked-target fields.",
+      "change": "Fill missing fields only; preserve authoritative Heat, armed state, once flags, counters and stacks."
     }
   ],
   "userConfirmedPatches": {
@@ -116,7 +126,7 @@
     }
   },
   "verification": {
-    "testsExpected": 1406,
+    "testsExpected": 1408,
     "testsCommand": "npm test",
     "projectCommand": "npm run check",
     "smokeCommand": "npm run pve:stress:smoke",
@@ -208,7 +218,7 @@
       "full120RegistryScanPerTrigger": false,
       "evidence": "definitionsFor uses owner augments/relics; class predicates use ownership; fixed diagnostic caps; stress harness rejects max actions/turn ceilings."
     },
-    "backwardCompatibility": "Existing missing-array/counter/zone normalization and all-class reconnect suites; explicit stale prediction origins cancelled, missing old origin fields tolerated.",
+    "backwardCompatibility": "Actual partial Gunner/Seer/Imp snapshots plus existing Gambler missing array/counter/zone normalization and all-class reconnect suites. Preserve Heat/armed/once/history/stacks; explicit stale origin mismatch cancelled.",
     "stress": {
       "command": "npm run pve:stress:full -- --scenario <scenario> --output artifacts/pve-stress-005c-final/<scenario>",
       "scenarios": [
