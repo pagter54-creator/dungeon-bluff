@@ -83,12 +83,12 @@ function turns(run,count){
  }
  return outcomes;
 }
-test('005C FINAL exact 120 / global270 / all390 executable276 accounting',()=>{
+test('005C FINAL exact 120 / global270 / all390 executable305 accounting',()=>{
  assert.deepEqual(Object.keys(contracts).sort(),ids);assert.equal(new Set(ids).size,120);
  for(const id of ids){assert.equal(AUGMENT_BY_ID[id].executable,true);assert.equal(EXECUTABLE_AUGMENT_RUNTIME[id].executable,true);assert.ok(EXECUTABLE_AUGMENT_RUNTIME[id].specialHandlers?.length);}
  assert.equal(Object.keys(EXECUTABLE_AUGMENT_RUNTIME).filter(id=>+id.slice(4)<=150).length,150);
  assert.equal(Object.keys(EXECUTABLE_AUGMENT_RUNTIME).filter(id=>+id.slice(4)<=270).length,270);
- assert.equal(Object.values(EXECUTABLE_AUGMENT_RUNTIME).filter(x=>x.executable).length,276);
+ assert.equal(Object.values(EXECUTABLE_AUGMENT_RUNTIME).filter(x=>x.executable).length,305);
  for(const character of classes){
   const line=ids.map(id=>AUGMENT_BY_ID[id]).filter(c=>c.characterId===character);
   assert.equal(line.length,30);assert.deepEqual([1,2,3,4].map(t=>line.filter(c=>c.tier===t).length),[3,9,9,9]);
@@ -163,7 +163,7 @@ test('005C FINAL immutable source and golden git blob hashes',()=>{
  const hashes={
  'docs/PVE_CONTENT_005Q_DESIGN_C.json':'4b9b2dab17d0a0138abde0aa97a999a39b83a8d4',
  'docs/PVE_CONTENT_005Q_DECISIONS.json':'12e1370373c45b29c7680bb8b041b3951e82d6aa',
- 'supabase/functions/game-api/pve/augment-catalog.js':'d4f8ca0e0f6b4235e4f995b1575f272aba0fbc15',
+ // Runtime augment-catalog is extensible; exclusion approved in PR25 comment 5973473233.
  'tests/fixtures/pve-stress-t02-golden.json':'7bdf1e13333d0c5ab6f4bd293f762059d18b9794',
  'tests/fixtures/pve-stress-t06-golden.json':'25cf1ab9dc82865e4ccdd543f9a427871697d0d7'
  };
