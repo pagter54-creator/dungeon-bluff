@@ -6,7 +6,7 @@ import {EXECUTABLE_AUGMENT_RUNTIME} from '../supabase/functions/game-api/pve/aug
 import {GAMBLER_CONTRACTS,GAMBLER_CONTRACT_IDS} from '../supabase/functions/game-api/pve/gambler-contracts.js';
 import {
   freshGamblerState,normalizeGamblerState,drawGamblerHand,settleGamblerHand,setGamblerDrawPreference,
-  prepareGamblerAllIn,finalizeGamblerAllIn,gamblerSetDamage,applyGamblerValidated,initializeGamblerCombat,prepareGamblerForcedAutoSubmission,consumeGamblerLuck
+  prepareGamblerAllIn,finalizeGamblerAllIn,gamblerSetDamage,finalizeGamblerActualDamage,applyGamblerValidated,initializeGamblerCombat,prepareGamblerForcedAutoSubmission,consumeGamblerLuck
 } from '../supabase/functions/game-api/pve/gambler.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 import {useRewardGamblerLuck} from '../supabase/functions/game-api/pve/rooms.js';
@@ -198,6 +198,7 @@ test('005C-C aug-237 removes one upcoming All-In draw-penalty turn once per comb
   const [a]=setHand(x,[2,6]),r=resolvedFor(a,2,true);
   prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);
   assert.equal(gamblerSetDamage(x.run,x.p,x.state,r,2),8);
+  assert.equal(finalizeGamblerActualDamage(x.run,x.p,x.state,r,8),true);
   assert.equal(x.state.aug237Used,true);assert.equal(x.state.pendingAllIn.aug237Reduced,true);
   finalizeGamblerAllIn(x.run,x.p,x.state,r);settleGamblerHand(x.run,x.p,x.state,a,2,{rootActionId:'winner-dividend'});
   assert.equal(x.state.remainingCardIds.length,2);
@@ -318,9 +319,9 @@ test('005C-C actual positive/negative effect matrix covers aug-211..240 30/30',(
     const x=fixture(['aug-231','aug-236']),[a]=setHand(x,[2,5]);x.state.drawPileIds=[];const r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);assert.equal(r.gamblerBorrowBonus,0);assert.equal(x.state.weakenedBorrowedIds.length,0);
   });
   runCase('aug-237',()=>{
-    const x=fixture(['aug-231','aug-237']),[a]=setHand(x,[2,6]),r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);gamblerSetDamage(x.run,x.p,x.state,r,2);assert.equal(x.state.aug237Used,true);assert.equal(x.state.pendingAllIn.aug237Reduced,true);
+    const x=fixture(['aug-231','aug-237']),[a]=setHand(x,[2,6]),r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);const d=gamblerSetDamage(x.run,x.p,x.state,r,2);finalizeGamblerActualDamage(x.run,x.p,x.state,r,d);assert.equal(x.state.aug237Used,true);assert.equal(x.state.pendingAllIn.aug237Reduced,true);
   },()=>{
-    const x=fixture(['aug-231','aug-237']),[a]=setHand(x,[2,5]),r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);gamblerSetDamage(x.run,x.p,x.state,r,2);assert.equal(x.state.aug237Used,false);
+    const x=fixture(['aug-231','aug-237']),[a]=setHand(x,[2,5]),r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);const d=gamblerSetDamage(x.run,x.p,x.state,r,2);finalizeGamblerActualDamage(x.run,x.p,x.state,r,d);assert.equal(x.state.aug237Used,false);
   });
   runCase('aug-238',()=>{
     const x=fixture(['aug-231','aug-238']),[a]=setHand(x,[2,5]),r=resolvedFor(a,2,true);prepareGamblerAllIn(x.run,x.p,x.state,{cardInstanceId:a},r);assert.equal(r.allAssets,true);assert.equal(r.allInValues.length,3);assert.equal(gamblerSetDamage(x.run,x.p,x.state,r,2),17);
