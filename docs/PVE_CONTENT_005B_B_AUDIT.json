@@ -1,0 +1,123 @@
+{
+  "schemaVersion": "005B_B_AUDIT_V2",
+  "scope": "KNIGHT_ONLY",
+  "verifiedCodeHead": "979da0d2436e3fdfc38fa8d40178c1509472dfe1",
+  "projectChecks": {
+    "runNumber": 596,
+    "runId": 36893095266,
+    "status": "SUCCESS"
+  },
+  "previousOverall005B": {
+    "executable": 39,
+    "target": 150,
+    "preexistingKnightExecutable": [
+      "aug-031",
+      "aug-041",
+      "aug-051"
+    ]
+  },
+  "knight": {
+    "target": 30,
+    "registered": 30,
+    "executable": 30,
+    "dataOnly": 0,
+    "missing": 0,
+    "unsupported": 0,
+    "candidateCoverage": 30,
+    "archetypes": {
+      "불굴의 기사": 10,
+      "수호벽": 10,
+      "압살 기사": 10
+    },
+    "stageDistribution": {
+      "1": 3,
+      "2": 9,
+      "3": 9,
+      "4": 9
+    }
+  },
+  "overall005B": {
+    "target": 150,
+    "executable": 66,
+    "deltaThisBatch": 27,
+    "whyNot69": "aug-031, aug-041, and aug-051 were already executable inside the prior 39/150 registry, so only 27 unique executable IDs were added."
+  },
+  "roomMatrix": {
+    "combat": "30/30",
+    "event": [
+      "aug-038",
+      "aug-041",
+      "aug-044",
+      "aug-045"
+    ],
+    "reward": [
+      "aug-038",
+      "aug-041",
+      "aug-044",
+      "aug-045"
+    ],
+    "shop": [],
+    "rest": []
+  },
+  "highRisk": {
+    "ids": [
+      "aug-037",
+      "aug-038",
+      "aug-041",
+      "aug-045",
+      "aug-049",
+      "aug-052",
+      "aug-055",
+      "aug-057",
+      "aug-060"
+    ],
+    "allCovered": true,
+    "namedKnightSuiteTestsTouchingHighRisk": 13,
+    "existingNamedHighRiskRegressionsFor041049052": 5
+  },
+  "tests": {
+    "total": 730,
+    "pass": 730,
+    "fail": 0,
+    "knightSuiteExecuted": 45,
+    "positiveCardCases": 30,
+    "dedicatedNegativeCases": 5,
+    "reconnectCases": 2,
+    "fullArchetypeBuilds": 3,
+    "candidateAcquisitionE2E": 1,
+    "mixedParty": 1
+  },
+  "verification": {
+    "npm test": "PASS 730/730",
+    "npm run check": "PASS",
+    "npm run pve:stress:smoke": "PASS",
+    "pve:beta:preflight": "PASS",
+    "100SeedStages": [
+      "T06 PASS",
+      "T02 PASS",
+      "T00 PASS",
+      "T05 PASS",
+      "T09 PASS",
+      "T04 PASS",
+      "T03 PASS"
+    ]
+  },
+  "invariants": {
+    "betaV01RowsUnchanged": true,
+    "stableIdsUnchanged": true,
+    "stressGoldensAndFixturesUnchanged": true,
+    "adventurer30of30Preserved": true,
+    "newRogueMageBerserkerRuntimeCount": 0,
+    "supabaseProductionMutated": false
+  },
+  "balanceWarning005BB": null,
+  "existingGlobalBalanceWarnings": [
+    "BALANCE_WARNING_F2",
+    "BALANCE_WARNING_F3"
+  ],
+  "runtimeBlockers": [],
+  "finalFlags": {
+    "KNIGHT_RUNTIME_COMPLETE": true,
+    "READY_FOR_PVE_CONTENT_005B_C_ROGUE": true
+  }
+}

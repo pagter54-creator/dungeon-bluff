@@ -16,7 +16,7 @@ export const CHARACTER_CATALOG = {
   rogue: define('rogue', '도적', [1,1,3,4,5], 'low_card_gold', '손버릇', '단독 최저 유효 카드: 비전투에서 손버릇으로 +5점·+2G, 전투에서 비열한 일격으로 피해 5. 봉인·장갑 등 공격 무효 효과는 유지됩니다.', '낮은 카드로 보상을 노리는 전문가', '🗡', '#8ad6b1', 'dagger'),
   mage: define('mage', '마법사', [1,2,3,4,4], 'amplify', '증폭', '매 턴 마나 +1(최대 4). 증폭으로 마나 2/4를 소모하여 카드 숫자 자체를 +1/+2. 중복·피해·이벤트 모두 변경된 숫자로 판정합니다.', '카드의 힘을 증폭하는 마법사', '✺', '#b895ff', 'magic', true),
   berserker: define('berserker', '광전사', [1,2,4,4,5], 'blood_heat', '피의 열기', '중복 시 HP 1 회복(이 회복은 HP 2까지만). 기절 시 추가 -3점. 유효 공격 효과 +1, 명중 시 HP 1 소모(최소 HP 1). 중복 판정은 원래 숫자이며 비전투 효과에는 +1이 적용되지 않습니다.', '위험할수록 강해지는 공격수', '⚒', '#ff766d', 'axe'),
-  seer: define('seer', '예언가', [1,2,3,4,5], 'revelation', '계시', '중복 시 계시 1 획득(최대 1). 카드 선택 전 계시 1을 소비해 상대 선택을 확인하고 현재 사이클의 사용 카드 1장을 무작위 복구합니다. 발동한 턴에도 중복 시 다시 획득하며, 통과 시에는 획득하지 않습니다.', '선택을 꿰뚫어 보는 예언가', '✧', '#8bd9ff', 'starlight'),
+  seer: define('seer', '예언가', [1,2,3,4,5], 'revelation', '계시', '계시는 최대 3입니다. 확정 제출 전까지(카드를 골랐더라도) 계시 1을 소비해 현재 사이클의 사용 카드 1장을 같은 physical card로 복구합니다. 계시를 사용한 턴에 정상 통과하면 계시 1을 얻고, 충돌하면 얻지 않습니다. READY 아군의 선택 정보를 확인하는 효과는 예언가 본인에게만 공개됩니다.', '선택을 꿰뚫어 보는 예언가', '✧', '#8bd9ff', 'starlight'),
   imp: define('imp', '임프', [1,2,3,4,5], 'number_steal', '슬쩍', '중복 판정 직전, 나와 같은 숫자를 낸 모든 비임프 플레이어에게서 카드 숫자 1을 빼앗습니다. 대상은 최소 0까지 감소하고 임프는 실제로 빼앗은 만큼 증가합니다. 변경된 숫자로 모든 판정을 진행합니다.', '카드 숫자를 뒤틀어 판정을 바꾸는 방해꾼', '♆', '#ee8cd7', 'imp_magic'),
   gambler: define('gambler', '도박사', [...GAMBLER_DECK], 'random_hand', '운명의 패', '1~5 각 2장과 6 한 장, 총 11장 덱에서 매 턴 2장을 뽑습니다. 사용한 6·7만 소멸합니다. 서로 다른 1~5 숫자 3종 제출 시 6, 5종 제출 시 7을 충전해 버린 덱에 넣습니다(각 최대 2장). 뽑을 덱이 비면 버린 덱을 섞습니다.', '매 턴 새로운 두 장으로 승부하는 도박사', '⚄', '#ffd078', 'dice'),
 };
@@ -103,7 +103,7 @@ export function ensureCharacterState(player, character) {
   if(player.skillId==='amplify')player.characterRuntimeState.mana??=0;
   if(current?.definition.balanceRevision===5&&player.character.definition?.balanceRevision!==5){
     player.character=structuredClone(current);player.skillType=current.definition.skill.type;
-    if(player.skillId==='revelation')player.characterRuntimeState.revelationStacks=Math.min(1,player.characterRuntimeState.revelationStacks||0);
+    if(player.skillId==='revelation')player.characterRuntimeState.revelationStacks=Math.min(3,player.characterRuntimeState.revelationStacks||0);
     if(player.skillId==='random_hand'&&player.cycleCards?.length)ensureGamblerDeck(player);
   }
   if(player.skillId==='soul_slash'&&player.character.definition?.balanceRevision!==6){player.character=structuredClone(CHARACTER_CATALOG.demonsword);player.skillType=player.character.definition.skill.type;}

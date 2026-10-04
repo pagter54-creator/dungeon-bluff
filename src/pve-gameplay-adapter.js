@@ -1,8 +1,9 @@
+import {skillCues,monsterCue} from './pve-combat-presentation.js';
 import {PVE_CHARACTER_TO_LOBBY} from './game-mode.js';
 
 const skillByCharacter=Object.freeze({
   adventurer:'gold_bonus',warrior:'toughness',rogue:'low_card_gold',mage:'amplify',
-  berserker:'blood_heat',prophet:'revelation',imp:'number_steal',gunner:'full_burst',
+  berserker:'blood_heat',prophet:'revelation',imp:'number_steal',gambler:'random_hand',gunner:'full_burst',
   martial_artist:'combo',vampire:'blood_command',demon_swordsman:'soul_slash',twins:'acrobatics'
 });
 const lobbyId=player=>player?.lobbyCharacterId||PVE_CHARACTER_TO_LOBBY[player?.characterId]||player?.characterId;
@@ -14,7 +15,11 @@ function publicCycle(run,player,scope='combat'){
   const publicState=state?.publicCardCycles?.[player.playerId];
   if(publicState)return publicState;
   const own=scope==='room'||scope==='event'?run.privateRoomState:run.privateCombat;
-  if(own?.playerId!==player.playerId)return {cycleIndex:1,cards:(player.cardPool||[]).map(c=>({baseNumber:c.baseNumber,used:false}))};
+  if(own?.playerId!==player.playerId){
+    if(player.characterId==='gambler')return {cycleIndex:0,cards:Array.from({length:player.gamblerDeck?.handCount??2},()=>({baseNumber:null,used:false}))};
+    return {cycleIndex:1,cards:(player.cardPool||[]).map(c=>({baseNumber:c.baseNumber,used:false}))};
+  }
+  if(player.characterId==='gambler')return {cycleIndex:0,cards:(own.remainingCardIds||[]).map(id=>player.cardPool.find(c=>c.id===id)).filter(Boolean).map(c=>({id:c.id,baseNumber:c.baseNumber,used:false}))};
   const remaining=new Set(own.remainingCardIds||[]);
   return {cycleIndex:own.cycleIndex||1,cards:(player.cardPool||[]).map(c=>({baseNumber:c.baseNumber,used:c.id?!remaining.has(c.id):false}))};
 }
@@ -24,7 +29,7 @@ function activeSkillAvailable(player){
   if(player.characterId==='mage')return (r.mana||0)>=2;
   if(player.characterId==='gunner')return Boolean(r.fullBurstReady);
   if(player.characterId==='vampire')return Boolean(r.thrallPlayerId);
-  if(player.characterId==='demon_swordsman')return r.ghostSlashReady!==false;
+  if(player.characterId==='demon_swordsman')return player.augments?.includes('aug-351')?Boolean(r.transformationPending)&&!r.transformationActive:r.ghostSlashReady!==false;
   if(player.characterId==='twins')return Boolean(r.acrobaticsReady);
   if(player.characterId==='prophet')return (r.revelationStacks||r.revelation||0)>0;
   return false;
@@ -35,14 +40,17 @@ function runtimeState(player){
   const manaMax=(player.augments||[]).includes('aug-091')?6:4;
   return {
     ...r,
+    ghostTransformation:player.augments?.includes('aug-351')||false,
+    sun:r.sun,moon:r.moon,eclipse:r.eclipse,acrobaticsRechargeNeed:player.augments?.includes('aug-381')?(player.augments?.includes('aug-385')?2:3):null,
+    ghostThreshold:player.augments?.includes('aug-348')?4:player.augments?.includes('aug-342')?5:player.augments?.includes('aug-341')?6:8,
     mana:r.mana||0,
     manaMax,
     reverseMath,
     toughnessCharges:r.toughnessCharges||0,
     revelationStacks:r.revelationStacks??r.revelation??0,
-    predation:r.predation||0,
-    comboStacks:r.comboStacks||0,
-    comboPrevious:r.comboPrevious??null,
+    predation:r.predation??r.devour??0,
+    comboStacks:r.comboStacks??r.combo??0,
+    comboPrevious:r.comboPrevious??r.lastSubmittedNumber??null,
     parity:r.parity??0,
     thrallId:r.thrallPlayerId||null
   };
@@ -61,17 +69,18 @@ export function pveGameplayPlayers(bundle,run,{scope='combat'}={}){
       character,
       loadout:member?.loadout,
       hp:p.hp,maxHp:p.maxHp,
-      score:Number(p.growthExp)||0,
+      score:(Number(p.growthExp)||0)+(Number(p.score)||0),
       gold:Number(p.runGold)||0,
       knockedOut:p.status==='DOWNED',
       cycleIndex:cycle.cycleIndex||1,
       cycleCards:(cycle.cards||[]).map((card,index)=>({
-        id:physical[index]?.id||`pve-public:${p.playerId}:${cycle.cycleIndex||1}:${index}`,
+        id:card.id||physical[index]?.id||`pve-public:${p.playerId}:${cycle.cycleIndex||1}:${index}`,
         slot:index,value:card.baseNumber,used:Boolean(card.used)
       })),
       skillId:rewardSkillSupported?rawSkillId:'',
       skillType:rewardSkillSupported?(character?.definition?.skill?.type||'passive'):'passive',
       characterRuntimeState:runtimeState(p),
+      ...(p.characterId==='gambler'&&p.gamblerDeck?{gamblerDeck:p.gamblerDeck}:{}),
       activeSkillState:{available:rewardSkillSupported&&activeSkillAvailable(p)}
     };
   }
@@ -100,14 +109,14 @@ export function pveGameplayBundle(bundle,run,{scope='combat'}={}){
 export function pveStageModel(run){
   const roomType=run.combat?.roomType||run.roomState?.type||run.map?.nodes?.find(n=>n.id===run.currentRoomNodeId)?.type||'EVENT';
   const monster=run.combat?.monster;
-  const shapeByMonster={f1_armored_boar:'boar',f1_coward_hunter:'hunter',f1_echo_bat:'bat',f1_fallen_lord:'seer'};
+  const shapeByMonster={f1_armored_boar:'boar',f1_coward_hunter:'hunter',f1_echo_bat:'bat',f2_cursed_prophet:'seer',f2_hungry_slime:'slime',f2_chaos_goblin:'goblin',f3_greed_mimic:'mimic',f3_execution_golem:'golem'};
   return {
     category:roomType==='BOSS'?'boss':roomType.includes('COMBAT')?'monster':'event',
     roomType,
     name:monster?.name||roomType,
     subtitle:`FLOOR ${run.floor} · DEPTH ${run.depth}`,
     color:roomType==='BOSS'?'#c76578':roomType==='ELITE_COMBAT'?'#9b77c8':'#7f9a91',
-    shape:shapeByMonster[monster?.id]||'seer',
+    shape:shapeByMonster[monster?.id]||monster?.id||null,
     contentId:monster?.id||roomType
   };
 }
@@ -143,11 +152,11 @@ function combatEventEffects(turnResult){
 }
 
 export function adaptPveTurnResult(bundle,beforeRun,afterRun){
-  const turnResult=afterRun?.combat?.publicTurnResult;
+  const turnResult=afterRun?.combat?.publicTurnResult||afterRun?.floorTransitionResult?.publicTurnResult;
   if(!turnResult)return null;
   const stage=pveStageModel(beforeRun||afterRun);
-  const beforeMonster=structuredClone(beforeRun?.combat?.monster||afterRun.combat?.monster||null);
-  const afterMonster=structuredClone(afterRun?.combat?.monster||beforeMonster||null);
+  const beforeMonster=structuredClone(beforeRun?.combat?.monster||afterRun.combat?.monster||afterRun?.floorTransitionResult?.monster||null);
+  const afterMonster=structuredClone(afterRun?.combat?.monster||afterRun?.floorTransitionResult?.monster||beforeMonster||null);
   const effects=[...mutationEffects(turnResult),...combatEventEffects(turnResult)];
   for(const packet of turnResult.damagePackets||[]){
     const player=(afterRun.players||[]).find(p=>p.playerId===packet.sourcePlayerId);
@@ -170,6 +179,7 @@ export function adaptPveTurnResult(bundle,beforeRun,afterRun){
       memberId:card.playerId,
       cardId:card.cardInstanceId,
       value:card.finalNumber,
+      ...(['amplify','reverse_math'].includes(card.skillUsed)?{pveNumberBefore:card.baseNumber}:{}),
       valid:Boolean(card.valid),
       resisted:Boolean(card.collisionImmune&&card.valid&&Number(card.collisionGroupSize)>1),
       skillUsed:Boolean(skillId),
@@ -178,6 +188,7 @@ export function adaptPveTurnResult(bundle,beforeRun,afterRun){
     };
   });
   return {
+    pvePresentation:{skills:skillCues(turnResult,afterRun.players||[]),pattern:monsterCue(beforeMonster,turnResult,afterMonster)},
     turnIndex:turnResult.turn,
     stageIndex:beforeRun?.depth||afterRun.depth||1,
     stage,

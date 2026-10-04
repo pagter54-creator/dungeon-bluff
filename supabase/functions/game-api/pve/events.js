@@ -1,22 +1,33 @@
 import {choose} from './rng.js';
 import {selectF1Event,F1_EVENT_DEFINITIONS} from './content-f1.js';
 import {restoreCardCycle,persistCardCycles} from './card-cycle.js';
-import {selfModifyCard,collisionImmunity,isCardSelectableForCharacter,validateCharacterSkillIntent,onTurnStartCharacter,onTurnEndCharacter,onCycleStartCharacter} from './characters.js';
+import {drawGamblerHand,settleGamblerHand,prepareGamblerAllIn,finalizeGamblerAllIn} from './gambler.js';
+import {selfModifyCard,collisionImmunity,resolveGuardianWallCollisions,isCardSelectableForCharacter,validateCharacterSkillIntent,onTurnStartCharacter,onTurnEndCharacter,onCycleStartCharacter} from './characters.js';
 import {initializeNumberHistories,recordSelfModification,applyPreCollisionSwap,applyPreCollisionSteal,finalizeNumbers,attachCollisionGroups,attachValidity,assignVampireThralls,validateNumberMutationState} from './number-mutation.js';
 import {resolveEventDefinition} from './event-resolution.js';
 import {queueTelemetry} from './telemetry.js';
+import {clearCombatResourcesForPlayers} from './resources.js';
+import {applyOwnedEffects} from './effects.js';
+import {cleanupAugmentScope} from './augment-framework.js';
+import {prepareImpSubmission,applyImpCardValidated,cleanupImpRoom} from './imp-runtime.js';
 
 const playerFor=(run,id)=>run.players.find(p=>p.playerId===id);
 const eventById=id=>F1_EVENT_DEFINITIONS.find(x=>x.id===id)||null;
 function finishEvent(run){
+  for(const player of run.players)applyOwnedEffects(run,'ROOM_END',{player});
+  cleanupImpRoom(run);
+  cleanupAugmentScope(run,'ROOM');
+  clearCombatResourcesForPlayers(run.players);
   run.phase='ROOM_RESULT';
   run.roomResult={roomNodeId:run.currentRoomNodeId,readyPlayerIds:run.players.filter(p=>p.memberType==='ai').map(p=>p.playerId)};
 }
 function availableCards(run,player){
   const state=run.roomState.privateByPlayer[player.playerId];
-  if(!state.remainingCardIds.length){
+  if(player.characterId==='gambler')drawGamblerHand(run,player,state);
+  if(player.characterId!=='gambler'&&!state.remainingCardIds.length){
     state.cycleIndex+=1;state.spentCardIds=[];state.remainingCardIds=player.cardPool.map(card=>card.id);
     onCycleStartCharacter(player,state);
+    applyOwnedEffects(run,'CYCLE_END',{player,privateState:state});cleanupAugmentScope(run,'CYCLE',{playerId:player.playerId});
   }
   return state.remainingCardIds.map(id=>player.cardPool.find(card=>card.id===id)).filter(card=>card&&isCardSelectableForCharacter(player,card));
 }
@@ -29,7 +40,7 @@ export function enterEventRoom(run){
     turn:1,privateByPlayer:Object.fromEntries(run.players.map(player=>[player.playerId,restoreCardCycle(run,player)])),
     turnSubmissions:{},publicTurnResult:null
   };
-  for(const player of run.players)onTurnStartCharacter(player,run);
+  for(const player of run.players){onTurnStartCharacter(player,run);applyOwnedEffects(run,'TURN_START',{player,privateState:run.roomState.privateByPlayer[player.playerId]});applyOwnedEffects(run,'PRE_SELECT',{player,privateState:run.roomState.privateByPlayer[player.playerId]});}
   // Event rooms permit the same one-card number skills without combat damage.
   for(const player of run.players){
     if(player.characterId==='mage')player.publicResources.mana=Math.max(2,player.publicResources.mana||0);
@@ -52,9 +63,11 @@ export function submitEventCard(run,playerId,cardInstanceId,skillIntent=false,sk
   if(!card)throw new Error('이번 사이클에 사용할 수 있는 물리 카드가 아닙니다.');
   if(skillIntent&&!['mage','warrior','vampire'].includes(player.characterId))throw new Error('이 스킬은 이벤트 카드 판정에 사용할 수 없습니다.');
   validateCharacterSkillIntent(player,run.roomState.privateByPlayer[playerId],skillIntent,card,skillData);
+  if(player.characterId==='imp')prepareImpSubmission(run,player,skillData);
   run.roomState.turnSubmissions[playerId]={playerId,cardInstanceId,skillIntent:Boolean(skillIntent),...(skillData?{skillData:structuredClone(skillData)}:{})};
   run.roomState.privateByPlayer[playerId].selectedCardId=cardInstanceId;
   run.roomState.privateByPlayer[playerId].skillIntent=Boolean(skillIntent);
+  applyOwnedEffects(run,'ON_SUBMIT',{player,privateState:run.roomState.privateByPlayer[playerId],cardInstanceId});
   const active=run.players.filter(p=>p.status!=='DOWNED');
   if(active.every(p=>run.roomState.turnSubmissions[p.playerId]))return resolveEventTurn(run);
   return null;
@@ -71,21 +84,34 @@ export function resolveEventTurn(run){
   });
   const mutationEvents=[],effects=[];
   initializeNumberHistories(cards);
-  for(const card of cards)selfModifyCard(playerFor(run,card.playerId),card,room.turnSubmissions[card.playerId]);
+  for(const card of cards){const player=playerFor(run,card.playerId);if(player?.characterId==='gambler')prepareGamblerAllIn(run,player,room.privateByPlayer[player.playerId],room.turnSubmissions[player.playerId],card);}
+  for(const card of cards){const player=playerFor(run,card.playerId),submission=room.turnSubmissions[card.playerId];if(submission.skillIntent)applyOwnedEffects(run,'ON_SKILL_USE',{player,resolved:card,submission,privateState:room.privateByPlayer[card.playerId]});selfModifyCard(player,card,submission);applyOwnedEffects(run,'PRE_COLLISION_SELF_MODIFY',{player,resolved:card,privateState:room.privateByPlayer[card.playerId]});}
   recordSelfModification(cards,mutationEvents);
+  for(const card of cards)applyOwnedEffects(run,'PRE_COLLISION',{player:playerFor(run,card.playerId),resolved:card,privateState:room.privateByPlayer[card.playerId]});
   applyPreCollisionSwap(run,cards,mutationEvents,room);
   applyPreCollisionSteal(run,cards,mutationEvents);
   finalizeNumbers(cards);
+  for(const card of cards)applyOwnedEffects(run,'POST_REVEAL',{player:playerFor(run,card.playerId),resolved:card,privateState:room.privateByPlayer[card.playerId]});
   for(const card of cards)card.collisionImmune=collisionImmunity(playerFor(run,card.playerId),room.turnSubmissions[card.playerId]);
   const groups=new Map();
   for(const card of cards){const group=groups.get(card.finalNumber)||[];group.push(card);groups.set(card.finalNumber,group);}
   attachCollisionGroups(run,cards,groups);
   for(const group of groups.values())if(group.length>1)for(const card of group)if(!card.collisionImmune){card.valid=false;card.invalidReason='COLLISION';}
+  resolveGuardianWallCollisions(run,cards,groups,[]);
   assignVampireThralls(run,cards,groups,effects);
+  for(const card of cards)applyOwnedEffects(run,'POST_COLLISION',{player:playerFor(run,card.playerId),resolved:card,submission:room.turnSubmissions[card.playerId],privateState:room.privateByPlayer[card.playerId]});
   attachValidity(cards);
+  for(const card of cards){const player=playerFor(run,card.playerId);if(player?.characterId==='gambler')finalizeGamblerAllIn(run,player,room.privateByPlayer[player.playerId],card);}
+  for(const card of cards){const player=playerFor(run,card.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player,resolved:card,privateState:room.privateByPlayer[card.playerId]});applyImpCardValidated(run,{player,resolved:card,cards,events:effects});}
   validateNumberMutationState(run,cards,mutationEvents);
   for(const card of cards){
     const state=room.privateByPlayer[card.playerId];
+    const owner=playerFor(run,card.playerId);
+    if(owner.characterId==='gambler'){
+      settleGamblerHand(run,owner,state,card.cardInstanceId,card.finalNumber,{rootActionId:`event:${run.currentRoomNodeId}:${room.eventId}:${card.playerId}:${card.cardInstanceId}`});
+      delete state.selectedCardId;delete state.skillIntent;
+      continue;
+    }
     state.remainingCardIds=state.remainingCardIds.filter(id=>id!==card.cardInstanceId);
     if(!state.spentCardIds.includes(card.cardInstanceId))state.spentCardIds.push(card.cardInstanceId);
     delete state.selectedCardId;delete state.skillIntent;
@@ -99,13 +125,18 @@ export function resolveEventTurn(run){
   const soloLowest=valid.filter(card=>card.finalNumber===lowest).length===1;
   for(const card of cards){
     const player=playerFor(run,card.playerId);
+    if(player.characterId==='martial_artist'&&card.invalidReason==='COLLISION'){
+      player.score=(Number(player.score)||0)-1;
+      resolution.rewards[player.playerId].push({type:'ADD_SCORE',amount:-1});
+    }
     if(player.characterId==='rogue'&&card.valid&&card.finalNumber===lowest&&soloLowest){
       player.score=(Number(player.score)||0)+5;player.runGold+=2;
       resolution.rewards[player.playerId].push({type:'ADD_SCORE',amount:5},{type:'ADD_RUN_GOLD',amount:2});
     }
-    onTurnEndCharacter(player,null,effects);
+    onTurnEndCharacter(player,null,effects);applyOwnedEffects(run,'TURN_END',{player,privateState:room.privateByPlayer[player.playerId]});
     queueTelemetry(run,'EVENT',{eventId:def.id,turn:room.turn,playerId:card.playerId,baseNumber:card.baseNumber,finalNumber:card.finalNumber,collision:card.invalidReason==='COLLISION',valid:card.valid,outcomeCategory:resolution.outcome,reward:resolution.rewards[card.playerId],partyValidSum:resolution.primitives.VALID_SUM,validCount:resolution.primitives.VALID_COUNT});
   }
+  cleanupAugmentScope(run,'TURN');
   persistCardCycles(run,room.privateByPlayer);
   room.publicTurnResult={
     turn:room.turn,eventId:def.id,name:def.name,outcome:resolution.outcome,

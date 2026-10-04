@@ -6,6 +6,7 @@ import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-
 import {publishMonsterIntent,executeMonsterIntent} from '../supabase/functions/game-api/pve/monster.js';
 import {enterEventRoom,submitEventCard} from '../supabase/functions/game-api/pve/events.js';
 import {installRelicCatalog} from '../supabase/functions/game-api/pve/relics.js';
+import {chooseAugment} from '../supabase/functions/game-api/pve/augments.js';
 import {
   F1_MONSTER_DEFINITIONS,F1_EVENT_DEFINITIONS,F1_RELIC_DEFINITIONS,
   selectF1Monster,markF1MonsterUsed
@@ -21,6 +22,7 @@ function runBase(ids,opts={}){
 }
 function combatRun(monsterDef,ids=['warrior','warrior','warrior','warrior']){
   const run=runBase(ids);run.phase='COMBAT';run.depth=1;run.currentRoomNodeId='combat';
+  run.map={depthCount:8};
   const roomType=monsterDef.tier==='BOSS'?'BOSS':monsterDef.tier==='ELITE'?'ELITE_COMBAT':'NORMAL_COMBAT';
   run.combat=newCombatState(run.players,monsterDef.baseHp,roomType,monsterDef);beginTurn(run);return run;
 }
@@ -33,14 +35,11 @@ function submitUnique(run,values=[2,3,4,5]){
   return resolveBasicTurn(run);
 }
 
-test('PVE-014 tuning keeps the four F1 monsters while applying the 75/120/180 HP scale',()=>{
+test('PVE CONTENT-001B registers all twelve F1 monsters at the 90/160/240 HP baseline',()=>{
   const defs=Object.values(F1_MONSTER_DEFINITIONS);
-  assert.equal(defs.length,4);
-  assert.deepEqual(defs.map(x=>x.name).sort(),['메아리 박쥐','몰락한 성주','비겁한 사냥꾼','철갑 멧돼지'].sort());
-  assert.equal(F1_MONSTER_DEFINITIONS.f1_armored_boar.baseHp,75);
-  assert.equal(F1_MONSTER_DEFINITIONS.f1_coward_hunter.baseHp,75);
-  assert.equal(F1_MONSTER_DEFINITIONS.f1_echo_bat.baseHp,120);
-  assert.equal(F1_MONSTER_DEFINITIONS.f1_fallen_lord.baseHp,180);
+  assert.equal(defs.length,12);
+  assert.deepEqual(['NORMAL','ELITE','BOSS'].map(tier=>defs.filter(x=>x.tier===tier).length),[7,3,2]);
+  for(const def of defs)assert.equal(def.baseHp,{NORMAL:90,ELITE:160,BOSS:240}[def.tier]);
   assert.equal(F1_MONSTER_DEFINITIONS.f1_echo_bat.tier,'ELITE');
   assert.equal(F1_MONSTER_DEFINITIONS.f1_fallen_lord.tier,'BOSS');
 });
@@ -55,15 +54,12 @@ test('PVE-013 F1 map is reproducible, ends in the disclosed Fallen Lord boss, an
   for(const type of ['NORMAL_COMBAT','ELITE_COMBAT','EVENT','REST','SHOP','REWARD_ROOM','BOSS'])assert.ok(types.has(type),type);
 });
 
-test('PVE-013 normal monster selection uses both samples before reusing an exhausted pool',()=>{
+test('PVE-013 normal monster selection exhausts the full pool before reuse',()=>{
   const run=runBase();run.currentRoomNodeId='n1';run.depth=1;
-  const a=selectF1Monster(run,'NORMAL_COMBAT');markF1MonsterUsed(run,a);
-  run.currentRoomNodeId='n2';run.depth=2;
-  const b=selectF1Monster(run,'NORMAL_COMBAT');markF1MonsterUsed(run,b);
-  assert.notEqual(a.id,b.id);
-  run.currentRoomNodeId='n3';run.depth=3;
-  const c=selectF1Monster(run,'NORMAL_COMBAT');
-  assert.ok(['f1_armored_boar','f1_coward_hunter'].includes(c.id));
+  const selected=[];
+  for(let i=0;i<7;i++){run.currentRoomNodeId=`n${i+1}`;run.depth=i+1;const def=selectF1Monster(run,'NORMAL_COMBAT');selected.push(def.id);markF1MonsterUsed(run,def);}
+  assert.equal(new Set(selected).size,7);
+  assert.equal(selectF1Monster(run,'NORMAL_COMBAT').tier,'NORMAL');
 });
 
 test('PVE-013 monster definitions drive public telegraphs and executable intents',()=>{
@@ -140,7 +136,7 @@ test('PVE-013 boss victory applies revive, half-missing-HP heal, flame +1, boss 
   submitCard(run,'p0',cardId(run,'p0',2));submitCard(run,'p1',cardId(run,'p1',3));submitCard(run,'p2',cardId(run,'p2',4));
   const result=resolveBasicTurn(run);
   assert.equal(result.phaseTrace.at(-1),'COMBAT_END');
-  assert.equal(run.phase,'FLOOR_CLEAR');assert.equal(run.floorClear.floor,1);assert.equal(run.floorClear.bossId,'f1_fallen_lord');
+  assert.equal(run.phase,'MAP_VOTE');assert.equal(run.floor,2);assert.equal(run.floorClear.floor,1);assert.equal(run.floorClear.bossId,'f1_fallen_lord');
   assert.equal(run.flame,3);
   assert.deepEqual(run.players.map(p=>p.hp),[2,3,3,2]);
   assert.deepEqual(run.players.map(p=>p.runGold),[3,3,3,0]);
@@ -157,6 +153,9 @@ test('PVE-013 boss clear pauses for due augment choices and resumes specifically
   assert.equal(run.phase,'AUGMENT_CHOICE');
   assert.equal(run.augmentChoice.resumePhase,'FLOOR_CLEAR');
   assert.deepEqual(run.augmentChoice.pendingByPlayer.p0,[1]);
+  const runId=run.id,offer=run.augmentChoice.offersByPlayer.p0[0];
+  chooseAugment(run,'p0',offer);
+  assert.equal(run.phase,'MAP_VOTE');assert.equal(run.floor,2);assert.equal(run.id,runId);assert.equal(run.combat,undefined);
 });
 
 test('PVE-013 victory telemetry identifies actual F1 monster and room tier instead of the training monster',()=>{

@@ -1,3 +1,5 @@
+import {performVampireSwap,assignVampireMarks} from './vampire-runtime.js';
+import {applyImpPreCollisionSteal} from './imp-runtime.js';
 const cardByPlayer=(cards,playerId)=>cards.find(card=>card.playerId===playerId)||null;
 const playerById=(run,playerId)=>run.players.find(player=>player.playerId===playerId)||null;
 const seatOf=(run,playerId)=>playerById(run,playerId)?.seat??Number.MAX_SAFE_INTEGER;
@@ -55,66 +57,17 @@ export function recordSelfModification(cards,events){
   }
 }
 export function applyPreCollisionSwap(run,cards,events,state=run.combat){
-  const vampires=run.players.filter(p=>p.characterId==='vampire'&&p.status!=='DOWNED').sort((a,b)=>a.seat-b.seat);
-  for(const vampire of vampires){
-    const submission=state.turnSubmissions[vampire.playerId];
-    if(!submission?.skillIntent)continue;
-    const actor=cardByPlayer(cards,vampire.playerId);
-    const targetId=vampire.publicResources.thrallPlayerId;
-    const target=targetId?cardByPlayer(cards,targetId):null;
-    if(!actor||!target)throw new Error('피의 명령 대상이 이번 턴 판정에 없습니다.');
-    const priv=state.privateByPlayer[vampire.playerId];
-    const cycleIndex=priv?.cycleIndex||1;
-    if(vampire.augments.includes('aug-301')&&priv.bloodCommandUsedCycle===cycleIndex)throw new Error('완전한 권속의 피의 명령은 사이클당 1회만 사용할 수 있습니다.');
-    const actorBefore=actor.workingNumber,targetBefore=target.workingNumber;
-    actor.workingNumber=targetBefore;target.workingNumber=actorBefore;
-    actor.bloodCommandUsed=true;actor.bloodCommandTargetId=target.playerId;
-    actor.dominanceBefore=Math.max(0,Number(vampire.publicResources.dominance)||0);
-    if(vampire.augments.includes('aug-301'))priv.bloodCommandUsedCycle=cycleIndex;
-    delete vampire.publicResources.thrallPlayerId;
-    actor.numberHistory.postSwapNumber=actor.workingNumber;
-    target.numberHistory.postSwapNumber=target.workingNumber;
-    for(const card of cards)if(card!==actor&&card!==target)card.numberHistory.postSwapNumber=card.workingNumber;
-    events.push({
-      phase:'PRE_COLLISION_SWAP',effectId:'vampire-blood-command',
-      actorId:vampire.playerId,targetId:target.playerId,
-      actorBefore,targetBefore,actorAfter:actor.workingNumber,targetAfter:target.workingNumber
-    });
-  }
-  for(const card of cards)card.numberHistory.postSwapNumber=card.workingNumber;
+ const owners=run.players.filter(p=>p.characterId==='vampire'&&p.status!=='DOWNED').sort((a,b)=>a.seat-b.seat||a.playerId.localeCompare(b.playerId));
+ for(const p of owners){
+ if(!state.turnSubmissions[p.playerId]?.skillIntent)continue;
+ const actor=cardByPlayer(cards,p.playerId),target=cardByPlayer(cards,p.publicResources.thrallPlayerId);
+ if(!actor||!target)throw new Error('피의 명령 대상이 이번 턴 판정에 없습니다.');
+ performVampireSwap(run,p,actor,target,cards,events,state);
+ }
+ for(const c of cards)c.numberHistory.postSwapNumber=c.workingNumber;
 }
 export function applyPreCollisionSteal(run,cards,events){
-  const imps=run.players.filter(p=>p.characterId==='imp'&&p.status!=='DOWNED'&&cardByPlayer(cards,p.playerId)).sort((a,b)=>a.seat-b.seat);
-  if(imps.length>1)throw new Error('MULTI_IMP_STEAL_UNDEFINED');
-  if(!imps.length){for(const card of cards)card.numberHistory.postStealNumber=card.workingNumber;return;}
-  const imp=imps[0],actor=cardByPlayer(cards,imp.playerId);
-  const actorStart=actor.workingNumber;
-  const targets=cards
-    .filter(card=>card.playerId!==imp.playerId&&playerById(run,card.playerId)?.characterId!=='imp'&&card.workingNumber===actorStart)
-    .sort((a,b)=>seatOf(run,a.playerId)-seatOf(run,b.playerId)||a.playerId.localeCompare(b.playerId));
-  let total=0;
-  actor.stealTargets=[];
-  for(const target of targets){
-    const before=target.workingNumber;
-    const stolen=Math.min(1,Math.max(0,before));
-    if(stolen<=0)continue;
-    target.workingNumber=before-stolen;total+=stolen;
-    actor.stealTargets.push(target.playerId);
-    events.push({
-      phase:'PRE_COLLISION_STEAL',effectId:'imp-steal',actorId:imp.playerId,targetId:target.playerId,
-      before,after:target.workingNumber,stolen
-    });
-  }
-  actor.workingNumber=actorStart+total;
-  actor.stealTotal=total;
-  actor.stealTargetCount=actor.stealTargets.length;
-  actor.greedGained=total;
-  imp.publicResources.greed=total;
-  if(total>0)events.push({
-    phase:'PRE_COLLISION_STEAL',effectId:'imp-steal-summary',actorId:imp.playerId,
-    before:actorStart,after:actor.workingNumber,totalActuallyStolen:total,targetIds:[...actor.stealTargets]
-  });
-  for(const card of cards)card.numberHistory.postStealNumber=card.workingNumber;
+  return applyImpPreCollisionSteal(run,cards,events);
 }
 export function finalizeNumbers(cards){
   for(const card of cards){
@@ -146,19 +99,7 @@ export function attachDamage(cards,packets){
       .reduce((sum,packet)=>sum+(Number(packet.amount)||0),0);
   }
 }
-export function assignVampireThralls(run,cards,groups,events){
-  const collisionExists=[...groups.values()].some(group=>group.length>1);
-  if(!collisionExists)return;
-  for(const vampire of run.players.filter(p=>p.characterId==='vampire'&&p.status!=='DOWNED').sort((a,b)=>a.seat-b.seat)){
-    if(vampire.publicResources.thrallPlayerId)continue;
-    const candidates=run.players
-      .filter(p=>p.playerId!==vampire.playerId&&p.status!=='DOWNED')
-      .sort((a,b)=>(b.growthExp-a.growthExp)||(a.seat-b.seat)||a.playerId.localeCompare(b.playerId));
-    const target=candidates[0];if(!target)continue;
-    vampire.publicResources.thrallPlayerId=target.playerId;
-    events.push({type:'THRALL_MARKED',playerId:vampire.playerId,targetId:target.playerId,growthExp:target.growthExp});
-  }
-}
+export const assignVampireThralls=assignVampireMarks;
 export function validateNumberMutationState(run,cards,events,{minimum=0,packets=[]}={}){
   for(const card of cards){
     const h=card.numberHistory;
@@ -174,16 +115,16 @@ export function validateNumberMutationState(run,cards,events,{minimum=0,packets=
   }
   const stealEvents=(events||[]).filter(e=>e.phase==='PRE_COLLISION_STEAL'&&e.effectId==='imp-steal');
   const summaries=(events||[]).filter(e=>e.phase==='PRE_COLLISION_STEAL'&&e.effectId==='imp-steal-summary');
-  if(summaries.length>1)throw new Error('NUMBER_07_STEAL_REENTERED');
-  if(summaries.length){
-    const stolen=stealEvents.reduce((sum,e)=>sum+(Number(e.stolen)||0),0);
-    if(stolen!==summaries[0].totalActuallyStolen)throw new Error('NUMBER_05_STEAL_CONSERVATION');
+  if(new Set(summaries.map(e=>e.actorId)).size!==summaries.length)throw new Error('NUMBER_07_STEAL_REENTERED');
+  for(const summary of summaries){
+    const stolen=stealEvents.filter(e=>e.actorId===summary.actorId).reduce((sum,e)=>sum+(Number(e.stolen)||0),0);
+    if(stolen!==summary.totalActuallyStolen)throw new Error('NUMBER_05_STEAL_CONSERVATION');
   }
   const uniqueMutationKeys=new Set();
   for(const event of events||[]){
     if(!['SELF_MODIFY','PRE_COLLISION_SWAP','PRE_COLLISION_STEAL'].includes(event.phase))continue;
     if(event.effectId==='imp-steal-summary')continue;
-    const key=`${event.phase}:${event.effectId}:${event.actorId||''}:${event.targetId||''}`;
+    const key=`${event.phase}:${event.effectId||event.type}:${event.actorId||event.sourcePlayerId||''}:${event.targetId||event.targetPlayerId||event.victimPlayerId||''}`;
     if(uniqueMutationKeys.has(key))throw new Error('NUMBER_07_DUPLICATE_MUTATION');
     uniqueMutationKeys.add(key);
   }

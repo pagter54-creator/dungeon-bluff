@@ -1,0 +1,2325 @@
+{
+  "schemaVersion": "PVE_CONTENT_005B_SPEC_GAP_REGISTER_V1",
+  "baseRef": "feat/pve-content-005q-design-b",
+  "targetCount": 150,
+  "designBComplete": 52,
+  "existingCompleteOutsideDesignB": 8,
+  "partialCount": 90,
+  "placeholderCount": 11,
+  "implementationStatus": "OPEN_WORKING_REGISTER",
+  "rows": [
+    {
+      "augmentId": "aug-001",
+      "name": "노련한 탐험가",
+      "archetype": "노련한 탐험가",
+      "sourceEffect": "연속 유효 공격을 중심으로 기본 체급과 성장 효율을 높이는 정석형. 충돌 시 연속 성공 흐름이 끊긴다.",
+      "contractCondition": "전투에서 자신의 연속 유효 공격 횟수가 2 이상이다. 충돌 시 기록은 0으로 초기화한다.",
+      "contractEffect": "연속 유효 공격 2회째부터 해당 공격에 추가 피해 +1. 충돌 시 연속 기록 0.",
+      "trigger": [
+        "POST_COLLISION",
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "adventurer",
+      "stage": 1
+    },
+    {
+      "augmentId": "aug-002",
+      "name": "튼튼한 여행복",
+      "archetype": "노련한 탐험가",
+      "sourceEffect": "최대 HP +1, 획득 시 HP 1 회복.",
+      "contractCondition": "최대 HP +1, 획득 시 HP1 회복",
+      "contractEffect": "최대 HP +1, 획득 시 HP1 회복.",
+      "trigger": [
+        "ON_ACQUIRE"
+      ],
+      "onceScope": "ONCE_PER_RUN_PER_AUGMENT",
+      "resetScope": "NOT_APPLICABLE",
+      "roomApplicability": {
+        "COMBAT": false,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "adventurer",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-004",
+      "name": "경험자의 감각",
+      "archetype": "노련한 탐험가",
+      "sourceEffect": "전투 첫 충돌 이후 다음 유효 성공에 추가 성장 EXP 보너스.",
+      "contractCondition": "전투 첫 충돌 이후 다음 유효 성공에 추가 성장 EXP 보너스.",
+      "contractEffect": "조건 달성 시 EXP +1.",
+      "trigger": [
+        "POST_COLLISION",
+        "ON_VALID"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "NOT_APPLICABLE",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS",
+        "BETA_PLACEHOLDER",
+        "RESET_SCOPE"
+      ],
+      "classId": "adventurer",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-005",
+      "name": "산전수전",
+      "archetype": "노련한 탐험가",
+      "sourceEffect": "전투 첫 피격을 완화하고 이후 다음 유효 공격을 강화.",
+      "contractCondition": "전투 첫 피격을 완화하고 이후 다음 유효 공격을 강화.",
+      "contractEffect": "다음 직접 피해 1 감소.",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "adventurer",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-006",
+      "name": "숙련된 일격",
+      "archetype": "노련한 탐험가",
+      "sourceEffect": "연속 유효 성공 횟수가 높을수록 공격 보너스가 단계적으로 증가.",
+      "contractCondition": "연속 유효 성공 횟수가 높을수록 공격 보너스가 단계적으로 증가.",
+      "contractEffect": "조건 1회당 스택 +1(최대 3); 스택 1당 관련 효과 +1 피해 상당.",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "adventurer",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-007",
+      "name": "빠른 성장",
+      "archetype": "노련한 탐험가",
+      "sourceEffect": "기본 추가 EXP 효과가 일정 간격으로 한 번 더 발동. 전투/층 단위 상한 필요.",
+      "contractCondition": "모험가 기본 추가 EXP가 3번째 유효 공격마다 1회 추가로 발동해 EXP +1",
+      "contractEffect": "모험가 기본 추가 EXP가 3번째 유효 공격마다 1회 추가로 발동해 EXP +1.",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "adventurer",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-008",
+      "name": "백전노장",
+      "archetype": "노련한 탐험가",
+      "sourceEffect": "최대 HP와 기본 전투 체급을 추가 강화하고 피격 후 반격·연속 공격 효율을 높임.",
+      "contractCondition": "최대 HP +1, 획득 시 HP1 회복",
+      "contractEffect": "최대 HP +1, 획득 시 HP1 회복.",
+      "trigger": [
+        "ON_ACQUIRE"
+      ],
+      "onceScope": "ONCE_PER_RUN_PER_AUGMENT",
+      "resetScope": "NOT_APPLICABLE",
+      "roomApplicability": {
+        "COMBAT": false,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "adventurer",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-010",
+      "name": "위대한 모험담",
+      "archetype": "노련한 탐험가",
+      "sourceEffect": "전투 중 높은 유효 성공률을 유지하면 전투 종료 시 추가 EXP.",
+      "contractCondition": "전투 종료 시 유효 공격 성공률이 80% 이상이면 EXP +3",
+      "contractEffect": "전투 종료 시 유효 공격 성공률이 80% 이상이면 EXP +3.",
+      "trigger": [
+        "COMBAT_END",
+        "ON_VALID"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "adventurer",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-011",
+      "name": "만능 장비꾼",
+      "archetype": "만능 장비꾼",
+      "sourceEffect": "직전 제출 숫자와 다른 숫자로 유효 성공하면 숫자대에 따라 장비 효과 발동: 1~2 방어, 3 탐험/성장, 4~5 공격.",
+      "contractCondition": "직전 제출 숫자와 다른 숫자로 유효 성공 시: 1~2 = 다음 직접 피해 1 감소, 3 = EXP +1, 4~5 = 추가 피해 +1",
+      "contractEffect": "직전 제출 숫자와 다른 숫자로 유효 성공 시: 1~2 = 다음 직접 피해 1 감소, 3 = EXP +1, 4~5 = 추가 피해 +1.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_CYCLE",
+      "resetScope": "CYCLE",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "adventurer",
+      "stage": 1
+    },
+    {
+      "augmentId": "aug-015",
+      "name": "재빠른 장비 교체",
+      "archetype": "만능 장비꾼",
+      "sourceEffect": "직전 숫자와 차이가 2 이상이면 이번 장비 효과 강화.",
+      "contractCondition": "직전 숫자와 차이가 2 이상이면 이번 장비 효과 강화.",
+      "contractEffect": "조건 달성 시 추가 피해 +2.",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "TURN",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS",
+        "BETA_PLACEHOLDER"
+      ],
+      "classId": "adventurer",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-016",
+      "name": "준비 만전",
+      "archetype": "만능 장비꾼",
+      "sourceEffect": "한 사이클 안에 방어·탐험·공격 장비를 모두 발동하면 준비 완료 보너스.",
+      "contractCondition": "한 사이클 안에 방어·탐험·공격 장비를 모두 발동하면 준비 완료 보너스.",
+      "contractEffect": "조건 달성 시 추가 피해 +2.",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "TURN",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS",
+        "BETA_PLACEHOLDER"
+      ],
+      "classId": "adventurer",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-018",
+      "name": "만물상",
+      "archetype": "만능 장비꾼",
+      "sourceEffect": "한 사이클에서 세 장비 종류를 모두 발동하면 1회 세 효과를 함께 획득.",
+      "contractCondition": "한 사이클에서 방어·탐험·공격 장비를 모두 발동하면 다음 유효 성공에 세 효과를 동시에 적용: 다음 직접 피해 1 감소 + EXP1 + 추가 피해1",
+      "contractEffect": "한 사이클에서 방어·탐험·공격 장비를 모두 발동하면 다음 유효 성공에 세 효과를 동시에 적용: 다음 직접 피해 1 감소 + EXP1 + 추가 피해1.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_CYCLE",
+      "resetScope": "CYCLE",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "adventurer",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-020",
+      "name": "적재적소",
+      "archetype": "만능 장비꾼",
+      "sourceEffect": "장비 전환 조건을 만족하면 숫자 구간과 무관하게 원하는 장비 효과를 선택 가능.",
+      "contractCondition": "직전 숫자와 다른 숫자로 유효 성공할 때 숫자 구간과 무관하게 방어/탐험/공격 중 1개를 선택",
+      "contractEffect": "직전 숫자와 다른 숫자로 유효 성공할 때 숫자 구간과 무관하게 방어/탐험/공격 중 1개를 선택.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_CYCLE",
+      "resetScope": "CYCLE",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "adventurer",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-023",
+      "name": "행운의 동행",
+      "archetype": "기적의 탐험가",
+      "sourceEffect": "기적의 발견이 있었던 전투 종료 후 조건부 파티 골드 +1G. 층 단위 상한 권장.",
+      "contractCondition": "기적의 발견이 발생한 전투 승리 시 전원 골드 +1G",
+      "contractEffect": "기적의 발견이 발생한 전투 승리 시 전원 골드 +1G.",
+      "trigger": [
+        "COMBAT_END"
+      ],
+      "onceScope": "ONCE_PER_FLOOR",
+      "resetScope": "FLOOR",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "adventurer",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-024",
+      "name": "길잡이의 격려",
+      "archetype": "기적의 탐험가",
+      "sourceEffect": "기적의 발견 직후 모든 아군의 다음 유효 공격에 작은 보너스.",
+      "contractCondition": "기적의 발견 직후 모든 아군의 다음 유효 공격에 작은 보너스.",
+      "contractEffect": "다음 유효 공격 추가 피해 +1.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "adventurer",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-025",
+      "name": "대원정 기록지",
+      "archetype": "기적의 탐험가",
+      "sourceEffect": "엘리트/보스에서 발생한 기적의 발견의 성장 EXP 보상을 강화.",
+      "contractCondition": "엘리트/보스에서 기적의 발견 시 기본 보상 외 전원 EXP +2 추가",
+      "contractEffect": "엘리트/보스에서 기적의 발견 시 기본 보상 외 전원 EXP +2 추가.",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "adventurer",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-026",
+      "name": "숨겨진 샛길",
+      "archetype": "기적의 탐험가",
+      "sourceEffect": "한 층에서 기적의 발견을 충분히 달성하면 다음 상점에서 작은 경제 혜택.",
+      "contractCondition": "한 층에서 기적의 발견 2회 달성 시 다음 상점 첫 구매 가격 -1G",
+      "contractEffect": "한 층에서 기적의 발견 2회 달성 시 다음 상점 첫 구매 가격 -1G.",
+      "trigger": [
+        "ON_VALID",
+        "ROOM_END"
+      ],
+      "onceScope": "ONCE_PER_FLOOR",
+      "resetScope": "FLOOR",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": true,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "adventurer",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-027",
+      "name": "행운의 발견",
+      "archetype": "기적의 탐험가",
+      "sourceEffect": "보상방에서 조건을 만족하면 추가 공개·리롤·선택 우선권 등 작은 유물 선택 이점.",
+      "contractCondition": "보상방에서 본인이 유효 통과하고 최종 피해 상위 2명 안이면 유물 후보 +1개 공개 후 기존 선택 규칙 적용",
+      "contractEffect": "보상방에서 본인이 유효 통과하고 최종 피해 상위 2명 안이면 유물 후보 +1개 공개 후 기존 선택 규칙 적용.",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "onceScope": "ONCE_PER_ROOM",
+      "resetScope": "ROOM",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": true,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "adventurer",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-029",
+      "name": "황금 나침반",
+      "archetype": "기적의 탐험가",
+      "sourceEffect": "층 내 기적 달성 횟수 조건 충족 시 보스 클리어 후 파티 골드 추가 획득.",
+      "contractCondition": "한 층에서 기적의 발견 2회 이상이면 보스 클리어 후 전원 +1G",
+      "contractEffect": "한 층에서 기적의 발견 2회 이상이면 보스 클리어 후 전원 +1G.",
+      "trigger": [
+        "ROOM_END"
+      ],
+      "onceScope": "ONCE_PER_FLOOR",
+      "resetScope": "FLOOR",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "adventurer",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-031",
+      "name": "불굴의 기사",
+      "archetype": "불굴의 기사",
+      "sourceEffect": "강인함 최대 충전 3. 강인함으로 실제 중복을 관통하면 '불굴' 획득, 다음 직접 피해를 완화.",
+      "contractCondition": "강인함을 사용해 자신의 카드가 실제 중복을 관통했다.",
+      "contractEffect": "강인함 최대 3. 강인함으로 실제 중복을 관통하면 '불굴': 다음 직접 피해 1 감소.",
+      "trigger": [
+        "POST_COLLISION"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "warrior",
+      "stage": 1
+    },
+    {
+      "augmentId": "aug-032",
+      "name": "전열 유지",
+      "archetype": "불굴의 기사",
+      "sourceEffect": "전투 시작 시 강인함 1충전을 추가로 보유.",
+      "contractCondition": "전투 시작 시 강인함 +1",
+      "contractEffect": "전투 시작 시 강인함 +1.",
+      "trigger": [
+        "COMBAT_START"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "warrior",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-033",
+      "name": "무쇠 갑주",
+      "archetype": "불굴의 기사",
+      "sourceEffect": "강인함 사용 턴에 받는 첫 직접 피해를 감소.",
+      "contractCondition": "강인함을 사용한 턴에 받는 첫 직접 피해다.",
+      "contractEffect": "강인함 사용 턴에 받는 첫 직접 피해 1 감소.",
+      "trigger": [
+        "ON_SKILL_USE"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "TURN",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "warrior",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-034",
+      "name": "숙련된 호흡",
+      "archetype": "불굴의 기사",
+      "sourceEffect": "강인함으로 중복 관통에 성공하면 조건부로 충전 일부 환급.",
+      "contractCondition": "강인함으로 실제 중복 관통 성공 시 강인함 1 환급",
+      "contractEffect": "강인함으로 실제 중복 관통 성공 시 강인함 1 환급.",
+      "trigger": [
+        "POST_COLLISION",
+        "ON_VALID"
+      ],
+      "onceScope": "ONCE_PER_CYCLE",
+      "resetScope": "CYCLE",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": true,
+        "REWARD": true,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "warrior",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-035",
+      "name": "빈틈 없는 전진",
+      "archetype": "불굴의 기사",
+      "sourceEffect": "강인함을 사용했으나 실제 중복이 없었다면 조건부 충전 환급.",
+      "contractCondition": "강인함을 사용했지만 실제 중복 카드가 없었다.",
+      "contractEffect": "강인함을 사용했으나 실제 중복이 없었다면 강인함 1 환급.",
+      "trigger": [
+        "POST_COLLISION"
+      ],
+      "onceScope": "ONCE_PER_CYCLE",
+      "resetScope": "CYCLE",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": true,
+        "REWARD": true,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "warrior",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-036",
+      "name": "전장의 노련함",
+      "archetype": "불굴의 기사",
+      "sourceEffect": "강인함 관통 성공마다 불굴이 강화되어 다음 공격에도 작은 보너스.",
+      "contractCondition": "강인함 관통 성공마다 불굴이 강화되어 다음 공격에도 작은 보너스.",
+      "contractEffect": "다음 유효 공격 추가 피해 +1.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "warrior",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-039",
+      "name": "철벽의 기사",
+      "archetype": "불굴의 기사",
+      "sourceEffect": "강인함 관통 성공 후 강력한 1회 방어 효과 획득.",
+      "contractCondition": "강인함 관통 성공 후 강력한 1회 방어 효과 획득.",
+      "contractEffect": "다음 직접 피해 1 감소.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "warrior",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-042",
+      "name": "대신 맞아주마",
+      "archetype": "수호벽",
+      "sourceEffect": "호위로 전가받은 첫 피해를 감소.",
+      "contractCondition": "호위로 전가받은 첫 피해를 감소.",
+      "contractEffect": "다음 직접 피해 1 감소.",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "warrior",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-043",
+      "name": "등 뒤에 있어",
+      "archetype": "수호벽",
+      "sourceEffect": "호위된 아군의 다음 유효 공격 강화.",
+      "contractCondition": "호위된 아군의 다음 유효 공격 강화.",
+      "contractEffect": "다음 유효 공격 추가 피해 +1.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "warrior",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-046",
+      "name": "넓은 방패",
+      "archetype": "수호벽",
+      "sourceEffect": "여러 아군이 얽힌 중복에서도 호위가 더 안정적으로 작동.",
+      "contractCondition": "수호벽 발동 시 같은 숫자 아군이 2명 이상이면 호위할 아군 1명을 직접 선택할 수 있고, 선택 대상은 다음 직접 피해 1회도 전가 가능",
+      "contractEffect": "수호벽 발동 시 같은 숫자 아군이 2명 이상이면 호위할 아군 1명을 직접 선택할 수 있고, 선택 대상은 다음 직접 피해 1회도 전가 가능.",
+      "trigger": [
+        "POST_COLLISION"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "warrior",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-047",
+      "name": "목숨을 건 맹세",
+      "archetype": "수호벽",
+      "sourceEffect": "전가 피해로 위험 HP에 도달하면 강한 방어 효과 획득.",
+      "contractCondition": "다음 직접 피해 1 감소",
+      "contractEffect": "다음 직접 피해 1 감소.",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "warrior",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-048",
+      "name": "철벽 진형",
+      "archetype": "수호벽",
+      "sourceEffect": "기사 한 장을 희생해 같은 숫자로 중복된 복수 아군을 통과시킬 수 있음.",
+      "contractCondition": "수호벽 호위 시 같은 숫자로 충돌한 아군을 최대 2명까지 동시에 통과시킴",
+      "contractEffect": "수호벽 호위 시 같은 숫자로 충돌한 아군을 최대 2명까지 동시에 통과시킴.",
+      "trigger": [
+        "POST_COLLISION",
+        "ON_VALID"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "NOT_APPLICABLE",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": true,
+        "REWARD": true,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS",
+        "RESET_SCOPE"
+      ],
+      "classId": "warrior",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-050",
+      "name": "최후의 방패",
+      "archetype": "수호벽",
+      "sourceEffect": "전투당 1회 아군 대신 받은 피해로 기절할 상황을 버티고 파티 보호 효과 발동.",
+      "contractCondition": "아군 대신 받은 피해로 기절할 때 HP 1로 버티고 모든 아군의 다음 직접 피해 1 감소",
+      "contractEffect": "아군 대신 받은 피해로 기절할 때 HP 1로 버티고 모든 아군의 다음 직접 피해 1 감소.",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "warrior",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-051",
+      "name": "압살 기사",
+      "archetype": "압살 기사",
+      "sourceEffect": "강인함으로 실제 중복을 관통하면 '압살'. 강인함 때문에 무효화된 다른 카드 수에 비례해 공격이 강화.",
+      "contractCondition": "강인함으로 중복 관통 시 무효화된 다른 카드 1장당 추가 피해 +1",
+      "contractEffect": "강인함으로 중복 관통 시 무효화된 다른 카드 1장당 추가 피해 +1.",
+      "trigger": [
+        "POST_COLLISION",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "NOT_APPLICABLE",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS",
+        "RESET_SCOPE"
+      ],
+      "classId": "warrior",
+      "stage": 1
+    },
+    {
+      "augmentId": "aug-056",
+      "name": "기세등등",
+      "archetype": "압살 기사",
+      "sourceEffect": "압살 성공 후 다음 유효 공격까지 일부 공격 강화 유지.",
+      "contractCondition": "다음 유효 공격 추가 피해 +1",
+      "contractEffect": "다음 유효 공격 추가 피해 +1.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "warrior",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-058",
+      "name": "일기당천",
+      "archetype": "압살 기사",
+      "sourceEffect": "압살로 무효화한 아군 카드 수에 따른 추가 피해를 크게 강화.",
+      "contractCondition": "압살로 다른 카드가 1장 이상 무효화됐다.",
+      "contractEffect": "압살로 무효화된 다른 카드 1장당 추가 피해 +2.",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "NOT_APPLICABLE",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS",
+        "RESET_SCOPE"
+      ],
+      "classId": "warrior",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-059",
+      "name": "성문 파쇄",
+      "archetype": "압살 기사",
+      "sourceEffect": "충분히 강한 압살은 몬스터의 방어 상태·일부 방어형 특수효과를 파괴.",
+      "contractCondition": "압살로 다른 카드가 2장 이상 무효화됐고 자신의 공격은 유효하다.",
+      "contractEffect": "압살로 다른 카드 2장 이상을 무효화한 유효 공격은 적의 방어 버프 1개 제거.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "warrior",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-062",
+      "name": "발목 베기",
+      "archetype": "비열한 일격",
+      "sourceEffect": "숫자 1로 단독 최저 성공 시 비열한 일격 추가 효과 강화.",
+      "contractCondition": "숫자 1로 단독 최저 성공 시 비열한 일격 추가 효과 강화.",
+      "contractEffect": "조건 달성 시 추가 피해 +1.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "TURN",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS",
+        "BETA_PLACEHOLDER"
+      ],
+      "classId": "rogue",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-064",
+      "name": "재빠른 손놀림",
+      "archetype": "비열한 일격",
+      "sourceEffect": "단독 최저 성공 시 조건부로 사용한 낮은 카드 하나를 회수.",
+      "contractCondition": "단독 최저 성공 시 사용한 숫자 1 또는 3 카드 1장을 무작위 복구",
+      "contractEffect": "단독 최저 성공 시 사용한 숫자 1 또는 3 카드 1장을 무작위 복구.",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "onceScope": "ONCE_PER_CYCLE",
+      "resetScope": "CYCLE",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": true,
+        "REWARD": true,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "rogue",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-065",
+      "name": "급소 노리기",
+      "archetype": "비열한 일격",
+      "sourceEffect": "단독 최저 연속 성공 시 비열한 일격 피해가 단계적으로 증가.",
+      "contractCondition": "단독 최저 연속 성공 시 비열한 일격 피해가 단계적으로 증가.",
+      "contractEffect": "조건 1회당 스택 +1(최대 3); 스택 1당 관련 효과 +1 피해 상당.",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "rogue",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-067",
+      "name": "빈틈 없는 퇴로",
+      "archetype": "비열한 일격",
+      "sourceEffect": "단독 최저 성공 턴 이후 다음 직접 피해를 완화.",
+      "contractCondition": "단독 최저 성공 턴 이후 다음 직접 피해를 완화.",
+      "contractEffect": "다음 직접 피해 1 감소.",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "rogue",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-069",
+      "name": "어둠 속의 숙련자",
+      "archetype": "비열한 일격",
+      "sourceEffect": "단독 최저 성공 시 낮은 카드 회수 빈도/안정성을 크게 강화.",
+      "contractCondition": "단독 최저 성공 시 사용한 가장 낮은 숫자 카드 1장 복구",
+      "contractEffect": "단독 최저 성공 시 사용한 가장 낮은 숫자 카드 1장 복구.",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "onceScope": "ONCE_PER_CYCLE",
+      "resetScope": "CYCLE",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": true,
+        "REWARD": true,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "rogue",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-072",
+      "name": "재독침",
+      "archetype": "독 묻은 칼날",
+      "sourceEffect": "단독 최저 성공 시 맹독을 더 안정적으로 누적.",
+      "contractCondition": "숫자 1로 단독 최저 성공하면 맹독을 2중첩 부여",
+      "contractEffect": "숫자 1로 단독 최저 성공하면 맹독을 2중첩 부여.",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "onceScope": "ONCE_PER_CYCLE",
+      "resetScope": "CYCLE",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "rogue",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-074",
+      "name": "독성 표식",
+      "archetype": "독 묻은 칼날",
+      "sourceEffect": "맹독이 있는 적을 공격한 아군에게 다음 공격용 작은 강화 효과 부여.",
+      "contractCondition": "맹독이 있는 적을 공격한 아군에게 다음 공격용 작은 강화 효과 부여.",
+      "contractEffect": "다음 유효 공격 추가 피해 +1.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "rogue",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-075",
+      "name": "침투독",
+      "archetype": "독 묻은 칼날",
+      "sourceEffect": "맹독 발동 시 몬스터의 방어 효과 일부 약화.",
+      "contractCondition": "맹독 폭발 시 적의 방어 수치 1을 2턴 동안 감소",
+      "contractEffect": "맹독 폭발 시 적의 방어 수치 1을 2턴 동안 감소.",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "rogue",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-076",
+      "name": "확산독",
+      "archetype": "독 묻은 칼날",
+      "sourceEffect": "맹독 폭발 시 파티 전체의 다음 유효 공격에 작은 보너스.",
+      "contractCondition": "맹독 폭발 시 파티 전체의 다음 유효 공격에 작은 보너스.",
+      "contractEffect": "다음 유효 공격 추가 피해 +1.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "rogue",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-077",
+      "name": "축적 중독",
+      "archetype": "독 묻은 칼날",
+      "sourceEffect": "맹독을 즉시 소비하지 않고 일정량 이상 쌓으면 폭발 효과가 크게 강화.",
+      "contractCondition": "맹독 3중첩에서 다음 폭발은 3중첩을 모두 소비하고 추가 피해 7",
+      "contractEffect": "맹독 3중첩에서 다음 폭발은 3중첩을 모두 소비하고 추가 피해 7.",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "rogue",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-078",
+      "name": "치명독",
+      "archetype": "독 묻은 칼날",
+      "sourceEffect": "높은 맹독 중첩 폭발 시 큰 추가 피해와 강한 약화.",
+      "contractCondition": "맹독 3중첩 폭발 시 추가 피해 9, 이후 적의 다음 방어 효과 1회 무효",
+      "contractEffect": "맹독 3중첩 폭발 시 추가 피해 9, 이후 적의 다음 방어 효과 1회 무효.",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "rogue",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-079",
+      "name": "부식성 맹독",
+      "archetype": "독 묻은 칼날",
+      "sourceEffect": "맹독이 유지되는 동안 파티의 공격 효율이 점차 증가.",
+      "contractCondition": "전투에서 적 맹독이 2중첩 이상 유지된다.",
+      "contractEffect": "맹독 2중첩 이상 유지 중에는 모든 아군 유효 공격 추가 피해 +1.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "rogue",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-081",
+      "name": "그림자 도약",
+      "archetype": "그림자 도약",
+      "sourceEffect": "직전 제출 숫자와 현재 숫자의 차이가 3 이상이고 유효 성공하면 '도약' 발동. 1↔4/5 같은 큰 이동을 보상.",
+      "contractCondition": "직전 제출 숫자와 차이 3 이상으로 유효 성공하면 도약: 추가 피해 +2",
+      "contractEffect": "직전 제출 숫자와 차이 3 이상으로 유효 성공하면 도약: 추가 피해 +2.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "TURN",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "rogue",
+      "stage": 1
+    },
+    {
+      "augmentId": "aug-083",
+      "name": "그림자 낙하",
+      "archetype": "그림자 도약",
+      "sourceEffect": "높은 숫자→낮은 숫자 도약 성공 시 다음 공격 준비 효과 획득.",
+      "contractCondition": "다음 유효 공격 추가 피해 +1",
+      "contractEffect": "다음 유효 공격 추가 피해 +1.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "rogue",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-084",
+      "name": "벽 차기",
+      "archetype": "그림자 도약",
+      "sourceEffect": "도약 성공 후 다음 카드도 큰 숫자 차이를 만들면 연속 도약 보너스.",
+      "contractCondition": "도약 성공 후 다음 카드도 큰 숫자 차이를 만들면 연속 도약 보너스.",
+      "contractEffect": "조건 달성 시 추가 피해 +1.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "TURN",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS",
+        "BETA_PLACEHOLDER"
+      ],
+      "classId": "rogue",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-085",
+      "name": "그림자 연무",
+      "archetype": "그림자 도약",
+      "sourceEffect": "연속 도약 성공 시 도약 추가 피해 누적 강화.",
+      "contractCondition": "연속 도약 성공 시 도약 추가 피해 누적 강화.",
+      "contractEffect": "조건 1회당 스택 +1(최대 3); 스택 1당 관련 효과 +1 피해 상당.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "rogue",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-087",
+      "name": "사각 이동",
+      "archetype": "그림자 도약",
+      "sourceEffect": "숫자 차이 4 이상이면 일반 도약보다 강한 '대도약' 발동.",
+      "contractCondition": "숫자 차이 4의 대도약 성공 시 추가 피해 +4",
+      "contractEffect": "숫자 차이 4의 대도약 성공 시 추가 피해 +4.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "TURN",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "rogue",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-088",
+      "name": "그림자 무희",
+      "archetype": "그림자 도약",
+      "sourceEffect": "상승 도약과 하강 도약을 번갈아 성공할수록 전투 중 도약 강화.",
+      "contractCondition": "상승 도약과 하강 도약을 번갈아 성공할수록 전투 중 도약 강화.",
+      "contractEffect": "조건 달성 시 추가 피해 +3.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "TURN",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS",
+        "BETA_PLACEHOLDER"
+      ],
+      "classId": "rogue",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-089",
+      "name": "공중 암살",
+      "archetype": "그림자 도약",
+      "sourceEffect": "대도약 성공 시 매우 큰 공격 보너스. 1→5 전환이 최강.",
+      "contractCondition": "대도약 성공 시 추가 피해 +6",
+      "contractEffect": "대도약 성공 시 추가 피해 +6. 1→5 이동이면 추가로 +2.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "TURN",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "rogue",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-090",
+      "name": "흔적 없는 자",
+      "archetype": "그림자 도약",
+      "sourceEffect": "도약 성공 후 출발 카드를 조건부로 되돌려 다시 도약 루프 구성.",
+      "contractCondition": "도약 성공 후 출발 숫자의 사용 카드 1장 복구",
+      "contractEffect": "도약 성공 후 출발 숫자의 사용 카드 1장 복구.",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "onceScope": "ONCE_PER_CYCLE",
+      "resetScope": "CYCLE",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": true,
+        "REWARD": true,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "rogue",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-091",
+      "name": "대마도 증폭",
+      "archetype": "대마도 증폭",
+      "sourceEffect": "최대 마나 6. 2/4/6마나로 카드 숫자 +1/+2/+3. 높은 마나를 큰 증폭으로 전환하는 개인 화력형.",
+      "contractCondition": "WHILE_OWNED",
+      "contractEffect": "최대 마나 6. 마나 2/4/6 소비 시 현재 카드 숫자 +1/+2/+3.",
+      "trigger": [
+        "PRE_COLLISION"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": true,
+        "REWARD": true,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "mage",
+      "stage": 1
+    },
+    {
+      "augmentId": "aug-092",
+      "name": "마력 우물",
+      "archetype": "대마도 증폭",
+      "sourceEffect": "최대 마나 +1, 전투 시작 마나 1.",
+      "contractCondition": "최대 마나 +1, 전투 시작 마나 1",
+      "contractEffect": "최대 마나 +1, 전투 시작 마나 1.",
+      "trigger": [
+        "COMBAT_START"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "mage",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-093",
+      "name": "순환 회로",
+      "archetype": "대마도 증폭",
+      "sourceEffect": "증폭된 카드가 유효 성공하면 마나 1 환급.",
+      "contractCondition": "증폭 카드가 유효 성공하면 마나 1 환급",
+      "contractEffect": "증폭 카드가 유효 성공하면 마나 1 환급.",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "TURN",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "mage",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-094",
+      "name": "과잉 증폭",
+      "archetype": "대마도 증폭",
+      "sourceEffect": "4마나 이상을 한 번에 소비한 증폭 공격이 유효하면 추가 피해.",
+      "contractCondition": "4마나 이상 소비한 증폭 공격이 유효하면 추가 피해 +2",
+      "contractEffect": "4마나 이상 소비한 증폭 공격이 유효하면 추가 피해 +2.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "TURN",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "mage",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-095",
+      "name": "마력 범람",
+      "archetype": "대마도 증폭",
+      "sourceEffect": "턴 시작에 마나가 최대라면 그 턴 증폭 보너스 강화.",
+      "contractCondition": "턴 시작에 마나가 최대라면 그 턴 증폭 보너스 강화.",
+      "contractEffect": "조건 달성 시 추가 피해 +2.",
+      "trigger": [
+        "TURN_START",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "TURN",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS",
+        "BETA_PLACEHOLDER"
+      ],
+      "classId": "mage",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-096",
+      "name": "잔류 마력",
+      "archetype": "대마도 증폭",
+      "sourceEffect": "증폭 성공 후 다음 턴 마나 회복 +1. 연속 발동 제한.",
+      "contractCondition": "증폭 공격 유효 성공 후 다음 턴 자연 마나 회복 +1",
+      "contractEffect": "증폭 공격 유효 성공 후 다음 턴 자연 마나 회복 +1.",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "mage",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-097",
+      "name": "금단의 공식",
+      "archetype": "대마도 증폭",
+      "sourceEffect": "6마나 이상 소비 시 큰 강화, 대신 다음 턴 마나 자연회복 없음.",
+      "contractCondition": "한 번의 유효 공격에서 마나 6 이상을 실제 소비했다.",
+      "contractEffect": "6마나 이상을 한 번에 소비한 유효 공격 추가 피해 +4.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "mage",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-099",
+      "name": "칠중성의 마도식",
+      "archetype": "대마도 증폭",
+      "sourceEffect": "최대 증폭량 및 최종 피해를 크게 강화.",
+      "contractCondition": "WHILE_OWNED",
+      "contractEffect": "최대 마나 +1. 7마나 소비 시 카드 숫자 +4 및 추가 피해 +3.",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "TURN",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "mage",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-100",
+      "name": "대마도 포화",
+      "archetype": "대마도 증폭",
+      "sourceEffect": "최대 마나에서 전부 소비해 대마도 상태 진입. 이번 공격과 다음 공격 강화.",
+      "contractCondition": "최대 마나에서 전부 소비하면 이번 유효 공격 +4, 다음 유효 공격 +2 피해",
+      "contractEffect": "최대 마나에서 전부 소비하면 이번 유효 공격 +4, 다음 유효 공격 +2 피해.",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "mage",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-101",
+      "name": "백마도사",
+      "archetype": "백마도사",
+      "sourceEffect": "마나로 숫자를 바꾼 카드가 아군과 충돌하면 '백마법'. 두 카드는 무효지만 충돌한 아군 HP 1 회복.",
+      "contractCondition": "마나로 숫자를 바꾼 카드가 아군과 충돌하면 백마법: 두 카드 모두 무효, 충돌한 아군 HP 1 회복",
+      "contractEffect": "마나로 숫자를 바꾼 카드가 아군과 충돌하면 백마법: 두 카드 모두 무효, 충돌한 아군 HP 1 회복.",
+      "trigger": [
+        "POST_COLLISION"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "TURN",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": true,
+        "REWARD": true,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "mage",
+      "stage": 1
+    },
+    {
+      "augmentId": "aug-106",
+      "name": "백색 장막",
+      "archetype": "백마도사",
+      "sourceEffect": "최대 HP 아군에게 백마법을 쓰면 회복 대신 다음 직접 피해를 줄이는 보호막.",
+      "contractCondition": "최대 HP 대상에게 백마법 발동 시 회복 대신 다음 직접 피해 1 감소",
+      "contractEffect": "최대 HP 대상에게 백마법 발동 시 회복 대신 다음 직접 피해 1 감소.",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "mage",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-108",
+      "name": "대백마법",
+      "archetype": "백마도사",
+      "sourceEffect": "백마법 발동 시 충돌 대상 외 최저 HP 아군도 추가 회복.",
+      "contractCondition": "백마법 발동 시 원래 대상 외 최저 HP 아군 1명도 HP1 회복",
+      "contractEffect": "백마법 발동 시 원래 대상 외 최저 HP 아군 1명도 HP1 회복.",
+      "trigger": [
+        "POST_COLLISION"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "mage",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-109",
+      "name": "수호천사",
+      "archetype": "백마도사",
+      "sourceEffect": "회복된 아군에게 강력한 1회 피해 보호 효과.",
+      "contractCondition": "백마법으로 회복된 아군이 다음 직접 피해를 받는다.",
+      "contractEffect": "백마법 대상이 받는 다음 직접 피해를 1 감소.",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "mage",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-110",
+      "name": "성전의 축복",
+      "archetype": "백마도사",
+      "sourceEffect": "회복된 아군에게 임시 공격 버프. 그 아군의 유효 성공이 마법사의 마나 회복에 기여.",
+      "contractCondition": "백마법으로 회복된 아군이 다음 유효 공격을 한다.",
+      "contractEffect": "백마법 대상의 다음 유효 공격 +2 피해. 그 공격 성공 시 마법사 마나 +1.",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "mage",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-111",
+      "name": "역산술",
+      "archetype": "역산술",
+      "sourceEffect": "증폭 방향을 자유롭게 선택: 2마나 ±1, 4마나 ±2. 변경된 숫자로 충돌·피해·이벤트 판정.",
+      "contractCondition": "마나 2/4 소비 시 카드 숫자를 ±1/±2 중 선택",
+      "contractEffect": "마나 2/4 소비 시 카드 숫자를 ±1/±2 중 선택.",
+      "trigger": [
+        "POST_COLLISION"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": true,
+        "REWARD": true,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "mage",
+      "stage": 1
+    },
+    {
+      "augmentId": "aug-113",
+      "name": "경계값 계산",
+      "archetype": "역산술",
+      "sourceEffect": "역산술로 0 또는 6+를 만들고 유효 성공하면 추가 효과.",
+      "contractCondition": "역산술로 최종 숫자 0 또는 6 이상을 만들고 유효 성공하면 추가 피해 +2, 마나 +1",
+      "contractEffect": "역산술로 최종 숫자 0 또는 6 이상을 만들고 유효 성공하면 추가 피해 +2, 마나 +1.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "TURN",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "mage",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-115",
+      "name": "자동 보정",
+      "archetype": "역산술",
+      "sourceEffect": "사이클당 1회, 역산술 카드가 충돌하고 같은 방향 한 칸 추가 조정으로 회피 가능하면 자동 재조정.",
+      "contractCondition": "사이클당 1회, 역산술 카드가 충돌하고 같은 방향 ±1 추가 조정으로 회피 가능하면 자동 조정",
+      "contractEffect": "사이클당 1회, 역산술 카드가 충돌하고 같은 방향 ±1 추가 조정으로 회피 가능하면 자동 조정.",
+      "trigger": [
+        "POST_COLLISION"
+      ],
+      "onceScope": "ONCE_PER_CYCLE",
+      "resetScope": "CYCLE",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": true,
+        "REWARD": true,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "mage",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-117",
+      "name": "대칭식",
+      "archetype": "역산술",
+      "sourceEffect": "+방향 성공과 -방향 성공을 번갈아 달성하면 대칭 스택으로 역산술 강화.",
+      "contractCondition": "+방향 성공과 -방향 성공을 번갈아 달성하면 대칭 스택으로 역산술 강화.",
+      "contractEffect": "조건 1회당 스택 +1(최대 3); 스택 1당 관련 효과 +1 피해 상당.",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "mage",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-118",
+      "name": "완전한 해",
+      "archetype": "역산술",
+      "sourceEffect": "제한 횟수 내 충돌 시 가장 가까운 안전 숫자로 자동 역산술.",
+      "contractCondition": "전투당 2회, 역산술 카드가 충돌하면 ±1 범위 내 가장 가까운 비충돌 숫자로 자동 조정",
+      "contractEffect": "전투당 2회, 역산술 카드가 충돌하면 ±1 범위 내 가장 가까운 비충돌 숫자로 자동 조정.",
+      "trigger": [
+        "POST_COLLISION"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "NOT_APPLICABLE",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": true,
+        "REWARD": true,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS",
+        "RESET_SCOPE"
+      ],
+      "classId": "mage",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-121",
+      "name": "피의 광전",
+      "archetype": "피의 광전",
+      "sourceEffect": "유효 공격으로 HP가 실제 1 감소했을 때 해당 공격을 추가 강화. HP를 공격 자원으로 소비하는 구조.",
+      "contractCondition": "유효 공격으로 HP가 실제 1 감소하면 해당 공격 추가 피해 +2",
+      "contractEffect": "유효 공격으로 HP가 실제 1 감소하면 해당 공격 추가 피해 +2.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "NOT_APPLICABLE",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS",
+        "RESET_SCOPE"
+      ],
+      "classId": "berserker",
+      "stage": 1
+    },
+    {
+      "augmentId": "aug-122",
+      "name": "끓어오르는 피",
+      "archetype": "피의 광전",
+      "sourceEffect": "HP 비용이 발생한 공격의 추가 피해 강화.",
+      "contractCondition": "HP 비용이 발생한 공격의 추가 피해 강화.",
+      "contractEffect": "조건 달성 시 추가 피해 +1.",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "TURN",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS",
+        "BETA_PLACEHOLDER"
+      ],
+      "classId": "berserker",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-123",
+      "name": "핏빛 가속",
+      "archetype": "피의 광전",
+      "sourceEffect": "HP 비용 공격 성공 후 다음 유효 공격도 소폭 강화.",
+      "contractCondition": "HP 비용 공격 성공 후 다음 유효 공격도 소폭 강화.",
+      "contractEffect": "다음 유효 공격 추가 피해 +1.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "berserker",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-125",
+      "name": "상처 벌리기",
+      "archetype": "피의 광전",
+      "sourceEffect": "연속으로 HP 비용을 지불한 유효 공격 성공 시 추가 피해 단계 상승.",
+      "contractCondition": "연속으로 HP 비용을 지불한 유효 공격 성공 시 추가 피해 단계 상승.",
+      "contractEffect": "조건 달성 시 추가 피해 +2.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "TURN",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS",
+        "BETA_PLACEHOLDER"
+      ],
+      "classId": "berserker",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-127",
+      "name": "피의 환류",
+      "archetype": "피의 광전",
+      "sourceEffect": "HP 비용 공격을 일정 횟수 성공하면 HP 1 회복. 전투당 제한.",
+      "contractCondition": "HP 비용이 발생한 유효 공격 2회 성공 시 HP1 회복",
+      "contractEffect": "HP 비용이 발생한 유효 공격 2회 성공 시 HP1 회복.",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "berserker",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-131",
+      "name": "불사 투사",
+      "archetype": "불사 투사",
+      "sourceEffect": "중복 회복 상한을 최대 HP까지 완화. 몬스터 직접 피해를 받으면 '복수'를 얻어 다음 유효 공격 강화.",
+      "contractCondition": "WHILE_OWNED",
+      "contractEffect": "중복 회복 상한을 최대 HP까지 허용. 몬스터 직접 피해를 받으면 복수 1 획득; 다음 유효 공격 추가 피해 +2 후 소모.",
+      "trigger": [
+        "POST_COLLISION",
+        "ON_VALID",
+        "ON_DAMAGE_TAKEN",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "berserker",
+      "stage": 1
+    },
+    {
+      "augmentId": "aug-132",
+      "name": "질긴 목숨",
+      "archetype": "불사 투사",
+      "sourceEffect": "중복 회복의 회복량/효율 강화.",
+      "contractCondition": "중복 회복의 회복량/효율 강화.",
+      "contractEffect": "해당 회복 효과는 HP 1 회복.",
+      "trigger": [
+        "POST_COLLISION"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "berserker",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-133",
+      "name": "되갚아주마",
+      "archetype": "불사 투사",
+      "sourceEffect": "직접 피해 후 복수 공격 보너스 강화.",
+      "contractCondition": "직접 피해 후 복수 공격 보너스 강화.",
+      "contractEffect": "조건 달성 시 추가 피해 +1.",
+      "trigger": [
+        "ON_DAMAGE_TAKEN",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "TURN",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS",
+        "BETA_PLACEHOLDER"
+      ],
+      "classId": "berserker",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-134",
+      "name": "살아남는 법",
+      "archetype": "불사 투사",
+      "sourceEffect": "전투마다 처음 받는 직접 피해를 일부 완화.",
+      "contractCondition": "다음 직접 피해 1 감소",
+      "contractEffect": "다음 직접 피해 1 감소.",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "berserker",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-135",
+      "name": "넘치는 생명력",
+      "archetype": "불사 투사",
+      "sourceEffect": "최대 HP에서 중복 회복이 발생하면 회복 대신 1회성 방어 효과.",
+      "contractCondition": "최대 HP 상태에서 중복 회복이 발생하면 '초과 생명' 획득: 다음 직접 피해 1 감소",
+      "contractEffect": "최대 HP 상태에서 중복 회복이 발생하면 '초과 생명' 획득: 다음 직접 피해 1 감소.",
+      "trigger": [
+        "POST_COLLISION",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "berserker",
+      "stage": 3
+    },
+    {
+      "augmentId": "aug-138",
+      "name": "불사신",
+      "archetype": "불사 투사",
+      "sourceEffect": "전투당 1회 기절할 피해를 HP 1로 버팀.",
+      "contractCondition": "기절할 직접 피해를 받을 때 HP1로 생존",
+      "contractEffect": "기절할 직접 피해를 받을 때 HP1로 생존.",
+      "trigger": [
+        "ON_DAMAGE_TAKEN"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "berserker",
+      "stage": 4
+    },
+    {
+      "augmentId": "aug-141",
+      "name": "최후의 격노",
+      "archetype": "최후의 격노",
+      "sourceEffect": "최대 HP 3→2. HP 1에서 '격노' 상태가 되어 모든 유효 공격을 크게 강화. 자기 공격 비용으로는 HP 1 미만으로 내려가지 않음.",
+      "contractCondition": "WHILE_OWNED",
+      "contractEffect": "최대 HP 2. HP 1일 때 모든 유효 공격 추가 피해 +2.",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "NONE",
+      "resetScope": "NOT_APPLICABLE",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS",
+        "RESET_SCOPE"
+      ],
+      "classId": "berserker",
+      "stage": 1
+    },
+    {
+      "augmentId": "aug-142",
+      "name": "죽음의 문턱",
+      "archetype": "최후의 격노",
+      "sourceEffect": "HP 1 상태의 격노 공격 추가 피해 강화.",
+      "contractCondition": "HP 1 상태의 격노 공격 추가 피해 강화.",
+      "contractEffect": "조건 달성 시 추가 피해 +1.",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_TURN",
+      "resetScope": "TURN",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS",
+        "BETA_PLACEHOLDER"
+      ],
+      "classId": "berserker",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-144",
+      "name": "이를 악물고",
+      "archetype": "최후의 격노",
+      "sourceEffect": "HP 1 상태에서 전투당 첫 직접 피해를 완화.",
+      "contractCondition": "HP 1 상태에서 전투당 첫 직접 피해를 완화.",
+      "contractEffect": "다음 직접 피해 1 감소.",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "berserker",
+      "stage": 2
+    },
+    {
+      "augmentId": "aug-150",
+      "name": "피의 왕좌",
+      "archetype": "최후의 격노",
+      "sourceEffect": "최대 HP를 1로 고정. 격노 상시 유지, 전투마다 최초 1회의 직접 피해를 버티는 특수 보호 획득.",
+      "contractCondition": "WHILE_OWNED",
+      "contractEffect": "최대 HP 1 고정. 모든 유효 공격 추가 피해 +3. 전투 시작 시 '혈갑' 1 획득: 직접 피해 1회를 무효화.",
+      "trigger": [
+        "COMBAT_START",
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "onceScope": "ONCE_PER_COMBAT",
+      "resetScope": "COMBAT",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "gaps": [
+        "EXECUTABLE_OPERATIONS"
+      ],
+      "classId": "berserker",
+      "stage": 4
+    }
+  ],
+  "placeholderResolutionDocument": "docs/PVE_CONTENT_005B_PLACEHOLDER_RESOLUTION.json",
+  "placeholderResolutionCount": 11
+}

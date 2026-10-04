@@ -1,0 +1,234 @@
+{
+  "task": "PVE_CONTENT_005D_C",
+  "baselineHead": "62be0b795a325592f258ce68268859d80515262c",
+  "predecessorGate": {
+    "runId": 37196798186,
+    "runNumber": 967,
+    "head": "62be0b795a325592f258ce68268859d80515262c",
+    "status": "completed",
+    "conclusion": "success"
+  },
+  "registered": 30,
+  "executable": 30,
+  "candidateReachable": 30,
+  "positive": 30,
+  "conditionNegative": 30,
+  "wrongRoomNegative": 30,
+  "acquisition": 30,
+  "fullBuilds": 3,
+  "stageProgressionBuilds": 3,
+  "testsPrepared": 174,
+  "inMemoryRepositoryModuleCheck": {
+    "pass": 174,
+    "fail": 0,
+    "limitation": "Supplemental JS module checks; GitHub Node CI is authoritative."
+  },
+  "status": "RUNTIME_VERIFIED_FINAL_DOCUMENT_HEAD_PENDING",
+  "flags": {
+    "GHOST_RUNTIME_COMPLETE": true,
+    "READY_FOR_PVE_CONTENT_005D_D_TWINS": true
+  },
+  "sourceIntegrity": {
+    "modifiedBETA": 0,
+    "modified005R": 0,
+    "modifiedDESIGN": 0,
+    "modifiedOriginalGolden": 0
+  },
+  "historicalMigration": {
+    "executionRuleSource": "PVE_CONTENT_005Q_DESIGN_D",
+    "authority": "USER_RESUME_NIGHT_RUN_R01_R03",
+    "userConfirmedRuleIds": [
+      "DEVOUR_THRESHOLD_OVERFLOW_CARRY",
+      "GHOST_TRANSFORMATION_MANUAL_PRE_SUBMIT_ACTIVATION"
+    ],
+    "supersedesHistoricalRule": [
+      "rawLifetimeDevourRecomputesLevel",
+      "automaticTransformationAtTurnEnd",
+      "restorePausedNormalPool"
+    ],
+    "originalGoldenFilesUnchanged": [
+      "tests/fixtures/pve-stress-t02-golden.json",
+      "tests/fixtures/pve-stress-t06-golden.json"
+    ],
+    "versionedGoldenFiles": [
+      "tests/fixtures/pve-stress-t02-005d-golden.json",
+      "tests/fixtures/pve-stress-t06-005d-golden.json"
+    ],
+    "proof": "Assert modern comparable fingerprint, then restore ONLY explicitly recorded Ghost historical resources/cards/events/packets and existing Seer bootstrap normalization to assert unchanged original fingerprint. Non-Ghost semantics remain exactly equal."
+  },
+  "githubEvidence": {
+    "head": "a7ccb941dba39de1be243b735bbae4448e1af2e6",
+    "runId": 37209967863,
+    "runNumber": 970,
+    "status": "completed",
+    "conclusion": "success",
+    "tests": 1945,
+    "pass": 1945,
+    "fail": 0,
+    "skip": 0,
+    "newTests": 174,
+    "newPass": 174,
+    "projectCheckFiles": 228,
+    "stress": [
+      {
+        "mode": "smoke",
+        "seeds": 10,
+        "hard": 0,
+        "warnings": 54,
+        "scenarios": [
+          {
+            "id": "T00",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 0
+          },
+          {
+            "id": "T05",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 10
+          },
+          {
+            "id": "T09",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 10
+          },
+          {
+            "id": "T14",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 0
+          },
+          {
+            "id": "T02",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 10,
+            "transformedDemonTurns": 51,
+            "transformedDamage": 239
+          },
+          {
+            "id": "T03",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 30
+          },
+          {
+            "id": "T04",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 4
+          },
+          {
+            "id": "T06",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 27
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 100,
+        "scenarios": [
+          {
+            "id": "T06",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 257
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 100,
+        "scenarios": [
+          {
+            "id": "T02",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 100,
+            "transformedDemonTurns": 463,
+            "transformedDamage": 2176
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 1,
+        "scenarios": [
+          {
+            "id": "T00",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 1
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 99,
+        "scenarios": [
+          {
+            "id": "T05",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 99
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 100,
+        "scenarios": [
+          {
+            "id": "T09",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 100
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 47,
+        "scenarios": [
+          {
+            "id": "T04",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 47
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 100,
+        "scenarios": [
+          {
+            "id": "T03",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 300
+          }
+        ]
+      }
+    ],
+    "productionRelease": "skipped"
+  }
+}

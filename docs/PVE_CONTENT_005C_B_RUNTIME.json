@@ -1,0 +1,1020 @@
+{
+  "work": "PVE_CONTENT_005C_B",
+  "source": "docs/PVE_CONTENT_005Q_DESIGN_C.json",
+  "sourceHead": "528783ff073e17b29a93d3117b0c46663d53c7eb",
+  "branch": "feat/pve-content-005c-b-imp",
+  "targetRange": "aug-181..210",
+  "registered": 30,
+  "executable": 30,
+  "dataOnly": 0,
+  "missing": 0,
+  "unsupported": 0,
+  "handler": "IMP_V02",
+  "cards": [
+    {
+      "id": "aug-181",
+      "name": "대담한 슬쩍",
+      "archetype": "대담한 슬쩍",
+      "stage": 1,
+      "handler": "IMP_V02",
+      "trigger": [
+        "PRE_COLLISION",
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "timingPhase": "PRE_COLLISION",
+      "condition": "One PRE_COLLISION_STEAL steals positive amount from >=2 distinct victims and owner attack valid.",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-181: satisfy '한 턴에 2명 이상에게서 슬쩍에 성공하면 해당 턴 추가 피해 +2' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-181: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": [
+          "same rootActionId retry idempotent",
+          "reconnect before/after trigger preserves state",
+          "room/collision ordering",
+          "no recursive derived trigger"
+        ]
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-182",
+      "name": "두 손 가득",
+      "archetype": "대담한 슬쩍",
+      "stage": 2,
+      "handler": "IMP_V02",
+      "trigger": [
+        "PRE_COLLISION",
+        "PRE_DAMAGE"
+      ],
+      "timingPhase": "PRE_COLLISION",
+      "condition": "One PRE_COLLISION_STEAL steals positive amount from at least 2 distinct victims.",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-182: satisfy 'One PRE_COLLISION_STEAL steals positive amount from at least 2 distinct victims.' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-182: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-183",
+      "name": "손이 빠르네?",
+      "archetype": "대담한 슬쩍",
+      "stage": 2,
+      "handler": "IMP_V02",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "timingPhase": "PRE_COLLISION",
+      "condition": "이번 턴 PRE_COLLISION_STEAL에서 실제 숫자를 1 이상 훔친 뒤 자신의 공격이 유효하다.",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-183: satisfy '슬쩍 후 자신의 공격이 유효하면 다음 턴 작은 보너스.' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-183: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-184",
+      "name": "잔돈까지",
+      "archetype": "대담한 슬쩍",
+      "stage": 2,
+      "handler": "IMP_V02",
+      "trigger": [
+        "PRE_COLLISION",
+        "ON_VALID"
+      ],
+      "timingPhase": "PRE_COLLISION",
+      "condition": "숫자 1 또는 2인 대상에게 슬쩍 성공하면 탐욕 보너스 +1 피해 상당 추가",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "MODIFY_DAMAGE"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-184: satisfy '숫자 1 또는 2인 대상에게 슬쩍 성공하면 탐욕 보너스 +1 피해 상당 추가' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-184: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-185",
+      "name": "욕심쟁이",
+      "archetype": "대담한 슬쩍",
+      "stage": 3,
+      "handler": "IMP_V02",
+      "trigger": [
+        "PRE_COLLISION",
+        "PRE_DAMAGE"
+      ],
+      "timingPhase": "PRE_COLLISION",
+      "condition": "Total actual stolen amount in current PRE_COLLISION_STEAL is at least 2.",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-185: satisfy 'Total actual stolen amount in current PRE_COLLISION_STEAL is at least 2.' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-185: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-186",
+      "name": "훔친 힘",
+      "archetype": "대담한 슬쩍",
+      "stage": 3,
+      "handler": "IMP_V02",
+      "trigger": [
+        "PRE_COLLISION",
+        "PRE_DAMAGE"
+      ],
+      "timingPhase": "PRE_COLLISION",
+      "condition": "After PRE_COLLISION_STEAL owner FINAL_NUMBER >=5 and attack valid.",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-186: satisfy 'After PRE_COLLISION_STEAL owner FINAL_NUMBER >=5 and attack valid.' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-186: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-187",
+      "name": "또 가져갈게!",
+      "archetype": "대담한 슬쩍",
+      "stage": 3,
+      "handler": "IMP_V02",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "timingPhase": "PRE_COLLISION",
+      "condition": "PRE_COLLISION_STEAL로 실제 숫자를 1 이상 훔친 공격이 유효하게 끝난다.",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_CYCLE",
+      "reset": "CYCLE_END",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-187: satisfy '슬쩍 공격 성공 시 다음 사이클 첫 슬쩍 강화.' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-187: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-188",
+      "name": "싹쓸이",
+      "archetype": "대담한 슬쩍",
+      "stage": 4,
+      "handler": "IMP_V02",
+      "trigger": [
+        "PRE_COLLISION",
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "timingPhase": "PRE_COLLISION",
+      "condition": "Owner steals positive amount from every eligible same-number non-Imp victim and at least 2 victims exist.",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_COMBAT",
+      "reset": "COMBAT_END",
+      "persistence": "COMBAT",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE",
+        "DELAY_EFFECT"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-188: satisfy 'Owner steals positive amount from every eligible same-number non-Imp victim and at least 2 victims exist.' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-188: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-189",
+      "name": "욕심은 끝이 없어",
+      "archetype": "대담한 슬쩍",
+      "stage": 4,
+      "handler": "IMP_V02",
+      "trigger": [
+        "PRE_COLLISION",
+        "ON_VALID"
+      ],
+      "timingPhase": "PRE_COLLISION",
+      "condition": "A PRE_COLLISION_STEAL steals at least 1 actual point.",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "NONE",
+      "reset": "COMBAT_END",
+      "persistence": "COMBAT",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_STACK"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-189: satisfy 'A PRE_COLLISION_STEAL steals at least 1 actual point.' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-189: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-190",
+      "name": "대도둑 임프",
+      "archetype": "대담한 슬쩍",
+      "stage": 4,
+      "handler": "IMP_V02",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "timingPhase": "PRE_DAMAGE",
+      "condition": "Total actual stolen amount this turn >=2 and owner attack valid.",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE",
+        "MODIFY_NUMBER"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-190: satisfy 'Total actual stolen amount this turn >=2 and owner attack valid.' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-190: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-191",
+      "name": "소매치기 악동",
+      "archetype": "소매치기 악동",
+      "stage": 1,
+      "handler": "IMP_V02",
+      "trigger": [
+        "PRE_COLLISION"
+      ],
+      "timingPhase": "PRE_COLLISION",
+      "condition": "슬쩍으로 빼앗은 숫자를 즉시 더하는 대신 저장 가능",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": true,
+        "REWARD": true,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "NONE",
+      "reset": "NEVER_WITHIN_RUN",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "MODIFY_NUMBER",
+        "OVERRIDE_BASE_RULE"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-191: satisfy '슬쩍으로 빼앗은 숫자를 즉시 더하는 대신 저장 가능' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-191: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-192",
+      "name": "비밀 주머니",
+      "archetype": "소매치기 악동",
+      "stage": 2,
+      "handler": "IMP_V02",
+      "trigger": [
+        "PRE_COLLISION"
+      ],
+      "timingPhase": "PRE_COLLISION",
+      "condition": "Owned whenever stolen-number storage cap is queried.",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": true,
+        "REWARD": true,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "NONE",
+      "reset": "NEVER_WITHIN_RUN",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "MODIFY_RESOURCE_CAP"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-192: satisfy 'Owned whenever stolen-number storage cap is queried.' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-192: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-193",
+      "name": "조금만 쓸게",
+      "archetype": "소매치기 악동",
+      "stage": 2,
+      "handler": "IMP_V02",
+      "trigger": [
+        "PRE_SELECT"
+      ],
+      "timingPhase": "PRE_SELECT",
+      "condition": "Owner has stored stolenNumber >0 before submit.",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": true,
+        "REWARD": true,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "NONE",
+      "reset": "NEVER_WITHIN_RUN",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "SPEND_RESOURCE"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-193: satisfy 'Owner has stored stolenNumber >0 before submit.' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-193: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-194",
+      "name": "고이 모아두기",
+      "archetype": "소매치기 악동",
+      "stage": 2,
+      "handler": "IMP_V02",
+      "trigger": [
+        "TURN_END",
+        "PRE_DAMAGE"
+      ],
+      "timingPhase": "TURN_END",
+      "condition": "턴 종료 시 훔친 숫자 3 이상이면 다음 턴 첫 저장 숫자 소비 공격 추가 피해 +2",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "NONE",
+      "reset": "NEVER_WITHIN_RUN",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE",
+        "SPEND_RESOURCE",
+        "MODIFY_NUMBER",
+        "DELAY_EFFECT"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-194: satisfy '턴 종료 시 훔친 숫자 3 이상이면 다음 턴 첫 저장 숫자 소비 공격 추가 피해 +2' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-194: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-195",
+      "name": "장물 거래",
+      "archetype": "소매치기 악동",
+      "stage": 3,
+      "handler": "IMP_V02",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "timingPhase": "ON_VALID",
+      "condition": "Before submit owner has at least 2 stolenNumber and chooses ATTACK or DEFENSE.",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "COMBAT",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "MODIFY_INCOMING_DAMAGE",
+        "SPEND_RESOURCE",
+        "MODIFY_NUMBER",
+        "DELAY_EFFECT"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-195: satisfy 'Before submit owner has at least 2 stolenNumber and chooses ATTACK or DEFENSE.' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-195: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-196",
+      "name": "밑천 굴리기",
+      "archetype": "소매치기 악동",
+      "stage": 3,
+      "handler": "IMP_V02",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "timingPhase": "ON_VALID",
+      "condition": "저장 숫자를 2 이상 소비한 공격이 유효하면 훔친 숫자 1 환급",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "GAIN_RESOURCE",
+        "SPEND_RESOURCE"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-196: satisfy '저장 숫자를 2 이상 소비한 공격이 유효하면 훔친 숫자 1 환급' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-196: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-197",
+      "name": "큰손",
+      "archetype": "소매치기 악동",
+      "stage": 3,
+      "handler": "IMP_V02",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "timingPhase": "PRE_DAMAGE",
+      "condition": "Owner spends at least 3 stolenNumber in one action.",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-197: satisfy 'Owner spends at least 3 stolenNumber in one action.' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-197: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-198",
+      "name": "끝없는 주머니",
+      "archetype": "소매치기 악동",
+      "stage": 4,
+      "handler": "IMP_V02",
+      "trigger": [
+        "COMBAT_START"
+      ],
+      "timingPhase": "COMBAT_START",
+      "condition": "훔친 숫자 최대 7, 전투 시작 시 1 보유",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "NONE",
+      "reset": "NEVER_WITHIN_RUN",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "MODIFY_RESOURCE_CAP",
+        "GAIN_RESOURCE"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-198: satisfy '훔친 숫자 최대 7, 전투 시작 시 1 보유' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-198: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-199",
+      "name": "암시장 큰손",
+      "archetype": "소매치기 악동",
+      "stage": 4,
+      "handler": "IMP_V02",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "timingPhase": "PRE_DAMAGE",
+      "condition": "Owner spends at least 4 stolenNumber in one action before a valid Combat attack.",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "ADD_DAMAGE"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-199: satisfy 'Owner spends at least 4 stolenNumber in one action before a valid Combat attack.' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-199: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-200",
+      "name": "돌고 도는 장물",
+      "archetype": "소매치기 악동",
+      "stage": 4,
+      "handler": "IMP_V02",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "timingPhase": "ON_VALID",
+      "condition": "저장 숫자를 소비한 공격이 유효하면 소비량의 절반(내림) 환급",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "NONE",
+      "reset": "NEVER_WITHIN_RUN",
+      "persistence": "RUN",
+      "visibility": "SERVER_ONLY",
+      "primitiveMapping": [
+        "GAIN_RESOURCE",
+        "SPEND_RESOURCE"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-200: satisfy '저장 숫자를 소비한 공격이 유효하면 소비량의 절반(내림) 환급' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-200: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-201",
+      "name": "장난의 연쇄",
+      "archetype": "장난의 연쇄",
+      "stage": 1,
+      "handler": "IMP_V02",
+      "trigger": [
+        "PRE_COLLISION",
+        "ON_VALID",
+        "ON_DAMAGE_TAKEN"
+      ],
+      "timingPhase": "PRE_COLLISION",
+      "condition": "Steal applies Mischief to ally; their first next-turn valid attack consumes it; repeat steal while active removes buff and deals one damage",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "NONE",
+      "reset": "TURN_END",
+      "persistence": "COMBAT",
+      "visibility": "PUBLIC",
+      "primitiveMapping": [
+        "MODIFY_INCOMING_DAMAGE",
+        "HEAL",
+        "DOWN_RESOLVE_WINDOW",
+        "ROOT_ACTION_GUARD"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-201: satisfy 'Steal applies Mischief to ally; their first next-turn valid attack consumes it; repeat steal while active removes buff and deals one damage' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-201: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": [
+          "same rootActionId retry idempotent",
+          "reconnect before/after trigger preserves state",
+          "room/collision ordering",
+          "no recursive derived trigger"
+        ]
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-202",
+      "name": "신나는 장난",
+      "archetype": "장난의 연쇄",
+      "stage": 2,
+      "handler": "IMP_V02",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "timingPhase": "ON_VALID",
+      "condition": "장난 상태의 다음 유효 공격 강화 효과 증가.",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "NONE",
+      "reset": "COMBAT_END",
+      "persistence": "COMBAT",
+      "visibility": "PUBLIC",
+      "primitiveMapping": [
+        "ADD_DAMAGE",
+        "DELAY_EFFECT"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-202: satisfy '장난 상태의 다음 유효 공격 강화 효과 증가.' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-202: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-203",
+      "name": "안전장치",
+      "archetype": "장난의 연쇄",
+      "stage": 2,
+      "handler": "IMP_V02",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "timingPhase": "PRE_DAMAGE",
+      "condition": "Mischief repeat-steal explosion would deal HP damage to the protected owner.",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_COMBAT",
+      "reset": "COMBAT_END",
+      "persistence": "COMBAT",
+      "visibility": "PUBLIC",
+      "primitiveMapping": [
+        "APPLY_STATUS"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-203: satisfy 'Mischief repeat-steal explosion would deal HP damage to the protected owner.' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-203: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-204",
+      "name": "여럿이 놀자",
+      "archetype": "장난의 연쇄",
+      "stage": 2,
+      "handler": "IMP_V02",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "timingPhase": "PRE_DAMAGE",
+      "condition": "At least 2 distinct allies receive Mischief from owner in same turn.",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "COMBAT",
+      "visibility": "PUBLIC",
+      "primitiveMapping": [
+        "ADD_DAMAGE"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-204: satisfy 'At least 2 distinct allies receive Mischief from owner in same turn.' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-204: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-205",
+      "name": "기대감",
+      "archetype": "장난의 연쇄",
+      "stage": 3,
+      "handler": "IMP_V02",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "timingPhase": "ON_VALID",
+      "condition": "A Mischief-marked ally resolves valid with FINAL_NUMBER >=4.",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "COMBAT",
+      "visibility": "PUBLIC",
+      "primitiveMapping": [
+        "ADD_DAMAGE"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-205: satisfy 'A Mischief-marked ally resolves valid with FINAL_NUMBER >=4.' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-205: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-206",
+      "name": "폭발도 재밌어!",
+      "archetype": "장난의 연쇄",
+      "stage": 3,
+      "handler": "IMP_V02",
+      "trigger": [
+        "PRE_DAMAGE"
+      ],
+      "timingPhase": "PRE_DAMAGE",
+      "condition": "자신이 부여한 Mischief가 반복 절도로 폭발한다.",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_TURN",
+      "reset": "TURN_END",
+      "persistence": "COMBAT",
+      "visibility": "PUBLIC",
+      "primitiveMapping": [
+        "ADD_DAMAGE"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-206: satisfy '장난 폭발 시 임프가 작은 보너스를 얻음. 아군 피해는 유지.' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-206: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-207",
+      "name": "장난 전염",
+      "archetype": "장난의 연쇄",
+      "stage": 3,
+      "handler": "IMP_V02",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "timingPhase": "ON_VALID",
+      "condition": "장난이 정상 발동하면 장난이 없는 무작위 아군 1명에게 약한 장난 부여: 다음 유효 공격 +1 피해",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_CYCLE",
+      "reset": "CYCLE_END",
+      "persistence": "COMBAT",
+      "visibility": "PUBLIC",
+      "primitiveMapping": [
+        "APPLY_STATUS",
+        "DELAY_EFFECT"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-207: satisfy '장난이 정상 발동하면 장난이 없는 무작위 아군 1명에게 약한 장난 부여: 다음 유효 공격 +1 피해' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-207: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-208",
+      "name": "대소동",
+      "archetype": "장난의 연쇄",
+      "stage": 4,
+      "handler": "IMP_V02",
+      "trigger": [
+        "ON_VALID",
+        "PRE_DAMAGE"
+      ],
+      "timingPhase": "ON_VALID",
+      "condition": "At least 2 Mischief-marked players resolve valid in same turn.",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "ONCE_PER_COMBAT",
+      "reset": "COMBAT_END",
+      "persistence": "COMBAT",
+      "visibility": "PUBLIC",
+      "primitiveMapping": [
+        "ADD_DAMAGE",
+        "DELAY_EFFECT"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-208: satisfy 'At least 2 Mischief-marked players resolve valid in same turn.' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-208: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-209",
+      "name": "위험한 장난감",
+      "archetype": "장난의 연쇄",
+      "stage": 4,
+      "handler": "IMP_V02",
+      "trigger": [
+        "PRE_COLLISION",
+        "ON_VALID"
+      ],
+      "timingPhase": "PRE_COLLISION",
+      "condition": "장난 성공 시 다음 유효 공격 +5 피해",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "NONE",
+      "reset": "COMBAT_END",
+      "persistence": "COMBAT",
+      "visibility": "PUBLIC",
+      "primitiveMapping": [
+        "APPLY_STATUS",
+        "DELAY_EFFECT"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-209: satisfy '장난 성공 시 다음 유효 공격 +5 피해' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-209: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    },
+    {
+      "id": "aug-210",
+      "name": "장난의 달인",
+      "archetype": "장난의 연쇄",
+      "stage": 4,
+      "handler": "IMP_V02",
+      "trigger": [
+        "ON_VALID"
+      ],
+      "timingPhase": "ON_VALID",
+      "condition": "장난 성공마다 신남을 쌓고 신남이 높을수록 이후 장난과 임프 공격 강화.",
+      "rooms": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "once": "NONE",
+      "reset": "COMBAT_END",
+      "persistence": "COMBAT",
+      "visibility": "PUBLIC",
+      "primitiveMapping": [
+        "ADD_STACK"
+      ],
+      "tests": {
+        "minimumPositiveCase": "aug-210: satisfy '장난 성공마다 신남을 쌓고 신남이 높을수록 이후 장난과 임프 공격 강화.' and assert effect exactly once within declared scope.",
+        "minimumNegativeCase": "aug-210: fail one condition/room/scope predicate and assert no effect or consumption.",
+        "edgeCases": []
+      },
+      "runtimeStatus": "EXECUTABLE_MATCH"
+    }
+  ]
+}

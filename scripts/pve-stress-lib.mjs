@@ -6,7 +6,8 @@ import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/p
 import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-api/pve/combat.js';
 import {applyMonsterDamage} from '../supabase/functions/game-api/pve/monster.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
-import {F1_MONSTER_DEFINITIONS,F1_RELIC_DEFINITIONS} from '../supabase/functions/game-api/pve/content-f1.js';
+import {F1_RELIC_DEFINITIONS} from '../supabase/functions/game-api/pve/content-f1.js';
+import {STRESS_REFERENCE_MONSTERS as F1_MONSTER_DEFINITIONS} from './pve-stress-reference-monsters.mjs';
 import {installRelicCatalog} from '../supabase/functions/game-api/pve/relics.js';
 import {buildReferenceIntent,negotiateReferenceIntents,summarizeReferenceTurns} from './pve-reference-policy.mjs';
 import {buildNumberMutationIntent,planNumberMutationTurn} from './pve-number-mutation-policy.mjs';
@@ -145,18 +146,13 @@ export const CANONICAL_RULES=Object.freeze([
   {id:'RULE-T03-B',topic:'White Magic multi-target',rule:'Tier-I 백마도사는 여러 eligible 아군과 동시에 충돌하면 lobby seat가 가장 빠른 1명만 HP 1 회복한다.'},
   {id:'RULE-T02-A',topic:'Martial previous card',rule:'무투가의 직전 카드는 성공 여부와 무관하게 직전 턴 실제 공개된 final_number를 사용한다.'},
   {id:'RULE-T02-B',topic:'One-Hit Kill failure cost',rule:'일격필살은 유효 공격 성공 시에만 현재 Combo를 전부 소비하며 collision/invalid 실패 시 Combo를 소비하지 않는다.'},
-  {id:'RULE-T02-C',topic:'Demon kill Devour precedence',rule:'귀검사 포식은 일반 유효 공격 총 +1, 막타 총 +3, 막타이면서 처치 턴 최고 피해면 총 +5이며 한 공격에는 가장 높은 조건 하나만 적용한다.'},
-  {id:'RULE-T02-D',topic:'Released Demon Sword card lifecycle',rule:'해방된 귀검은 전투 포식 6에서 귀화하고 카드풀을 2/4/5/6 임시 풀로 교체한다. 4장을 모두 사용하거나 전투가 끝나면 원래 physical card pool과 zone을 복원하며 귀화 종료 포식은 0이다.'},
-  {id:'RULE-T02-E',topic:'Full Burst follow-up trigger scope',rule:'전탄발사 follow-up은 남은 physical card별 피해 packet이며, 턴당 1회/첫 유효 공격/기본 ON_VALID_ATTACK 계열은 명시적 multi-hit 허용 없이는 follow-up마다 반복 발동하지 않는다.'}
+  {id:'RULE-T02-C',topic:'Demon kill Devour precedence',rule:'DESIGN-D: 귀검사는 일반 유효 공격 총1, 유효 처치 기여 총4, 처치 턴 공동 최고 피해 총8을 적용한다. threshold8을 소비해 레벨을 올리고 초과분은 RUN에 유지한다.'},
+  {id:'RULE-T02-D',topic:'Released Demon Sword card lifecycle',rule:'USER_CONFIRMED D07: 포식6 이상에서 귀화 READY, 최종 제출 전 수동 활성화로6 소비/현재 normal cycle 폐기/2·4·5·6 임시 풀 생성. 임시 카드 전부 사용 시 새 normal cycle을 만들며 base 포식0. Combat 끝에도 임시 zone과 포식 정리.'},
+  {id:'RULE-T02-E',topic:'Full Burst follow-up trigger scope',rule:'전탄발사 follow-up은 남은 physical card별 피해 packet이며, 턴당 1회/첫 유효 공격/기본 ON_VALID_ATTACK 계열은 명시적 multi-hit 허용 없이는 follow-up마다 반복 발동하지 않는다.'},
+  {id:'RULE-T05-A',topic:'Multiple Imp PRE_COLLISION_STEAL ordering',rule:'같은 resolve의 여러 Imp는 lobby seat 오름차순, 동률이면 playerId 순서로 처리하며 뒤 Imp는 앞 Imp가 이미 변경한 현재 working number를 본다. victim은 0 아래로 내려가지 않고 actual stolen amount만 source에 더한다.'}
 ]);
 
 export const SPEC_AMBIGUITIES=Object.freeze([
-  {
-    id:'AMB-T05-MULTI-IMP',
-    scenarioId:'T05',
-    topic:'multiple Imp PRE_COLLISION_STEAL ordering',
-    detail:'The current BETA rules define one Imp stealing from matching non-Imp players but do not define simultaneous ordering when multiple Imps are present. T05 contains exactly one Imp. The mutation resolver hard-fails MULTI_IMP_STEAL_UNDEFINED instead of inventing a rule.'
-  },
   {
     id:'AMB-T09-SEER-PEEK-TARGET',
     scenarioId:'T09',
@@ -362,7 +358,7 @@ export function assertRunInvariants(run){
     for(const [name,value] of Object.entries(p.publicResources||{}))if(typeof value==='number'&&(!finite(value)||value<0))fail('NEGATIVE_RESOURCE','negative/invalid combat resource',{playerId:p.playerId,name,value});
     if(Number(p.publicResources?.mana)>resourceMax(p,'mana',4))fail('INVALID_RESOURCE','mage mana exceeded current cap',{playerId:p.playerId,value:p.publicResources.mana,max:resourceMax(p,'mana',4)});
     if(Number(p.publicResources?.toughnessCharges)>resourceMax(p,'toughnessCharges',2))fail('INVALID_RESOURCE','warrior toughness exceeded current cap',{playerId:p.playerId,value:p.publicResources.toughnessCharges,max:resourceMax(p,'toughnessCharges',2)});
-    if(Number(p.publicResources?.revelation)>resourceMax(p,'revelation',1))fail('INVALID_RESOURCE','prophet revelation exceeded current cap',{playerId:p.playerId,value:p.publicResources.revelation,max:resourceMax(p,'revelation',1)});
+    if(Number(p.publicResources?.revelation)>resourceMax(p,'revelation',3))fail('INVALID_RESOURCE','prophet revelation exceeded current cap',{playerId:p.playerId,value:p.publicResources.revelation,max:resourceMax(p,'revelation',3)});
     if(Number(p.publicResources?.revenge)>resourceMax(p,'revenge',1))fail('INVALID_RESOURCE','berserker revenge exceeded current cap',{playerId:p.playerId,value:p.publicResources.revenge,max:resourceMax(p,'revenge',1)});
     if(Number(p.publicResources?.blood)>resourceMax(p,'blood',6))fail('INVALID_RESOURCE','vampire blood exceeded current cap',{playerId:p.playerId,value:p.publicResources.blood,max:resourceMax(p,'blood',6)});
     if(Number(p.publicResources?.combo)>resourceMax(p,'combo',3))fail('INVALID_RESOURCE','martial combo exceeded current cap',{playerId:p.playerId,value:p.publicResources.combo,max:resourceMax(p,'combo',3)});
@@ -564,7 +560,7 @@ function assertT02BurstTurn(run,result,policyPlan){
   for(const [pid,card] of Object.entries(resolvedByPlayer)){
     if(card.fullBurstOutcome==='SUCCESS')activeBurstEffects.push({playerId:pid,effect:'FULL_BURST'});
     if(card.finisherOutcome==='SUCCESS')activeBurstEffects.push({playerId:pid,effect:'ONE_HIT_KILL'});
-    if(packets.some(p=>p.sourcePlayerId===pid&&String(p.sourceCardId).includes(':demon:')))activeBurstEffects.push({playerId:pid,effect:'DEMON_TRANSFORM'});
+    if(packets.some(p=>p.sourcePlayerId===pid&&(String(p.sourceCardId).includes(':demon:')||String(p.sourceCardId).includes(':DEMON_TRANSFORM:'))))activeBurstEffects.push({playerId:pid,effect:'DEMON_TRANSFORM'});
     if(packets.some(p=>p.sourcePlayerId===pid&&(p.modifierIds||[]).includes('AUG_121_BLOOD_FRENZY')))activeBurstEffects.push({playerId:pid,effect:'BLOOD_FRENZY'});
   }
   const events=result.events||[],thresholds=[...new Set(packets.flatMap(p=>p.bossThresholdsCrossed||[]))].sort((a,b)=>b-a);
@@ -661,6 +657,10 @@ function assertT03SustainTurn(run,result,policyPlan){
 
 export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterDef=F1_MONSTER_DEFINITIONS.f1_armored_boar,policy='reference',flame=4,maxTurns=HARD_MAX_TURNS,caseId='generic-combat'}){
   const run=makeCombatRun(seed,{caseId,characterIds,augmentIdsByPlayer,flame,monsterDef});
+  if(['resource_starvation','recovery','steady_recovery'].includes(policy)){
+    const prophet=run.players.find(p=>p.characterId==='prophet');
+    if(prophet)prophet.publicResources.revelation=Math.min(resourceMax(prophet,'revelation',3),1);
+  }
   let actions=0,resolves=0;
   const referenceTurns=[],numberMutationTurns=[],resourceTimeline=[],collisionTurns=[],sustainTurns=[],burstTurns=[],recoveryTurns=[];
   const t09PriorResource=new Map(run.players.map(p=>[p.playerId,t09ResourceValue(p)]));
@@ -787,6 +787,8 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
       }
       run.combat._t06PendingPolicy=structuredClone(plan);
     }else if(policy==='burst'||policy==='steady_burst'){
+      // The benchmark bot explicitly activates manual Ghost transformation in selection.
+      for(const p of run.players)if(p.characterId==='demon_swordsman'&&p.augments.includes('aug-351')&&p.publicResources.transformationPending&&!p.publicResources.transformationActive&&p.status!=='DOWNED'&&!run.combat.turnSubmissions[p.playerId]){activateImmediateCharacterSkill(run,p);actions++;assertRunInvariants(run);}
       const contextKey=`${run.currentRoomNodeId||run.combat?.monster?.id||'combat'}:turn:${turn}`;
       const intents=[],views=new Map();
       for(const p of run.players){
@@ -816,10 +818,7 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
         intents.push(intent);views.set(p.playerId,view);
       }
       const plan=planSustainTurn(intents,{seed,contextKey,optimized:policy==='sustain'});
-      for(const decision of plan.decisions.filter(x=>x.requestTransfusion)){
-        const p=run.players.find(x=>x.playerId===decision.playerId);
-        activateImmediateCharacterSkill(run,p);actions++;assertRunInvariants(run);
-      }
+      // Transfusion is automatic after damage and before DOWN; no bot activation.
       for(const decision of plan.decisions){
         const view=projectRun(run,decision.playerId);
         const choices=legalCardsFromView(view,decision.playerId).filter(card=>card.baseNumber===decision.baseNumber).sort((a,b)=>a.id.localeCompare(b.id));
@@ -835,6 +834,8 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
         if(p.status==='DOWNED'||run.combat.turnSubmissions[p.playerId])continue;
         const view=projectRun(run,p.playerId);assertNoHiddenInfo(view,p.playerId);
         const intent=buildCollisionFarmIntent(view,p.playerId);
+        // Preserve the historical comparison policy independently of runtime availability.
+        if(intent)intent.privateCycle.bloodCommandUsedCycle=run.combat._t04CommandPolicyUsedCycle?.[p.playerId]??null;
         if(!intent)fail('BOT_NO_LEGAL_ACTION','T04 bot could not build owner intent',{seed,playerId:p.playerId,turn,policy});
         intents.push(intent);views.set(p.playerId,view);
       }
@@ -851,6 +852,8 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
         submitCard(run,decision.playerId,card.id,decision.skillIntent,decision.skillData);actions++;
         assertRunInvariants(run);
       }
+      run.combat._t04CommandPolicyUsedCycle||={};
+      for(const decision of plan.decisions)if(decision.characterId==='vampire'&&decision.skillIntent)run.combat._t04CommandPolicyUsedCycle[decision.playerId]=run.combat.privateByPlayer[decision.playerId].cycleIndex||1;
       run.combat._t04PendingPolicy=structuredClone(plan);
     }else{
       for(const p of run.players){
@@ -1109,7 +1112,7 @@ export function t05GoldenComparable(result){
         postStealNumber:h.postStealNumber,finalNumber:h.finalNumber,
         collisionGroup:h.collisionGroup,collisionImmune:h.collisionImmune,valid:h.valid,damage:h.damage
       })),
-      events:f.events,ownershipStable:f.ownershipStable
+      events:(f.events||[]).map(event=>{const {sourcePlayerId,sourceAugmentId,victimPlayerId,requestedAmount,actualAmount,rootActionId,chainDepth,distinctVictimCount,...legacy}=event;return legacy;}),ownershipStable:f.ownershipStable
     }))
   };
 }
@@ -1466,16 +1469,18 @@ export function runT09Fixtures(seed){
     cases.push({id:'F3_KNIGHT_TOUGHNESS_0',reject,toughnessAfterReject:0,turnAdvanced:run.combat.turn===2});
   }
   {
-    const run=t09Run(seed,'F4_SEER_COLLISION_GAIN');run.players[2].publicResources.revelation=0;
-    submitT09(run,'p0',5);submitT09(run,'p1',1);submitT09(run,'p2',1);submitT09(run,'p3',2);
-    const result=resolveT09(run),seer=result.cards.find(x=>x.playerId==='p2');
-    cases.push({id:'F4_SEER_COLLISION_GAIN',gain:seer.revelationGained||0,revelation:run.players[2].publicResources.revelation,valid:seer.valid});
+    const run=t09Run(seed,'F4_SEER_ACTIVATION_VALID_GAIN'),seer=run.players[2];seer.publicResources.revelation=1;
+    submitT09(run,'p0',5);activateImmediateCharacterSkill(run,seer);
+    submitT09(run,'p1',1);submitT09(run,'p2',4);submitT09(run,'p3',2);
+    const result=resolveT09(run),seerCard=result.cards.find(x=>x.playerId==='p2');
+    cases.push({id:'F4_SEER_ACTIVATION_VALID_GAIN',gain:seerCard.revelationGained||0,revelation:seer.publicResources.revelation,valid:seerCard.valid});
   }
   {
-    const run=t09Run(seed,'F5_SEER_MAX_COLLISION');run.players[2].publicResources.revelation=1;
-    submitT09(run,'p0',5);submitT09(run,'p1',1);submitT09(run,'p2',1);submitT09(run,'p3',2);
-    const result=resolveT09(run),seer=result.cards.find(x=>x.playerId==='p2');
-    cases.push({id:'F5_SEER_MAX_COLLISION',gain:seer.revelationGained||0,revelation:run.players[2].publicResources.revelation});
+    const run=t09Run(seed,'F5_SEER_ACTIVATION_COLLISION_NO_GAIN'),seer=run.players[2];seer.publicResources.revelation=1;
+    submitT09(run,'p1',1);activateImmediateCharacterSkill(run,seer);
+    submitT09(run,'p0',5);submitT09(run,'p2',1);submitT09(run,'p3',2);
+    const result=resolveT09(run),seerCard=result.cards.find(x=>x.playerId==='p2');
+    cases.push({id:'F5_SEER_ACTIVATION_COLLISION_NO_GAIN',gain:seerCard.revelationGained||0,revelation:seer.publicResources.revelation,valid:seerCard.valid});
   }
   {
     const run=t09Run(seed,'F6_SEER_USE_RECOVERY'),seer=run.players[2],priv=run.combat.privateByPlayer.p2;
@@ -1488,13 +1493,13 @@ export function runT09Fixtures(seed){
     cases.push({id:'F6_SEER_USE_RECOVERY',recoveredCardId:evt.recoveredCardId,expectedCardId:recoverId,revelationAfterUse:0,peek,ownershipStable:seer.cardPool.some(x=>x.id===recoverId)});
   }
   {
-    const run=t09Run(seed,'F7_SEER_USE_COLLISION_REGAIN'),seer=run.players[2],priv=run.combat.privateByPlayer.p2;
+    const run=t09Run(seed,'F7_SEER_USE_VALID_REGAIN'),seer=run.players[2],priv=run.combat.privateByPlayer.p2;
     const recoverId=seer.cardPool.find(x=>x.baseNumber===5).id;
     priv.remainingCardIds=priv.remainingCardIds.filter(id=>id!==recoverId);priv.spentCardIds=[recoverId];seer.publicResources.revelation=1;
     submitT09(run,'p1',1);const evt=activateImmediateCharacterSkill(run,seer);
-    submitT09(run,'p0',5);submitT09(run,'p2',1);submitT09(run,'p3',2);
+    submitT09(run,'p0',5);submitT09(run,'p2',4);submitT09(run,'p3',2);
     const result=resolveT09(run),seerCard=result.cards.find(x=>x.playerId==='p2');
-    cases.push({id:'F7_SEER_USE_COLLISION_REGAIN',recoveredCardId:evt.recoveredCardId,spent:1,gained:seerCard.revelationGained||0,revelation:seer.publicResources.revelation});
+    cases.push({id:'F7_SEER_USE_VALID_REGAIN',recoveredCardId:evt.recoveredCardId,spent:1,gained:seerCard.revelationGained||0,revelation:seer.publicResources.revelation});
   }
   {
     const run=t09Run(seed,'F8_SEER_NO_RECOVERY_TARGET'),seer=run.players[2],priv=run.combat.privateByPlayer.p2;

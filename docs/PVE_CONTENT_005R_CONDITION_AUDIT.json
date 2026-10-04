@@ -1,0 +1,1028 @@
+{
+  "schemaVersion": "PVE_CONTENT_005R_CONDITION_AUDIT_V1",
+  "count": 113,
+  "summary": {
+    "STILL_AMBIGUOUS": 79,
+    "RESOLVED_BY_CONTEXT": 22,
+    "RESOLVED_BY_CLASS_RULE": 12
+  },
+  "entries": [
+    {
+      "augmentId": "aug-003",
+      "name": "노련한 검술",
+      "sourceDescription": "연속 유효 공격이 일정 횟수 이상 이어지면 이후 공격에 추가 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-004",
+      "name": "경험자의 감각",
+      "sourceDescription": "전투 첫 충돌 이후 다음 유효 성공에 추가 성장 EXP 보너스.",
+      "betaValue": "조건 달성 시 EXP +1.",
+      "resolution": "RESOLVED_BY_CONTEXT",
+      "resolvedCondition": "전투 첫 충돌 이후 다음 유효 성공에 추가 성장 EXP 보너스.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-009",
+      "name": "일당백",
+      "sourceDescription": "높은 연속 성공 상태에서 충돌 전까지 큰 공격 보너스를 유지.",
+      "betaValue": "조건 달성 시 추가 피해 +3.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-012",
+      "name": "튼튼한 야영 장비",
+      "sourceDescription": "1~2 장비 효과를 강화하고 조건부로 최저 HP 아군에게 작은 보호 제공.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-013",
+      "name": "탐험가의 공구함",
+      "sourceDescription": "숫자 3의 탐험/성장 장비 효과를 강화하고 소규모 전투 유틸리티 추가.",
+      "betaValue": "조건 달성 시 EXP +1.",
+      "resolution": "RESOLVED_BY_CONTEXT",
+      "resolvedCondition": "숫자 3의 탐험/성장 장비 효과를 강화하고 소규모 전투 유틸리티 추가.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-014",
+      "name": "잘 벼린 여행검",
+      "sourceDescription": "4~5 공격 장비 효과 강화. 4와 5를 번갈아 성공하면 추가 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-015",
+      "name": "재빠른 장비 교체",
+      "sourceDescription": "직전 숫자와 차이가 2 이상이면 이번 장비 효과 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "RESOLVED_BY_CONTEXT",
+      "resolvedCondition": "직전 숫자와 차이가 2 이상이면 이번 장비 효과 강화.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-016",
+      "name": "준비 만전",
+      "sourceDescription": "한 사이클 안에 방어·탐험·공격 장비를 모두 발동하면 준비 완료 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "RESOLVED_BY_CONTEXT",
+      "resolvedCondition": "한 사이클 안에 방어·탐험·공격 장비를 모두 발동하면 준비 완료 보너스.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-017",
+      "name": "현장 개조",
+      "sourceDescription": "서로 다른 장비 종류를 연속 발동할수록 다음 장비 효과 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-019",
+      "name": "전설의 장비 세트",
+      "sourceDescription": "세 종류의 기본 장비 효과 자체를 대폭 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +4.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-049",
+      "name": "불침의 수호자",
+      "sourceDescription": "호위한 아군에게 보호 표식을 남겨 다음 직접 피해도 기사에게 전가.",
+      "betaValue": "조건 달성 시 추가 피해 +3.",
+      "resolution": "RESOLVED_BY_CONTEXT",
+      "resolvedCondition": "호위한 아군에게 보호 표식을 남겨 다음 직접 피해도 기사에게 전가.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-053",
+      "name": "무게 싣기",
+      "sourceDescription": "높은 숫자로 압살할수록 추가 피해 증가. 특히 5 효율 상승.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-055",
+      "name": "다중 압살",
+      "sourceDescription": "한 번에 여러 장을 무효화하면 압살 보너스가 크게 상승.",
+      "betaValue": "조건 달성 시 추가 피해 +3.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-062",
+      "name": "발목 베기",
+      "sourceDescription": "숫자 1로 단독 최저 성공 시 비열한 일격 추가 효과 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "RESOLVED_BY_CONTEXT",
+      "resolvedCondition": "숫자 1로 단독 최저 성공 시 비열한 일격 추가 효과 강화.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-063",
+      "name": "틈새 포착",
+      "sourceDescription": "직전 턴보다 낮은 숫자로 단독 최저 성공 시 추가 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-066",
+      "name": "밑장 빼기",
+      "sourceDescription": "단독 최저 성공 후 다음 턴 높은 숫자로 유효 성공하면 추가 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-068",
+      "name": "목을 노려라",
+      "sourceDescription": "비열함을 충분히 쌓은 상태의 단독 최저 공격을 크게 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +4.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-070",
+      "name": "완전범죄",
+      "sourceDescription": "연속 단독 최저 성공 보너스를 크게 강화하며 첫 실패 1회는 기록을 유지.",
+      "betaValue": "조건 달성 시 추가 피해 +4.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-082",
+      "name": "높은 곳으로",
+      "sourceDescription": "낮은 숫자→높은 숫자 도약의 공격 보너스 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-084",
+      "name": "벽 차기",
+      "sourceDescription": "도약 성공 후 다음 카드도 큰 숫자 차이를 만들면 연속 도약 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "RESOLVED_BY_CLASS_RULE",
+      "resolvedCondition": "도약 성공 후 다음 카드도 큰 숫자 차이를 만들면 연속 도약 보너스.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-088",
+      "name": "그림자 무희",
+      "sourceDescription": "상승 도약과 하강 도약을 번갈아 성공할수록 전투 중 도약 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +3.",
+      "resolution": "RESOLVED_BY_CLASS_RULE",
+      "resolvedCondition": "상승 도약과 하강 도약을 번갈아 성공할수록 전투 중 도약 강화.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-095",
+      "name": "마력 범람",
+      "sourceDescription": "턴 시작에 마나가 최대라면 그 턴 증폭 보너스 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "RESOLVED_BY_CONTEXT",
+      "resolvedCondition": "턴 시작에 마나가 최대라면 그 턴 증폭 보너스 강화.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-102",
+      "name": "생명 공명",
+      "sourceDescription": "HP 1 아군을 백마법으로 회복하면 추가 보너스.",
+      "betaValue": "해당 회복 효과는 HP 1 회복.",
+      "resolution": "RESOLVED_BY_CONTEXT",
+      "resolvedCondition": "HP 1 아군을 백마법으로 회복하면 추가 보너스.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-114",
+      "name": "교대 공식",
+      "sourceDescription": "직전 역산술과 반대 방향(+↔-)을 사용하면 마나 효율/효과 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-119",
+      "name": "수식의 반전",
+      "sourceDescription": "하향 조정량이 클수록 추가 피해 또는 마나 보너스를 얻어 내림도 공격 자원화.",
+      "betaValue": "조건 달성 시 추가 피해 +3.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-122",
+      "name": "끓어오르는 피",
+      "sourceDescription": "HP 비용이 발생한 공격의 추가 피해 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "RESOLVED_BY_CONTEXT",
+      "resolvedCondition": "HP 비용이 발생한 공격의 추가 피해 강화.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-125",
+      "name": "상처 벌리기",
+      "sourceDescription": "연속으로 HP 비용을 지불한 유효 공격 성공 시 추가 피해 단계 상승.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "RESOLVED_BY_CONTEXT",
+      "resolvedCondition": "연속으로 HP 비용을 지불한 유효 공격 성공 시 추가 피해 단계 상승.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-126",
+      "name": "붉은 추격",
+      "sourceDescription": "HP 비용 공격 후 다음 턴 더 높은 숫자로 유효 성공하면 추가 피해.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-127",
+      "name": "피의 환류",
+      "sourceDescription": "HP 비용 공격을 일정 횟수 성공하면 HP 1 회복. 전투당 제한.",
+      "betaValue": "HP 비용이 발생한 유효 공격 2회 성공 시 HP1 회복.",
+      "resolution": "RESOLVED_BY_CONTEXT",
+      "resolvedCondition": "HP 비용이 발생한 유효 공격 2회 성공 시 HP1 회복",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-133",
+      "name": "되갚아주마",
+      "sourceDescription": "직접 피해 후 복수 공격 보너스 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "RESOLVED_BY_CONTEXT",
+      "resolvedCondition": "직접 피해 후 복수 공격 보너스 강화.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-136",
+      "name": "상처의 기억",
+      "sourceDescription": "직접 피해를 받을 때마다 해당 전투 복수 효과가 점차 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-140",
+      "name": "광기의 반격",
+      "sourceDescription": "직접 피해 후 복수 공격이 크게 강화되고 성공 시 다음 피해를 막는 효과까지 획득.",
+      "betaValue": "조건 달성 시 추가 피해 +4.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-142",
+      "name": "죽음의 문턱",
+      "sourceDescription": "HP 1 상태의 격노 공격 추가 피해 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "RESOLVED_BY_CONTEXT",
+      "resolvedCondition": "HP 1 상태의 격노 공격 추가 피해 강화.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-143",
+      "name": "살육 본능",
+      "sourceDescription": "HP 1에서 연속 유효 공격 성공 시 격노가 점차 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-145",
+      "name": "폭주",
+      "sourceDescription": "HP 1에서 일정 횟수 연속 성공 시 잠시 폭주 보너스 획득.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-147",
+      "name": "죽음과 춤을",
+      "sourceDescription": "HP 1에서 높은 숫자로 유효 성공할수록 다음 몬스터 공격 대비용 작은 방어 획득.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-148",
+      "name": "살아있는 재앙",
+      "sourceDescription": "HP 1 공격 보너스를 크게 강화하고 연속 성공 시 추가 타격.",
+      "betaValue": "조건 달성 시 추가 피해 +4.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-149",
+      "name": "마지막 불꽃",
+      "sourceDescription": "전투에서 처음 HP 1이 되는 순간 일정 턴 '대격노'로 공격/생존 보조 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +3.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-154",
+      "name": "별의 기억",
+      "sourceDescription": "복구한 카드의 유효 공격에 작은 추가 피해 또는 성장 보너스.",
+      "betaValue": "조건 달성 시 EXP +1.",
+      "resolution": "RESOLVED_BY_CONTEXT",
+      "resolvedCondition": "복구한 카드의 유효 공격에 작은 추가 피해 또는 성장 보너스.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-157",
+      "name": "운명의 반복",
+      "sourceDescription": "같은 숫자를 여러 차례 복구해 유효 사용하면 해당 숫자 효과가 점차 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-159",
+      "name": "끝없는 계시",
+      "sourceDescription": "복구→유효 성공→계시 재획득 순환을 크게 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +4.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-172",
+      "name": "흉조",
+      "sourceDescription": "중복 발생 예언 적중 보상 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "RESOLVED_BY_CONTEXT",
+      "resolvedCondition": "중복 발생 예언 적중 보상 강화.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-173",
+      "name": "길조",
+      "sourceDescription": "무중복·다수 유효 등 좋은 결과 예언 적중 시 파티 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-174",
+      "name": "숫자의 별자리",
+      "sourceDescription": "특정 숫자 유효 예언의 적중 보상 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-182",
+      "name": "두 손 가득",
+      "sourceDescription": "한 턴 여러 플레이어에게 슬쩍할수록 탐욕 보너스 크게 증가.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-183",
+      "name": "손이 빠르네?",
+      "sourceDescription": "슬쩍 후 자신의 공격이 유효하면 다음 턴 작은 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "RESOLVED_BY_CLASS_RULE",
+      "resolvedCondition": "슬쩍 후 자신의 공격이 유효하면 다음 턴 작은 보너스.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-185",
+      "name": "욕심쟁이",
+      "sourceDescription": "한 번에 일정량 이상 숫자를 훔치면 추가 탐욕/추가 피해.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-186",
+      "name": "훔친 힘",
+      "sourceDescription": "슬쩍으로 올라간 최종 숫자가 높을수록 추가 피해 증가.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-187",
+      "name": "또 가져갈게!",
+      "sourceDescription": "슬쩍 공격 성공 시 다음 사이클 첫 슬쩍 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "RESOLVED_BY_CLASS_RULE",
+      "resolvedCondition": "슬쩍 공격 성공 시 다음 사이클 첫 슬쩍 강화.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-197",
+      "name": "큰손",
+      "sourceDescription": "한 번에 많은 저장 숫자를 소비할수록 보너스가 비선형적으로 증가.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-199",
+      "name": "암시장 큰손",
+      "sourceDescription": "저장 숫자를 대량 소비하면 숫자 증가와 추가 피해가 함께 크게 상승.",
+      "betaValue": "조건 달성 시 추가 피해 +4.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-204",
+      "name": "여럿이 놀자",
+      "sourceDescription": "한 턴 여러 아군에게 장난을 부여하면 장난 효과 추가 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-205",
+      "name": "기대감",
+      "sourceDescription": "장난 상태 아군이 높은 숫자로 유효 성공하면 장난 보너스 증가.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-206",
+      "name": "폭발도 재밌어!",
+      "sourceDescription": "장난 폭발 시 임프가 작은 보너스를 얻음. 아군 피해는 유지.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "RESOLVED_BY_CLASS_RULE",
+      "resolvedCondition": "장난 폭발 시 임프가 작은 보너스를 얻음. 아군 피해는 유지.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-215",
+      "name": "연승 행진",
+      "sourceDescription": "특수 카드 사용 후 다음 일반 공격이 유효하면 행운 유지/강화.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "RESOLVED_BY_CONTEXT",
+      "resolvedCondition": "특수 카드 사용 후 다음 일반 공격이 유효하면 행운 유지/강화.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-216",
+      "name": "두 번 오는 행운",
+      "sourceDescription": "6·7 생성 조건 달성 시 조건부로 생성량 또는 다음 생성 진행도 추가.",
+      "betaValue": "해당 재사용/충전 진행 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-217",
+      "name": "운명의 연속",
+      "sourceDescription": "6 성공 후 7, 혹은 7 성공 후 6을 성공시키면 강력한 연계 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +3.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-218",
+      "name": "황금의 6",
+      "sourceDescription": "6을 반복 사용 가능한 핵심 공격 자원으로 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +3.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-222",
+      "name": "남은 패 계산",
+      "sourceDescription": "덱에 특정 숫자가 얼마나 남았는지에 따라 그 숫자 사용 시 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-226",
+      "name": "풀하우스",
+      "sourceDescription": "같은 숫자군과 다른 숫자군을 정해진 단순 조합으로 사용하면 특수 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-229",
+      "name": "카드 카운팅의 달인",
+      "sourceDescription": "조합 완성마다 다음 조합 보너스 강화, 서로 다른 조합 연계 시 추가 보상.",
+      "betaValue": "조건 달성 시 추가 피해 +3.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-234",
+      "name": "낮은 패 블러핑",
+      "sourceDescription": "낮은 카드 두 장으로 올인하면 합계는 낮지만 별도 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-241",
+      "name": "전탄 난사",
+      "sourceDescription": "사이클 카드 수 3→4(잠정 1/2/2/3). 전탄발사 시 더 많은 잔탄을 쏟아붓는 탄창 확장형.",
+      "betaValue": "사이클 카드풀을 1/2/2/3의 4장으로 변경. 전탄발사 성공 시 기존처럼 남은 카드 전부 추가 사용.",
+      "resolution": "RESOLVED_BY_CONTEXT",
+      "resolvedCondition": "While owned use 1/2/2/3 four-card cycle; on valid Full Burst use remaining cards",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-243",
+      "name": "급속 장전",
+      "sourceDescription": "전탄발사 성공 후 새 사이클 첫 유효 공격 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "RESOLVED_BY_CLASS_RULE",
+      "resolvedCondition": "전탄발사 성공 후 새 사이클 첫 유효 공격 강화.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-244",
+      "name": "화약 증량",
+      "sourceDescription": "전탄발사로 추가 소모되는 잔탄 수가 많을수록 보너스 피해 증가.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-245",
+      "name": "탄띠 급탄",
+      "sourceDescription": "전탄발사 성공 후 새 사이클 일부 탄환에 일시 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-247",
+      "name": "마지막 한 발까지",
+      "sourceDescription": "카드가 거의 남지 않은 상태에서 전탄발사하면 선택 카드 자체를 크게 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +3.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-249",
+      "name": "전쟁 기계",
+      "sourceDescription": "전탄발사 성공→새 사이클 첫 공격→다음 전탄발사로 이어지는 장기 화력 엔진 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +3.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-252",
+      "name": "영점 조정",
+      "sourceDescription": "사이클 첫 유효 공격이 적을 조준해 이후 정밀 사격 효과 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "RESOLVED_BY_CLASS_RULE",
+      "resolvedCondition": "사이클 첫 유효 공격이 적을 조준해 이후 정밀 사격 효과 강화.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-254",
+      "name": "대구경 탄환",
+      "sourceDescription": "마지막 카드의 정밀 조준 피해 크게 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-255",
+      "name": "탄도 계산",
+      "sourceDescription": "직전 카드와 현재 카드 숫자 차이가 클수록 정밀 사격 보너스 증가.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-262",
+      "name": "고압 기관",
+      "sourceDescription": "과열이 있는 동안 전탄발사 피해 증가.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "RESOLVED_BY_CLASS_RULE",
+      "resolvedCondition": "과열이 있는 동안 전탄발사 피해 증가.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-264",
+      "name": "붉은 배기관",
+      "sourceDescription": "높은 과열에서 전탄발사 성공 시 추가 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-265",
+      "name": "임계 출력",
+      "sourceDescription": "과열이 임계치 직전일 때 전탄발사 공격력 크게 증가.",
+      "betaValue": "조건 달성 시 추가 피해 +3.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-268",
+      "name": "레드존",
+      "sourceDescription": "임계 과열 유지 동안 전탄발사 크게 강화. 상한 초과 시 강제 냉각.",
+      "betaValue": "조건 달성 시 추가 피해 +4.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-273",
+      "name": "가속 연타",
+      "sourceDescription": "연격이 높을수록 기본 추가 피해를 더 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-274",
+      "name": "호흡 유지",
+      "sourceDescription": "유효 공격 실패가 중복이 아닐 때 연격 유지에 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "RESOLVED_BY_CLASS_RULE",
+      "resolvedCondition": "유효 공격 실패가 중복이 아닐 때 연격 유지에 보너스.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-277",
+      "name": "상승 기류",
+      "sourceDescription": "직전 카드보다 2 이상 높은 숫자로 성공하면 연격 외 추가 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-279",
+      "name": "천수연환",
+      "sourceDescription": "최대 연격에서 일정 횟수 공격 성공 시 추가 연타.",
+      "betaValue": "조건 달성 시 추가 피해 +3.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-282",
+      "name": "금 간 갑옷",
+      "sourceDescription": "파쇄가 있는 적을 아군이 공격하면 추가 피해.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "RESOLVED_BY_CLASS_RULE",
+      "resolvedCondition": "파쇄가 있는 적을 아군이 공격하면 추가 피해.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-284",
+      "name": "공명의 타격",
+      "sourceDescription": "아군이 파쇄를 이용할 때 무투가 연격 유지에 작은 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "RESOLVED_BY_CLASS_RULE",
+      "resolvedCondition": "아군이 파쇄를 이용할 때 무투가 연격 유지에 작은 보너스.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-285",
+      "name": "연쇄 파쇄",
+      "sourceDescription": "파쇄를 이용한 아군 공격이 일정 횟수 성공하면 파쇄 일부 재생성.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-286",
+      "name": "균열 확대",
+      "sourceDescription": "높은 연격에서 부여하는 파쇄량/효과 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-287",
+      "name": "빈틈 공유",
+      "sourceDescription": "파쇄가 높은 적을 공격하는 아군에게 피해 외 추가 혜택 제공.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-289",
+      "name": "천하무방",
+      "sourceDescription": "파쇄 적을 아군이 공격할 때 조건부 추가 파쇄/추가 피해가 연쇄 발생.",
+      "betaValue": "조건 달성 시 추가 피해 +3.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-294",
+      "name": "정권 준비",
+      "sourceDescription": "연격을 오래 보존한 턴 수에 따라 필살 보너스 증가.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-304",
+      "name": "귀족의 특권",
+      "sourceDescription": "권속에게서 더 높은 숫자를 가져와 유효 성공하면 추가 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-306",
+      "name": "운명의 대리인",
+      "sourceDescription": "교환 덕분에 권속도 중복을 피하고 유효 성공하면 흡혈귀도 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "RESOLVED_BY_CONTEXT",
+      "resolvedCondition": "교환 덕분에 권속도 중복을 피하고 유효 성공하면 흡혈귀도 보너스.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-309",
+      "name": "핏빛 군주",
+      "sourceDescription": "권속에게서 가져온 숫자로 성공할수록 흡혈귀 개인 공격력이 크게 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +4.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-310",
+      "name": "완전한 종속",
+      "sourceDescription": "권속과 흡혈귀가 서로의 카드로 여러 번 성공하면 강한 공동 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +3.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-313",
+      "name": "서로 다른 피",
+      "sourceDescription": "두 사람 유효 숫자 차이가 일정 이상이면 추가 맹약 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-317",
+      "name": "맹약의 연쇄",
+      "sourceDescription": "둘이 연속 동시 유효 성공할수록 맹약이 점차 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-319",
+      "name": "붉은 쌍성",
+      "sourceDescription": "둘이 같은 턴 강한 유효 공격에 성공하면 큰 공동 공격 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +3.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-322",
+      "name": "깊은 흡혈",
+      "sourceDescription": "높은 피해 유효 공격에서 혈액 획득 효율 증가.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-326",
+      "name": "과잉 채혈",
+      "sourceDescription": "HP가 높은 적/보스에게 공격 성공 시 추가 혈액 획득.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-333",
+      "name": "막타 본능",
+      "sourceDescription": "처치 턴 기여 시 포식 보너스 증가. 최고 피해까지 달성하면 추가 보너스.",
+      "betaValue": "처치 턴 유효 기여 시 포식 +2 추가, 그 턴 최고 피해자면 추가 +1.",
+      "resolution": "RESOLVED_BY_CONTEXT",
+      "resolvedCondition": "처치 턴 유효 기여 시 포식 +2 추가, 그 턴 최고 피해자면 추가 +1",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-336",
+      "name": "피 냄새",
+      "sourceDescription": "HP가 낮은 적을 공격할수록 귀참과 포식 획득 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-337",
+      "name": "마검 숙련",
+      "sourceDescription": "귀참 사용 후 일정 턴 일반 유효 공격도 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-340",
+      "name": "마검의 주인",
+      "sourceDescription": "귀참 레벨이 일정 이상이면 일반 공격에도 귀참 일부 효과가 스며듦.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-344",
+      "name": "포악한 칼날",
+      "sourceDescription": "귀참 레벨 상승 때 일정 기간 공격력 추가 상승.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-347",
+      "name": "마검의 요구",
+      "sourceDescription": "귀참을 일정 기간 쓰지 않으면 굶주림 가속, 사용 성공 시 포식 보너스 크게 증가.",
+      "betaValue": "조건 달성 시 추가 피해 +3.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-349",
+      "name": "먹어치워라",
+      "sourceDescription": "귀참으로 큰 피해/처치 시 레벨 하락 위험을 줄이고 포식 대량 획득.",
+      "betaValue": "조건 달성 시 추가 피해 +3.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-350",
+      "name": "굶주린 왕",
+      "sourceDescription": "귀참 레벨이 오르내릴 때마다 광기를 쌓아 레벨 변동 자체가 공격력 증가로 연결.",
+      "betaValue": "조건 달성 시 추가 피해 +3.",
+      "resolution": "RESOLVED_BY_CLASS_RULE",
+      "resolvedCondition": "귀참 레벨이 오르내릴 때마다 광기를 쌓아 레벨 변동 자체가 공격력 증가로 연결.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-353",
+      "name": "핏빛 개안",
+      "sourceDescription": "귀화 진입 직후 첫 공격 크게 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-354",
+      "name": "억눌린 마검",
+      "sourceDescription": "귀화 전 일반 상태에서 유효 공격 연속 성공 시 추가 포식.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-356",
+      "name": "악귀의 검무",
+      "sourceDescription": "귀화 중 연속 유효 성공 시 공격력 지속 상승.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-359",
+      "name": "백귀야행",
+      "sourceDescription": "귀화 중 유효 공격 연속 성공 시 특수 추가 타격.",
+      "betaValue": "조건 달성 시 추가 피해 +3.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-362",
+      "name": "쌍인 호흡",
+      "sourceDescription": "3회 이상 연속 유효 공격부터 추가 보너스 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-366",
+      "name": "교차 찌르기",
+      "sourceDescription": "직전 성공 카드와 숫자 차이가 2 이상이면 추가 피해.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "RESOLVED_BY_CONTEXT",
+      "resolvedCondition": "직전 성공 카드와 숫자 차이가 2 이상이면 추가 피해.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-368",
+      "name": "무결점 공연",
+      "sourceDescription": "사이클의 모든 카드가 유효 성공하면 다음 사이클이 충돌 전까지 강화.",
+      "betaValue": "조건 달성 시 추가 피해 +3.",
+      "resolution": "RESOLVED_BY_CONTEXT",
+      "resolvedCondition": "사이클의 모든 카드가 유효 성공하면 다음 사이클이 충돌 전까지 강화.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-369",
+      "name": "쌍인 피날레",
+      "sourceDescription": "사이클 마지막 남은 카드가 유효하면 매우 큰 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +4.",
+      "resolution": "RESOLVED_BY_CONTEXT",
+      "resolvedCondition": "사이클 마지막 남은 카드가 유효하면 매우 큰 보너스.",
+      "reason": null
+    },
+    {
+      "augmentId": "aug-376",
+      "name": "월식의 잔흔",
+      "sourceDescription": "월식 종료 후 다음 일반 유효 공격까지 일부 공격 보너스 유지.",
+      "betaValue": "조건 달성 시 추가 피해 +1.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    },
+    {
+      "augmentId": "aug-387",
+      "name": "공중 교대",
+      "sourceDescription": "곡예 후 홀짝 교대 성공을 이어가면 추가 보너스.",
+      "betaValue": "조건 달성 시 추가 피해 +2.",
+      "resolution": "STILL_AMBIGUOUS",
+      "resolvedCondition": null,
+      "reason": "The source omits an exact threshold, relation, target, or effect ordering; no numeric value was inferred."
+    }
+  ]
+}

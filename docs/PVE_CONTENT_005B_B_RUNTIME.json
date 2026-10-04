@@ -1,0 +1,544 @@
+{
+  "schemaVersion": "005B_B_RUNTIME_V1",
+  "scope": "KNIGHT_ONLY",
+  "sourcePrecedence": [
+    "PVE_CONTENT_005Q_DESIGN_B",
+    "005Q_CONTRACT_OVERLAY",
+    "005R_CONTRACT",
+    "BETA_V0_1",
+    "EXISTING_RUNTIME"
+  ],
+  "baseInvariant": {
+    "deck": [
+      2,
+      3,
+      4,
+      5,
+      5
+    ],
+    "baseMaxToughness": 2,
+    "cycleRecharge": true,
+    "collisionOverride": "own card passes; same FINAL_NUMBER opposing cards removed"
+  },
+  "roomPolicy": {
+    "eventAndRewardAllowed": [
+      "aug-038",
+      "aug-041",
+      "aug-044",
+      "aug-045"
+    ],
+    "allOthersCombatOnly": true
+  },
+  "entries": [
+    {
+      "augmentId": "aug-031",
+      "name": "불굴의 기사",
+      "classId": "warrior",
+      "archetype": "불굴의 기사",
+      "stage": 1,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005R/BETA_v0.1"
+    },
+    {
+      "augmentId": "aug-032",
+      "name": "전열 유지",
+      "classId": "warrior",
+      "archetype": "불굴의 기사",
+      "stage": 2,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005R/BETA_v0.1"
+    },
+    {
+      "augmentId": "aug-033",
+      "name": "무쇠 갑주",
+      "classId": "warrior",
+      "archetype": "불굴의 기사",
+      "stage": 2,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005R/BETA_v0.1"
+    },
+    {
+      "augmentId": "aug-034",
+      "name": "숙련된 호흡",
+      "classId": "warrior",
+      "archetype": "불굴의 기사",
+      "stage": 2,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005R/BETA_v0.1"
+    },
+    {
+      "augmentId": "aug-035",
+      "name": "빈틈 없는 전진",
+      "classId": "warrior",
+      "archetype": "불굴의 기사",
+      "stage": 3,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005R/BETA_v0.1"
+    },
+    {
+      "augmentId": "aug-036",
+      "name": "전장의 노련함",
+      "classId": "warrior",
+      "archetype": "불굴의 기사",
+      "stage": 3,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005R/BETA_v0.1"
+    },
+    {
+      "augmentId": "aug-037",
+      "name": "마지막 보루",
+      "classId": "warrior",
+      "archetype": "불굴의 기사",
+      "stage": 3,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005Q_DESIGN_B"
+    },
+    {
+      "augmentId": "aug-038",
+      "name": "불퇴전",
+      "classId": "warrior",
+      "archetype": "불굴의 기사",
+      "stage": 4,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": true,
+        "REWARD": true,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005Q_DESIGN_B"
+    },
+    {
+      "augmentId": "aug-039",
+      "name": "철벽의 기사",
+      "classId": "warrior",
+      "archetype": "불굴의 기사",
+      "stage": 4,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005R/BETA_v0.1"
+    },
+    {
+      "augmentId": "aug-040",
+      "name": "영원한 전열",
+      "classId": "warrior",
+      "archetype": "불굴의 기사",
+      "stage": 4,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005Q_DESIGN_B"
+    },
+    {
+      "augmentId": "aug-041",
+      "name": "수호벽",
+      "classId": "warrior",
+      "archetype": "수호벽",
+      "stage": 1,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": true,
+        "REWARD": true,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005R/BETA_v0.1"
+    },
+    {
+      "augmentId": "aug-042",
+      "name": "대신 맞아주마",
+      "classId": "warrior",
+      "archetype": "수호벽",
+      "stage": 2,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005R/BETA_v0.1"
+    },
+    {
+      "augmentId": "aug-043",
+      "name": "등 뒤에 있어",
+      "classId": "warrior",
+      "archetype": "수호벽",
+      "stage": 2,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005R/BETA_v0.1"
+    },
+    {
+      "augmentId": "aug-044",
+      "name": "헌신의 보답",
+      "classId": "warrior",
+      "archetype": "수호벽",
+      "stage": 2,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": true,
+        "REWARD": true,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005Q_DESIGN_B"
+    },
+    {
+      "augmentId": "aug-045",
+      "name": "전열 교대",
+      "classId": "warrior",
+      "archetype": "수호벽",
+      "stage": 3,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": true,
+        "REWARD": true,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005Q_DESIGN_B"
+    },
+    {
+      "augmentId": "aug-046",
+      "name": "넓은 방패",
+      "classId": "warrior",
+      "archetype": "수호벽",
+      "stage": 3,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005R/BETA_v0.1"
+    },
+    {
+      "augmentId": "aug-047",
+      "name": "목숨을 건 맹세",
+      "classId": "warrior",
+      "archetype": "수호벽",
+      "stage": 3,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005R/BETA_v0.1"
+    },
+    {
+      "augmentId": "aug-048",
+      "name": "철벽 진형",
+      "classId": "warrior",
+      "archetype": "수호벽",
+      "stage": 4,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005R/BETA_v0.1"
+    },
+    {
+      "augmentId": "aug-049",
+      "name": "불침의 수호자",
+      "classId": "warrior",
+      "archetype": "수호벽",
+      "stage": 4,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005Q_DESIGN_B"
+    },
+    {
+      "augmentId": "aug-050",
+      "name": "최후의 방패",
+      "classId": "warrior",
+      "archetype": "수호벽",
+      "stage": 4,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005R/BETA_v0.1"
+    },
+    {
+      "augmentId": "aug-051",
+      "name": "압살 기사",
+      "classId": "warrior",
+      "archetype": "압살 기사",
+      "stage": 1,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005R/BETA_v0.1"
+    },
+    {
+      "augmentId": "aug-052",
+      "name": "중갑 돌파",
+      "classId": "warrior",
+      "archetype": "압살 기사",
+      "stage": 2,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005Q_DESIGN_B"
+    },
+    {
+      "augmentId": "aug-053",
+      "name": "무게 싣기",
+      "classId": "warrior",
+      "archetype": "압살 기사",
+      "stage": 2,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005Q_DESIGN_B"
+    },
+    {
+      "augmentId": "aug-054",
+      "name": "전진 또 전진",
+      "classId": "warrior",
+      "archetype": "압살 기사",
+      "stage": 2,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005Q_DESIGN_B"
+    },
+    {
+      "augmentId": "aug-055",
+      "name": "다중 압살",
+      "classId": "warrior",
+      "archetype": "압살 기사",
+      "stage": 3,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005Q_DESIGN_B"
+    },
+    {
+      "augmentId": "aug-056",
+      "name": "기세등등",
+      "classId": "warrior",
+      "archetype": "압살 기사",
+      "stage": 3,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005R/BETA_v0.1"
+    },
+    {
+      "augmentId": "aug-057",
+      "name": "힘을 비축하라",
+      "classId": "warrior",
+      "archetype": "압살 기사",
+      "stage": 3,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005Q_DESIGN_B"
+    },
+    {
+      "augmentId": "aug-058",
+      "name": "일기당천",
+      "classId": "warrior",
+      "archetype": "압살 기사",
+      "stage": 4,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005R/BETA_v0.1"
+    },
+    {
+      "augmentId": "aug-059",
+      "name": "성문 파쇄",
+      "classId": "warrior",
+      "archetype": "압살 기사",
+      "stage": 4,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005R/BETA_v0.1"
+    },
+    {
+      "augmentId": "aug-060",
+      "name": "진격의 기사",
+      "classId": "warrior",
+      "archetype": "압살 기사",
+      "stage": 4,
+      "runtimeHandler": "KNIGHT_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executable": true,
+      "source": "005Q_DESIGN_B"
+    }
+  ]
+}

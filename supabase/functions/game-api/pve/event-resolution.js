@@ -1,3 +1,4 @@
+import {grantRunGold} from './characters.js';
 // Pure card predicates shared by every card-based PVE event definition.
 export function eventPrimitives(cards,{exactNumber=null,threshold=null,min=null,max=null,basis='VALID_SUM'}={}){
   const valid=cards.filter(card=>card.valid),collided=cards.filter(card=>card.invalidReason==='COLLISION');
@@ -37,7 +38,7 @@ function applyEffect(run,player,effect,privateState){
   switch(effect.type){
     case 'HEAL':player.hp=Math.min(player.maxHp,player.hp+amount);break;
     case 'DAMAGE_HP':player.hp=Math.max(0,player.hp-amount);if(player.hp===0)player.status='DOWNED';break;
-    case 'ADD_RUN_GOLD':player.runGold+=amount;break;
+    case 'ADD_RUN_GOLD':grantRunGold(player,amount);break;
     case 'SPEND_RUN_GOLD':player.runGold=Math.max(0,player.runGold-amount);break;
     case 'ADD_EXP':player.growthExp+=amount;break;
     case 'ADD_SCORE':player.score=(Number(player.score)||0)+amount;break;
@@ -69,7 +70,7 @@ export function resolveEventDefinition(run,definition,cards,privateByPlayer){
       const player=run.players.find(p=>p.playerId===playerId);
       for(const effect of rule.effects||[]){
         if(!(rule.target==='PARTY'&&['ADD_FLAME','SPEND_FLAME'].includes(effect.type)&&playerId!==recipientIds[0]))applyEffect(run,player,effect,privateByPlayer?.[playerId]);
-        rewards[playerId].push({type:effect.type,amount:effect.amount??null});
+        rewards[playerId].push({type:effect.type,amount:effect.type==='ADD_RUN_GOLD'&&player.characterId==='adventurer'&&Number(effect.amount)>0?Number(effect.amount)+1:effect.amount??null});
       }
     }
   }

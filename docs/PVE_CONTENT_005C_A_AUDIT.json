@@ -1,0 +1,95 @@
+{
+  "work": "PVE_CONTENT_005C_A_REPAIR",
+  "branch": "feat/pve-content-005c-a-seer",
+  "pr": 19,
+  "target": 30,
+  "registered": 30,
+  "executable": 30,
+  "dataOnly": 0,
+  "missing": 0,
+  "unsupported": 0,
+  "candidateReachable": 30,
+  "archetypeCoverage": {
+    "완전한 계시": 10,
+    "운명 조작자": 10,
+    "불길한 예언": 10
+  },
+  "stageDistribution": {
+    "1": 3,
+    "2": 9,
+    "3": 9,
+    "4": 9
+  },
+  "executableCounts": {
+    "range005C_151_270": 32,
+    "global001_270": 182,
+    "legacyOutsideSeer": [
+      "aug-181",
+      "aug-241"
+    ]
+  },
+  "designParity": {
+    "match": 30,
+    "valueMismatch": 0,
+    "triggerMismatch": 0,
+    "roomMismatch": 0,
+    "semanticMismatch": 0,
+    "missing": 0
+  },
+  "effectPositiveCoverage": 30,
+  "negativeCoverage": 30,
+  "tooltipParity": 30,
+  "dedicatedSeerTests": 56,
+  "testBreakdown": {
+    "effectPositive": 30,
+    "negative": 30,
+    "privacyScenarios": 3,
+    "reconnectScenarios": 3,
+    "retryScenarios": 2,
+    "delayedEffectScenarios": 10,
+    "recoveryEffectScenarios": 20,
+    "highRiskExplicitCards": 5,
+    "fullArchetypeBuilds": 3,
+    "mixedParty": 1
+  },
+  "baseRevelation": {
+    "max": 3,
+    "selectedBeforeFinalSubmit": true,
+    "finalSubmitBlocks": true,
+    "activationCost": 1,
+    "activationTurnValidGain": 1,
+    "activationTurnCollisionGain": 0,
+    "samePhysicalRecovery": true
+  },
+  "privacy": {
+    "baseInspectionRemoved": true,
+    "explicitInspectionOnly": true,
+    "aug177OwnerOnly": true,
+    "publicLeakage": false
+  },
+  "reconnectPass": true,
+  "retryPass": true,
+  "cleanupPass": true,
+  "roomIsolationPass": true,
+  "fiveBRegression": {
+    "executable": 150,
+    "target": 150
+  },
+  "sourceIntegrity": {
+    "designCUnchanged": true,
+    "betaV01Unchanged": true,
+    "stableIdsUnchanged": true,
+    "productionSupabaseMutation": false
+  },
+  "balanceWarning": "BALANCE_WARNING_005C_A: none introduced; no balance tuning performed.",
+  "frameworkBlockers": [],
+  "runtimeBlockers": [],
+  "testBlockers": [],
+  "ci": {
+    "finalDocumentationHeadRequired": true,
+    "status": "FINAL_HEAD_GATE_REQUIRED"
+  },
+  "blockers": [],
+  "SEER_RUNTIME_COMPLETE": true,
+  "READY_FOR_PVE_CONTENT_005C_B_IMP": true
+}

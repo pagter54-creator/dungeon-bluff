@@ -1,6 +1,11 @@
 import {recordEffectTelemetry} from './telemetry.js';
 import {AUGMENT_BY_ID} from './augment-catalog.js';
 import {resourceMax} from './resources.js';
+import {dispatchAugmentTrigger} from './augment-framework.js';
+import {applyContent005B} from './content-005b-runtime.js';
+import {notifyBerserkerHeal} from './berserker-runtime.js';
+import {applyGunnerRuntime} from './gunner-runtime.js';
+import {applySeerRuntime} from './seer-runtime.js';
 
 const VALID_OPERATIONS=new Set([
   'MODIFY_NUMBER','MODIFY_DAMAGE','SET_DAMAGE','ADD_STATUS','REMOVE_STATUS','HEAL','DAMAGE_SELF',
@@ -68,7 +73,7 @@ function applyOperation(run,player,op,ctx,metrics){
   else if(op.type==='SET_DAMAGE'){const before=ctx.damage.amount;ctx.damage.amount=Math.max(0,amount);addMetric(metrics,'extra_damage',ctx.damage.amount-before);}
   else if(op.type==='ADD_STATUS'){player.persistentCharacterState.statusEffects||=[];if(!player.persistentCharacterState.statusEffects.includes(op.status))player.persistentCharacterState.statusEffects.push(op.status);}
   else if(op.type==='REMOVE_STATUS'){player.persistentCharacterState.statusEffects=(player.persistentCharacterState.statusEffects||[]).filter(x=>x!==op.status);}
-  else if(op.type==='HEAL'){const before=player.hp;player.hp=Math.min(player.maxHp,player.hp+Math.max(0,amount));addMetric(metrics,'healing',player.hp-before);}
+  else if(op.type==='HEAL'){const before=player.hp;player.hp=Math.min(player.maxHp,player.hp+Math.max(0,amount));const healed=Math.max(0,player.hp-before);addMetric(metrics,'healing',healed);if(healed>0)notifyBerserkerHeal(run,player,healed,ctx.sourceAugmentId||ctx.sourceRelicId||'EFFECT_HEAL');}
   else if(op.type==='DAMAGE_SELF')player.hp=Math.max(0,player.hp-Math.max(0,amount));
   else if(op.type==='ADD_RESOURCE'){const before=Number(player.publicResources[op.resource])||0;const max=resourceMax(player,op.resource,Infinity);player.publicResources[op.resource]=Math.min(max,before+amount);addMetric(metrics,'resources_refunded',player.publicResources[op.resource]-before);}
   else if(op.type==='SET_RESOURCE'){const max=resourceMax(player,op.resource,Infinity);player.publicResources[op.resource]=Math.max(0,Math.min(max,amount));}
@@ -87,14 +92,17 @@ function applyOperation(run,player,op,ctx,metrics){
 }
 function definitionsFor(run,player){
   const catalog=run.effectCatalog||{};
-  return [...(player.augments||[]),...(player.relics||[])].flatMap(id=>(catalog[id]||AUGMENT_BY_ID[id])?.effects||[]);
+  return [...(player.augments||[]),...(player.relics||[])].flatMap(id=>((catalog[id]||AUGMENT_BY_ID[id])?.effects||[]).map(effect=>({...effect,augmentId:id})));
+
 }
 export function applyOwnedEffects(run,trigger,ctx={}){
   const players=ctx.player?[ctx.player]:run.players;
   const fired=[];
   for(const player of players){
-    const defs=definitionsFor(run,player).filter(e=>e.trigger===trigger&&(!ctx.followUp||(e.tags||[]).includes('MULTI_HIT'))).sort((a,b)=>(a.priority||0)-(b.priority||0)||String(a.id).localeCompare(String(b.id)));
+    const defs=definitionsFor(run,player).filter(e=>e.trigger===trigger&&(!ctx.followUp||(e.tags||[]).includes('MULTI_HIT'))).sort((a,b)=>(a.priority||0)-(b.priority||0)||String(a.augmentId).localeCompare(String(b.augmentId))||String(a.id).localeCompare(String(b.id)));
     for(const effect of defs){
+      if(effect.augmentId==='aug-001'&&run.phase!=='COMBAT')continue;
+      if(['EVENT','REWARD_ROOM'].includes(run.phase)&&['CARD_VALIDATED','BEFORE_DAMAGE','AFTER_DAMAGE'].includes(trigger)&&String(effect.augmentId).startsWith('aug-'))continue;
       const local={...ctx,run,player,privateState:ctx.privateState||privateState(run,player)};
       if(!conditionMatches(effect.condition,local)){recordEffectTelemetry(run,effect,player.playerId,false);continue;}
       const c=counter(run,player,effect,local);
@@ -106,6 +114,10 @@ export function applyOwnedEffects(run,trigger,ctx={}){
       fired.push({playerId:player.playerId,effectId:effect.id,trigger});
     }
   }
+  fired.push(...dispatchAugmentTrigger(run,trigger,ctx));
+  fired.push(...applyContent005B(run,trigger,ctx));
+  fired.push(...applySeerRuntime(run,trigger,ctx));
+  fired.push(...applyGunnerRuntime(run,trigger,ctx));
   return fired;
 }
 export function applyEffectDefinitions(run,player,definitions,trigger,ctx={}){

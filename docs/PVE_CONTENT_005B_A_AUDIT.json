@@ -1,0 +1,112 @@
+{
+  "schemaVersion": "005B-A_RUNTIME_AUDIT_V1",
+  "scope": "ADVENTURER_ONLY",
+  "priorHead": "43f355985589908bff01345d5ee7e6c3fdb8ae51",
+  "runtimeSourceHead": "39de65802a1a0f2ad943d145c4164f4f6a4a6dfc",
+  "adventurer": {
+    "target": 30,
+    "registered": 30,
+    "executable": 30,
+    "dataOnly": 0,
+    "missing": 0,
+    "unsupported": 0,
+    "ids": [
+      "aug-001",
+      "aug-002",
+      "aug-003",
+      "aug-004",
+      "aug-005",
+      "aug-006",
+      "aug-007",
+      "aug-008",
+      "aug-009",
+      "aug-010",
+      "aug-011",
+      "aug-012",
+      "aug-013",
+      "aug-014",
+      "aug-015",
+      "aug-016",
+      "aug-017",
+      "aug-018",
+      "aug-019",
+      "aug-020",
+      "aug-021",
+      "aug-022",
+      "aug-023",
+      "aug-024",
+      "aug-025",
+      "aug-026",
+      "aug-027",
+      "aug-028",
+      "aug-029",
+      "aug-030"
+    ],
+    "archetypes": {
+      "노련한 탐험가": 10,
+      "만능 장비꾼": 10,
+      "기적의 탐험가": 10
+    },
+    "candidateCoverage": 30
+  },
+  "overall005B": {
+    "target": 150,
+    "executable": 39,
+    "dataOnlyOrMissing": 111,
+    "complete": false
+  },
+  "globalRuntimeRegistry": 48,
+  "testCounts": {
+    "total": 685,
+    "adventurerSpecific": 64,
+    "positiveCardCases": 30,
+    "dedicatedNegativeAndRoomCases": 13,
+    "reconnectIncludingIntegration": 8,
+    "candidateAcquisitionE2E": 1,
+    "realDiscoveryBossE2E": 1,
+    "stageProgression": 3,
+    "countsOverlap": true
+  },
+  "verification": {
+    "commands": {
+      "npm test": "PASS",
+      "npm run check": "PASS",
+      "npm run pve:stress:smoke": "PASS"
+    },
+    "observedWorkflowRun": 36885208887,
+    "projectChecks": "The final PR head must have SUCCESS before reporting completion."
+  },
+  "invariants": {
+    "betaV01RowsUnchanged": true,
+    "stableIdsUnchanged": true,
+    "stressGoldenAndFixturesUnchanged": true,
+    "otherClassesNewRuntimeCount": 0
+  },
+  "warnings": [
+    "DESIGN_WARNING_EQUIPMENT_EXP_OVERLAP",
+    "Existing stress BALANCE_WARNING diagnostics remain separate from hard failures."
+  ],
+  "runtimeBlockers": [],
+  "files": [
+    "supabase/functions/game-api/pve/adventurer-contracts.js",
+    "supabase/functions/game-api/pve/adventurer-runtime.js",
+    "supabase/functions/game-api/pve/augment-runtime.js",
+    "supabase/functions/game-api/pve/augment-framework.js",
+    "supabase/functions/game-api/pve/content-005b-runtime.js",
+    "supabase/functions/game-api/pve/augments.js",
+    "supabase/functions/game-api/pve/combat.js",
+    "supabase/functions/game-api/pve/characters.js",
+    "supabase/functions/game-api/pve/effects.js",
+    "supabase/functions/game-api/pve/rooms.js",
+    "supabase/functions/game-api/pve/projection.js",
+    "supabase/functions/game-api/pve/api.js",
+    "src/app.js",
+    "src/pve-ui-catalog.js",
+    "tests/pve-007-008.test.mjs",
+    "tests/pve-content-005b-placeholder-runtime.test.mjs",
+    "tests/pve-content-005b-adventurer.test.mjs",
+    "docs/PVE_CONTENT_005B_A_RUNTIME.json",
+    "docs/PVE_CONTENT_005B_A_AUDIT.json",
+    "docs/PVE_CONTENT_005B_A.md"
+  ]
+}

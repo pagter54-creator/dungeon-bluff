@@ -1,5 +1,14 @@
+import {ensureGunnerMagazine} from './gunner-runtime.js';
+import {assertAdventurerHandler} from './adventurer-runtime.js';
+import {assertKnightHandler} from './knight-runtime.js';
+import {assertRogueHandler} from './rogue-runtime.js';
+import {assertMageHandler} from './mage-runtime.js';
+import {assertSeerHandler} from './seer-runtime.js';
 import {choose} from './rng.js';
 import {AUGMENT_BY_ID,augmentCandidates} from './augment-catalog.js';
+import {advanceCompletedFloor} from './floor-transition.js';
+import {acquireAugmentOnce} from './augment-framework.js';
+import {applyContent005B} from './content-005b-runtime.js';
 
 export const AUGMENT_THRESHOLDS=[50,150,350,750];
 
@@ -9,9 +18,8 @@ function completedTiers(player){
 }
 export function dueAugmentTiers(player){
   const done=new Set(completedTiers(player));
-  if(!augmentCandidates(player.characterId,1).length)return [];
   return AUGMENT_THRESHOLDS.map((threshold,i)=>({tier:i+1,threshold}))
-    .filter(x=>player.growthExp>=x.threshold&&!done.has(x.tier))
+    .filter(x=>player.growthExp>=x.threshold&&!done.has(x.tier)&&offerFor(player,x.tier).length>0)
     .map(x=>x.tier);
 }
 export function grantGrowthExp(run,playerId,amount){
@@ -22,14 +30,19 @@ export function grantGrowthExp(run,playerId,amount){
   return amount;
 }
 function offerFor(player,tier){
-  return augmentCandidates(player.characterId,tier,player.augmentBuild).map(x=>x.id);
+  const candidates=augmentCandidates(player.characterId,tier,player.augmentBuild).filter(x=>x.executable===true&&!player.augments.includes(x.id));
+  if(player.characterId==='adventurer')for(const x of candidates)assertAdventurerHandler(x.id);
+  if(player.characterId==='warrior')for(const x of candidates)assertKnightHandler(x.id);
+  if(player.characterId==='rogue')for(const x of candidates)assertRogueHandler(x.id);
+  if(player.characterId==='prophet')for(const x of candidates)assertSeerHandler(x.id);
+  return candidates.map(x=>x.id);
 }
 function refreshOffer(run,playerId){
   const state=run.augmentChoice,tiers=state?.pendingByPlayer?.[playerId]||[];
   if(!tiers.length){delete state.offersByPlayer[playerId];return;}
   const player=run.players.find(p=>p.playerId===playerId);
   const ids=offerFor(player,tiers[0]);
-  if(ids.length!==3)throw new Error('증강 후보 데이터가 3장을 제공하지 못했습니다.');
+  if(!ids.length)throw new Error('실행 가능한 증강 후보가 없습니다.');
   state.offersByPlayer[playerId]=ids;
 }
 function finishIfComplete(run){
@@ -39,6 +52,7 @@ function finishIfComplete(run){
   const resume=state.resumePhase;
   delete run.augmentChoice;
   run.phase=resume;
+  if(resume==='FLOOR_CLEAR'&&Number.isInteger(run.map?.depthCount))advanceCompletedFloor(run);
   return true;
 }
 function applyChoice(run,playerId,augmentId){
@@ -58,6 +72,8 @@ function applyChoice(run,playerId,augmentId){
   }
   if(player.augments.includes(augmentId))throw new Error('이미 획득한 증강입니다.');
   player.augments.push(augmentId);
+  const acquisition=acquireAugmentOnce(run,player,augmentId,{actionId:`augment-choice:${run.id}:${run.version}:${playerId}:${augmentId}`});
+  if(acquisition.applied){applyContent005B(run,'ON_ACQUIRE',{player});if(augmentId==='aug-241')ensureGunnerMagazine(run,player);}
   completedTiers(player).push(tier);
   tiers.shift();
   refreshOffer(run,playerId);

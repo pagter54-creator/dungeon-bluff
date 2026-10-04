@@ -87,34 +87,44 @@ export function resolveClashSkills({ players, cards, effects, turnIndex, stageSc
       player.hp=Math.min(2,player.maxHp,player.hp+1);
       effects.push({type:'skill',skillId:'blood_heat',phase:'clash',memberId:player.memberId,hp:player.hp,hpDelta:1,label:'피의 열기 · HP +1'});
     }
-    if (player.skillId === 'revelation' && !player.knockedOut && peers.length) {
-      const runtime = player.characterRuntimeState;
-      const before = runtime.revelationStacks || 0;
-      runtime.revelationStacks = Math.min(1, before + 1);
-      if (runtime.revelationStacks > before) effects.push({ type: 'skill', skillId:'revelation', phase:'clash', memberId:player.memberId, stacks:runtime.revelationStacks, label:'계시 · 중첩 획득' });
-    }
   }
 }
+export function resolveRevelationValidity(player,card,effects,turnIndex){
+  if(player?.skillId!=='revelation'||player.knockedOut||player.characterRuntimeState.revelationUsedTurn!==turnIndex)return 0;
+  const runtime=player.characterRuntimeState;
+  if(runtime.revelationResolvedTurn===turnIndex)return 0;
+  runtime.revelationResolvedTurn=turnIndex;
+  if(!card?.valid)return 0;
+  const before=runtime.revelationStacks||0;
+  runtime.revelationStacks=Math.min(3,before+1);
+  const gained=runtime.revelationStacks-before;
+  if(gained)effects.push({type:'skill',skillId:'revelation',phase:'valid',memberId:player.memberId,stacks:runtime.revelationStacks,label:'계시 · 정상 통과 +1'});
+  return gained;
+}
+
 export function resolveTurnEndSkills(players, turnIndex) {
   for (const p of Object.values(players)) {
     if(p.skillId==='acrobatics')p.characterRuntimeState.parity=1-p.characterRuntimeState.parity;
     if (p.characterRuntimeState.revealExpiresTurn <= turnIndex) {
       delete p.characterRuntimeState.revealTargets; delete p.characterRuntimeState.revealExpiresTurn;
     }
-    if (p.skillId === 'revelation') p.activeSkillState.available = (p.characterRuntimeState.revelationStacks || 0) >= 1;
+    if (p.skillId === 'revelation') {
+      if (p.characterRuntimeState.revelationUsedTurn <= turnIndex) delete p.characterRuntimeState.revelationUsedTurn;
+      p.activeSkillState.available = (p.characterRuntimeState.revelationStacks || 0) >= 1;
+    }
   }
 }
 export function activateRevelation(session, player, rng=Math.random) {
   if (player.skillId !== 'revelation' || player.knockedOut) throw new Error('계시를 사용할 수 없습니다.');
   const runtime = player.characterRuntimeState;
-  if (runtime.revealExpiresTurn === session.turn_index) return false;
+  if (runtime.revelationUsedTurn === session.turn_index) return false;
   if ((runtime.revelationStacks || 0) < 1) throw new Error('계시 1칸이 필요합니다.');
-  runtime.revelationStacks = 0;
+  runtime.revelationStacks = Math.max(0,(runtime.revelationStacks||0)-1);
   const used=player.cycleCards.filter(c=>c.used);
   delete runtime.restoredCardId;
   if(used.length){const restored=used[Math.floor(rng()*used.length)];restored.used=false;runtime.restoredCardId=restored.id;syncCardViews(player);}
-  runtime.revealExpiresTurn = session.turn_index;
-  runtime.revealTargets = Object.keys(session.state.players).filter(id => id !== player.memberId);
+  runtime.revelationUsedTurn = session.turn_index;
+  delete runtime.revealTargets;delete runtime.revealExpiresTurn;
   player.activeSkillState.available = false;
   return true;
 }
@@ -122,10 +132,9 @@ export function privateKnowledge(session, memberId, submissions) {
   const player = session?.state.players[memberId];
   if(session?.status!=='active')return {revealTargets:[],revealedCards:[]};
   const publicTargets=bossPublicTargets(session);
-  const seerTargets=player?.skillId==='revelation'&&player.characterRuntimeState.revealExpiresTurn===session.turn_index?player.characterRuntimeState.revealTargets||[]:[];
   const thrall=player?.skillId==='blood_command'?player.characterRuntimeState.thrallId:null;
   const vampireTargets=thrall&&!session.state.players[thrall]?.knockedOut?[thrall]:[];
-  const targets=[...new Set([...publicTargets,...seerTargets,...vampireTargets])];
+  const targets=[...new Set([...publicTargets,...vampireTargets])];
   return { revealTargets:targets, ...(publicTargets.length?{publicRevealTargets:publicTargets}:{}), revealedCards: submissions.filter(s => s.turn_index === session.turn_index && targets.includes(s.member_id)).map(s => ({ memberId: s.member_id, value: s.card_value })) };
 }
 

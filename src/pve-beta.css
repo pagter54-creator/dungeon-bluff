@@ -97,3 +97,5 @@
  .pve-map-toolbar{padding:13px}.pve-map-toolbar p{font-size:10px}.pve-map-scroll{padding:6px 8px 25px}.pve-map-canvas{min-width:480px}
  .pve-map-node{width:94px;min-height:66px}
 }
+
+.pve-monster-portrait{display:block;width:min(240px,72vw);height:180px;object-fit:contain;margin:4px auto 12px;filter:drop-shadow(0 12px 18px rgba(0,0,0,.36))}

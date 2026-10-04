@@ -14,6 +14,8 @@ function makeRun(ids=['adventurer','adventurer','adventurer','adventurer'],optio
   }));
   const players=members.map(newPlayerRunState);
   const run={id:'run-007008',seed:options.seed||'fixed-007008',rngCounter:0,version:0,phase:'COMBAT',floor:1,depth:1,flame:3,maxFlame:5,players,map:{nodes:[],edges:{}},combat:newCombatState(players,options.hp||500)};
+  // DESIGN-D parity replay requires the same authoritative combat identity.
+  run.combat.id='combat-007008:'+run.seed;
   beginTurn(run);return run;
 }
 function priv(run,pid){return run.combat.privateByPlayer[pid];}
@@ -112,21 +114,18 @@ test('PVE-008 catalog provides three build starters and three same-build choices
   }
 });
 
-test('PVE-008 queues crossed thresholds low-to-high, locks a tier-I build, and does not branch later offers by prior subchoice',()=>{
+test('PVE-008 offers only executable augments and skips thresholds with no runtime',()=>{
   const run=makeRun(['adventurer','warrior','mage','gunner'],{ai:[2]});
   run.phase='MAP_VOTE';run.players[0].growthExp=800;run.players[1].growthExp=160;run.players[2].growthExp=50;run.players[3].growthExp=49;
-  assert.deepEqual(dueAugmentTiers(run.players[0]),[1,2,3,4]);
+  assert.deepEqual(dueAugmentTiers(run.players[0]),[1]);
   assert.equal(beginAugmentChoices(run,'MAP_VOTE'),true);assert.equal(run.phase,'AUGMENT_CHOICE');
-  assert.deepEqual(run.augmentChoice.pendingByPlayer.p0,[1,2,3,4]);
+  assert.deepEqual(run.augmentChoice.pendingByPlayer.p0,[1]);
   assert.deepEqual(run.augmentChoice.offersByPlayer.p0,['aug-001','aug-011','aug-021']);
   assert.equal(run.players[2].augments.length,1);assert.equal(run.augmentChoice.pendingByPlayer.p2.length,0);
-  chooseAugment(run,'p0','aug-011');
-  assert.equal(run.players[0].augmentBuild,'만능 장비꾼');
-  assert.deepEqual(run.augmentChoice.pendingByPlayer.p0,[2,3,4]);
-  assert.deepEqual(run.augmentChoice.offersByPlayer.p0,['aug-012','aug-013','aug-014']);
   assert.throws(()=>chooseAugment(run,'p0','aug-002'),/제시된/);
-  chooseAugment(run,'p0','aug-014');
-  assert.deepEqual(run.augmentChoice.offersByPlayer.p0,['aug-015','aug-016','aug-017']);
+  chooseAugment(run,'p0','aug-001');
+  assert.equal(run.players[0].augmentBuild,'노련한 탐험가');
+  assert.deepEqual(run.players[0].augments,['aug-001']);
 });
 
 test('PVE-008 waits for every human queue, auto-picks AI deterministically, and resumes only after all choices finish',()=>{
@@ -137,11 +136,10 @@ test('PVE-008 waits for every human queue, auto-picks AI deterministically, and 
   };
   const a=make(),b=make();
   assert.deepEqual(a.players[2].augments,b.players[2].augments);
-  assert.equal(a.players[2].augments.length,4);
-  for(const id of ['aug-001','aug-002','aug-005','aug-008'])chooseAugment(a,'p0',id);
+  assert.equal(a.players[2].augments.length,1);
+  chooseAugment(a,'p0','aug-001');
   assert.equal(a.phase,'AUGMENT_CHOICE');
-  chooseAugment(a,'p1','aug-031');assert.equal(a.phase,'AUGMENT_CHOICE');
-  chooseAugment(a,'p1','aug-032');assert.equal(a.phase,'MAP_VOTE');
+  chooseAugment(a,'p1','aug-031');assert.equal(a.phase,'MAP_VOTE');
   assert.equal(a.augmentChoice,undefined);
 });
 

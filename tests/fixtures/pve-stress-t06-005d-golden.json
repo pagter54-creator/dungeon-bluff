@@ -1,0 +1,367 @@
+{
+  "seed": "smoke:T06:0000",
+  "fingerprint": "5968daee4a2943a57f2a301c5ef629d59f0d6aa21f19b1faaba304667d657e49",
+  "executionRuleSource": "PVE_CONTENT_005Q_DESIGN_D",
+  "historicalGhostObservations": {
+    "F1_SEER_ALLY_RECOVERY": {
+      "resources": {
+        "revelation": null,
+        "fullBurstReady": null,
+        "acrobaticsReady": null,
+        "acrobaticsRechargeProgress": null,
+        "acrobaticsBoostReady": null,
+        "parity": null,
+        "devour": 0,
+        "ghostSlashLevel": 0,
+        "ghostSlashReady": true
+      },
+      "events": []
+    },
+    "F4_RECOVERED_CARD_NORMAL_REUSE": {
+      "resources": {
+        "revelation": null,
+        "fullBurstReady": null,
+        "acrobaticsReady": null,
+        "acrobaticsRechargeProgress": null,
+        "acrobaticsBoostReady": null,
+        "parity": null,
+        "devour": 1,
+        "ghostSlashLevel": 0,
+        "ghostSlashReady": true
+      },
+      "events": []
+    },
+    "F5_SAME_CARD_SECOND_RECOVERY": {
+      "resources": {
+        "revelation": null,
+        "fullBurstReady": null,
+        "acrobaticsReady": null,
+        "acrobaticsRechargeProgress": null,
+        "acrobaticsBoostReady": null,
+        "parity": null,
+        "devour": 1,
+        "ghostSlashLevel": 0,
+        "ghostSlashReady": true
+      },
+      "events": []
+    },
+    "F6_FULL_BURST_RESET": {
+      "resources": {
+        "revelation": null,
+        "fullBurstReady": null,
+        "acrobaticsReady": null,
+        "acrobaticsRechargeProgress": null,
+        "acrobaticsBoostReady": null,
+        "parity": null,
+        "devour": 1,
+        "ghostSlashLevel": 0,
+        "ghostSlashReady": true
+      },
+      "events": []
+    },
+    "F7_FULL_BURST_THEN_RECOVERY_BOUNDARY": {
+      "resources": {
+        "revelation": null,
+        "fullBurstReady": null,
+        "acrobaticsReady": null,
+        "acrobaticsRechargeProgress": null,
+        "acrobaticsBoostReady": null,
+        "parity": null,
+        "devour": 1,
+        "ghostSlashLevel": 0,
+        "ghostSlashReady": true
+      },
+      "events": []
+    },
+    "F11_TWINS_ACROBATICS_RESET": {
+      "resources": {
+        "revelation": null,
+        "fullBurstReady": null,
+        "acrobaticsReady": null,
+        "acrobaticsRechargeProgress": null,
+        "acrobaticsBoostReady": null,
+        "parity": null,
+        "devour": 0,
+        "ghostSlashLevel": 0,
+        "ghostSlashReady": true
+      },
+      "events": []
+    },
+    "F14_RECOVERY_BEFORE_ACROBATICS": {
+      "resources": {
+        "revelation": null,
+        "fullBurstReady": null,
+        "acrobaticsReady": null,
+        "acrobaticsRechargeProgress": null,
+        "acrobaticsBoostReady": null,
+        "parity": null,
+        "devour": 0,
+        "ghostSlashLevel": 0,
+        "ghostSlashReady": true
+      },
+      "events": []
+    },
+    "F15_ACROBATICS_BEFORE_RECOVERY": {
+      "resources": {
+        "revelation": null,
+        "fullBurstReady": null,
+        "acrobaticsReady": null,
+        "acrobaticsRechargeProgress": null,
+        "acrobaticsBoostReady": null,
+        "parity": null,
+        "devour": 0,
+        "ghostSlashLevel": 0,
+        "ghostSlashReady": true
+      },
+      "events": []
+    },
+    "F16_GHOST_SLASH_REACTIVATION": {
+      "resources": {
+        "revelation": null,
+        "fullBurstReady": null,
+        "acrobaticsReady": null,
+        "acrobaticsRechargeProgress": null,
+        "acrobaticsBoostReady": null,
+        "parity": null,
+        "devour": 8,
+        "ghostSlashLevel": 1,
+        "ghostSlashReady": true
+      },
+      "events": [
+        {
+          "i": 0,
+          "p": {
+            "type": "GHOST_SLASH_LEVEL_UP",
+            "eventId": null,
+            "playerId": "p3",
+            "actorId": null,
+            "targetPlayerId": null,
+            "cardInstanceId": null,
+            "previousCycleId": null,
+            "nextCycleId": null,
+            "resetReason": null,
+            "rootActionId": "action:stress-combat:smoke:T06:0000:F16:1:p3:p3:base:4",
+            "recoveryChainId": "reactivation:action:stress-combat:smoke:T06:0000:F16:1:p3:p3:base:4",
+            "parentEventId": "devour:action:stress-combat:smoke:T06:0000:F16:1:p3:p3:base:4:VALID_ATTACK:7->8",
+            "chainDepth": 2,
+            "before": 0,
+            "after": 1
+          }
+        },
+        {
+          "i": 1,
+          "p": {
+            "type": "GHOST_SLASH_REACTIVATED",
+            "eventId": null,
+            "playerId": "p3",
+            "actorId": null,
+            "targetPlayerId": null,
+            "cardInstanceId": null,
+            "previousCycleId": null,
+            "nextCycleId": null,
+            "resetReason": null,
+            "rootActionId": "action:stress-combat:smoke:T06:0000:F16:1:p3:p3:base:4",
+            "recoveryChainId": "reactivation:action:stress-combat:smoke:T06:0000:F16:1:p3:p3:base:4",
+            "parentEventId": "devour:action:stress-combat:smoke:T06:0000:F16:1:p3:p3:base:4:VALID_ATTACK:7->8",
+            "chainDepth": 2,
+            "before": null,
+            "after": null
+          }
+        }
+      ]
+    },
+    "F18_GHOST_SLASH_NEXT_ACTION_REUSE": {
+      "resources": {
+        "revelation": null,
+        "fullBurstReady": null,
+        "acrobaticsReady": null,
+        "acrobaticsRechargeProgress": null,
+        "acrobaticsBoostReady": null,
+        "parity": null,
+        "devour": 10,
+        "ghostSlashLevel": 1,
+        "ghostSlashReady": false
+      },
+      "events": [
+        {
+          "i": 0,
+          "p": {
+            "type": "GHOST_SLASH_USED",
+            "eventId": null,
+            "playerId": "p3",
+            "actorId": null,
+            "targetPlayerId": null,
+            "cardInstanceId": null,
+            "previousCycleId": null,
+            "nextCycleId": null,
+            "resetReason": null,
+            "rootActionId": null,
+            "recoveryChainId": null,
+            "parentEventId": null,
+            "chainDepth": null,
+            "before": null,
+            "after": null
+          }
+        }
+      ]
+    },
+    "F19_NO_REACTIVATION_RECURSION": {
+      "resources": {
+        "revelation": null,
+        "fullBurstReady": null,
+        "acrobaticsReady": null,
+        "acrobaticsRechargeProgress": null,
+        "acrobaticsBoostReady": null,
+        "parity": null,
+        "devour": 9,
+        "ghostSlashLevel": 1,
+        "ghostSlashReady": true
+      },
+      "events": [
+        {
+          "i": 0,
+          "p": {
+            "type": "GHOST_SLASH_USED",
+            "eventId": null,
+            "playerId": "p3",
+            "actorId": null,
+            "targetPlayerId": null,
+            "cardInstanceId": null,
+            "previousCycleId": null,
+            "nextCycleId": null,
+            "resetReason": null,
+            "rootActionId": null,
+            "recoveryChainId": null,
+            "parentEventId": null,
+            "chainDepth": null,
+            "before": null,
+            "after": null
+          }
+        },
+        {
+          "i": 1,
+          "p": {
+            "type": "GHOST_SLASH_LEVEL_UP",
+            "eventId": null,
+            "playerId": "p3",
+            "actorId": null,
+            "targetPlayerId": null,
+            "cardInstanceId": null,
+            "previousCycleId": null,
+            "nextCycleId": null,
+            "resetReason": null,
+            "rootActionId": "action:stress-combat:smoke:T06:0000:F19:1:p3:p3:base:4",
+            "recoveryChainId": "reactivation:action:stress-combat:smoke:T06:0000:F19:1:p3:p3:base:4",
+            "parentEventId": "devour:action:stress-combat:smoke:T06:0000:F19:1:p3:p3:base:4:VALID_ATTACK:7->8",
+            "chainDepth": 2,
+            "before": 0,
+            "after": 1
+          }
+        },
+        {
+          "i": 2,
+          "p": {
+            "type": "GHOST_SLASH_REACTIVATED",
+            "eventId": null,
+            "playerId": "p3",
+            "actorId": null,
+            "targetPlayerId": null,
+            "cardInstanceId": null,
+            "previousCycleId": null,
+            "nextCycleId": null,
+            "resetReason": null,
+            "rootActionId": "action:stress-combat:smoke:T06:0000:F19:1:p3:p3:base:4",
+            "recoveryChainId": "reactivation:action:stress-combat:smoke:T06:0000:F19:1:p3:p3:base:4",
+            "parentEventId": "devour:action:stress-combat:smoke:T06:0000:F19:1:p3:p3:base:4:VALID_ATTACK:7->8",
+            "chainDepth": 2,
+            "before": null,
+            "after": null
+          }
+        }
+      ]
+    },
+    "F20_FULL_MIXED_RECOVERY_CHAIN": {
+      "resources": {
+        "revelation": null,
+        "fullBurstReady": null,
+        "acrobaticsReady": null,
+        "acrobaticsRechargeProgress": null,
+        "acrobaticsBoostReady": null,
+        "parity": null,
+        "devour": 8,
+        "ghostSlashLevel": 1,
+        "ghostSlashReady": true
+      },
+      "events": [
+        {
+          "i": 4,
+          "p": {
+            "type": "GHOST_SLASH_LEVEL_UP",
+            "eventId": null,
+            "playerId": "p3",
+            "actorId": null,
+            "targetPlayerId": null,
+            "cardInstanceId": null,
+            "previousCycleId": null,
+            "nextCycleId": null,
+            "resetReason": null,
+            "rootActionId": "action:stress-combat:smoke:T06:0000:F20:1:p3:p3:base:3",
+            "recoveryChainId": "reactivation:action:stress-combat:smoke:T06:0000:F20:1:p3:p3:base:3",
+            "parentEventId": "devour:action:stress-combat:smoke:T06:0000:F20:1:p3:p3:base:3:VALID_ATTACK:7->8",
+            "chainDepth": 2,
+            "before": 0,
+            "after": 1
+          }
+        },
+        {
+          "i": 5,
+          "p": {
+            "type": "GHOST_SLASH_REACTIVATED",
+            "eventId": null,
+            "playerId": "p3",
+            "actorId": null,
+            "targetPlayerId": null,
+            "cardInstanceId": null,
+            "previousCycleId": null,
+            "nextCycleId": null,
+            "resetReason": null,
+            "rootActionId": "action:stress-combat:smoke:T06:0000:F20:1:p3:p3:base:3",
+            "recoveryChainId": "reactivation:action:stress-combat:smoke:T06:0000:F20:1:p3:p3:base:3",
+            "parentEventId": "devour:action:stress-combat:smoke:T06:0000:F20:1:p3:p3:base:3:VALID_ATTACK:7->8",
+            "chainDepth": 2,
+            "before": null,
+            "after": null
+          }
+        }
+      ]
+    },
+    "F21_RECOVERY_RESET_RECOVERY": {
+      "resources": {
+        "revelation": null,
+        "fullBurstReady": null,
+        "acrobaticsReady": null,
+        "acrobaticsRechargeProgress": null,
+        "acrobaticsBoostReady": null,
+        "parity": null,
+        "devour": 1,
+        "ghostSlashLevel": 0,
+        "ghostSlashReady": true
+      },
+      "events": []
+    },
+    "F24_COMBAT_END_CLEANUP": {
+      "resources": {
+        "revelation": null,
+        "fullBurstReady": null,
+        "acrobaticsReady": null,
+        "acrobaticsRechargeProgress": null,
+        "acrobaticsBoostReady": null,
+        "parity": null,
+        "devour": 11,
+        "ghostSlashLevel": 1,
+        "ghostSlashReady": null
+      },
+      "events": []
+    }
+  }
+}

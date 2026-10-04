@@ -21,10 +21,12 @@ export function dungeonArt() {
   <g fill="#d7b67e" opacity=".6"><circle cx="354" cy="422" r="2"/><circle cx="552" cy="464" r="2"/><circle cx="394" cy="297" r="2"/><circle cx="480" cy="513" r="1.5"/><circle cx="264" cy="214" r="2"/><circle cx="610" cy="356" r="2"/></g></svg>`;
 }
 export function creatureArt(shape = 'seer') {
-  return '<img class="creature monster-illustration" src="'+(MONSTER_IMAGES[shape]||MONSTER_IMAGES.seer)+'" alt="" draggable="false" decoding="async">';
+  const src=MONSTER_IMAGES[shape];
+  return src?'<img class="creature monster-illustration" src="'+src+'" alt="" draggable="false" decoding="async">':'';
 }
-export function eventArt(category, eventId) {
-  const image = EVENT_IMAGES[eventId];
+export function eventArt(category, eventId, illustrationId) {
+  // Prefer dedicated art, including old saves carrying a reused illustration ID.
+  const image = EVENT_IMAGES[eventId] || EVENT_IMAGES[illustrationId];
   if (image) return `<img class="creature monster-illustration event-illustration" data-event-category="${category}" src="${image}" alt="" draggable="false" decoding="async">`;
   const inner = {
     treasure: '<path d="m70 113 20-41h120l20 41v91H70Z"/><path d="M70 120h160m-137 0v84m114-84v84"/><path d="M135 109h30v34h-30Z" class="bone"/>',

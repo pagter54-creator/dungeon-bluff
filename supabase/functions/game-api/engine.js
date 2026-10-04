@@ -7,7 +7,7 @@ import { MONSTERS, ROOMS } from './content.js';
 import { chooseAI } from './ai.js';
 import { replenishHand, startCycle, ensureCharacterState, syncCardViews, selectedCard, selectableCards } from './characters.js';
 import { activateAcrobatics } from './twins.js';
-import { amplifyLevel, submissionValue, beginTurnResources, grantGold, resolveClashSkills, resolveCardEffectModifiers, resolveIncomingDamage, resolveHealingSkills, resolveRewardSkills, resolveTurnEndSkills, privateKnowledge, activateRevelation } from './skills.js';
+import { amplifyLevel, submissionValue, beginTurnResources, grantGold, resolveClashSkills, resolveCardEffectModifiers, resolveIncomingDamage, resolveHealingSkills, resolveRewardSkills, resolveTurnEndSkills, resolveRevelationValidity, privateKnowledge, activateRevelation } from './skills.js';
 import { chooseActiveSkill } from './ai.js';
 import { needsTwoCards,updateMonsterIntent,applyBossCardEffects,finishBossCardEffects,castBossSpecial } from './boss-patterns.js';
 import { settleExpedition } from './settlement.js';
@@ -216,6 +216,7 @@ export function resolveTurn(session, submissions, rng = Math.random) {
     effects.push({type:'skill',skillId:'blood_command',phase:'clash',memberId:card.memberId,targetId:thrall,label:'흡혈의 낙인 · 권속 표식'});
   }
   resolveClashSkills(context);
+  for(const card of cards)resolveRevelationValidity(s.players[card.memberId],card,effects,session.turn_index);
   for (const card of cards) resolveCardEffectModifiers(s.players[card.memberId], card, current.find(c => c.member_id === card.memberId), !!s.monster);
   // A recovering player's card still participates in collisions, but cannot
   // attack during the automatic knockout turn.

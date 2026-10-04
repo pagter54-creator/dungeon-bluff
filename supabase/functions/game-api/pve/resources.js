@@ -18,9 +18,12 @@ export const PVE_RESOURCE_DEFS=Object.freeze({
   dominance:{resetScope:'COMBAT',baseMax:2},
   thrallPlayerId:{resetScope:'COMBAT'},
   greed:{resetScope:'TURN'},
-  revelation:{resetScope:'COMBAT',baseMax:1},
+  stolenNumber:{resetScope:'RUN',baseMax:3},
+  revelation:{resetScope:'COMBAT',baseMax:3},
   revenge:{resetScope:'COMBAT',baseMax:1},
   blood:{resetScope:'COMBAT',baseMax:6},
+  pact:{resetScope:'COMBAT',baseMax:3},
+  vampireProtection:{resetScope:'COMBAT',baseMax:1},
   guardianTargetPlayerId:{resetScope:'COMBAT'},
   combo:{resetScope:'COMBAT',baseMax:3},
   lastSubmittedNumber:{resetScope:'COMBAT'},
@@ -34,7 +37,8 @@ export const PVE_RESOURCE_DEFS=Object.freeze({
   poison:{resetScope:'COMBAT'},
   break:{resetScope:'COMBAT'},
   prank:{resetScope:'COMBAT'},
-  heat:{resetScope:'COMBAT'}
+  heat:{resetScope:'COMBAT'},
+  chain:{resetScope:'COMBAT'}
 });
 
 export const PVE_PERSISTENT_STATE_DEFS=Object.freeze({
@@ -45,6 +49,12 @@ export const PVE_PERSISTENT_STATE_DEFS=Object.freeze({
 
 export function resourceDefinition(resource){return PVE_RESOURCE_DEFS[resource]||null;}
 export function resourceMax(player,resource,fallback=Infinity){
+  if(resource==='blood'&&(player?.augments?.includes('aug-324')||player?.augments?.includes('aug-328')))return 8;
+  if(resource==='dominance'&&player?.augments?.includes('aug-308'))return 4;
+  if(resource==='stolenNumber'){
+    if(player?.augments?.includes('aug-198'))return 7;
+    if(player?.augments?.includes('aug-192'))return 5;
+  }
   const explicit=Number(player?.publicResources?.[`${resource}Max`]);
   if(Number.isFinite(explicit)&&explicit>=0)return explicit;
   const base=Number(PVE_RESOURCE_DEFS[resource]?.baseMax);

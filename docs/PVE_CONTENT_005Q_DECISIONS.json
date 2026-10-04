@@ -1,0 +1,4668 @@
+{
+  "schemaVersion": "005Q-v1",
+  "sourceBranch": "feat/pve-content-005f-effect-framework",
+  "originalBundleCount": 19,
+  "originalAtomicDecisionCount": 213,
+  "originalAffectedCardCount": 191,
+  "autoResolvedCount": 38,
+  "remainingAtomicDecisionCount": 112,
+  "questionCount": 23,
+  "decisionCategories": [
+    "TRIGGER_TIMING",
+    "CONSUMPTION_TIMING",
+    "ROOM_APPLICABILITY",
+    "ONCE_SCOPE",
+    "RESET_SCOPE",
+    "PERSISTENCE",
+    "STACK_BEHAVIOR",
+    "RESOURCE_CAP",
+    "RECOVERY_SELECTION",
+    "DRAW_DECK_BEHAVIOR",
+    "DAMAGE_SEMANTICS",
+    "HEAL_SELF_DAMAGE",
+    "DELAYED_EFFECT",
+    "ECONOMY",
+    "RELIC_GRANT",
+    "CLASS_SPECIAL_OVERRIDE"
+  ],
+  "readyForUserAugmentDecisions": false,
+  "readyReason": "005B 카드별 설계는 완료됐지만 005C/005D의 Q01~Q04 및 Q16~Q23 카드별 명세는 남아 있다.",
+  "entries": [
+    {
+      "decisionId": "Q01",
+      "sourceBundle": "DEC-005R-01",
+      "category": "DAMAGE_SEMANTICS",
+      "question": "원문은 적 방어 관통/약화인데 BETA 수치안은 자신이 받는 다음 직접 피해 1 감소입니다. 어느 효과 의미를 확정할까요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "원문 방어 관통/약화 의미를 유지하고 해당 카드의 BETA 수치를 다시 지정",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "B",
+          "meaning": "BETA의 자기 피해 감소 효과로 변경한다고 명시",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "C",
+          "meaning": "현 BETA 계약에서 해당 카드 실행을 보류하고 별도 개정안을 작성",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "추가 UI 불명"
+        }
+      ],
+      "affectedAugments": [
+        "aug-052",
+        "aug-257",
+        "aug-283",
+        "aug-296"
+      ],
+      "affectedBatches": [
+        "005B",
+        "005C",
+        "005D"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-052-SOURCE_CONFLICT",
+        "AMB-AUG-aug-257-SOURCE_CONFLICT",
+        "AMB-AUG-aug-283-SOURCE_CONFLICT",
+        "AMB-AUG-aug-296-SOURCE_CONFLICT"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-052-SOURCE_CONFLICT": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-257-SOURCE_CONFLICT": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-283-SOURCE_CONFLICT": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-296-SOURCE_CONFLICT": "DAMAGE_SEMANTICS"
+      },
+      "dependencies": [],
+      "risk": "MEDIUM",
+      "highRiskCards": [],
+      "specsResolvedIfChosen": 0,
+      "resolvedBy": "USER_DECISION_2026_10_01",
+      "selectedOption": "A",
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005B": 1,
+        "005C": 1,
+        "005D": 2
+      },
+      "selectionDetails": "원본의 적 방어 관통/약화 의미 유지. 충돌하는 BETA 자기 피해 감소 수치는 대체 효과로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+      "selectionScope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+      "designedAugments": [
+        "aug-052"
+      ]
+    },
+    {
+      "decisionId": "Q02",
+      "sourceBundle": "DEC-005R-02",
+      "category": "DAMAGE_SEMANTICS",
+      "question": "원문 보호 표식·정밀 조준 손실 완화와 BETA 피해 보너스/피해 감소가 다릅니다. 각 카드의 실제 효과를 어느 쪽으로 확정할까요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "원문 효과 의미를 유지하고 카드별 BETA 수치를 보완",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "B",
+          "meaning": "BETA 문구가 효과 변경임을 카드별로 승인",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "C",
+          "meaning": "현 BETA 계약에서 해당 카드 실행을 보류하고 별도 개정안을 작성",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "추가 UI 불명"
+        }
+      ],
+      "affectedAugments": [
+        "aug-049",
+        "aug-253"
+      ],
+      "affectedBatches": [
+        "005B",
+        "005C"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-049-SOURCE_CONFLICT",
+        "AMB-AUG-aug-253-SOURCE_CONFLICT"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-049-SOURCE_CONFLICT": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-253-SOURCE_CONFLICT": "DAMAGE_SEMANTICS"
+      },
+      "dependencies": [],
+      "risk": "MEDIUM",
+      "highRiskCards": [],
+      "specsResolvedIfChosen": 0,
+      "resolvedBy": "USER_DECISION_2026_10_01",
+      "selectedOption": "A",
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005B": 1,
+        "005C": 1
+      },
+      "selectionDetails": "원본의 보호 표식·정밀 조준 손실 완화 의미 유지. 충돌하는 BETA 수치는 대체 효과로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+      "selectionScope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+      "designedAugments": [
+        "aug-049"
+      ]
+    },
+    {
+      "decisionId": "Q03",
+      "sourceBundle": "DEC-005R-03",
+      "category": "HEAL_SELF_DAMAGE",
+      "question": "원문은 회복을 계기로 다른 효과가 발동하지만 BETA에는 HP 1 회복만 적혔습니다. HP 1은 원문 효과의 수치인가요, 효과 자체의 교체인가요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "원문 효과를 유지하고 누락된 발동·수치를 카드별로 보완",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "B",
+          "meaning": "HP 1 회복으로 효과를 교체한다고 카드별로 승인",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "C",
+          "meaning": "현 BETA 계약에서 해당 카드 실행을 보류하고 별도 개정안을 작성",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "추가 UI 불명"
+        }
+      ],
+      "affectedAugments": [
+        "aug-104",
+        "aug-116",
+        "aug-124",
+        "aug-129",
+        "aug-139",
+        "aug-146",
+        "aug-237"
+      ],
+      "affectedBatches": [
+        "005B",
+        "005C"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-104-SOURCE_CONFLICT",
+        "AMB-AUG-aug-116-SOURCE_CONFLICT",
+        "AMB-AUG-aug-124-SOURCE_CONFLICT",
+        "AMB-AUG-aug-129-CONDITION",
+        "AMB-AUG-aug-129-SOURCE_CONFLICT",
+        "AMB-AUG-aug-139-SOURCE_CONFLICT",
+        "AMB-AUG-aug-146-CONDITION",
+        "AMB-AUG-aug-146-SOURCE_CONFLICT",
+        "AMB-AUG-aug-237-SOURCE_CONFLICT"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-104-SOURCE_CONFLICT": "HEAL_SELF_DAMAGE",
+        "AMB-AUG-aug-116-SOURCE_CONFLICT": "HEAL_SELF_DAMAGE",
+        "AMB-AUG-aug-124-SOURCE_CONFLICT": "HEAL_SELF_DAMAGE",
+        "AMB-AUG-aug-129-CONDITION": "HEAL_SELF_DAMAGE",
+        "AMB-AUG-aug-129-SOURCE_CONFLICT": "HEAL_SELF_DAMAGE",
+        "AMB-AUG-aug-139-SOURCE_CONFLICT": "HEAL_SELF_DAMAGE",
+        "AMB-AUG-aug-146-CONDITION": "HEAL_SELF_DAMAGE",
+        "AMB-AUG-aug-146-SOURCE_CONFLICT": "HEAL_SELF_DAMAGE",
+        "AMB-AUG-aug-237-SOURCE_CONFLICT": "HEAL_SELF_DAMAGE"
+      },
+      "dependencies": [],
+      "risk": "MEDIUM",
+      "highRiskCards": [],
+      "specsResolvedIfChosen": 0,
+      "resolvedBy": "USER_DECISION_2026_10_01",
+      "selectedOption": "A",
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005B": 6,
+        "005C": 1
+      },
+      "selectionDetails": "원본의 회복 연계 효과 의미 유지. 충돌하는 BETA HP 1 회복은 효과 대체안으로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+      "selectionScope": "DIRECTION_ONLY_PENDING_BETA_V0_2",
+      "designedAugments": [
+        "aug-104",
+        "aug-116",
+        "aug-124",
+        "aug-129",
+        "aug-139",
+        "aug-146"
+      ]
+    },
+    {
+      "decisionId": "Q04",
+      "sourceBundle": "DEC-005R-04",
+      "category": "RECOVERY_SELECTION",
+      "question": "원문은 복구 후보 조정·강화·버프인데 BETA에는 카드 1~2장 복구만 적혔습니다. 복구 수치가 원문 보조효과를 대체하나요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "원문 보조효과를 유지하고 복구 수치/대상을 카드별로 명시",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "선택 UI 또는 상태 표시 검토"
+        },
+        {
+          "key": "B",
+          "meaning": "복구 효과로 교체한다고 카드별로 승인",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "선택 UI 또는 상태 표시 검토"
+        },
+        {
+          "key": "C",
+          "meaning": "현 BETA 계약에서 해당 카드 실행을 보류하고 별도 개정안을 작성",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "추가 UI 불명"
+        }
+      ],
+      "affectedAugments": [
+        "aug-153",
+        "aug-160",
+        "aug-162",
+        "aug-164",
+        "aug-166",
+        "aug-167"
+      ],
+      "affectedBatches": [
+        "005C"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-153-SOURCE_CONFLICT",
+        "AMB-AUG-aug-160-CONDITION",
+        "AMB-AUG-aug-160-SOURCE_CONFLICT",
+        "AMB-AUG-aug-162-SOURCE_CONFLICT",
+        "AMB-AUG-aug-164-SOURCE_CONFLICT",
+        "AMB-AUG-aug-166-SOURCE_CONFLICT",
+        "AMB-AUG-aug-167-SOURCE_CONFLICT"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-153-SOURCE_CONFLICT": "RECOVERY_SELECTION",
+        "AMB-AUG-aug-160-CONDITION": "RECOVERY_SELECTION",
+        "AMB-AUG-aug-160-SOURCE_CONFLICT": "RECOVERY_SELECTION",
+        "AMB-AUG-aug-162-SOURCE_CONFLICT": "RECOVERY_SELECTION",
+        "AMB-AUG-aug-164-SOURCE_CONFLICT": "RECOVERY_SELECTION",
+        "AMB-AUG-aug-166-SOURCE_CONFLICT": "RECOVERY_SELECTION",
+        "AMB-AUG-aug-167-SOURCE_CONFLICT": "RECOVERY_SELECTION"
+      },
+      "dependencies": [],
+      "risk": "MEDIUM",
+      "highRiskCards": [],
+      "specsResolvedIfChosen": 0,
+      "resolvedBy": "USER_DECISION_2026_10_01",
+      "selectedOption": "A",
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005C": 6
+      },
+      "selectionDetails": "원본의 복구 후보 조정·강화·버프 의미 유지. 충돌하는 BETA 카드 복구 수치는 효과 대체안으로 사용하지 않음. 카드별 BETA v0.2 수치·조건 대기.",
+      "selectionScope": "DIRECTION_ONLY_PENDING_BETA_V0_2"
+    },
+    {
+      "decisionId": "Q05",
+      "sourceBundle": "DEC-005R-05",
+      "category": "RELIC_GRANT",
+      "question": "aug-030 RELIC_DUPLICATE_POLICY 규칙을 어느 방식으로 확정할까요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "중복 유물 지급 불가",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "선택 UI 또는 상태 표시 검토"
+        },
+        {
+          "key": "B",
+          "meaning": "중복 유물 허용",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "선택 UI 또는 상태 표시 검토"
+        },
+        {
+          "key": "C",
+          "meaning": "해당 증강 지급 보류",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "추가 UI 불명"
+        }
+      ],
+      "affectedAugments": [
+        "aug-030"
+      ],
+      "affectedBatches": [
+        "005B"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-030-RELIC_DUPLICATE_POLICY"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-030-RELIC_DUPLICATE_POLICY": "RELIC_GRANT"
+      },
+      "dependencies": [],
+      "risk": "HIGH",
+      "highRiskCards": [
+        "aug-030"
+      ],
+      "specsResolvedIfChosen": 0,
+      "resolvedBy": "USER_DECISION_2026_10_01",
+      "selectedOption": "A",
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005B": 1
+      },
+      "selectionDetails": "동일 relic 중복 지급 금지.",
+      "selectionScope": "OPERATIONAL_POLICY"
+    },
+    {
+      "decisionId": "Q06",
+      "sourceBundle": "DEC-005R-05",
+      "category": "RELIC_GRANT",
+      "question": "aug-030 RELIC_FULL_INVENTORY 규칙을 어느 방식으로 확정할까요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "소지 한도에 막히면 지급 실패",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "B",
+          "meaning": "기존 유물을 교체하는 선택 단계 제공",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "선택 UI 또는 상태 표시 검토"
+        },
+        {
+          "key": "C",
+          "meaning": "지급을 다음 보상으로 이월",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "추가 UI 불명"
+        }
+      ],
+      "affectedAugments": [
+        "aug-030"
+      ],
+      "affectedBatches": [
+        "005B"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-030-RELIC_FULL_INVENTORY"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-030-RELIC_FULL_INVENTORY": "RELIC_GRANT"
+      },
+      "dependencies": [],
+      "risk": "HIGH",
+      "highRiskCards": [
+        "aug-030"
+      ],
+      "specsResolvedIfChosen": 1,
+      "resolvedBy": "USER_DECISION_2026_10_01",
+      "selectedOption": "A",
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005B": 1
+      },
+      "selectionDetails": "relic inventory limit에 걸리면 지급 실패. 교체·이월 없음.",
+      "selectionScope": "OPERATIONAL_POLICY"
+    },
+    {
+      "decisionId": "Q07",
+      "sourceBundle": "DEC-005R-05",
+      "category": "CONSUMPTION_TIMING",
+      "question": "aug-211 LUCK_CHOICE_TIMING 규칙을 어느 방식으로 확정할까요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "보상 생성 전 행운 선택",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "선택 UI 또는 상태 표시 검토"
+        },
+        {
+          "key": "B",
+          "meaning": "보상 제시 후 확정 전에 선택",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "선택 UI 또는 상태 표시 검토"
+        },
+        {
+          "key": "C",
+          "meaning": "해당 증강 실행 보류",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "추가 UI 불명"
+        }
+      ],
+      "affectedAugments": [
+        "aug-211"
+      ],
+      "affectedBatches": [
+        "005C"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-211-LUCK_CHOICE_TIMING"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-211-LUCK_CHOICE_TIMING": "CONSUMPTION_TIMING"
+      },
+      "dependencies": [],
+      "risk": "HIGH",
+      "highRiskCards": [
+        "aug-211"
+      ],
+      "specsResolvedIfChosen": 1,
+      "resolvedBy": "USER_DECISION_2026_10_01",
+      "selectedOption": "B",
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005C": 1
+      },
+      "selectionDetails": "reward presentation 후 final confirmation 전에 Luck 사용.",
+      "selectionScope": "OPERATIONAL_POLICY"
+    },
+    {
+      "decisionId": "Q08",
+      "sourceBundle": "DEC-005R-05",
+      "category": "RECOVERY_SELECTION",
+      "question": "aug-390 RECOVERY_TARGET_SELECTION 규칙을 어느 방식으로 확정할까요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "복구 가능한 카드 중 무작위",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "선택 UI 또는 상태 표시 검토"
+        },
+        {
+          "key": "B",
+          "meaning": "기존 사용 카드 순서의 마지막",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "C",
+          "meaning": "복구 카드 선택 UI 제공",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "선택 UI 또는 상태 표시 검토"
+        }
+      ],
+      "affectedAugments": [
+        "aug-390"
+      ],
+      "affectedBatches": [
+        "005D"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-390-RECOVERY_TARGET_SELECTION"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-390-RECOVERY_TARGET_SELECTION": "RECOVERY_SELECTION"
+      },
+      "dependencies": [],
+      "risk": "HIGH",
+      "highRiskCards": [
+        "aug-390"
+      ],
+      "specsResolvedIfChosen": 1,
+      "resolvedBy": "USER_DECISION_2026_10_01",
+      "selectedOption": "B",
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005D": 1
+      },
+      "selectionDetails": "가장 최근에 SPENT가 된 recoverable physical card를 deterministic하게 복구.",
+      "selectionScope": "OPERATIONAL_POLICY"
+    },
+    {
+      "decisionId": "Q09",
+      "sourceBundle": "DEC-005R-06",
+      "category": "HEAL_SELF_DAMAGE",
+      "question": "aug-201 ALLY_DAMAGE_DOWN_SEMANTICS 처리 순서를 어느 방식으로 확정할까요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "피해 적용 뒤 다운 판정",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "B",
+          "meaning": "방어/회복 판정 뒤 다운 판정",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "C",
+          "meaning": "해당 증강 실행 보류",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "추가 UI 불명"
+        }
+      ],
+      "affectedAugments": [
+        "aug-201"
+      ],
+      "affectedBatches": [
+        "005C"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-201-ALLY_DAMAGE_DOWN_SEMANTICS"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-201-ALLY_DAMAGE_DOWN_SEMANTICS": "HEAL_SELF_DAMAGE"
+      },
+      "dependencies": [],
+      "risk": "HIGH",
+      "highRiskCards": [
+        "aug-201"
+      ],
+      "specsResolvedIfChosen": 1,
+      "resolvedBy": "USER_DECISION_2026_10_01",
+      "selectedOption": "B",
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005C": 1
+      },
+      "selectionDetails": "same-resolve defense/heal/protection 적용 후 DOWN_RESOLVE.",
+      "selectionScope": "OPERATIONAL_POLICY"
+    },
+    {
+      "decisionId": "Q10",
+      "sourceBundle": "DEC-005R-06",
+      "category": "STACK_BEHAVIOR",
+      "question": "aug-301 DOMINANCE_CONSUME_GAIN_ORDER 처리 순서를 어느 방식으로 확정할까요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "기존 지배 소비 후 신규 획득",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "B",
+          "meaning": "신규 획득 후 기존 지배 소비",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "C",
+          "meaning": "해당 증강 실행 보류",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "추가 UI 불명"
+        }
+      ],
+      "affectedAugments": [
+        "aug-301"
+      ],
+      "affectedBatches": [
+        "005D"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-301-DOMINANCE_CONSUME_GAIN_ORDER"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-301-DOMINANCE_CONSUME_GAIN_ORDER": "STACK_BEHAVIOR"
+      },
+      "dependencies": [],
+      "risk": "HIGH",
+      "highRiskCards": [
+        "aug-301"
+      ],
+      "specsResolvedIfChosen": 1,
+      "resolvedBy": "USER_DECISION_2026_10_01",
+      "selectedOption": "A",
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005D": 1
+      },
+      "selectionDetails": "기존 Dominance 소비 후 이번 resolution에서 신규 Dominance 획득.",
+      "selectionScope": "OPERATIONAL_POLICY"
+    },
+    {
+      "decisionId": "Q11",
+      "sourceBundle": "DEC-005R-07",
+      "category": "DAMAGE_SEMANTICS",
+      "question": "모험가 카드의 남은 조건·트리거·적용 방을 어떻게 명시할까요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "카드별 발동 조건과 순서를 별도 규칙표에 작성",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "B",
+          "meaning": "미정 카드의 실행을 배치에서 보류",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "C",
+          "meaning": "BETA 원본을 개정하고 새 버전으로 재수입",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "추가 UI 불명"
+        }
+      ],
+      "affectedAugments": [
+        "aug-003",
+        "aug-009",
+        "aug-012",
+        "aug-013",
+        "aug-014",
+        "aug-017",
+        "aug-019",
+        "aug-022"
+      ],
+      "affectedBatches": [
+        "005B"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-003-CONDITION",
+        "AMB-AUG-aug-009-CONDITION",
+        "AMB-AUG-aug-012-CONDITION",
+        "AMB-AUG-aug-013-TRIGGER",
+        "AMB-AUG-aug-014-CONDITION",
+        "AMB-AUG-aug-017-CONDITION",
+        "AMB-AUG-aug-019-CONDITION",
+        "AMB-AUG-aug-022-CONDITION"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-003-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-009-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-012-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-013-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-014-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-017-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-019-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-022-CONDITION": "ECONOMY"
+      },
+      "dependencies": [],
+      "risk": "MEDIUM",
+      "highRiskCards": [],
+      "specsResolvedIfChosen": 8,
+      "resolvedBy": "005Q_DESIGN_B_V0_2",
+      "selectedOption": "A",
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005B": 8
+      },
+      "designedAugments": [
+        "aug-003",
+        "aug-009",
+        "aug-012",
+        "aug-013",
+        "aug-014",
+        "aug-017",
+        "aug-019",
+        "aug-022"
+      ],
+      "selectionDetails": "해당 005B 카드별 trigger/condition/value/cap/scope/room/tooltip을 BETA v0.2 실행 명세로 작성했다.",
+      "selectionScope": "CARD_SPEC_AUTHORED"
+    },
+    {
+      "decisionId": "Q12",
+      "sourceBundle": "DEC-005R-08",
+      "category": "TRIGGER_TIMING",
+      "question": "기사 카드의 남은 조건·트리거·적용 방을 어떻게 명시할까요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "카드별 발동 조건과 순서를 별도 규칙표에 작성",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "B",
+          "meaning": "미정 카드의 실행을 배치에서 보류",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "C",
+          "meaning": "BETA 원본을 개정하고 새 버전으로 재수입",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "추가 UI 불명"
+        }
+      ],
+      "affectedAugments": [
+        "aug-037",
+        "aug-038",
+        "aug-040",
+        "aug-044",
+        "aug-045",
+        "aug-053",
+        "aug-054",
+        "aug-055",
+        "aug-057",
+        "aug-060"
+      ],
+      "affectedBatches": [
+        "005B"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-037-TRIGGER",
+        "AMB-AUG-aug-037-CONDITION",
+        "AMB-AUG-aug-038-CONDITION",
+        "AMB-AUG-aug-040-CONDITION",
+        "AMB-AUG-aug-044-CONDITION",
+        "AMB-AUG-aug-045-CONDITION",
+        "AMB-AUG-aug-053-CONDITION",
+        "AMB-AUG-aug-054-CONDITION",
+        "AMB-AUG-aug-055-CONDITION",
+        "AMB-AUG-aug-057-TRIGGER",
+        "AMB-AUG-aug-057-CONDITION",
+        "AMB-AUG-aug-060-CONDITION"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-037-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-037-CONDITION": "HEAL_SELF_DAMAGE",
+        "AMB-AUG-aug-038-CONDITION": "CLASS_SPECIAL_OVERRIDE",
+        "AMB-AUG-aug-040-CONDITION": "CLASS_SPECIAL_OVERRIDE",
+        "AMB-AUG-aug-044-CONDITION": "CLASS_SPECIAL_OVERRIDE",
+        "AMB-AUG-aug-045-CONDITION": "RECOVERY_SELECTION",
+        "AMB-AUG-aug-053-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-054-CONDITION": "CLASS_SPECIAL_OVERRIDE",
+        "AMB-AUG-aug-055-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-057-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-057-CONDITION": "CLASS_SPECIAL_OVERRIDE",
+        "AMB-AUG-aug-060-CONDITION": "STACK_BEHAVIOR"
+      },
+      "dependencies": [],
+      "risk": "MEDIUM",
+      "highRiskCards": [],
+      "specsResolvedIfChosen": 10,
+      "resolvedBy": "005Q_DESIGN_B_V0_2",
+      "selectedOption": "A",
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005B": 10
+      },
+      "designedAugments": [
+        "aug-037",
+        "aug-038",
+        "aug-040",
+        "aug-044",
+        "aug-045",
+        "aug-053",
+        "aug-054",
+        "aug-055",
+        "aug-057",
+        "aug-060"
+      ],
+      "selectionDetails": "해당 005B 카드별 trigger/condition/value/cap/scope/room/tooltip을 BETA v0.2 실행 명세로 작성했다.",
+      "selectionScope": "CARD_SPEC_AUTHORED"
+    },
+    {
+      "decisionId": "Q13",
+      "sourceBundle": "DEC-005R-09",
+      "category": "DAMAGE_SEMANTICS",
+      "question": "도적 카드의 남은 조건·트리거·적용 방을 어떻게 명시할까요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "카드별 발동 조건과 순서를 별도 규칙표에 작성",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "B",
+          "meaning": "미정 카드의 실행을 배치에서 보류",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "C",
+          "meaning": "BETA 원본을 개정하고 새 버전으로 재수입",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "추가 UI 불명"
+        }
+      ],
+      "affectedAugments": [
+        "aug-063",
+        "aug-066",
+        "aug-068",
+        "aug-070",
+        "aug-073",
+        "aug-080",
+        "aug-082",
+        "aug-086"
+      ],
+      "affectedBatches": [
+        "005B"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-063-CONDITION",
+        "AMB-AUG-aug-066-CONDITION",
+        "AMB-AUG-aug-068-CONDITION",
+        "AMB-AUG-aug-070-CONDITION",
+        "AMB-AUG-aug-073-TRIGGER",
+        "AMB-AUG-aug-080-TRIGGER",
+        "AMB-AUG-aug-082-CONDITION",
+        "AMB-AUG-aug-086-TRIGGER",
+        "AMB-AUG-aug-086-ROOM_APPLICABILITY"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-063-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-066-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-068-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-070-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-073-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-080-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-082-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-086-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-086-ROOM_APPLICABILITY": "ROOM_APPLICABILITY"
+      },
+      "dependencies": [],
+      "risk": "MEDIUM",
+      "highRiskCards": [],
+      "specsResolvedIfChosen": 8,
+      "resolvedBy": "005Q_DESIGN_B_V0_2",
+      "selectedOption": "A",
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005B": 8
+      },
+      "designedAugments": [
+        "aug-063",
+        "aug-066",
+        "aug-068",
+        "aug-070",
+        "aug-073",
+        "aug-080",
+        "aug-082",
+        "aug-086"
+      ],
+      "selectionDetails": "해당 005B 카드별 trigger/condition/value/cap/scope/room/tooltip을 BETA v0.2 실행 명세로 작성했다.",
+      "selectionScope": "CARD_SPEC_AUTHORED"
+    },
+    {
+      "decisionId": "Q14",
+      "sourceBundle": "DEC-005R-10",
+      "category": "TRIGGER_TIMING",
+      "question": "마법사 카드의 남은 조건·트리거·적용 방을 어떻게 명시할까요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "카드별 발동 조건과 순서를 별도 규칙표에 작성",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "B",
+          "meaning": "미정 카드의 실행을 배치에서 보류",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "C",
+          "meaning": "BETA 원본을 개정하고 새 버전으로 재수입",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "추가 UI 불명"
+        }
+      ],
+      "affectedAugments": [
+        "aug-102",
+        "aug-103",
+        "aug-107",
+        "aug-112",
+        "aug-114",
+        "aug-119",
+        "aug-120"
+      ],
+      "affectedBatches": [
+        "005B"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-102-TRIGGER",
+        "AMB-AUG-aug-103-CONDITION",
+        "AMB-AUG-aug-107-TRIGGER",
+        "AMB-AUG-aug-112-CONDITION",
+        "AMB-AUG-aug-114-CONDITION",
+        "AMB-AUG-aug-119-CONDITION",
+        "AMB-AUG-aug-120-CONDITION"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-102-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-103-CONDITION": "HEAL_SELF_DAMAGE",
+        "AMB-AUG-aug-107-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-112-CONDITION": "HEAL_SELF_DAMAGE",
+        "AMB-AUG-aug-114-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-119-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-120-CONDITION": "STACK_BEHAVIOR"
+      },
+      "dependencies": [],
+      "risk": "MEDIUM",
+      "highRiskCards": [],
+      "specsResolvedIfChosen": 7,
+      "resolvedBy": "005Q_DESIGN_B_V0_2",
+      "selectedOption": "A",
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005B": 7
+      },
+      "designedAugments": [
+        "aug-102",
+        "aug-103",
+        "aug-107",
+        "aug-112",
+        "aug-114",
+        "aug-119",
+        "aug-120"
+      ],
+      "selectionDetails": "해당 005B 카드별 trigger/condition/value/cap/scope/room/tooltip을 BETA v0.2 실행 명세로 작성했다.",
+      "selectionScope": "CARD_SPEC_AUTHORED"
+    },
+    {
+      "decisionId": "Q15",
+      "sourceBundle": "DEC-005R-11",
+      "category": "DAMAGE_SEMANTICS",
+      "question": "광전사 카드의 남은 조건·트리거·적용 방을 어떻게 명시할까요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "카드별 발동 조건과 순서를 별도 규칙표에 작성",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "B",
+          "meaning": "미정 카드의 실행을 배치에서 보류",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "C",
+          "meaning": "BETA 원본을 개정하고 새 버전으로 재수입",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "추가 UI 불명"
+        }
+      ],
+      "affectedAugments": [
+        "aug-126",
+        "aug-128",
+        "aug-130",
+        "aug-136",
+        "aug-137",
+        "aug-140",
+        "aug-143",
+        "aug-145",
+        "aug-147",
+        "aug-148",
+        "aug-149"
+      ],
+      "affectedBatches": [
+        "005B"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-126-CONDITION",
+        "AMB-AUG-aug-128-CONDITION",
+        "AMB-AUG-aug-130-CONDITION",
+        "AMB-AUG-aug-136-CONDITION",
+        "AMB-AUG-aug-137-CONDITION",
+        "AMB-AUG-aug-140-CONDITION",
+        "AMB-AUG-aug-143-CONDITION",
+        "AMB-AUG-aug-145-CONDITION",
+        "AMB-AUG-aug-147-CONDITION",
+        "AMB-AUG-aug-148-CONDITION",
+        "AMB-AUG-aug-149-CONDITION"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-126-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-128-CONDITION": "STACK_BEHAVIOR",
+        "AMB-AUG-aug-130-CONDITION": "CLASS_SPECIAL_OVERRIDE",
+        "AMB-AUG-aug-136-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-137-CONDITION": "HEAL_SELF_DAMAGE",
+        "AMB-AUG-aug-140-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-143-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-145-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-147-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-148-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-149-CONDITION": "DAMAGE_SEMANTICS"
+      },
+      "dependencies": [],
+      "risk": "MEDIUM",
+      "highRiskCards": [],
+      "specsResolvedIfChosen": 11,
+      "resolvedBy": "005Q_DESIGN_B_V0_2",
+      "selectedOption": "A",
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005B": 11
+      },
+      "designedAugments": [
+        "aug-126",
+        "aug-128",
+        "aug-130",
+        "aug-136",
+        "aug-137",
+        "aug-140",
+        "aug-143",
+        "aug-145",
+        "aug-147",
+        "aug-148",
+        "aug-149"
+      ],
+      "selectionDetails": "해당 005B 카드별 trigger/condition/value/cap/scope/room/tooltip을 BETA v0.2 실행 명세로 작성했다.",
+      "selectionScope": "CARD_SPEC_AUTHORED"
+    },
+    {
+      "decisionId": "Q16",
+      "sourceBundle": "DEC-005R-12",
+      "category": "DAMAGE_SEMANTICS",
+      "question": "예언자 카드의 남은 조건·트리거·적용 방을 어떻게 명시할까요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "카드별 발동 조건과 순서를 별도 규칙표에 작성",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "B",
+          "meaning": "미정 카드의 실행을 배치에서 보류",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "C",
+          "meaning": "BETA 원본을 개정하고 새 버전으로 재수입",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "추가 UI 불명"
+        }
+      ],
+      "affectedAugments": [
+        "aug-157",
+        "aug-159",
+        "aug-163",
+        "aug-173",
+        "aug-174",
+        "aug-175",
+        "aug-176",
+        "aug-177",
+        "aug-179"
+      ],
+      "affectedBatches": [
+        "005C"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-157-CONDITION",
+        "AMB-AUG-aug-159-CONDITION",
+        "AMB-AUG-aug-163-CONDITION",
+        "AMB-AUG-aug-173-CONDITION",
+        "AMB-AUG-aug-174-CONDITION",
+        "AMB-AUG-aug-175-TRIGGER",
+        "AMB-AUG-aug-176-CONDITION",
+        "AMB-AUG-aug-177-TRIGGER",
+        "AMB-AUG-aug-179-CONDITION"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-157-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-159-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-163-CONDITION": "RECOVERY_SELECTION",
+        "AMB-AUG-aug-173-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-174-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-175-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-176-CONDITION": "RESOURCE_CAP",
+        "AMB-AUG-aug-177-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-179-CONDITION": "DELAYED_EFFECT"
+      },
+      "dependencies": [],
+      "risk": "MEDIUM",
+      "highRiskCards": [],
+      "specsResolvedIfChosen": 0,
+      "resolvedBy": null,
+      "selectedOption": null,
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005C": 9
+      }
+    },
+    {
+      "decisionId": "Q17",
+      "sourceBundle": "DEC-005R-13",
+      "category": "DAMAGE_SEMANTICS",
+      "question": "임프 카드의 남은 조건·트리거·적용 방을 어떻게 명시할까요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "카드별 발동 조건과 순서를 별도 규칙표에 작성",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "B",
+          "meaning": "미정 카드의 실행을 배치에서 보류",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "C",
+          "meaning": "BETA 원본을 개정하고 새 버전으로 재수입",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "추가 UI 불명"
+        }
+      ],
+      "affectedAugments": [
+        "aug-182",
+        "aug-185",
+        "aug-186",
+        "aug-188",
+        "aug-189",
+        "aug-193",
+        "aug-195",
+        "aug-197",
+        "aug-199",
+        "aug-203",
+        "aug-204",
+        "aug-205",
+        "aug-208"
+      ],
+      "affectedBatches": [
+        "005C"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-182-CONDITION",
+        "AMB-AUG-aug-185-CONDITION",
+        "AMB-AUG-aug-186-CONDITION",
+        "AMB-AUG-aug-188-CONDITION",
+        "AMB-AUG-aug-189-CONDITION",
+        "AMB-AUG-aug-193-TRIGGER",
+        "AMB-AUG-aug-195-CONDITION",
+        "AMB-AUG-aug-197-CONDITION",
+        "AMB-AUG-aug-199-CONDITION",
+        "AMB-AUG-aug-203-TRIGGER",
+        "AMB-AUG-aug-203-CONDITION",
+        "AMB-AUG-aug-204-CONDITION",
+        "AMB-AUG-aug-205-CONDITION",
+        "AMB-AUG-aug-208-CONDITION"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-182-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-185-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-186-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-188-CONDITION": "DELAYED_EFFECT",
+        "AMB-AUG-aug-189-CONDITION": "STACK_BEHAVIOR",
+        "AMB-AUG-aug-193-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-195-CONDITION": "DELAYED_EFFECT",
+        "AMB-AUG-aug-197-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-199-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-203-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-203-CONDITION": "CLASS_SPECIAL_OVERRIDE",
+        "AMB-AUG-aug-204-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-205-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-208-CONDITION": "DELAYED_EFFECT"
+      },
+      "dependencies": [],
+      "risk": "MEDIUM",
+      "highRiskCards": [],
+      "specsResolvedIfChosen": 0,
+      "resolvedBy": null,
+      "selectedOption": null,
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005C": 13
+      }
+    },
+    {
+      "decisionId": "Q18",
+      "sourceBundle": "DEC-005R-14",
+      "category": "TRIGGER_TIMING",
+      "question": "도박사 카드의 남은 조건·트리거·적용 방을 어떻게 명시할까요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "카드별 발동 조건과 순서를 별도 규칙표에 작성",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "B",
+          "meaning": "미정 카드의 실행을 배치에서 보류",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "C",
+          "meaning": "BETA 원본을 개정하고 새 버전으로 재수입",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "추가 UI 불명"
+        }
+      ],
+      "affectedAugments": [
+        "aug-216",
+        "aug-217",
+        "aug-218",
+        "aug-222",
+        "aug-226",
+        "aug-228",
+        "aug-229",
+        "aug-230",
+        "aug-234",
+        "aug-238"
+      ],
+      "affectedBatches": [
+        "005C"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-216-TRIGGER",
+        "AMB-AUG-aug-216-CONDITION",
+        "AMB-AUG-aug-217-CONDITION",
+        "AMB-AUG-aug-218-CONDITION",
+        "AMB-AUG-aug-222-CONDITION",
+        "AMB-AUG-aug-226-CONDITION",
+        "AMB-AUG-aug-228-ROOM_APPLICABILITY",
+        "AMB-AUG-aug-229-CONDITION",
+        "AMB-AUG-aug-230-ROOM_APPLICABILITY",
+        "AMB-AUG-aug-234-CONDITION",
+        "AMB-AUG-aug-238-CONDITION"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-216-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-216-CONDITION": "CLASS_SPECIAL_OVERRIDE",
+        "AMB-AUG-aug-217-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-218-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-222-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-226-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-228-ROOM_APPLICABILITY": "ROOM_APPLICABILITY",
+        "AMB-AUG-aug-229-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-230-ROOM_APPLICABILITY": "ROOM_APPLICABILITY",
+        "AMB-AUG-aug-234-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-238-CONDITION": "DRAW_DECK_BEHAVIOR"
+      },
+      "dependencies": [],
+      "risk": "MEDIUM",
+      "highRiskCards": [],
+      "specsResolvedIfChosen": 0,
+      "resolvedBy": null,
+      "selectedOption": null,
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005C": 10
+      }
+    },
+    {
+      "decisionId": "Q19",
+      "sourceBundle": "DEC-005R-15",
+      "category": "DAMAGE_SEMANTICS",
+      "question": "총잡이 카드의 남은 조건·트리거·적용 방을 어떻게 명시할까요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "카드별 발동 조건과 순서를 별도 규칙표에 작성",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "B",
+          "meaning": "미정 카드의 실행을 배치에서 보류",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "C",
+          "meaning": "BETA 원본을 개정하고 새 버전으로 재수입",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "추가 UI 불명"
+        }
+      ],
+      "affectedAugments": [
+        "aug-244",
+        "aug-245",
+        "aug-247",
+        "aug-249",
+        "aug-254",
+        "aug-255",
+        "aug-259",
+        "aug-264",
+        "aug-265",
+        "aug-266",
+        "aug-267",
+        "aug-268"
+      ],
+      "affectedBatches": [
+        "005C"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-244-CONDITION",
+        "AMB-AUG-aug-245-CONDITION",
+        "AMB-AUG-aug-247-CONDITION",
+        "AMB-AUG-aug-249-CONDITION",
+        "AMB-AUG-aug-254-CONDITION",
+        "AMB-AUG-aug-255-CONDITION",
+        "AMB-AUG-aug-259-CONDITION",
+        "AMB-AUG-aug-264-CONDITION",
+        "AMB-AUG-aug-265-CONDITION",
+        "AMB-AUG-aug-266-CONDITION",
+        "AMB-AUG-aug-267-TRIGGER",
+        "AMB-AUG-aug-268-CONDITION"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-244-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-245-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-247-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-249-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-254-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-255-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-259-CONDITION": "STACK_BEHAVIOR",
+        "AMB-AUG-aug-264-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-265-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-266-CONDITION": "STACK_BEHAVIOR",
+        "AMB-AUG-aug-267-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-268-CONDITION": "DAMAGE_SEMANTICS"
+      },
+      "dependencies": [],
+      "risk": "MEDIUM",
+      "highRiskCards": [],
+      "specsResolvedIfChosen": 0,
+      "resolvedBy": null,
+      "selectedOption": null,
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005C": 12
+      }
+    },
+    {
+      "decisionId": "Q20",
+      "sourceBundle": "DEC-005R-16",
+      "category": "DAMAGE_SEMANTICS",
+      "question": "무투가 카드의 남은 조건·트리거·적용 방을 어떻게 명시할까요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "카드별 발동 조건과 순서를 별도 규칙표에 작성",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "B",
+          "meaning": "미정 카드의 실행을 배치에서 보류",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "C",
+          "meaning": "BETA 원본을 개정하고 새 버전으로 재수입",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "추가 UI 불명"
+        }
+      ],
+      "affectedAugments": [
+        "aug-273",
+        "aug-276",
+        "aug-277",
+        "aug-279",
+        "aug-280",
+        "aug-285",
+        "aug-286",
+        "aug-287",
+        "aug-288",
+        "aug-289",
+        "aug-290",
+        "aug-292",
+        "aug-294",
+        "aug-298"
+      ],
+      "affectedBatches": [
+        "005D"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-273-CONDITION",
+        "AMB-AUG-aug-276-TRIGGER",
+        "AMB-AUG-aug-276-CONDITION",
+        "AMB-AUG-aug-277-CONDITION",
+        "AMB-AUG-aug-279-CONDITION",
+        "AMB-AUG-aug-280-TRIGGER",
+        "AMB-AUG-aug-285-CONDITION",
+        "AMB-AUG-aug-286-CONDITION",
+        "AMB-AUG-aug-287-CONDITION",
+        "AMB-AUG-aug-288-TRIGGER",
+        "AMB-AUG-aug-288-CONDITION",
+        "AMB-AUG-aug-289-CONDITION",
+        "AMB-AUG-aug-290-TRIGGER",
+        "AMB-AUG-aug-292-TRIGGER",
+        "AMB-AUG-aug-294-CONDITION",
+        "AMB-AUG-aug-298-TRIGGER",
+        "AMB-AUG-aug-298-CONDITION"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-273-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-276-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-276-CONDITION": "STACK_BEHAVIOR",
+        "AMB-AUG-aug-277-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-279-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-280-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-285-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-286-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-287-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-288-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-288-CONDITION": "STACK_BEHAVIOR",
+        "AMB-AUG-aug-289-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-290-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-292-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-294-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-298-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-298-CONDITION": "STACK_BEHAVIOR"
+      },
+      "dependencies": [],
+      "risk": "MEDIUM",
+      "highRiskCards": [],
+      "specsResolvedIfChosen": 0,
+      "resolvedBy": null,
+      "selectedOption": null,
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005D": 14
+      }
+    },
+    {
+      "decisionId": "Q21",
+      "sourceBundle": "DEC-005R-17",
+      "category": "TRIGGER_TIMING",
+      "question": "흡혈귀 카드의 남은 조건·트리거·적용 방을 어떻게 명시할까요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "카드별 발동 조건과 순서를 별도 규칙표에 작성",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "B",
+          "meaning": "미정 카드의 실행을 배치에서 보류",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "C",
+          "meaning": "BETA 원본을 개정하고 새 버전으로 재수입",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "추가 UI 불명"
+        }
+      ],
+      "affectedAugments": [
+        "aug-302",
+        "aug-304",
+        "aug-308",
+        "aug-309",
+        "aug-310",
+        "aug-313",
+        "aug-317",
+        "aug-319",
+        "aug-322",
+        "aug-324",
+        "aug-326",
+        "aug-327",
+        "aug-328"
+      ],
+      "affectedBatches": [
+        "005D"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-302-TRIGGER",
+        "AMB-AUG-aug-304-CONDITION",
+        "AMB-AUG-aug-308-CONDITION",
+        "AMB-AUG-aug-309-CONDITION",
+        "AMB-AUG-aug-310-CONDITION",
+        "AMB-AUG-aug-313-CONDITION",
+        "AMB-AUG-aug-317-CONDITION",
+        "AMB-AUG-aug-319-CONDITION",
+        "AMB-AUG-aug-322-CONDITION",
+        "AMB-AUG-aug-324-TRIGGER",
+        "AMB-AUG-aug-326-CONDITION",
+        "AMB-AUG-aug-327-TRIGGER",
+        "AMB-AUG-aug-328-TRIGGER",
+        "AMB-AUG-aug-328-CONDITION"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-302-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-304-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-308-CONDITION": "STACK_BEHAVIOR",
+        "AMB-AUG-aug-309-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-310-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-313-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-317-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-319-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-322-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-324-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-326-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-327-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-328-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-328-CONDITION": "RESOURCE_CAP"
+      },
+      "dependencies": [],
+      "risk": "MEDIUM",
+      "highRiskCards": [],
+      "specsResolvedIfChosen": 0,
+      "resolvedBy": null,
+      "selectedOption": null,
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005D": 13
+      }
+    },
+    {
+      "decisionId": "Q22",
+      "sourceBundle": "DEC-005R-18",
+      "category": "TRIGGER_TIMING",
+      "question": "귀검사 카드의 남은 조건·트리거·적용 방을 어떻게 명시할까요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "카드별 발동 조건과 순서를 별도 규칙표에 작성",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "B",
+          "meaning": "미정 카드의 실행을 배치에서 보류",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "C",
+          "meaning": "BETA 원본을 개정하고 새 버전으로 재수입",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "추가 UI 불명"
+        }
+      ],
+      "affectedAugments": [
+        "aug-335",
+        "aug-336",
+        "aug-337",
+        "aug-338",
+        "aug-340",
+        "aug-344",
+        "aug-345",
+        "aug-347",
+        "aug-348",
+        "aug-349",
+        "aug-353",
+        "aug-354",
+        "aug-355",
+        "aug-356",
+        "aug-357",
+        "aug-359"
+      ],
+      "affectedBatches": [
+        "005D"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-335-TRIGGER",
+        "AMB-AUG-aug-336-CONDITION",
+        "AMB-AUG-aug-337-CONDITION",
+        "AMB-AUG-aug-338-TRIGGER",
+        "AMB-AUG-aug-340-CONDITION",
+        "AMB-AUG-aug-344-CONDITION",
+        "AMB-AUG-aug-345-TRIGGER",
+        "AMB-AUG-aug-347-CONDITION",
+        "AMB-AUG-aug-348-TRIGGER",
+        "AMB-AUG-aug-349-CONDITION",
+        "AMB-AUG-aug-353-CONDITION",
+        "AMB-AUG-aug-354-CONDITION",
+        "AMB-AUG-aug-355-TRIGGER",
+        "AMB-AUG-aug-356-CONDITION",
+        "AMB-AUG-aug-357-TRIGGER",
+        "AMB-AUG-aug-359-CONDITION"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-335-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-336-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-337-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-338-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-340-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-344-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-345-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-347-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-348-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-349-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-353-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-354-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-355-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-356-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-357-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-359-CONDITION": "DAMAGE_SEMANTICS"
+      },
+      "dependencies": [],
+      "risk": "MEDIUM",
+      "highRiskCards": [],
+      "specsResolvedIfChosen": 0,
+      "resolvedBy": null,
+      "selectedOption": null,
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005D": 16
+      }
+    },
+    {
+      "decisionId": "Q23",
+      "sourceBundle": "DEC-005R-19",
+      "category": "DAMAGE_SEMANTICS",
+      "question": "쌍둥이 카드의 남은 조건·트리거·적용 방을 어떻게 명시할까요?",
+      "options": [
+        {
+          "key": "A",
+          "meaning": "카드별 발동 조건과 순서를 별도 규칙표에 작성",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "B",
+          "meaning": "미정 카드의 실행을 배치에서 보류",
+          "engineImpact": "기존 훅 재사용 여부 검증 필요",
+          "uiImpact": "추가 UI 불명"
+        },
+        {
+          "key": "C",
+          "meaning": "BETA 원본을 개정하고 새 버전으로 재수입",
+          "engineImpact": "별도 계약 확정 또는 배치 보류 필요",
+          "uiImpact": "추가 UI 불명"
+        }
+      ],
+      "affectedAugments": [
+        "aug-362",
+        "aug-374",
+        "aug-376",
+        "aug-377",
+        "aug-384",
+        "aug-387"
+      ],
+      "affectedBatches": [
+        "005D"
+      ],
+      "atomicDecisionIds": [
+        "AMB-AUG-aug-362-CONDITION",
+        "AMB-AUG-aug-374-TRIGGER",
+        "AMB-AUG-aug-376-CONDITION",
+        "AMB-AUG-aug-377-TRIGGER",
+        "AMB-AUG-aug-384-CONDITION",
+        "AMB-AUG-aug-384-ROOM_APPLICABILITY",
+        "AMB-AUG-aug-387-CONDITION"
+      ],
+      "atomicCategories": {
+        "AMB-AUG-aug-362-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-374-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-376-CONDITION": "DAMAGE_SEMANTICS",
+        "AMB-AUG-aug-377-TRIGGER": "TRIGGER_TIMING",
+        "AMB-AUG-aug-384-CONDITION": "CLASS_SPECIAL_OVERRIDE",
+        "AMB-AUG-aug-384-ROOM_APPLICABILITY": "ROOM_APPLICABILITY",
+        "AMB-AUG-aug-387-CONDITION": "DAMAGE_SEMANTICS"
+      },
+      "dependencies": [],
+      "risk": "MEDIUM",
+      "highRiskCards": [],
+      "specsResolvedIfChosen": 0,
+      "resolvedBy": null,
+      "selectedOption": null,
+      "note": "선택지만으로 카드별 수치·조건이 비어 있으면 계약 완료로 간주하지 않는다.",
+      "affectedCardsByBatch": {
+        "005D": 6
+      }
+    }
+  ],
+  "readiness": {
+    "005B": [
+      {
+        "augmentId": "aug-001",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-002",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-003",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-004",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-005",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-006",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-007",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-008",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-009",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-010",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-011",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-012",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-013",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-014",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-015",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-016",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-017",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-018",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-019",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-020",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-021",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-022",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-023",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-024",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-025",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-026",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-027",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-028",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-029",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-030",
+        "state": "READY_AFTER_USER_DECISION",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-031",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-032",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-033",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-034",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-035",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-036",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-037",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-038",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-039",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-040",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-041",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-042",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-043",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-044",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-045",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-046",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-047",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-048",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-049",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-050",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-051",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-052",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-053",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-054",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-055",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-056",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-057",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-058",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-059",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-060",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-061",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-062",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-063",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-064",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-065",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-066",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-067",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-068",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-069",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-070",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-071",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-072",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-073",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-074",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-075",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-076",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-077",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-078",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-079",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-080",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-081",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-082",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-083",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-084",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-085",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-086",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-087",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-088",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-089",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-090",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-091",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-092",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-093",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-094",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-095",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-096",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-097",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-098",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-099",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-100",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-101",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-102",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-103",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-104",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-105",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-106",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-107",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-108",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-109",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-110",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-111",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-112",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-113",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-114",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-115",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-116",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-117",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-118",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-119",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-120",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-121",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-122",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-123",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-124",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-125",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-126",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-127",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-128",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-129",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-130",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-131",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-132",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-133",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-134",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-135",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-136",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-137",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-138",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-139",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-140",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-141",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-142",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-143",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-144",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-145",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-146",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-147",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-148",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-149",
+        "state": "READY_AFTER_DESIGN_B",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-150",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      }
+    ],
+    "005C": [
+      {
+        "augmentId": "aug-151",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-152",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-153",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q04"
+        ]
+      },
+      {
+        "augmentId": "aug-154",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-155",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-156",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-157",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q16"
+        ]
+      },
+      {
+        "augmentId": "aug-158",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-159",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q16"
+        ]
+      },
+      {
+        "augmentId": "aug-160",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q04"
+        ]
+      },
+      {
+        "augmentId": "aug-161",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-162",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q04"
+        ]
+      },
+      {
+        "augmentId": "aug-163",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q16"
+        ]
+      },
+      {
+        "augmentId": "aug-164",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q04"
+        ]
+      },
+      {
+        "augmentId": "aug-165",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-166",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q04"
+        ]
+      },
+      {
+        "augmentId": "aug-167",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q04"
+        ]
+      },
+      {
+        "augmentId": "aug-168",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-169",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-170",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-171",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-172",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-173",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q16"
+        ]
+      },
+      {
+        "augmentId": "aug-174",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q16"
+        ]
+      },
+      {
+        "augmentId": "aug-175",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q16"
+        ]
+      },
+      {
+        "augmentId": "aug-176",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q16"
+        ]
+      },
+      {
+        "augmentId": "aug-177",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q16"
+        ]
+      },
+      {
+        "augmentId": "aug-178",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-179",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q16"
+        ]
+      },
+      {
+        "augmentId": "aug-180",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-181",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-182",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q17"
+        ]
+      },
+      {
+        "augmentId": "aug-183",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-184",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-185",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q17"
+        ]
+      },
+      {
+        "augmentId": "aug-186",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q17"
+        ]
+      },
+      {
+        "augmentId": "aug-187",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-188",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q17"
+        ]
+      },
+      {
+        "augmentId": "aug-189",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q17"
+        ]
+      },
+      {
+        "augmentId": "aug-190",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-191",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-192",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-193",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q17"
+        ]
+      },
+      {
+        "augmentId": "aug-194",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-195",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q17"
+        ]
+      },
+      {
+        "augmentId": "aug-196",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-197",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q17"
+        ]
+      },
+      {
+        "augmentId": "aug-198",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-199",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q17"
+        ]
+      },
+      {
+        "augmentId": "aug-200",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-201",
+        "state": "READY_AFTER_USER_DECISION",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-202",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-203",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q17"
+        ]
+      },
+      {
+        "augmentId": "aug-204",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q17"
+        ]
+      },
+      {
+        "augmentId": "aug-205",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q17"
+        ]
+      },
+      {
+        "augmentId": "aug-206",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-207",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-208",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q17"
+        ]
+      },
+      {
+        "augmentId": "aug-209",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-210",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-211",
+        "state": "READY_AFTER_USER_DECISION",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-212",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-213",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-214",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-215",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-216",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q18"
+        ]
+      },
+      {
+        "augmentId": "aug-217",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q18"
+        ]
+      },
+      {
+        "augmentId": "aug-218",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q18"
+        ]
+      },
+      {
+        "augmentId": "aug-219",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-220",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-221",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-222",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q18"
+        ]
+      },
+      {
+        "augmentId": "aug-223",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-224",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-225",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-226",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q18"
+        ]
+      },
+      {
+        "augmentId": "aug-227",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-228",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q18"
+        ]
+      },
+      {
+        "augmentId": "aug-229",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q18"
+        ]
+      },
+      {
+        "augmentId": "aug-230",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q18"
+        ]
+      },
+      {
+        "augmentId": "aug-231",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-232",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-233",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-234",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q18"
+        ]
+      },
+      {
+        "augmentId": "aug-235",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-236",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-237",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q03"
+        ]
+      },
+      {
+        "augmentId": "aug-238",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q18"
+        ]
+      },
+      {
+        "augmentId": "aug-239",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-240",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-241",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-242",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-243",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-244",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q19"
+        ]
+      },
+      {
+        "augmentId": "aug-245",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q19"
+        ]
+      },
+      {
+        "augmentId": "aug-246",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-247",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q19"
+        ]
+      },
+      {
+        "augmentId": "aug-248",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-249",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q19"
+        ]
+      },
+      {
+        "augmentId": "aug-250",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-251",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-252",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-253",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q02"
+        ]
+      },
+      {
+        "augmentId": "aug-254",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q19"
+        ]
+      },
+      {
+        "augmentId": "aug-255",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q19"
+        ]
+      },
+      {
+        "augmentId": "aug-256",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-257",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q01"
+        ]
+      },
+      {
+        "augmentId": "aug-258",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-259",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q19"
+        ]
+      },
+      {
+        "augmentId": "aug-260",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-261",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-262",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-263",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-264",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q19"
+        ]
+      },
+      {
+        "augmentId": "aug-265",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q19"
+        ]
+      },
+      {
+        "augmentId": "aug-266",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q19"
+        ]
+      },
+      {
+        "augmentId": "aug-267",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q19"
+        ]
+      },
+      {
+        "augmentId": "aug-268",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q19"
+        ]
+      },
+      {
+        "augmentId": "aug-269",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-270",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      }
+    ],
+    "005D": [
+      {
+        "augmentId": "aug-271",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-272",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-273",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q20"
+        ]
+      },
+      {
+        "augmentId": "aug-274",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-275",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-276",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q20"
+        ]
+      },
+      {
+        "augmentId": "aug-277",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q20"
+        ]
+      },
+      {
+        "augmentId": "aug-278",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-279",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q20"
+        ]
+      },
+      {
+        "augmentId": "aug-280",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q20"
+        ]
+      },
+      {
+        "augmentId": "aug-281",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-282",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-283",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q01"
+        ]
+      },
+      {
+        "augmentId": "aug-284",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-285",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q20"
+        ]
+      },
+      {
+        "augmentId": "aug-286",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q20"
+        ]
+      },
+      {
+        "augmentId": "aug-287",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q20"
+        ]
+      },
+      {
+        "augmentId": "aug-288",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q20"
+        ]
+      },
+      {
+        "augmentId": "aug-289",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q20"
+        ]
+      },
+      {
+        "augmentId": "aug-290",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q20"
+        ]
+      },
+      {
+        "augmentId": "aug-291",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-292",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q20"
+        ]
+      },
+      {
+        "augmentId": "aug-293",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-294",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q20"
+        ]
+      },
+      {
+        "augmentId": "aug-295",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-296",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q01"
+        ]
+      },
+      {
+        "augmentId": "aug-297",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-298",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q20"
+        ]
+      },
+      {
+        "augmentId": "aug-299",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-300",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-301",
+        "state": "READY_AFTER_USER_DECISION",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-302",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q21"
+        ]
+      },
+      {
+        "augmentId": "aug-303",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-304",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q21"
+        ]
+      },
+      {
+        "augmentId": "aug-305",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-306",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-307",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-308",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q21"
+        ]
+      },
+      {
+        "augmentId": "aug-309",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q21"
+        ]
+      },
+      {
+        "augmentId": "aug-310",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q21"
+        ]
+      },
+      {
+        "augmentId": "aug-311",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-312",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-313",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q21"
+        ]
+      },
+      {
+        "augmentId": "aug-314",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-315",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-316",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-317",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q21"
+        ]
+      },
+      {
+        "augmentId": "aug-318",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-319",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q21"
+        ]
+      },
+      {
+        "augmentId": "aug-320",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-321",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-322",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q21"
+        ]
+      },
+      {
+        "augmentId": "aug-323",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-324",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q21"
+        ]
+      },
+      {
+        "augmentId": "aug-325",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-326",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q21"
+        ]
+      },
+      {
+        "augmentId": "aug-327",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q21"
+        ]
+      },
+      {
+        "augmentId": "aug-328",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q21"
+        ]
+      },
+      {
+        "augmentId": "aug-329",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-330",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-331",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-332",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-333",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-334",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-335",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q22"
+        ]
+      },
+      {
+        "augmentId": "aug-336",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q22"
+        ]
+      },
+      {
+        "augmentId": "aug-337",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q22"
+        ]
+      },
+      {
+        "augmentId": "aug-338",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q22"
+        ]
+      },
+      {
+        "augmentId": "aug-339",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-340",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q22"
+        ]
+      },
+      {
+        "augmentId": "aug-341",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-342",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-343",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-344",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q22"
+        ]
+      },
+      {
+        "augmentId": "aug-345",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q22"
+        ]
+      },
+      {
+        "augmentId": "aug-346",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-347",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q22"
+        ]
+      },
+      {
+        "augmentId": "aug-348",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q22"
+        ]
+      },
+      {
+        "augmentId": "aug-349",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q22"
+        ]
+      },
+      {
+        "augmentId": "aug-350",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-351",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-352",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-353",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q22"
+        ]
+      },
+      {
+        "augmentId": "aug-354",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q22"
+        ]
+      },
+      {
+        "augmentId": "aug-355",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q22"
+        ]
+      },
+      {
+        "augmentId": "aug-356",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q22"
+        ]
+      },
+      {
+        "augmentId": "aug-357",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q22"
+        ]
+      },
+      {
+        "augmentId": "aug-358",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-359",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q22"
+        ]
+      },
+      {
+        "augmentId": "aug-360",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-361",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-362",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q23"
+        ]
+      },
+      {
+        "augmentId": "aug-363",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-364",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-365",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-366",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-367",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-368",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-369",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-370",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-371",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-372",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-373",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-374",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q23"
+        ]
+      },
+      {
+        "augmentId": "aug-375",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-376",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q23"
+        ]
+      },
+      {
+        "augmentId": "aug-377",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q23"
+        ]
+      },
+      {
+        "augmentId": "aug-378",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-379",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-380",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-381",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-382",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-383",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-384",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q23"
+        ]
+      },
+      {
+        "augmentId": "aug-385",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-386",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-387",
+        "state": "BLOCKED_BY_Q",
+        "blockers": [
+          "Q23"
+        ]
+      },
+      {
+        "augmentId": "aug-388",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-389",
+        "state": "READY_AFTER_AUTO",
+        "blockers": []
+      },
+      {
+        "augmentId": "aug-390",
+        "state": "READY_AFTER_USER_DECISION",
+        "blockers": []
+      }
+    ]
+  },
+  "statusAfterAuto": {
+    "SPEC_PARTIAL": 207,
+    "SPEC_AMBIGUOUS": 161,
+    "SPEC_COMPLETE": 22
+  },
+  "originalBundleAudit": [
+    {
+      "decisionId": "DEC-005R-01",
+      "affectedAugments": [
+        "aug-052",
+        "aug-257",
+        "aug-283",
+        "aug-296"
+      ],
+      "cardCount": 4,
+      "atomicCount": 4,
+      "commonAmbiguity": "SOURCE_CONFLICT",
+      "classes": [
+        "warrior",
+        "gunner",
+        "martial_artist"
+      ],
+      "archetypes": [
+        "압살 기사",
+        "정밀 사수",
+        "방어 분쇄",
+        "일격필살"
+      ],
+      "stages": [
+        2,
+        3
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "MODIFY_INCOMING_DAMAGE",
+        "DELAY_EFFECT"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-02",
+      "affectedAugments": [
+        "aug-049",
+        "aug-253"
+      ],
+      "cardCount": 2,
+      "atomicCount": 2,
+      "commonAmbiguity": "SOURCE_CONFLICT",
+      "classes": [
+        "warrior",
+        "gunner"
+      ],
+      "archetypes": [
+        "수호벽",
+        "정밀 사수"
+      ],
+      "stages": [
+        4,
+        2
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "MODIFY_INCOMING_DAMAGE",
+        "DELAY_EFFECT"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-03",
+      "affectedAugments": [
+        "aug-104",
+        "aug-116",
+        "aug-124",
+        "aug-129",
+        "aug-139",
+        "aug-146",
+        "aug-237"
+      ],
+      "cardCount": 7,
+      "atomicCount": 9,
+      "commonAmbiguity": "SOURCE_CONFLICT",
+      "classes": [
+        "mage",
+        "berserker",
+        "gambler"
+      ],
+      "archetypes": [
+        "백마도사",
+        "역산술",
+        "피의 광전",
+        "불사 투사",
+        "최후의 격노",
+        "올인"
+      ],
+      "stages": [
+        2,
+        3,
+        4
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "HEAL"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-04",
+      "affectedAugments": [
+        "aug-153",
+        "aug-160",
+        "aug-162",
+        "aug-164",
+        "aug-166",
+        "aug-167"
+      ],
+      "cardCount": 6,
+      "atomicCount": 7,
+      "commonAmbiguity": "SOURCE_CONFLICT",
+      "classes": [
+        "prophet"
+      ],
+      "archetypes": [
+        "완전한 계시",
+        "운명 조작자"
+      ],
+      "stages": [
+        2,
+        4,
+        3
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "RECOVER_CARD"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-05",
+      "affectedAugments": [
+        "aug-030",
+        "aug-211",
+        "aug-390"
+      ],
+      "cardCount": 3,
+      "atomicCount": 4,
+      "commonAmbiguity": "HIGH_RISK_TARGET",
+      "classes": [
+        "adventurer",
+        "gambler",
+        "twins"
+      ],
+      "archetypes": [
+        "기적의 탐험가",
+        "운명의 승부사",
+        "공중 곡예"
+      ],
+      "stages": [
+        4,
+        1
+      ],
+      "highRiskCards": [
+        "aug-030",
+        "aug-211",
+        "aug-390"
+      ],
+      "runtimePrimitives": [
+        "GRANT_RELIC_OPPORTUNITY",
+        "ADD_DAMAGE",
+        "GAIN_RESOURCE",
+        "SPEND_RESOURCE",
+        "RECOVER_CARD",
+        "MODIFY_PARITY"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-06",
+      "affectedAugments": [
+        "aug-201",
+        "aug-301"
+      ],
+      "cardCount": 2,
+      "atomicCount": 2,
+      "commonAmbiguity": "HIGH_RISK_ORDER",
+      "classes": [
+        "imp",
+        "vampire"
+      ],
+      "archetypes": [
+        "장난의 연쇄",
+        "완전한 권속"
+      ],
+      "stages": [
+        1
+      ],
+      "highRiskCards": [
+        "aug-201",
+        "aug-301"
+      ],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "APPLY_STATUS",
+        "DELAY_EFFECT",
+        "DAMAGE_ALLY",
+        "GAIN_RESOURCE",
+        "SPEND_RESOURCE"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-07",
+      "affectedAugments": [
+        "aug-001",
+        "aug-003",
+        "aug-009",
+        "aug-012",
+        "aug-013",
+        "aug-014",
+        "aug-017",
+        "aug-019",
+        "aug-022"
+      ],
+      "cardCount": 9,
+      "atomicCount": 9,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "adventurer"
+      ],
+      "archetypes": [
+        "노련한 탐험가",
+        "만능 장비꾼",
+        "기적의 탐험가"
+      ],
+      "stages": [
+        1,
+        2,
+        4,
+        3
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "MODIFY_EXP"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-08",
+      "affectedAugments": [
+        "aug-031",
+        "aug-033",
+        "aug-035",
+        "aug-037",
+        "aug-038",
+        "aug-040",
+        "aug-044",
+        "aug-045",
+        "aug-053",
+        "aug-054",
+        "aug-055",
+        "aug-057",
+        "aug-058",
+        "aug-059",
+        "aug-060"
+      ],
+      "cardCount": 15,
+      "atomicCount": 17,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "warrior"
+      ],
+      "archetypes": [
+        "불굴의 기사",
+        "수호벽",
+        "압살 기사"
+      ],
+      "stages": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "MODIFY_INCOMING_DAMAGE",
+        "APPLY_STATUS",
+        "DELAY_EFFECT",
+        "GAIN_RESOURCE",
+        "SPEND_RESOURCE",
+        "RECOVER_CARD",
+        "ADD_DAMAGE",
+        "REMOVE_STATUS",
+        "ADD_STACK"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-09",
+      "affectedAugments": [
+        "aug-063",
+        "aug-066",
+        "aug-068",
+        "aug-070",
+        "aug-073",
+        "aug-079",
+        "aug-080",
+        "aug-082",
+        "aug-086"
+      ],
+      "cardCount": 9,
+      "atomicCount": 10,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "rogue"
+      ],
+      "archetypes": [
+        "비열한 일격",
+        "독 묻은 칼날",
+        "그림자 도약"
+      ],
+      "stages": [
+        2,
+        3,
+        4
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "RECOVER_CARD",
+        "APPLY_STATUS",
+        "ADD_STACK",
+        "MODIFY_STREAK_RESET"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-10",
+      "affectedAugments": [
+        "aug-097",
+        "aug-102",
+        "aug-103",
+        "aug-107",
+        "aug-109",
+        "aug-110",
+        "aug-112",
+        "aug-114",
+        "aug-119",
+        "aug-120"
+      ],
+      "cardCount": 10,
+      "atomicCount": 11,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "mage"
+      ],
+      "archetypes": [
+        "대마도 증폭",
+        "백마도사",
+        "역산술"
+      ],
+      "stages": [
+        3,
+        2,
+        4
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "SPEND_RESOURCE",
+        "HEAL",
+        "GAIN_RESOURCE",
+        "REMOVE_STATUS",
+        "MODIFY_INCOMING_DAMAGE",
+        "DELAY_EFFECT",
+        "ADD_STACK"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-11",
+      "affectedAugments": [
+        "aug-126",
+        "aug-128",
+        "aug-130",
+        "aug-136",
+        "aug-137",
+        "aug-140",
+        "aug-143",
+        "aug-145",
+        "aug-147",
+        "aug-148",
+        "aug-149"
+      ],
+      "cardCount": 11,
+      "atomicCount": 11,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "berserker"
+      ],
+      "archetypes": [
+        "피의 광전",
+        "불사 투사",
+        "최후의 격노"
+      ],
+      "stages": [
+        3,
+        4,
+        2
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "ADD_STACK",
+        "GAIN_RESOURCE",
+        "HEAL"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-12",
+      "affectedAugments": [
+        "aug-157",
+        "aug-159",
+        "aug-163",
+        "aug-173",
+        "aug-174",
+        "aug-175",
+        "aug-176",
+        "aug-177",
+        "aug-179"
+      ],
+      "cardCount": 9,
+      "atomicCount": 9,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "prophet"
+      ],
+      "archetypes": [
+        "완전한 계시",
+        "운명 조작자",
+        "불길한 예언"
+      ],
+      "stages": [
+        3,
+        4,
+        2
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "RECOVER_CARD",
+        "ADD_STACK",
+        "GAIN_RESOURCE",
+        "MODIFY_RESOURCE_CAP",
+        "REVEAL_PRIVATE_INFO",
+        "DELAY_EFFECT"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-13",
+      "affectedAugments": [
+        "aug-182",
+        "aug-185",
+        "aug-186",
+        "aug-188",
+        "aug-189",
+        "aug-190",
+        "aug-192",
+        "aug-193",
+        "aug-195",
+        "aug-197",
+        "aug-199",
+        "aug-203",
+        "aug-204",
+        "aug-205",
+        "aug-208"
+      ],
+      "cardCount": 15,
+      "atomicCount": 17,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "imp"
+      ],
+      "archetypes": [
+        "대담한 슬쩍",
+        "소매치기 악동",
+        "장난의 연쇄"
+      ],
+      "stages": [
+        2,
+        3,
+        4
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "DELAY_EFFECT",
+        "ADD_STACK",
+        "MODIFY_NUMBER",
+        "MODIFY_RESOURCE_CAP",
+        "SPEND_RESOURCE",
+        "MODIFY_INCOMING_DAMAGE",
+        "APPLY_STATUS"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-14",
+      "affectedAugments": [
+        "aug-212",
+        "aug-213",
+        "aug-216",
+        "aug-217",
+        "aug-218",
+        "aug-219",
+        "aug-222",
+        "aug-226",
+        "aug-228",
+        "aug-229",
+        "aug-230",
+        "aug-232",
+        "aug-234",
+        "aug-238"
+      ],
+      "cardCount": 14,
+      "atomicCount": 15,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "gambler"
+      ],
+      "archetypes": [
+        "운명의 승부사",
+        "카드 카운터",
+        "올인"
+      ],
+      "stages": [
+        2,
+        3,
+        4
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "GAIN_RESOURCE",
+        "MODIFY_NUMBER",
+        "DRAW_CARD",
+        "MODIFY_DECK",
+        "SPEND_RESOURCE"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-15",
+      "affectedAugments": [
+        "aug-242",
+        "aug-244",
+        "aug-245",
+        "aug-247",
+        "aug-249",
+        "aug-254",
+        "aug-255",
+        "aug-258",
+        "aug-259",
+        "aug-264",
+        "aug-265",
+        "aug-266",
+        "aug-267",
+        "aug-268"
+      ],
+      "cardCount": 14,
+      "atomicCount": 14,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "gunner"
+      ],
+      "archetypes": [
+        "전탄 난사",
+        "정밀 사수",
+        "과열 기관"
+      ],
+      "stages": [
+        2,
+        3,
+        4
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "MODIFY_FULL_BURST",
+        "OVERRIDE_BASE_RULE",
+        "ADD_STACK",
+        "SET_RESOURCE"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-16",
+      "affectedAugments": [
+        "aug-271",
+        "aug-272",
+        "aug-273",
+        "aug-276",
+        "aug-277",
+        "aug-279",
+        "aug-280",
+        "aug-281",
+        "aug-285",
+        "aug-286",
+        "aug-287",
+        "aug-288",
+        "aug-289",
+        "aug-290",
+        "aug-292",
+        "aug-294",
+        "aug-298"
+      ],
+      "cardCount": 17,
+      "atomicCount": 21,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "martial_artist"
+      ],
+      "archetypes": [
+        "무한 연격",
+        "방어 분쇄",
+        "일격필살"
+      ],
+      "stages": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "OVERRIDE_BASE_RULE",
+        "ADD_STACK",
+        "SPEND_RESOURCE",
+        "APPLY_STATUS",
+        "GAIN_RESOURCE",
+        "MODIFY_RESOURCE_CAP"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-17",
+      "affectedAugments": [
+        "aug-302",
+        "aug-304",
+        "aug-308",
+        "aug-309",
+        "aug-310",
+        "aug-313",
+        "aug-317",
+        "aug-319",
+        "aug-322",
+        "aug-324",
+        "aug-325",
+        "aug-326",
+        "aug-327",
+        "aug-328",
+        "aug-329"
+      ],
+      "cardCount": 15,
+      "atomicCount": 19,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "vampire"
+      ],
+      "archetypes": [
+        "완전한 권속",
+        "피의 맹약",
+        "수혈"
+      ],
+      "stages": [
+        2,
+        4,
+        3
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "SPEND_RESOURCE",
+        "ADD_DAMAGE",
+        "ADD_STACK",
+        "MODIFY_RESOURCE_CAP",
+        "DELAY_EFFECT",
+        "HEAL",
+        "MODIFY_RESOURCE_COST",
+        "MODIFY_INCOMING_DAMAGE"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-18",
+      "affectedAugments": [
+        "aug-332",
+        "aug-335",
+        "aug-336",
+        "aug-337",
+        "aug-338",
+        "aug-340",
+        "aug-344",
+        "aug-345",
+        "aug-347",
+        "aug-348",
+        "aug-349",
+        "aug-352",
+        "aug-353",
+        "aug-354",
+        "aug-355",
+        "aug-356",
+        "aug-357",
+        "aug-359"
+      ],
+      "cardCount": 18,
+      "atomicCount": 20,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "demon_swordsman"
+      ],
+      "archetypes": [
+        "포식 귀참",
+        "굶주린 마검",
+        "해방된 귀검"
+      ],
+      "stages": [
+        2,
+        3,
+        4
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "MODIFY_DEVOUR",
+        "ADD_DAMAGE",
+        "GAIN_RESOURCE",
+        "MODIFY_DECK",
+        "OVERRIDE_BASE_RULE"
+      ]
+    },
+    {
+      "decisionId": "DEC-005R-19",
+      "affectedAugments": [
+        "aug-361",
+        "aug-362",
+        "aug-363",
+        "aug-373",
+        "aug-374",
+        "aug-376",
+        "aug-377",
+        "aug-379",
+        "aug-384",
+        "aug-385",
+        "aug-387"
+      ],
+      "cardCount": 11,
+      "atomicCount": 12,
+      "commonAmbiguity": "CLASS_SPEC_GAPS",
+      "classes": [
+        "twins"
+      ],
+      "archetypes": [
+        "완벽한 교대",
+        "태양과 달",
+        "공중 곡예"
+      ],
+      "stages": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "highRiskCards": [],
+      "runtimePrimitives": [
+        "ADD_DAMAGE",
+        "OVERRIDE_BASE_RULE",
+        "APPLY_STATUS",
+        "MODIFY_PARITY",
+        "ADD_STACK",
+        "GAIN_RESOURCE"
+      ]
+    }
+  ],
+  "userSelectionsApplied": 10,
+  "directionOnlyQuestions": [
+    "Q01",
+    "Q02",
+    "Q03",
+    "Q04"
+  ],
+  "operationalPolicyQuestions": [
+    "Q05",
+    "Q06",
+    "Q07",
+    "Q08",
+    "Q09",
+    "Q10"
+  ],
+  "statusAfterUserSelections": {
+    "SPEC_COMPLETE": 27,
+    "SPEC_PARTIAL": 195,
+    "SPEC_AMBIGUOUS": 168
+  },
+  "statusAfterAutoAndUserSelections": {
+    "SPEC_COMPLETE": 27,
+    "SPEC_PARTIAL": 207,
+    "SPEC_AMBIGUOUS": 156
+  },
+  "userResolvedAtomicDecisionCount": 6,
+  "userDirectionOnlyAtomicDecisionCount": 12,
+  "unselectedQuestionCount": 8,
+  "designBTargetCount": 52,
+  "designBResolvedAtomicDecisionCount": 58,
+  "prior005QAutoMaterializedIn005B": 10,
+  "statusAfterDesignB": {
+    "SPEC_COMPLETE": 79,
+    "SPEC_PARTIAL": 200,
+    "SPEC_AMBIGUOUS": 111
+  },
+  "designBNewAtomicDecisionCount": 57
+}

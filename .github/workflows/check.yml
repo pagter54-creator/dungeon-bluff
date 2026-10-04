@@ -5,6 +5,10 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
+concurrency:
+  group: project-checks-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.head_ref == 'feat/pve-content-005c-final' }}
+
 permissions:
   contents: read
 
@@ -15,6 +19,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -52,28 +58,37 @@ jobs:
         run: npm run pve:production:preflight
 
       - name: Run PVE stress smoke
-        run: npm run pve:stress:smoke
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:smoke
 
       - name: Run PVE T06 100-seed balance
-        run: npm run pve:stress:balance -- --scenario T06 --output artifacts/pve-stress-t06-balance
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:balance -- --scenario T06 --output artifacts/pve-stress-t06-balance
 
       - name: Run PVE T02 100-seed balance
-        run: npm run pve:stress:balance -- --scenario T02 --output artifacts/pve-stress-t02-balance
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:balance -- --scenario T02 --output artifacts/pve-stress-t02-balance
 
       - name: Run PVE T00 100-seed balance
-        run: npm run pve:stress:balance -- --scenario T00 --output artifacts/pve-stress-balance
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:balance -- --scenario T00 --output artifacts/pve-stress-balance
 
       - name: Run PVE T05 100-seed balance
-        run: npm run pve:stress:balance -- --scenario T05 --output artifacts/pve-stress-t05-balance
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:balance -- --scenario T05 --output artifacts/pve-stress-t05-balance
 
       - name: Run PVE T09 100-seed balance
-        run: npm run pve:stress:balance -- --scenario T09 --output artifacts/pve-stress-t09-balance
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:balance -- --scenario T09 --output artifacts/pve-stress-t09-balance
 
       - name: Run PVE T04 100-seed balance
-        run: npm run pve:stress:balance -- --scenario T04 --output artifacts/pve-stress-t04-balance
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:balance -- --scenario T04 --output artifacts/pve-stress-t04-balance
 
       - name: Run PVE T03 100-seed balance
-        run: npm run pve:stress:balance -- --scenario T03 --output artifacts/pve-stress-t03-balance
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:balance -- --scenario T03 --output artifacts/pve-stress-t03-balance
+
+      - name: Run PVE 005B FINAL 500-seed stress
+        if: github.event_name == 'pull_request' && github.head_ref == 'feat/pve-content-005b-runtime'
+        shell: bash
+        run: |
+          set -euo pipefail
+          for scenario in T00 T02 T03 T04 T05 T06 T09 T14; do
+            npm run pve:stress:full -- --scenario "$scenario" --output "artifacts/pve-stress-005b-final/$scenario"
+          done
 
       - name: Upload PVE stress smoke reports
         if: always()
@@ -139,6 +154,45 @@ jobs:
           path: artifacts/pve-stress-t03-balance/
           if-no-files-found: error
 
+      - name: Upload PVE 005B FINAL 500-seed reports
+        if: always() && github.event_name == 'pull_request' && github.head_ref == 'feat/pve-content-005b-runtime'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pve-stress-005b-final-${{ github.sha }}
+          path: artifacts/pve-stress-005b-final/
+          if-no-files-found: error
+
+
+  final_005c_stress:
+    name: 005C FINAL 500 seeds / ${{ matrix.scenario }}
+    if: github.event_name == 'pull_request' && github.head_ref == 'feat/pve-content-005c-final'
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: [T00, T02, T03, T04, T05, T06, T09, T14]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Verify checked-out tree matches exact PR head
+        run: test "$(git rev-parse HEAD^{tree})" = "$(git rev-parse ${{ github.event.pull_request.head.sha }}^{tree})"
+      - name: Run existing PVE 500-seed command
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:full -- --scenario "${{ matrix.scenario }}" --output "artifacts/pve-stress-005c-final/${{ matrix.scenario }}"
+      - name: Upload 500-seed reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pve-stress-005c-final-${{ matrix.scenario }}-${{ github.sha }}
+          path: artifacts/pve-stress-005c-final/
+          if-no-files-found: error
 
   production_release_backend:
     name: PVE production backend release
@@ -193,3 +247,179 @@ jobs:
 
       - name: Competitive production remote smoke
         run: npm run pve:production:smoke -- --mode competitive
+
+  martial_005d_verification:
+    name: 005D A targeted runtime verification
+    if: github.event_name == 'pull_request' && github.head_ref == 'feat/pve-content-005d-a-martial'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Verify Martial actual behavior and integration
+        run: node --test tests/pve-content-005d-a-martial.test.mjs
+      - name: Run project checks
+        run: npm run check
+      - name: Run existing PVE smoke
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:smoke
+      - name: Verify T02 100 seeds
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:balance -- --scenario T02 --output artifacts/pve-stress-005d-a/T02
+      - name: Verify T05 100 seeds
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:balance -- --scenario T05 --output artifacts/pve-stress-005d-a/T05
+      - name: Verify T06 100 seeds
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:balance -- --scenario T06 --output artifacts/pve-stress-005d-a/T06
+      - name: Upload runtime verification reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pve-005d-a-verification-${{ github.event.pull_request.head.sha }}
+          path: artifacts/pve-stress-005d-a/
+          if-no-files-found: warn
+
+  vampire_005d_verification:
+    name: 005D B targeted runtime verification
+    if: github.event_name == 'pull_request' && github.head_ref == 'feat/pve-content-005d-b-vampire'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Verify Vampire actual behavior and integration
+        run: node --test tests/pve-content-005d-b-vampire.test.mjs
+      - name: Run project checks
+        run: npm run check
+      - name: Run existing PVE smoke
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:smoke
+      - name: Verify T02 100 seeds
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:balance -- --scenario T02 --output artifacts/pve-stress-005d-b/T02
+      - name: Verify T05 100 seeds
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:balance -- --scenario T05 --output artifacts/pve-stress-005d-b/T05
+      - name: Verify T06 100 seeds
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:balance -- --scenario T06 --output artifacts/pve-stress-005d-b/T06
+      - name: Upload runtime verification reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pve-005d-b-verification-${{ github.event.pull_request.head.sha }}
+          path: artifacts/pve-stress-005d-b/
+          if-no-files-found: warn
+
+  ghost_005d_verification:
+    name: 005D C targeted runtime verification
+    if: github.event_name == 'pull_request' && github.head_ref == 'feat/pve-content-005d-c-ghost'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Verify Ghost actual behavior and integration
+        run: node --test tests/pve-content-005d-c-ghost.test.mjs
+      - name: Run project checks
+        run: npm run check
+      - name: Run existing PVE smoke
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:smoke
+      - name: Verify T02 100 seeds
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:balance -- --scenario T02 --output artifacts/pve-stress-005d-c/T02
+      - name: Verify T05 100 seeds
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:balance -- --scenario T05 --output artifacts/pve-stress-005d-c/T05
+      - name: Verify T06 100 seeds
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:balance -- --scenario T06 --output artifacts/pve-stress-005d-c/T06
+      - name: Upload runtime verification reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pve-005d-c-verification-${{ github.event.pull_request.head.sha }}
+          path: artifacts/pve-stress-005d-c/
+          if-no-files-found: warn
+
+  twins_005d_verification:
+    name: 005D D targeted runtime verification
+    if: github.event_name == 'pull_request' && github.head_ref == 'feat/pve-content-005d-d-twins'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Verify Twins actual behavior and integration
+        run: node --test tests/pve-content-005d-d-twins.test.mjs
+      - name: Run project checks
+        run: npm run check
+      - name: Run existing PVE smoke
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:smoke
+      - name: Verify T02 100 seeds
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:balance -- --scenario T02 --output artifacts/pve-stress-005d-d/T02
+      - name: Verify T05 100 seeds
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:balance -- --scenario T05 --output artifacts/pve-stress-005d-d/T05
+      - name: Verify T06 100 seeds
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:balance -- --scenario T06 --output artifacts/pve-stress-005d-d/T06
+      - name: Upload runtime verification reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pve-005d-d-verification-${{ github.event.pull_request.head.sha }}
+          path: artifacts/pve-stress-005d-d/
+          if-no-files-found: warn
+
+  final_005d_stress:
+    name: 005D FINAL 500 seeds / ${{ matrix.scenario }}
+    if: github.event_name == 'pull_request' && github.head_ref == 'feat/pve-content-005d-final'
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: [T00, T02, T03, T04, T05, T06, T09, T14]
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Run existing PVE 500-seed command
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:full -- --scenario "${{ matrix.scenario }}" --output "artifacts/pve-stress-005d-final/${{ matrix.scenario }}"
+      - name: Upload 500-seed reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pve-stress-005d-final-${{ matrix.scenario }}-${{ github.sha }}
+          path: artifacts/pve-stress-005d-final/
+          if-no-files-found: error
+

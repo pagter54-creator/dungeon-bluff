@@ -1,0 +1,36 @@
+/* Scoped additive layer: original reveal, collision and damage effects remain intact. */
+.pve-pattern-panel{border:1px solid color-mix(in srgb,var(--cue-color) 45%,transparent);border-radius:12px;background:#181620;margin:10px 0 14px;padding:12px 16px;color:#e0d9df;box-shadow:inset 3px 0 var(--cue-color)}
+.pve-pattern-panel header{display:flex;align-items:center;gap:10px}
+.pve-pattern-panel header i{font-style:normal;color:var(--cue-color);font-size:22px}
+.pve-pattern-panel header span{margin-left:auto;font-size:12px;border:1px solid currentColor;border-radius:5px;padding:3px 8px;color:var(--cue-color)}
+.pve-pattern-panel p{font-size:13px;line-height:1.6;margin:7px 0}
+.pve-pattern-panel small,.pve-pattern-panel [data-pattern-progress]{font-size:12px;line-height:1.6;color:#bcb4c3;overflow-wrap:anywhere}
+.pve-pattern-panel[data-outcome=BLOCKED]{box-shadow:inset 3px 0 #93bdae,0 0 14px #93bdae22}
+.pve-pattern-panel[data-outcome=BLOCKED] header span{color:#a3d2bb}
+.pve-pattern-panel[data-outcome=ACTIVE] header span{color:#df8995}
+.pve-pattern-panel[data-outcome=PARTIAL] header span{color:#d6b37d}
+.pve-cue-actor{box-shadow:0 0 0 2px var(--cue-color),0 0 18px color-mix(in srgb,var(--cue-color) 25%,transparent)!important}
+.pve-cue-target{outline:2px solid var(--cue-color,#bca3c8);outline-offset:3px}
+.pve-skill-cue{position:absolute;z-index:35;left:8px;right:8px;top:8px;border:1px solid var(--cue-color);border-radius:7px;background:#17131fee;color:var(--cue-color);padding:7px 10px;font-size:12px;font-weight:700;line-height:1.4;pointer-events:none;overflow-wrap:anywhere}
+[data-player]:has(.pve-skill-cue){position:relative}
+.pve-cue-protect{border-radius:16px 16px 7px 7px;border-width:2px}
+.pve-cue-number{font-family:monospace;letter-spacing:1px}
+.pve-cue-recover{border-style:dashed}
+.pve-cue-steal{border-left:4px solid var(--cue-color)}
+.pve-cue-swap,.pve-cue-parity{border-inline-width:4px}
+.pve-cue-heal{border-radius:20px}
+.pve-cue-burst{border-style:double;border-width:3px}
+.pve-cue-transform{border-radius:2px;border-width:2px}
+.pve-skill-cue.cue-failed{color:#c5a4ab;border-color:#a77b87}
+.pve-pattern-seal{position:absolute;inset:20%;display:grid;place-items:center;font-size:90px;color:var(--cue-color);pointer-events:none;text-shadow:0 0 20px var(--cue-color);z-index:5}
+.pve-pattern-seal[data-outcome=BLOCKED]{border:2px dashed var(--cue-color);border-radius:50%}
+.pve-pattern-seal[data-outcome=PARTIAL]{border-inline:3px solid var(--cue-color)}
+.boss-arena .pve-pattern-seal{font-size:120px}
+@media(max-width:600px){.pve-pattern-panel{padding:10px 12px}.pve-pattern-seal{font-size:64px}.pve-skill-cue{font-size:11px}}
+.motion-reduced .pve-cue-actor{box-shadow:0 0 0 1px var(--cue-color)!important}
+@media(prefers-reduced-motion:reduce){.pve-pattern-seal{display:none}}
+
+.pve-pattern-seal[data-shape=circle]{border-radius:50%;border:1px solid var(--cue-color)}
+.pve-pattern-seal[data-shape=diamond]{clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);background:color-mix(in srgb,var(--cue-color) 12%,transparent)}
+.pve-pattern-seal[data-shape=square]{border:2px solid var(--cue-color);border-radius:10px}
+.pve-pattern-seal[data-shape=bars]{border-block:2px solid var(--cue-color);background:repeating-linear-gradient(var(--seal-angle),transparent,transparent 18px,color-mix(in srgb,var(--cue-color) 10%,transparent) 20px)}

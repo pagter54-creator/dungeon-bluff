@@ -1,4 +1,9 @@
+import {TWINS_CONTRACTS} from './twins-contracts.js';
+import {GHOST_CONTRACTS} from './ghost-contracts.js';
+import {VAMPIRE_CONTRACTS} from './vampire-contracts.js';
+import {MARTIAL_CONTRACTS} from './martial-contracts.js';
 import {executableAugmentRuntime} from './augment-runtime.js';
+import {GAMBLER_CONTRACTS} from './gambler-contracts.js';
 // Selection metadata from 눈치레이드_PVE_증강_390장_BETA_v0.1.xlsx.
 // Most entries remain selection metadata-only. Runtime handlers/effects are attached only for intentionally implemented stress-scope augments.
 const SOURCE={"adventurer":{"노련한 탐험가":{"1":[{"n":1,"o":1,"name":"노련한 탐험가"}],"2":[{"n":2,"o":1,"name":"튼튼한 여행복"},{"n":3,"o":2,"name":"노련한 검술"},{"n":4,"o":3,"name":"경험자의 감각"}],"3":[{"n":5,"o":1,"name":"산전수전"},{"n":6,"o":2,"name":"숙련된 일격"},{"n":7,"o":3,"name":"빠른 성장"}],"4":[{"n":8,"o":1,"name":"백전노장"},{"n":9,"o":2,"name":"일당백"},{"n":10,"o":3,"name":"위대한 모험담"}]},"만능 장비꾼":{"1":[{"n":11,"o":1,"name":"만능 장비꾼"}],"2":[{"n":12,"o":1,"name":"튼튼한 야영 장비"},{"n":13,"o":2,"name":"탐험가의 공구함"},{"n":14,"o":3,"name":"잘 벼린 여행검"}],"3":[{"n":15,"o":1,"name":"재빠른 장비 교체"},{"n":16,"o":2,"name":"준비 만전"},{"n":17,"o":3,"name":"현장 개조"}],"4":[{"n":18,"o":1,"name":"만물상"},{"n":19,"o":2,"name":"전설의 장비 세트"},{"n":20,"o":3,"name":"적재적소"}]},"기적의 탐험가":{"1":[{"n":21,"o":1,"name":"기적의 탐험가"}],"2":[{"n":22,"o":1,"name":"공동 탐사 기록"},{"n":23,"o":2,"name":"행운의 동행"},{"n":24,"o":3,"name":"길잡이의 격려"}],"3":[{"n":25,"o":1,"name":"대원정 기록지"},{"n":26,"o":2,"name":"숨겨진 샛길"},{"n":27,"o":3,"name":"행운의 발견"}],"4":[{"n":28,"o":1,"name":"모두의 모험담"},{"n":29,"o":2,"name":"황금 나침반"},{"n":30,"o":3,"name":"전설의 발견"}]}},"warrior":{"불굴의 기사":{"1":[{"n":31,"o":1,"name":"불굴의 기사"}],"2":[{"n":32,"o":1,"name":"전열 유지"},{"n":33,"o":2,"name":"무쇠 갑주"},{"n":34,"o":3,"name":"숙련된 호흡"}],"3":[{"n":35,"o":1,"name":"빈틈 없는 전진"},{"n":36,"o":2,"name":"전장의 노련함"},{"n":37,"o":3,"name":"마지막 보루"}],"4":[{"n":38,"o":1,"name":"불퇴전"},{"n":39,"o":2,"name":"철벽의 기사"},{"n":40,"o":3,"name":"영원한 전열"}]},"수호벽":{"1":[{"n":41,"o":1,"name":"수호벽"}],"2":[{"n":42,"o":1,"name":"대신 맞아주마"},{"n":43,"o":2,"name":"등 뒤에 있어"},{"n":44,"o":3,"name":"헌신의 보답"}],"3":[{"n":45,"o":1,"name":"전열 교대"},{"n":46,"o":2,"name":"넓은 방패"},{"n":47,"o":3,"name":"목숨을 건 맹세"}],"4":[{"n":48,"o":1,"name":"철벽 진형"},{"n":49,"o":2,"name":"불침의 수호자"},{"n":50,"o":3,"name":"최후의 방패"}]},"압살 기사":{"1":[{"n":51,"o":1,"name":"압살 기사"}],"2":[{"n":52,"o":1,"name":"중갑 돌파"},{"n":53,"o":2,"name":"무게 싣기"},{"n":54,"o":3,"name":"전진 또 전진"}],"3":[{"n":55,"o":1,"name":"다중 압살"},{"n":56,"o":2,"name":"기세등등"},{"n":57,"o":3,"name":"힘을 비축하라"}],"4":[{"n":58,"o":1,"name":"일기당천"},{"n":59,"o":2,"name":"성문 파쇄"},{"n":60,"o":3,"name":"진격의 기사"}]}},"mage":{"대마도 증폭":{"1":[{"n":91,"o":1,"name":"대마도 증폭"}],"2":[{"n":92,"o":1,"name":"마력 우물"},{"n":93,"o":2,"name":"순환 회로"},{"n":94,"o":3,"name":"과잉 증폭"}],"3":[{"n":95,"o":1,"name":"마력 범람"},{"n":96,"o":2,"name":"잔류 마력"},{"n":97,"o":3,"name":"금단의 공식"}],"4":[{"n":98,"o":1,"name":"무한 마력기관"},{"n":99,"o":2,"name":"칠중성의 마도식"},{"n":100,"o":3,"name":"대마도 포화"}]},"백마도사":{"1":[{"n":101,"o":1,"name":"백마도사"}],"2":[{"n":102,"o":1,"name":"생명 공명"},{"n":103,"o":2,"name":"마력 순환술"},{"n":104,"o":3,"name":"전투 축복"}],"3":[{"n":105,"o":1,"name":"연쇄 치유"},{"n":106,"o":2,"name":"백색 장막"},{"n":107,"o":3,"name":"정화 공식"}],"4":[{"n":108,"o":1,"name":"대백마법"},{"n":109,"o":2,"name":"수호천사"},{"n":110,"o":3,"name":"성전의 축복"}]},"역산술":{"1":[{"n":111,"o":1,"name":"역산술"}],"2":[{"n":112,"o":1,"name":"잔차 회수"},{"n":113,"o":2,"name":"경계값 계산"},{"n":114,"o":3,"name":"교대 공식"}],"3":[{"n":115,"o":1,"name":"자동 보정"},{"n":116,"o":2,"name":"보존 법칙"},{"n":117,"o":3,"name":"대칭식"}],"4":[{"n":118,"o":1,"name":"완전한 해"},{"n":119,"o":2,"name":"수식의 반전"},{"n":120,"o":3,"name":"무한 대칭식"}]}},"gunner":{"전탄 난사":{"1":[{"n":241,"o":1,"name":"전탄 난사"}],"2":[{"n":242,"o":1,"name":"대용량 탄창"},{"n":243,"o":2,"name":"급속 장전"},{"n":244,"o":3,"name":"화약 증량"}],"3":[{"n":245,"o":1,"name":"탄띠 급탄"},{"n":246,"o":2,"name":"완전 연소"},{"n":247,"o":3,"name":"마지막 한 발까지"}],"4":[{"n":248,"o":1,"name":"탄막 지배"},{"n":249,"o":2,"name":"전쟁 기계"},{"n":250,"o":3,"name":"최후통첩"}]},"정밀 사수":{"1":[{"n":251,"o":1,"name":"정밀 사수"}],"2":[{"n":252,"o":1,"name":"영점 조정"},{"n":253,"o":2,"name":"침착한 호흡"},{"n":254,"o":3,"name":"대구경 탄환"}],"3":[{"n":255,"o":1,"name":"탄도 계산"},{"n":256,"o":2,"name":"약점 포착"},{"n":257,"o":3,"name":"관통탄"}],"4":[{"n":258,"o":1,"name":"데드아이"},{"n":259,"o":2,"name":"백발백중"},{"n":260,"o":3,"name":"사형 선고"}]},"과열 기관":{"1":[{"n":261,"o":1,"name":"과열 기관"}],"2":[{"n":262,"o":1,"name":"고압 기관"},{"n":263,"o":2,"name":"냉각핀"},{"n":264,"o":3,"name":"붉은 배기관"}],"3":[{"n":265,"o":1,"name":"임계 출력"},{"n":266,"o":2,"name":"폭주 실린더"},{"n":267,"o":3,"name":"비상 냉각"}],"4":[{"n":268,"o":1,"name":"레드존"},{"n":269,"o":2,"name":"멈추지 않는 포화"},{"n":270,"o":3,"name":"기관 폭주"}]}},"twins":{"완벽한 교대":{"1":[{"n":361,"o":1,"name":"완벽한 교대"}],"2":[{"n":362,"o":1,"name":"쌍인 호흡"},{"n":363,"o":2,"name":"안전망"},{"n":364,"o":3,"name":"교대 발놀림"}],"3":[{"n":365,"o":1,"name":"완벽한 합"},{"n":366,"o":2,"name":"교차 찌르기"},{"n":367,"o":3,"name":"동시 착지"}],"4":[{"n":368,"o":1,"name":"무결점 공연"},{"n":369,"o":2,"name":"쌍인 피날레"},{"n":370,"o":3,"name":"앙코르!"}]},"태양과 달":{"1":[{"n":371,"o":1,"name":"태양과 달"}],"2":[{"n":372,"o":1,"name":"따스한 코로나"},{"n":373,"o":2,"name":"창백한 월광"},{"n":374,"o":3,"name":"천구의 관성"}],"3":[{"n":375,"o":1,"name":"태양의 잔광"},{"n":376,"o":2,"name":"월식의 잔흔"},{"n":377,"o":3,"name":"합삭과 망"}],"4":[{"n":378,"o":1,"name":"영원의 일식"},{"n":379,"o":2,"name":"핏빛 월식"},{"n":380,"o":3,"name":"천체윤회"}]},"공중 곡예":{"1":[{"n":381,"o":1,"name":"공중 곡예"}],"2":[{"n":382,"o":1,"name":"높이 더!"},{"n":383,"o":2,"name":"연속 공중제비"},{"n":384,"o":3,"name":"안전 착지"}],"3":[{"n":385,"o":1,"name":"트리플 악셀"},{"n":386,"o":2,"name":"아슬아슬한 묘기"},{"n":387,"o":3,"name":"공중 교대"}],"4":[{"n":388,"o":1,"name":"끝없는 앙코르"},{"n":389,"o":2,"name":"낙하 피날레"},{"n":390,"o":3,"name":"하늘을 걷는 쌍둥이"}]}}};
@@ -7,18 +12,52 @@ SOURCE.berserker={
   "불사 투사":{"1":[{"n":131,"o":1,"name":"불사 투사"}],"2":[{"n":132,"o":1,"name":"질긴 목숨"},{"n":133,"o":2,"name":"되갚아주마"},{"n":134,"o":3,"name":"살아남는 법"}],"3":[{"n":135,"o":1,"name":"넘치는 생명력"},{"n":136,"o":2,"name":"상처의 기억"},{"n":137,"o":3,"name":"피로 갚는다"}],"4":[{"n":138,"o":1,"name":"불사신"},{"n":139,"o":2,"name":"난전의 왕"},{"n":140,"o":3,"name":"광기의 반격"}]},
   "최후의 격노":{"1":[{"n":141,"o":1,"name":"최후의 격노"}],"2":[{"n":142,"o":1,"name":"죽음의 문턱"},{"n":143,"o":2,"name":"살육 본능"},{"n":144,"o":3,"name":"이를 악물고"}],"3":[{"n":145,"o":1,"name":"폭주"},{"n":146,"o":2,"name":"피 묻은 미소"},{"n":147,"o":3,"name":"죽음과 춤을"}],"4":[{"n":148,"o":1,"name":"살아있는 재앙"},{"n":149,"o":2,"name":"마지막 불꽃"},{"n":150,"o":3,"name":"피의 왕좌"}]}
 };
-SOURCE.prophet={"운명 조작자":{"1":[{"n":161,"o":1,"name":"운명 조작자"}]}};
+SOURCE.prophet={
+  "완전한 계시":{"1":[{"n":151,"o":1,"name":"완전한 계시"}],"2":[{"n":152,"o":1,"name":"선명한 환영"},{"n":153,"o":2,"name":"되풀이되는 미래"},{"n":154,"o":3,"name":"별의 기억"}],"3":[{"n":155,"o":1,"name":"두 번째 계시"},{"n":156,"o":2,"name":"미래의 잔상"},{"n":157,"o":3,"name":"운명의 반복"}],"4":[{"n":158,"o":1,"name":"천개의 미래"},{"n":159,"o":2,"name":"끝없는 계시"},{"n":160,"o":3,"name":"이미 본 결말"}]},
+  "운명 조작자":{"1":[{"n":161,"o":1,"name":"운명 조작자"}],"2":[{"n":162,"o":1,"name":"별빛 인도"},{"n":163,"o":2,"name":"나누어진 운명"},{"n":164,"o":3,"name":"축복받은 패"}],"3":[{"n":165,"o":1,"name":"운명의 실"},{"n":166,"o":2,"name":"엇갈린 미래"},{"n":167,"o":3,"name":"공동의 예지"}],"4":[{"n":168,"o":1,"name":"운명 공동체"},{"n":169,"o":2,"name":"별들이 선택한 패"},{"n":170,"o":3,"name":"함께 쓰는 미래"}]},
+  "불길한 예언":{"1":[{"n":171,"o":1,"name":"불길한 예언"}],"2":[{"n":172,"o":1,"name":"흉조"},{"n":173,"o":2,"name":"길조"},{"n":174,"o":3,"name":"숫자의 별자리"}],"3":[{"n":175,"o":1,"name":"연속 적중"},{"n":176,"o":2,"name":"불길한 확신"},{"n":177,"o":3,"name":"자기충족적 예언"}],"4":[{"n":178,"o":1,"name":"대예언"},{"n":179,"o":2,"name":"운명은 정해졌다"},{"n":180,"o":3,"name":"예언의 성취"}]}
+};
 SOURCE.martial_artist={"일격필살":{"1":[{"n":291,"o":1,"name":"일격필살"}]}};
 SOURCE.demon_swordsman={
   "포식 귀참":{"1":[{"n":331,"o":1,"name":"포식 귀참"}]},
   "해방된 귀검":{"1":[{"n":351,"o":1,"name":"해방된 귀검"}]}
 };
-SOURCE.imp={"대담한 슬쩍":{"1":[{"n":181,"o":1,"name":"대담한 슬쩍"}]}};
+SOURCE.imp={"대담한 슬쩍":{"1":[{"n":181,"o":1,"name":"대담한 슬쩍"}],"2":[{"n":182,"o":1,"name":"두 손 가득"},{"n":183,"o":2,"name":"손이 빠르네?"},{"n":184,"o":3,"name":"잔돈까지"}],"3":[{"n":185,"o":1,"name":"욕심쟁이"},{"n":186,"o":2,"name":"훔친 힘"},{"n":187,"o":3,"name":"또 가져갈게!"}],"4":[{"n":188,"o":1,"name":"싹쓸이"},{"n":189,"o":2,"name":"욕심은 끝이 없어"},{"n":190,"o":3,"name":"대도둑 임프"}]},"소매치기 악동":{"1":[{"n":191,"o":1,"name":"소매치기 악동"}],"2":[{"n":192,"o":1,"name":"비밀 주머니"},{"n":193,"o":2,"name":"조금만 쓸게"},{"n":194,"o":3,"name":"고이 모아두기"}],"3":[{"n":195,"o":1,"name":"장물 거래"},{"n":196,"o":2,"name":"밑천 굴리기"},{"n":197,"o":3,"name":"큰손"}],"4":[{"n":198,"o":1,"name":"끝없는 주머니"},{"n":199,"o":2,"name":"암시장 큰손"},{"n":200,"o":3,"name":"돌고 도는 장물"}]},"장난의 연쇄":{"1":[{"n":201,"o":1,"name":"장난의 연쇄"}],"2":[{"n":202,"o":1,"name":"신나는 장난"},{"n":203,"o":2,"name":"안전장치"},{"n":204,"o":3,"name":"여럿이 놀자"}],"3":[{"n":205,"o":1,"name":"기대감"},{"n":206,"o":2,"name":"폭발도 재밌어!"},{"n":207,"o":3,"name":"장난 전염"}],"4":[{"n":208,"o":1,"name":"대소동"},{"n":209,"o":2,"name":"위험한 장난감"},{"n":210,"o":3,"name":"장난의 달인"}]}};
 SOURCE.vampire={
   "완전한 권속":{"1":[{"n":301,"o":1,"name":"완전한 권속"}]},
   "수혈":{"1":[{"n":321,"o":1,"name":"수혈"}]}
 };
 SOURCE.rogue={"비열한 일격":{"1":[{"n":61,"o":1,"name":"비열한 일격"}],"2":[{"n":62,"o":1,"name":"발목 베기"},{"n":63,"o":2,"name":"틈새 포착"},{"n":64,"o":3,"name":"재빠른 손놀림"}],"3":[{"n":65,"o":1,"name":"급소 노리기"},{"n":66,"o":2,"name":"밑장 빼기"},{"n":67,"o":3,"name":"빈틈 없는 퇴로"}],"4":[{"n":68,"o":1,"name":"목을 노려라"},{"n":69,"o":2,"name":"어둠 속의 숙련자"},{"n":70,"o":3,"name":"완전범죄"}]},"독 묻은 칼날":{"1":[{"n":71,"o":1,"name":"독 묻은 칼날"}],"2":[{"n":72,"o":1,"name":"재독침"},{"n":73,"o":2,"name":"회수용 와이어"},{"n":74,"o":3,"name":"독성 표식"}],"3":[{"n":75,"o":1,"name":"침투독"},{"n":76,"o":2,"name":"확산독"},{"n":77,"o":3,"name":"축적 중독"}],"4":[{"n":78,"o":1,"name":"치명독"},{"n":79,"o":2,"name":"부식성 맹독"},{"n":80,"o":3,"name":"끝없는 독니"}]},"그림자 도약":{"1":[{"n":81,"o":1,"name":"그림자 도약"}],"2":[{"n":82,"o":1,"name":"높은 곳으로"},{"n":83,"o":2,"name":"그림자 낙하"},{"n":84,"o":3,"name":"벽 차기"}],"3":[{"n":85,"o":1,"name":"그림자 연무"},{"n":86,"o":2,"name":"착지 없는 발걸음"},{"n":87,"o":3,"name":"사각 이동"}],"4":[{"n":88,"o":1,"name":"그림자 무희"},{"n":89,"o":2,"name":"공중 암살"},{"n":90,"o":3,"name":"흔적 없는 자"}]}};
+
+// Gambler 005C-C is sourced from immutable DESIGN-C contracts. Keep stable IDs/options and expose all 30 as real candidates.
+SOURCE.gambler={};
+for(const contract of Object.values(GAMBLER_CONTRACTS)){
+  const build=contract.archetype,tier=String(contract.stage);
+  SOURCE.gambler[build]||={};
+  SOURCE.gambler[build][tier]||=[];
+  SOURCE.gambler[build][tier].push({
+    n:Number(contract.augmentId.slice(4)),
+    o:Number(contract.provenance?.sourceWorkbook?.option)||1,
+    name:contract.name
+  });
+}
+for(const tiers of Object.values(SOURCE.gambler))for(const items of Object.values(tiers))items.sort((a,b)=>a.o-b.o||a.n-b.n);
+
+SOURCE.martial_artist={};
+for(const c of Object.values(MARTIAL_CONTRACTS)){
+ SOURCE.martial_artist[c.archetype]||={};SOURCE.martial_artist[c.archetype][c.stage]||=[];
+ SOURCE.martial_artist[c.archetype][c.stage].push({n:Number(c.augmentId.slice(4)),o:c.stage===1?1:((Number(c.augmentId.slice(4))-272)%10)%3+1,name:c.name});
+}
+SOURCE.vampire={};
+for(const c of Object.values(VAMPIRE_CONTRACTS)){
+ SOURCE.vampire[c.archetype]||={};SOURCE.vampire[c.archetype][c.stage]||=[];
+ const n=Number(c.augmentId.slice(4)),offset=(n-301)%10;
+ SOURCE.vampire[c.archetype][c.stage].push({n,o:offset===0?1:(offset-1)%3+1,name:c.name});
+}
+SOURCE.demon_swordsman={};
+for(const c of Object.values(GHOST_CONTRACTS)){SOURCE.demon_swordsman[c.archetype]||={};SOURCE.demon_swordsman[c.archetype][c.stage]||=[];const n=Number(c.augmentId.slice(4)),offset=(n-331)%10;SOURCE.demon_swordsman[c.archetype][c.stage].push({n,o:offset===0?1:(offset-1)%3+1,name:c.name});}
+SOURCE.twins={};
+for(const c of Object.values(TWINS_CONTRACTS)){SOURCE.twins[c.archetype]||={};SOURCE.twins[c.archetype][c.stage]||=[];const n=Number(c.augmentId.slice(4)),offset=(n-361)%10;SOURCE.twins[c.archetype][c.stage].push({n,o:offset===0?1:(offset-1)%3+1,name:c.name});}
 const defs=[];
 for(const [characterId,builds] of Object.entries(SOURCE))for(const [build,tiers] of Object.entries(builds))for(const [tier,items] of Object.entries(tiers))for(const item of items){
   const id=`aug-${String(item.n).padStart(3,'0')}`;const runtime=executableAugmentRuntime(id);

@@ -1,5 +1,19 @@
+import {TWINS_CONTRACTS} from './twins-contracts.js';
+import {GHOST_CONTRACTS} from './ghost-contracts.js';
+import {VAMPIRE_CONTRACTS} from './vampire-contracts.js';
+import {MARTIAL_CONTRACTS} from './martial-contracts.js';
+import {GUNNER_CONTRACTS} from './gunner-contracts.js';
+import {ADVENTURER_CONTRACTS} from './adventurer-contracts.js';
+import {KNIGHT_CONTRACTS} from './knight-contracts.js';
+import {ROGUE_CONTRACTS} from './rogue-contracts.js';
+import {MAGE_CONTRACTS} from './mage-contracts.js';
+import {BERSERKER_CONTRACTS} from './berserker-contracts.js';
+import {SEER_CONTRACTS} from './seer-contracts.js';
+import {IMP_CONTRACTS} from './imp-contracts.js';
+import {GAMBLER_CONTRACTS} from './gambler-contracts.js';
 export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
   'aug-001':{
+    ...ADVENTURER_CONTRACTS['aug-001'],
     executable:true,
     source:'BETA_v0.1',
     effects:[
@@ -32,9 +46,11 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
       }
     ]
   },
+  'aug-002':{executable:true,source:'BETA_v0.1',tooltip:'최대 HP가 1 증가하고 획득 시 HP를 1 회복합니다.',specialHandlers:['CONTENT_005B'],effects:[]},
+  'aug-003':{executable:true,source:'BETA_v0.2',tooltip:"전투에서 유효 공격을 2회 연속 성공한 뒤, 3번째부터 연속 성공 공격의 피해가 1 증가합니다. 자신의 공격이 무효가 되면 기록이 초기화됩니다.",specialHandlers:['CONTENT_005B'],effects:[]},
+  'aug-004':{executable:true,source:'BETA_v0.2',tooltip:"전투에서 첫 충돌 후 다음 유효 공격에 성공하면 성장 EXP 1을 추가로 얻습니다. 전투당 1회입니다.",specialHandlers:['CONTENT_005B'],effects:[]},
   'aug-031':{
-    executable:true,
-    source:'BETA_v0.1',
+    ...KNIGHT_CONTRACTS['aug-031'],
     effects:[
       {
         id:'aug-031-toughness-cap',
@@ -75,8 +91,8 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
     ]
   },
   'aug-061':{
-    executable:true,
-    source:'BETA_v0.1',
+    ...ROGUE_CONTRACTS['aug-061'],
+    specialHandlers:['ROGUE_V02'],
     effects:[
       {
         id:'aug-061-sneaky-success',
@@ -85,10 +101,9 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
         condition:{all:[{path:'resolved.valid',eq:true},{path:'resolved.soloLowest',eq:true}]},
         operations:[
           {type:'CAPTURE_RESOURCE',resource:'sneakyStack',field:'sneakyBonus'},
-          {type:'SET_RESOURCE',resource:'sneakyStack',amount:1}
+          {type:'ADD_RESOURCE',resource:'sneakyStack',amount:1}
         ],
-        maxTriggers:1,resetScope:'TURN',
-        tags:['T00','REFERENCE']
+        maxTriggers:1,resetScope:'TURN',tags:['T00','REFERENCE']
       },
       {
         id:'aug-061-sneaky-reset',
@@ -96,23 +111,23 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
         priority:41,
         condition:{not:{all:[{path:'resolved.valid',eq:true},{path:'resolved.soloLowest',eq:true}]}},
         operations:[{type:'SET_RESOURCE',resource:'sneakyStack',amount:0}],
-        maxTriggers:1,resetScope:'TURN',
-        tags:['T00','REFERENCE']
+        maxTriggers:1,resetScope:'TURN',tags:['T00','REFERENCE']
       },
       {
         id:'aug-061-sneaky-damage',
         trigger:'BEFORE_DAMAGE',
         priority:60,
         condition:{path:'resolved.sneakyBonus',gt:0},
-        operations:[{type:'MODIFY_DAMAGE',amountPath:'resolved.sneakyBonus'}],
-        maxTriggers:1,resetScope:'TURN',
-        tags:['T00','REFERENCE']
+        operations:[
+          {type:'MODIFY_DAMAGE',amountPath:'resolved.sneakyBonus'},
+          {type:'SPEND_RESOURCE',resource:'sneakyStack',amountPath:'resolved.sneakyBonus'}
+        ],
+        maxTriggers:1,resetScope:'TURN',tags:['T00','REFERENCE']
       }
     ]
   },
   'aug-091':{
-    executable:true,
-    source:'BETA_v0.1',
+    ...MAGE_CONTRACTS['aug-091'],
     effects:[
       {
         id:'aug-091-mana-cap',
@@ -122,77 +137,42 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
         maxTriggers:1,resetScope:'COMBAT',
         tags:['T00','REFERENCE']
       }
-    ]
+    ],
+    specialHandlers:['MAGE_V02']
   },
   'aug-101':{
-    executable:true,
-    source:'BETA_v0.1',
-    specialHandlers:['WHITE_MAGE'],
+    ...MAGE_CONTRACTS['aug-101'],
+    specialHandlers:['WHITE_MAGE','MAGE_V02'],
     config:{healAmount:1,maxTargetsPerTurn:1,excludeSelf:true},
     effects:[]
   },
   'aug-111':{
-    executable:true,
-    source:'BETA_v0.1',
-    specialHandlers:['REVERSE_MATH'],
+    ...MAGE_CONTRACTS['aug-111'],
+    specialHandlers:['REVERSE_MATH','MAGE_V02'],
     effects:[]
   },
   'aug-041':{
-    executable:true,
-    source:'BETA_v0.1',
-    specialHandlers:['GUARDIAN_WALL'],
+    ...KNIGHT_CONTRACTS['aug-041'],
+    specialHandlers:['GUARDIAN_WALL','KNIGHT_V02'],
     config:{guardedAlliesPerTurn:1,redirectCount:1,redirectDamageMode:'FULL'},
     effects:[]
   },
   'aug-051':{
-    executable:true,
-    source:'BETA_v0.1',
-    specialHandlers:['CRUSH_KNIGHT'],
+    ...KNIGHT_CONTRACTS['aug-051'],
+    specialHandlers:['CRUSH_KNIGHT','KNIGHT_V02'],
     config:{crushDamagePerCard:1,crushDamageCap:2},
     effects:[]
   },
   'aug-121':{
-    executable:true,
-    source:'BETA_v0.1',
-    specialHandlers:['BLOOD_FRENZY'],
+    ...BERSERKER_CONTRACTS['aug-121'],
+    specialHandlers:['BLOOD_FRENZY','BERSERKER_V02'],
     config:{bonusDamageOnActualHpCost:2},
     effects:[]
   },
   'aug-131':{
-    executable:true,
-    source:'BETA_v0.1',
-    specialHandlers:['IMMORTAL_FIGHTER'],
+    ...BERSERKER_CONTRACTS['aug-131'],
+    specialHandlers:['IMMORTAL_FIGHTER','BERSERKER_V02'],
     config:{collisionHealCapMode:'MAX_HP',revengeMax:1,revengeBonusDamage:2},
-    effects:[]
-  },
-  'aug-161':{
-    executable:true,
-    source:'BETA_v0.1',
-    specialHandlers:['FATE_MANIPULATOR'],
-    config:{recoverCount:1,targetMode:'EXPLICIT_ALLY',recoverableSources:['BASE'],excludeTemporary:true},
-    effects:[]
-  },
-  'aug-181':{
-    executable:true,
-    source:'BETA_v0.1',
-    specialHandlers:['BOLD_STEAL'],
-    effects:[
-      {
-        id:'aug-181-bold-steal-damage',
-        trigger:'BEFORE_DAMAGE',
-        priority:55,
-        condition:{path:'resolved.stealTargetCount',gte:2},
-        operations:[{type:'MODIFY_DAMAGE',amount:2}],
-        maxTriggers:1,resetScope:'TURN',
-        tags:['T05','NUMBER_MUTATION']
-      }
-    ]
-  },
-  'aug-241':{
-    executable:true,
-    source:'BETA_v0.1',
-    specialHandlers:['FULL_BARRAGE'],
-    config:{expandedDeck:[1,2,2,3]},
     effects:[]
   },
   'aug-291':{
@@ -258,7 +238,20 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
         tags:['T05','NUMBER_MUTATION']
       }
     ]
-  }
+  },
+  ...Object.fromEntries(Object.entries(KNIGHT_CONTRACTS).filter(([id])=>!['aug-031','aug-041','aug-051'].includes(id)).map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['KNIGHT_V02']}])) ,
+  ...Object.fromEntries(Object.entries(ADVENTURER_CONTRACTS).filter(([id])=>id!=='aug-001').map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['ADVENTURER_V02']}])) ,
+  ...Object.fromEntries(Object.entries(ROGUE_CONTRACTS).filter(([id])=>id!=='aug-061').map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['ROGUE_V02']}])) ,
+  ...Object.fromEntries(Object.entries(MAGE_CONTRACTS).filter(([id])=>!['aug-091','aug-101','aug-111'].includes(id)).map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['MAGE_V02']}])) ,
+  ...Object.fromEntries(Object.entries(BERSERKER_CONTRACTS).filter(([id])=>!['aug-121','aug-131'].includes(id)).map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['BERSERKER_V02']}])) ,
+  ...Object.fromEntries(Object.entries(SEER_CONTRACTS).map(([id,contract])=>[id,{...contract,...(id==='aug-161'?{config:{recoverCount:1,targetMode:'EXPLICIT_ALLY',recoverableSources:['BASE'],excludeTemporary:true}}:{}),effects:[],specialHandlers:['SEER_V02']}])) ,
+  ...Object.fromEntries(Object.entries(IMP_CONTRACTS).map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['IMP_V02']}])) ,
+  ...Object.fromEntries(Object.entries(GUNNER_CONTRACTS).map(([id,contract])=>[id,{...contract,executable:true,config:id==='aug-241'?{expandedDeck:[1,2,2,3]}:{},effects:[],specialHandlers:['GUNNER_V02']}])) ,
+  ...Object.fromEntries(Object.entries(GAMBLER_CONTRACTS).map(([id,contract])=>[id,{...contract,...(id==='aug-237'?{tooltipBetaV02:'올인 성공 공격의 실제 피해가 8 이상이면 다음 드로우 페널티를 1턴 줄입니다(최소 0턴). 전투당 1회.'}:{}),executable:true,effects:[],specialHandlers:['GAMBLER_V02']}])) ,
+  ...MARTIAL_CONTRACTS,
+  ...VAMPIRE_CONTRACTS,
+  ...GHOST_CONTRACTS,
+  ...TWINS_CONTRACTS,
 });
 
 export function executableAugmentRuntime(augmentId){return EXECUTABLE_AUGMENT_RUNTIME[augmentId]||null;}

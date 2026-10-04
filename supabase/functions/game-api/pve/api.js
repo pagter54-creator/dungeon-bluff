@@ -1,22 +1,29 @@
+import {chooseRelicOpportunity} from './augment-framework.js';
 import {newPlayerRunState,newCombatState} from './model.js';
 import {PVE_CHARACTER_DEFS} from './characters.js';
 import {GAME_MODE,roomGameMode} from '../game-mode.js';
 import {beginEntryLoading,finishEntryLoading} from '../entry-loading.js';
 import {generateFloorMap,connectedNodeIds,resolveVote} from './map.js';
 import {restoreCardCycle} from './card-cycle.js';
+import {setGamblerDrawPreference} from './gambler.js';
 import {projectRun} from './projection.js';
 import {submitCard,resolveBasicTurn,beginTurn} from './combat.js';
 import {activateImmediateCharacterSkill} from './characters.js';
 import {chooseAugment} from './augments.js';
-import {enterRestRoom,applyRestChoice,enterShopRoom,reserveShopCard,cancelShopCardReservation,confirmShopCard,buyShopRelic,finishShop,enterRewardRoom,activateRewardSkill,submitRewardCard,resolveRewardAttempt,chooseRewardRelic,roomReady,expireShopReservations} from './rooms.js';
+import {applyOwnedEffects} from './effects.js';
+import {enterRestRoom,applyRestChoice,enterShopRoom,reserveShopCard,cancelShopCardReservation,confirmShopCard,buyShopRelic,finishShop,enterRewardRoom,activateRewardSkill,submitRewardCard,resolveRewardAttempt,chooseRewardRelic,useRewardGamblerLuck,roomReady,expireShopReservations} from './rooms.js';
 import {enterEventRoom,chooseEventOption,submitEventCard} from './events.js';
-import {F1_RELIC_DEFINITIONS,selectF1Monster,markF1MonsterUsed} from './content-f1.js';
+import {F1_RELIC_DEFINITIONS,F1_MONSTER_DEFINITIONS,selectF1Monster,markF1MonsterUsed} from './content-f1.js';
 import {installRelicCatalog} from './relics.js';
+import {choose} from './rng.js';
+import {advanceCompletedFloor} from './floor-transition.js';
+import {F2_MONSTER_DEFINITIONS,selectF2Monster} from './content-f2.js';
+import {selectF3Monster} from './content-f3.js';
 
 const uuid=v=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 export const PVE_ROOM_CHARACTER_MAP=Object.freeze({
   adventurer:'adventurer',warrior:'warrior',rogue:'rogue',mage:'mage',berserker:'berserker',
-  vampire:'vampire',imp:'imp',seer:'prophet',gunner:'gunner',fighter:'martial_artist',
+  vampire:'vampire',imp:'imp',gambler:'gambler',seer:'prophet',gunner:'gunner',fighter:'martial_artist',
   demonsword:'demon_swordsman',twins:'twins'
 });
 export function pveCharacterIdForRoom(characterId){return PVE_ROOM_CHARACTER_MAP[characterId]||null;}
@@ -37,7 +44,8 @@ export function buildInitialPveRun(bundle,{seed=null,depthCount=8,now=Date.now()
     player.displayName=member.display_name;
     return player;
   });
-  const run={id:crypto.randomUUID(),roomId:bundle.room.id,seed:typeof seed==='string'&&seed.length<=128?seed:crypto.randomUUID(),rngCounter:0,version:0,phase:'MAP_VOTE',floor:1,depth:0,flame:4,maxFlame:5,map:null,currentRoomNodeId:null,players,usedMonsterIds:[],chosenBossIds:{1:'f1_fallen_lord'},contentVersion:'F1_VERTICAL_SLICE_V1',createdAt:new Date(now).toISOString(),updatedAt:new Date(now).toISOString()};
+  const run={id:crypto.randomUUID(),roomId:bundle.room.id,seed:typeof seed==='string'&&seed.length<=128?seed:crypto.randomUUID(),rngCounter:0,version:0,phase:'MAP_VOTE',floor:1,depth:0,flame:4,maxFlame:5,map:null,currentRoomNodeId:null,players,usedMonsterIds:[],chosenBossIds:{},contentVersion:'F1_CONTENT_001B',createdAt:new Date(now).toISOString(),updatedAt:new Date(now).toISOString()};
+  run.chosenBossIds[1]=choose(run,Object.values(F1_MONSTER_DEFINITIONS).filter(def=>def.tier==='BOSS'),`f1-boss:${run.seed}`).id;
   installRelicCatalog(run,F1_RELIC_DEFINITIONS);
   run.map=generateFloorMap(run,Number.isInteger(depthCount)&&depthCount>=2&&depthCount<=12?depthCount:8);
   run.map.voteDeadline=new Date(now+15000).toISOString();
@@ -72,9 +80,10 @@ function captureRoomPresentationBaseline(run,id,type){
   };
 }
 function enterNode(run,id){
-  const type=nodeType(run,id);captureRoomPresentationBaseline(run,id,type);run.currentRoomNodeId=id;run.phase='ROOM_ENTER';
+  const type=nodeType(run,id);
+  captureRoomPresentationBaseline(run,id,type);run.currentRoomNodeId=id;run.phase='ROOM_ENTER';
   if(type==='NORMAL_COMBAT'||type==='ELITE_COMBAT'||type==='BOSS'){
-    const monster=selectF1Monster(run,type);markF1MonsterUsed(run,monster);
+    const monster=run.floor===3?selectF3Monster(run,type):run.floor===2?selectF2Monster(run,type):selectF1Monster(run,type);markF1MonsterUsed(run,monster);
     run.phase='COMBAT';run.combat=newCombatState(run.players,monster.baseHp,type,monster);
     run.combat.privateByPlayer=Object.fromEntries(run.players.map(player=>[player.playerId,restoreCardCycle(run,player)]));
     beginTurn(run);
@@ -202,14 +211,25 @@ export async function handlePveAction({admin,user,body,json}){
     const counts=Object.values(run.map.votes).reduce((m,id)=>(m[id]=(m[id]||0)+1,m),{});
     const majority=Object.values(counts).some(n=>n>humans.length/2);
     if(!enterForcedNode(run)&&(majority||timedOut)){const chosen=resolveVote(run,humans);enterNode(run,chosen);}
+  } else if(action==='pve.continueFloor'){
+    if(run.phase!=='FLOOR_CLEAR'||![1,2].includes(run.floor))return fail(json,'지금은 다음 층으로 이동할 수 없습니다.');
+    advanceCompletedFloor(run);
   } else if(action==='pve.activateSkill'){
     if(run.phase!=='COMBAT')return fail(json,'현재 전투 중이 아닙니다.');
     activateImmediateCharacterSkill(run,me,body.skill_data??null);
+    applyOwnedEffects(run,'ON_SKILL_USE',{player:me,skillData:body.skill_data??null});
+  } else if(action==='pve.gamblerDrawChoice'){
+    if(run.phase!=='COMBAT'||run.combat?.phase!=='SELECTION_OPEN')return fail(json,'현재 도박사 드로우 선택 단계가 아닙니다.');
+    if(me.memberType!=='human'||me.characterId!=='gambler')return fail(json,'도박사 플레이어만 드로우 선택을 할 수 있습니다.',403);
+    const state=run.combat?.privateByPlayer?.[me.playerId];if(!state)return fail(json,'도박사 상태를 찾을 수 없습니다.',409);
+    try{setGamblerDrawPreference(run,me,state,body.choice);}catch(error){return fail(json,error.message||'드로우 선택을 적용할 수 없습니다.',409);}
   } else if(action==='pve.submitCard'){
     if(run.phase!=='COMBAT')return fail(json,'현재 전투 중이 아닙니다.');
     if(typeof body.card_instance_id!=='string')return fail(json,'card_instance_id가 필요합니다.');
     submitCard(run,me.playerId,body.card_instance_id,body.skill_intent===true,body.skill_data??null);
     resolveBasicTurn(run);
+  } else if(action==='pve.chooseRelicOpportunity'){
+    chooseRelicOpportunity(run,me.playerId,body.opportunity_id,body.relic_id);
   } else if(action==='pve.chooseAugment'){
     if(typeof body.augment_id!=='string')return fail(json,'augment_id가 필요합니다.');
     chooseAugment(run,me.playerId,body.augment_id);
@@ -238,10 +258,14 @@ export async function handlePveAction({admin,user,body,json}){
     finishShop(run,me.playerId);
   } else if(action==='pve.rewardActivateSkill'){
     activateRewardSkill(run,me.playerId);
+    applyOwnedEffects(run,'ON_SKILL_USE',{player:me});
   } else if(action==='pve.rewardSubmitCard'){
     if(typeof body.card_instance_id!=='string')return fail(json,'card_instance_id가 필요합니다.');
     submitRewardCard(run,me.playerId,body.card_instance_id,body.skill_intent===true,body.skill_data??null);
     resolveRewardAttempt(run);
+  } else if(action==='pve.rewardUseGamblerLuck'){
+    if(body.mode!=='ATTACK'&&body.mode!=='SPECIAL')return fail(json,'mode는 ATTACK 또는 SPECIAL이어야 합니다.');
+    useRewardGamblerLuck(run,me.playerId,body.mode,actionId);
   } else if(action==='pve.rewardChooseRelic'){
     if(typeof body.relic_id!=='string')return fail(json,'relic_id가 필요합니다.');
     chooseRewardRelic(run,me.playerId,body.relic_id);
