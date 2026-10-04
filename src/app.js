@@ -159,7 +159,7 @@ function pveEncounterArt(run){
   const stage=pveStageModel(run);
   if(run.combat?.monster)return stage.shape?creatureArt(stage.shape,stage.color):'';
   const category=run.phase==='REST'?'recovery':run.phase==='SHOP'||run.phase==='REWARD_ROOM'?'treasure':'event';
-  return eventArt(category,run.roomState?.illustration||run.roomState?.eventId);
+  return eventArt(category,run.roomState?.eventId,run.roomState?.illustration);
 }
 function pveMageIntentChoices(player,selectedCardId){
   const mana=Number(player?.publicResources?.mana)||0,augments=player?.augments||[];

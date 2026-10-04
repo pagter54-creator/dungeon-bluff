@@ -24,8 +24,9 @@ export function creatureArt(shape = 'seer') {
   const src=MONSTER_IMAGES[shape];
   return src?'<img class="creature monster-illustration" src="'+src+'" alt="" draggable="false" decoding="async">':'';
 }
-export function eventArt(category, eventId) {
-  const image = EVENT_IMAGES[eventId];
+export function eventArt(category, eventId, illustrationId) {
+  // Prefer dedicated art, including old saves carrying a reused illustration ID.
+  const image = EVENT_IMAGES[eventId] || EVENT_IMAGES[illustrationId];
   if (image) return `<img class="creature monster-illustration event-illustration" data-event-category="${category}" src="${image}" alt="" draggable="false" decoding="async">`;
   const inner = {
     treasure: '<path d="m70 113 20-41h120l20 41v91H70Z"/><path d="M70 120h160m-137 0v84m114-84v84"/><path d="M135 109h30v34h-30Z" class="bone"/>',

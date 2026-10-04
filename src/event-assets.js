@@ -1,4 +1,4 @@
-// Stable event IDs map to user-supplied PNGs. No database requests required.
+// Stable event IDs map to supplied or generated PNGs. No database requests required.
 export const EVENT_IMAGES = {
   pressure_plate: new URL('../monster/01_압력판 회랑.png', import.meta.url).href,
   overload_device: new URL('../monster/02_과부하 장치.png', import.meta.url).href,
@@ -16,4 +16,6 @@ export const EVENT_IMAGES = {
   ancient_gate: new URL('../monster/14_고대의 문.png', import.meta.url).href,
   suspicious_offer: new URL('../monster/15_수상한 제안.png', import.meta.url).href,
   truce_offer: new URL('../monster/16_휴전 제안.png', import.meta.url).href,
+  f1_abandoned_camp: new URL('../monster/f1_abandoned_camp.png', import.meta.url).href,
+  f1_weathered_shrine: new URL('../monster/f1_weathered_shrine.png', import.meta.url).href,
 };
