@@ -56,14 +56,14 @@ export function createPveCuePlayer(root=globalThis.document?.querySelector('#app
   const result=panel.querySelector('[data-pattern-result]'),progress=panel.querySelector('[data-pattern-progress]');
   panel.dataset.outcome='JUDGING';if(result)result.textContent='판정';
   if(!motionPreference.matches)await wait(220);if(!alive())return;
-  panel.dataset.outcome=cue.outcome;if(result)result.textContent=cue.label;
+  panel.dataset.outcome=cue.outcome;if(result){const status={ACTIVE:'패턴 발동',BLOCKED:'저지 성공',PARTIAL:'부분 결과',WAIT:'준비 중'}[cue.outcome];result.textContent=cue.label===status?status:status+' · '+cue.label;}
   if(progress)progress.textContent=cue.detail;
   // Monster motif rotates its own seal; blocked seals contract, activated seals radiate.
   const seal=document.createElement('span');owned.add(seal);seal.className='pve-pattern-seal';
   seal.textContent=cue.outcome==='BLOCKED'?cue.theme.suppressionGlyph||'✓':cue.theme.glyph;seal.dataset.shape=cue.theme.sealShape;seal.style.setProperty('--seal-angle',(cue.theme.activationAngle||0)+'deg');seal.style.setProperty('--cue-color',cue.theme.color);enemy?.append(seal);
   const blocked=cue.outcome==='BLOCKED',partial=cue.outcome==='PARTIAL';
   seal.dataset.outcome=cue.outcome;seal.dataset.motif=cue.theme.motif;
-  animate(seal,blocked?[{transform:'scale(1.5)',opacity:1},{transform:'scale(.4)',opacity:0}]:
+  animate(seal,cue.outcome==='WAIT'?[{opacity:.3,transform:'scale(.8)'},{opacity:.7,transform:'scale(.9)'},{opacity:.3,transform:'scale(.8)'}]:blocked?[{transform:'scale(1.5)',opacity:1},{transform:'scale(.4)',opacity:0}]:
    partial?[{transform:'rotate(-20deg) scale(.6)',opacity:0},{transform:'rotate(20deg) scale(1.1)',opacity:1},{opacity:0}]:
    [{transform:'scale(.5)',opacity:0},{transform:'scale(1.4)',opacity:1,offset:.5},{transform:'scale(1.8)',opacity:0}],cue.theme.boss?800:600);
   const targets=cue.targetIds.flatMap(nodesFor);for(const n of targets)n.classList.add('pve-cue-target');
