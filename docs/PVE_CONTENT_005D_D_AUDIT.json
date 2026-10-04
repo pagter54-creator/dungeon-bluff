@@ -1,0 +1,49 @@
+{
+  "task": "PVE_CONTENT_005D_D",
+  "baselineHead": "857507e02817c8494e569db647cec30ff850a310",
+  "status": "CI_PENDING",
+  "registered": 30,
+  "executable": 30,
+  "candidateReachable": 30,
+  "positive": 30,
+  "conditionNegative": 30,
+  "wrongRoomNegative": 30,
+  "acquisition": 30,
+  "fullBuilds": 3,
+  "stageProgressionBuilds": 3,
+  "testsPrepared": 183,
+  "inMemoryRepositoryModuleCheck": {
+    "pass": 183,
+    "fail": 0,
+    "limitation": "Supplemental only; GitHub Node CI remains authoritative."
+  },
+  "sourceIntegrity": {
+    "modifiedBETA": 0,
+    "modified005R": 0,
+    "modifiedDESIGN": 0,
+    "modifiedOriginalGolden": 0
+  },
+  "flags": {
+    "TWINS_RUNTIME_COMPLETE": false,
+    "READY_FOR_PVE_CONTENT_005D_FINAL": false
+  },
+  "sourcePrecedence": [
+    "USER_CONFIRMED_005Q_DESIGN_D_PATCH:D04",
+    "PVE_CONTENT_005Q_DESIGN_D"
+  ],
+  "executionRuleIds": [
+    "TWINS_PARITY_CHECK_ON_PRINTED_CARD_SELECTION"
+  ],
+  "historicalGolden": {
+    "T02": "unchanged original and 005D versioned fingerprint",
+    "T06": "unchanged original and 005D versioned fingerprint; restored Acrobatics event envelope compatibility",
+    "T04": "unchanged"
+  },
+  "predecessorGate": {
+    "head": "857507e02817c8494e569db647cec30ff850a310",
+    "runId": 37210639547,
+    "runNumber": 971,
+    "status": "completed",
+    "conclusion": "success"
+  }
+}

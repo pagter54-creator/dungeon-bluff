@@ -40,6 +40,7 @@ function runtimeState(player){
   return {
     ...r,
     ghostTransformation:player.augments?.includes('aug-351')||false,
+    sun:r.sun,moon:r.moon,eclipse:r.eclipse,acrobaticsRechargeNeed:player.augments?.includes('aug-381')?(player.augments?.includes('aug-385')?2:3):null,
     ghostThreshold:player.augments?.includes('aug-348')?4:player.augments?.includes('aug-342')?5:player.augments?.includes('aug-341')?6:8,
     mana:r.mana||0,
     manaMax,

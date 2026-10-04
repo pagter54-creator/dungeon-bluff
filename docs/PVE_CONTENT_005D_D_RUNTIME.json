@@ -1,0 +1,584 @@
+{
+  "task": "PVE_CONTENT_005D_D",
+  "entries": [
+    {
+      "augmentId": "aug-361",
+      "name": "완벽한 교대",
+      "archetype": "완벽한 교대",
+      "stage": 1,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 361 actual contract positive",
+      "negativeTest": "Twins 361 condition negative"
+    },
+    {
+      "augmentId": "aug-362",
+      "name": "쌍인 호흡",
+      "archetype": "완벽한 교대",
+      "stage": 2,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 362 actual contract positive",
+      "negativeTest": "Twins 362 condition negative"
+    },
+    {
+      "augmentId": "aug-363",
+      "name": "안전망",
+      "archetype": "완벽한 교대",
+      "stage": 2,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 363 actual contract positive",
+      "negativeTest": "Twins 363 condition negative"
+    },
+    {
+      "augmentId": "aug-364",
+      "name": "교대 발놀림",
+      "archetype": "완벽한 교대",
+      "stage": 2,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 364 actual contract positive",
+      "negativeTest": "Twins 364 condition negative"
+    },
+    {
+      "augmentId": "aug-365",
+      "name": "완벽한 합",
+      "archetype": "완벽한 교대",
+      "stage": 3,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 365 actual contract positive",
+      "negativeTest": "Twins 365 condition negative"
+    },
+    {
+      "augmentId": "aug-366",
+      "name": "교차 찌르기",
+      "archetype": "완벽한 교대",
+      "stage": 3,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 366 actual contract positive",
+      "negativeTest": "Twins 366 condition negative"
+    },
+    {
+      "augmentId": "aug-367",
+      "name": "동시 착지",
+      "archetype": "완벽한 교대",
+      "stage": 3,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 367 actual contract positive",
+      "negativeTest": "Twins 367 condition negative"
+    },
+    {
+      "augmentId": "aug-368",
+      "name": "무결점 공연",
+      "archetype": "완벽한 교대",
+      "stage": 4,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 368 actual contract positive",
+      "negativeTest": "Twins 368 condition negative"
+    },
+    {
+      "augmentId": "aug-369",
+      "name": "쌍인 피날레",
+      "archetype": "완벽한 교대",
+      "stage": 4,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 369 actual contract positive",
+      "negativeTest": "Twins 369 condition negative"
+    },
+    {
+      "augmentId": "aug-370",
+      "name": "앙코르!",
+      "archetype": "완벽한 교대",
+      "stage": 4,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 370 actual contract positive",
+      "negativeTest": "Twins 370 condition negative"
+    },
+    {
+      "augmentId": "aug-371",
+      "name": "태양과 달",
+      "archetype": "태양과 달",
+      "stage": 1,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 371 actual contract positive",
+      "negativeTest": "Twins 371 condition negative"
+    },
+    {
+      "augmentId": "aug-372",
+      "name": "따스한 코로나",
+      "archetype": "태양과 달",
+      "stage": 2,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 372 actual contract positive",
+      "negativeTest": "Twins 372 condition negative"
+    },
+    {
+      "augmentId": "aug-373",
+      "name": "창백한 월광",
+      "archetype": "태양과 달",
+      "stage": 2,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 373 actual contract positive",
+      "negativeTest": "Twins 373 condition negative"
+    },
+    {
+      "augmentId": "aug-374",
+      "name": "천구의 관성",
+      "archetype": "태양과 달",
+      "stage": 2,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 374 actual contract positive",
+      "negativeTest": "Twins 374 condition negative"
+    },
+    {
+      "augmentId": "aug-375",
+      "name": "태양의 잔광",
+      "archetype": "태양과 달",
+      "stage": 3,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 375 actual contract positive",
+      "negativeTest": "Twins 375 condition negative"
+    },
+    {
+      "augmentId": "aug-376",
+      "name": "월식의 잔흔",
+      "archetype": "태양과 달",
+      "stage": 3,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 376 actual contract positive",
+      "negativeTest": "Twins 376 condition negative"
+    },
+    {
+      "augmentId": "aug-377",
+      "name": "합삭과 망",
+      "archetype": "태양과 달",
+      "stage": 3,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 377 actual contract positive",
+      "negativeTest": "Twins 377 condition negative"
+    },
+    {
+      "augmentId": "aug-378",
+      "name": "영원의 일식",
+      "archetype": "태양과 달",
+      "stage": 4,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 378 actual contract positive",
+      "negativeTest": "Twins 378 condition negative"
+    },
+    {
+      "augmentId": "aug-379",
+      "name": "핏빛 월식",
+      "archetype": "태양과 달",
+      "stage": 4,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 379 actual contract positive",
+      "negativeTest": "Twins 379 condition negative"
+    },
+    {
+      "augmentId": "aug-380",
+      "name": "천체윤회",
+      "archetype": "태양과 달",
+      "stage": 4,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 380 actual contract positive",
+      "negativeTest": "Twins 380 condition negative"
+    },
+    {
+      "augmentId": "aug-381",
+      "name": "공중 곡예",
+      "archetype": "공중 곡예",
+      "stage": 1,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 381 actual contract positive",
+      "negativeTest": "Twins 381 condition negative"
+    },
+    {
+      "augmentId": "aug-382",
+      "name": "높이 더!",
+      "archetype": "공중 곡예",
+      "stage": 2,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 382 actual contract positive",
+      "negativeTest": "Twins 382 condition negative"
+    },
+    {
+      "augmentId": "aug-383",
+      "name": "연속 공중제비",
+      "archetype": "공중 곡예",
+      "stage": 2,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 383 actual contract positive",
+      "negativeTest": "Twins 383 condition negative"
+    },
+    {
+      "augmentId": "aug-384",
+      "name": "안전 착지",
+      "archetype": "공중 곡예",
+      "stage": 2,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 384 actual contract positive",
+      "negativeTest": "Twins 384 condition negative"
+    },
+    {
+      "augmentId": "aug-385",
+      "name": "트리플 악셀",
+      "archetype": "공중 곡예",
+      "stage": 3,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 385 actual contract positive",
+      "negativeTest": "Twins 385 condition negative"
+    },
+    {
+      "augmentId": "aug-386",
+      "name": "아슬아슬한 묘기",
+      "archetype": "공중 곡예",
+      "stage": 3,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 386 actual contract positive",
+      "negativeTest": "Twins 386 condition negative"
+    },
+    {
+      "augmentId": "aug-387",
+      "name": "공중 교대",
+      "archetype": "공중 곡예",
+      "stage": 3,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 387 actual contract positive",
+      "negativeTest": "Twins 387 condition negative"
+    },
+    {
+      "augmentId": "aug-388",
+      "name": "끝없는 앙코르",
+      "archetype": "공중 곡예",
+      "stage": 4,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 388 actual contract positive",
+      "negativeTest": "Twins 388 condition negative"
+    },
+    {
+      "augmentId": "aug-389",
+      "name": "낙하 피날레",
+      "archetype": "공중 곡예",
+      "stage": 4,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 389 actual contract positive",
+      "negativeTest": "Twins 389 condition negative"
+    },
+    {
+      "augmentId": "aug-390",
+      "name": "하늘을 걷는 쌍둥이",
+      "archetype": "공중 곡예",
+      "stage": 4,
+      "executable": true,
+      "handler": "TWINS_V02",
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "positiveTest": "Twins 390 actual contract positive",
+      "negativeTest": "Twins 390 condition negative"
+    }
+  ],
+  "runtime": {
+    "printedParityEligibility": true,
+    "finalParityRecheck": false,
+    "postSpendRecoveryBeforeNaturalCycle": true,
+    "monotonicSpentSequence": true,
+    "recoveryPreservesPhysicalId": true,
+    "noCrossCycleArchive": true,
+    "serverGuardsHidden": true
+  }
+}
