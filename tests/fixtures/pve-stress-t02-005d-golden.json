@@ -1,0 +1,854 @@
+{
+  "seed": "smoke:T02:0000",
+  "fingerprint": "35113d1bb861373087817fe3d30938fd29914ae54e6909a0127c2fbe9849174b",
+  "executionRuleSource": "PVE_CONTENT_005Q_DESIGN_D",
+  "historicalGhostObservations": {
+    "F1_GUNNER_EXPANDED_MAGAZINE": {
+      "resources": {
+        "combo": 0,
+        "devour": 0,
+        "transform": false,
+        "fullBurstReady": null
+      },
+      "cardNumbers": [
+        1,
+        2,
+        3,
+        4,
+        4
+      ],
+      "cycle": 1,
+      "packets": [],
+      "events": [],
+      "afterKill": null,
+      "baseDevourPersisted": null
+    },
+    "F2_FULL_BURST_ALL_FOLLOWUPS": {
+      "resources": {
+        "combo": 0,
+        "devour": 1,
+        "transform": false,
+        "fullBurstReady": null
+      },
+      "cardNumbers": [
+        1,
+        2,
+        3,
+        4,
+        4
+      ],
+      "cycle": 1,
+      "packets": [
+        {
+          "i": 4,
+          "p": {
+            "damageEventId": "player-damage:burst:stress-combat:smoke:T02:0000:F2:1:p1:p1:base:2:5",
+            "rootActionId": "action:stress-combat:smoke:T02:0000:F2:1:p1:p1:base:2",
+            "burstChainId": "burst:stress-combat:smoke:T02:0000:F2:1:p1:p1:base:2",
+            "parentDamageEventId": null,
+            "sourcePlayerId": "p1",
+            "sourceCardId": "p1:base:2",
+            "baseNumber": 2,
+            "baseDamage": 2,
+            "classBonus": 0,
+            "augmentBonus": 0,
+            "totalDamage": 2,
+            "followUp": false,
+            "followUpDepth": 0,
+            "modifierIds": [],
+            "bossThresholdsCrossed": []
+          }
+        }
+      ],
+      "events": [
+        {
+          "i": 0,
+          "p": {
+            "type": "DEVOUR_GAINED",
+            "playerId": "p1",
+            "amount": 1,
+            "before": 0,
+            "after": 1,
+            "totalAward": null,
+            "topDamage": null,
+            "comboConsumed": null,
+            "bonusDamage": null,
+            "cardNumbers": null
+          }
+        }
+      ],
+      "afterKill": null,
+      "baseDevourPersisted": null
+    },
+    "F4_FULL_BURST_FAILURE": {
+      "resources": {
+        "combo": 0,
+        "devour": 0,
+        "transform": false,
+        "fullBurstReady": null
+      },
+      "cardNumbers": [
+        1,
+        2,
+        3,
+        4,
+        4
+      ],
+      "cycle": 1,
+      "packets": [],
+      "events": [],
+      "afterKill": null,
+      "baseDevourPersisted": null
+    },
+    "F6_DEVOUR_PERSISTENCE": {
+      "resources": {
+        "combo": 0,
+        "devour": 5,
+        "transform": false,
+        "fullBurstReady": null
+      },
+      "cardNumbers": [
+        1,
+        2,
+        3,
+        4,
+        4
+      ],
+      "cycle": 1,
+      "packets": [],
+      "events": [],
+      "afterKill": 5,
+      "baseDevourPersisted": null
+    },
+    "F7_TRANSFORMATION_THRESHOLD": {
+      "resources": {
+        "combo": 0,
+        "devour": 6,
+        "transform": true,
+        "fullBurstReady": null
+      },
+      "cardNumbers": [
+        2,
+        4,
+        5,
+        6
+      ],
+      "cycle": 1,
+      "packets": [
+        {
+          "i": 1,
+          "p": {
+            "damageEventId": "player-damage:burst:stress-combat:smoke:T02:0000:F7:1:p1:p1:base:2:2",
+            "rootActionId": "action:stress-combat:smoke:T02:0000:F7:1:p1:p1:base:2",
+            "burstChainId": "burst:stress-combat:smoke:T02:0000:F7:1:p1:p1:base:2",
+            "parentDamageEventId": null,
+            "sourcePlayerId": "p1",
+            "sourceCardId": "p1:base:2",
+            "baseNumber": 2,
+            "baseDamage": 2,
+            "classBonus": 0,
+            "augmentBonus": 0,
+            "totalDamage": 2,
+            "followUp": false,
+            "followUpDepth": 0,
+            "modifierIds": [],
+            "bossThresholdsCrossed": []
+          }
+        }
+      ],
+      "events": [
+        {
+          "i": 0,
+          "p": {
+            "type": "DEVOUR_GAINED",
+            "playerId": "p1",
+            "amount": 1,
+            "before": 5,
+            "after": 6,
+            "totalAward": null,
+            "topDamage": null,
+            "comboConsumed": null,
+            "bonusDamage": null,
+            "cardNumbers": null
+          }
+        },
+        {
+          "i": 2,
+          "p": {
+            "type": "DEMON_TRANSFORMED",
+            "playerId": "p1",
+            "amount": null,
+            "before": null,
+            "after": null,
+            "totalAward": null,
+            "topDamage": null,
+            "comboConsumed": null,
+            "bonusDamage": null,
+            "cardNumbers": [
+              2,
+              4,
+              5,
+              6
+            ]
+          }
+        }
+      ],
+      "afterKill": null,
+      "baseDevourPersisted": null
+    },
+    "F9_TRANSFORMED_ATTACK_BURST": {
+      "resources": {
+        "combo": 0,
+        "devour": 7,
+        "transform": true,
+        "fullBurstReady": null
+      },
+      "cardNumbers": [
+        2,
+        4,
+        5,
+        6
+      ],
+      "cycle": 1,
+      "packets": [
+        {
+          "i": 1,
+          "p": {
+            "damageEventId": "player-damage:burst:stress-combat:smoke:T02:0000:F9:1:p1:p1:demon:stress-combat:smoke:T02:0000:F9:fixture:4:2",
+            "rootActionId": "action:stress-combat:smoke:T02:0000:F9:1:p1:p1:demon:stress-combat:smoke:T02:0000:F9:fixture:4",
+            "burstChainId": "burst:stress-combat:smoke:T02:0000:F9:1:p1:p1:demon:stress-combat:smoke:T02:0000:F9:fixture:4",
+            "parentDamageEventId": null,
+            "sourcePlayerId": "p1",
+            "sourceCardId": "p1:demon:stress-combat:smoke:T02:0000:F9:fixture:4",
+            "baseNumber": 6,
+            "baseDamage": 6,
+            "classBonus": 0,
+            "augmentBonus": 0,
+            "totalDamage": 6,
+            "followUp": false,
+            "followUpDepth": 0,
+            "modifierIds": [],
+            "bossThresholdsCrossed": []
+          }
+        }
+      ],
+      "events": [
+        {
+          "i": 0,
+          "p": {
+            "type": "DEVOUR_GAINED",
+            "playerId": "p1",
+            "amount": 1,
+            "before": 6,
+            "after": 7,
+            "totalAward": null,
+            "topDamage": null,
+            "comboConsumed": null,
+            "bonusDamage": null,
+            "cardNumbers": null
+          }
+        }
+      ],
+      "afterKill": null,
+      "baseDevourPersisted": null
+    },
+    "F10_MARTIAL_COMBO_GAIN": {
+      "resources": {
+        "combo": 0,
+        "devour": 1,
+        "transform": false,
+        "fullBurstReady": null
+      },
+      "cardNumbers": [
+        1,
+        2,
+        3,
+        4,
+        4
+      ],
+      "cycle": 1,
+      "packets": [
+        {
+          "i": 1,
+          "p": {
+            "damageEventId": "player-damage:burst:stress-combat:smoke:T02:0000:F10:1:p1:p1:base:3:2",
+            "rootActionId": "action:stress-combat:smoke:T02:0000:F10:1:p1:p1:base:3",
+            "burstChainId": "burst:stress-combat:smoke:T02:0000:F10:1:p1:p1:base:3",
+            "parentDamageEventId": null,
+            "sourcePlayerId": "p1",
+            "sourceCardId": "p1:base:3",
+            "baseNumber": 3,
+            "baseDamage": 3,
+            "classBonus": 0,
+            "augmentBonus": 0,
+            "totalDamage": 3,
+            "followUp": false,
+            "followUpDepth": 0,
+            "modifierIds": [],
+            "bossThresholdsCrossed": []
+          }
+        }
+      ],
+      "events": [
+        {
+          "i": 0,
+          "p": {
+            "type": "DEVOUR_GAINED",
+            "playerId": "p1",
+            "amount": 1,
+            "before": 0,
+            "after": 1,
+            "totalAward": null,
+            "topDamage": null,
+            "comboConsumed": null,
+            "bonusDamage": null,
+            "cardNumbers": null
+          }
+        }
+      ],
+      "afterKill": null,
+      "baseDevourPersisted": null
+    },
+    "F12_ONE_HIT_KILL_CONSUME": {
+      "resources": {
+        "combo": 0,
+        "devour": 1,
+        "transform": false,
+        "fullBurstReady": null
+      },
+      "cardNumbers": [
+        1,
+        2,
+        3,
+        4,
+        4
+      ],
+      "cycle": 1,
+      "packets": [
+        {
+          "i": 1,
+          "p": {
+            "damageEventId": "player-damage:burst:stress-combat:smoke:T02:0000:F12:1:p1:p1:base:3:2",
+            "rootActionId": "action:stress-combat:smoke:T02:0000:F12:1:p1:p1:base:3",
+            "burstChainId": "burst:stress-combat:smoke:T02:0000:F12:1:p1:p1:base:3",
+            "parentDamageEventId": null,
+            "sourcePlayerId": "p1",
+            "sourceCardId": "p1:base:3",
+            "baseNumber": 3,
+            "baseDamage": 3,
+            "classBonus": 0,
+            "augmentBonus": 0,
+            "totalDamage": 3,
+            "followUp": false,
+            "followUpDepth": 0,
+            "modifierIds": [],
+            "bossThresholdsCrossed": []
+          }
+        }
+      ],
+      "events": [
+        {
+          "i": 1,
+          "p": {
+            "type": "DEVOUR_GAINED",
+            "playerId": "p1",
+            "amount": 1,
+            "before": 0,
+            "after": 1,
+            "totalAward": null,
+            "topDamage": null,
+            "comboConsumed": null,
+            "bonusDamage": null,
+            "cardNumbers": null
+          }
+        }
+      ],
+      "afterKill": null,
+      "baseDevourPersisted": null
+    },
+    "F13_FINISHER_FAILURE": {
+      "resources": {
+        "combo": 0,
+        "devour": 1,
+        "transform": false,
+        "fullBurstReady": null
+      },
+      "cardNumbers": [
+        1,
+        2,
+        3,
+        4,
+        4
+      ],
+      "cycle": 1,
+      "packets": [
+        {
+          "i": 1,
+          "p": {
+            "damageEventId": "player-damage:burst:stress-combat:smoke:T02:0000:F13:1:p1:p1:base:2:2",
+            "rootActionId": "action:stress-combat:smoke:T02:0000:F13:1:p1:p1:base:2",
+            "burstChainId": "burst:stress-combat:smoke:T02:0000:F13:1:p1:p1:base:2",
+            "parentDamageEventId": null,
+            "sourcePlayerId": "p1",
+            "sourceCardId": "p1:base:2",
+            "baseNumber": 2,
+            "baseDamage": 2,
+            "classBonus": 0,
+            "augmentBonus": 0,
+            "totalDamage": 2,
+            "followUp": false,
+            "followUpDepth": 0,
+            "modifierIds": [],
+            "bossThresholdsCrossed": []
+          }
+        }
+      ],
+      "events": [
+        {
+          "i": 1,
+          "p": {
+            "type": "DEVOUR_GAINED",
+            "playerId": "p1",
+            "amount": 1,
+            "before": 0,
+            "after": 1,
+            "totalAward": null,
+            "topDamage": null,
+            "comboConsumed": null,
+            "bonusDamage": null,
+            "cardNumbers": null
+          }
+        }
+      ],
+      "afterKill": null,
+      "baseDevourPersisted": null
+    },
+    "F14_BLOOD_FRENZY_HIGH_HP": {
+      "resources": {
+        "combo": 0,
+        "devour": 1,
+        "transform": false,
+        "fullBurstReady": null
+      },
+      "cardNumbers": [
+        1,
+        2,
+        3,
+        4,
+        4
+      ],
+      "cycle": 1,
+      "packets": [
+        {
+          "i": 1,
+          "p": {
+            "damageEventId": "player-damage:burst:stress-combat:smoke:T02:0000:F14:1:p1:p1:base:2:2",
+            "rootActionId": "action:stress-combat:smoke:T02:0000:F14:1:p1:p1:base:2",
+            "burstChainId": "burst:stress-combat:smoke:T02:0000:F14:1:p1:p1:base:2",
+            "parentDamageEventId": null,
+            "sourcePlayerId": "p1",
+            "sourceCardId": "p1:base:2",
+            "baseNumber": 2,
+            "baseDamage": 2,
+            "classBonus": 0,
+            "augmentBonus": 0,
+            "totalDamage": 2,
+            "followUp": false,
+            "followUpDepth": 0,
+            "modifierIds": [],
+            "bossThresholdsCrossed": []
+          }
+        }
+      ],
+      "events": [
+        {
+          "i": 0,
+          "p": {
+            "type": "DEVOUR_GAINED",
+            "playerId": "p1",
+            "amount": 1,
+            "before": 0,
+            "after": 1,
+            "totalAward": null,
+            "topDamage": null,
+            "comboConsumed": null,
+            "bonusDamage": null,
+            "cardNumbers": null
+          }
+        }
+      ],
+      "afterKill": null,
+      "baseDevourPersisted": null
+    },
+    "F15_BLOOD_FRENZY_HP1": {
+      "resources": {
+        "combo": 0,
+        "devour": 1,
+        "transform": false,
+        "fullBurstReady": null
+      },
+      "cardNumbers": [
+        1,
+        2,
+        3,
+        4,
+        4
+      ],
+      "cycle": 1,
+      "packets": [
+        {
+          "i": 1,
+          "p": {
+            "damageEventId": "player-damage:burst:stress-combat:smoke:T02:0000:F15:1:p1:p1:base:2:2",
+            "rootActionId": "action:stress-combat:smoke:T02:0000:F15:1:p1:p1:base:2",
+            "burstChainId": "burst:stress-combat:smoke:T02:0000:F15:1:p1:p1:base:2",
+            "parentDamageEventId": null,
+            "sourcePlayerId": "p1",
+            "sourceCardId": "p1:base:2",
+            "baseNumber": 2,
+            "baseDamage": 2,
+            "classBonus": 0,
+            "augmentBonus": 0,
+            "totalDamage": 2,
+            "followUp": false,
+            "followUpDepth": 0,
+            "modifierIds": [],
+            "bossThresholdsCrossed": []
+          }
+        }
+      ],
+      "events": [
+        {
+          "i": 0,
+          "p": {
+            "type": "DEVOUR_GAINED",
+            "playerId": "p1",
+            "amount": 1,
+            "before": 0,
+            "after": 1,
+            "totalAward": null,
+            "topDamage": null,
+            "comboConsumed": null,
+            "bonusDamage": null,
+            "cardNumbers": null
+          }
+        }
+      ],
+      "afterKill": null,
+      "baseDevourPersisted": null
+    },
+    "F18_FULL_PARTY_BURST": {
+      "resources": {
+        "combo": 0,
+        "devour": 7,
+        "transform": true,
+        "fullBurstReady": null
+      },
+      "cardNumbers": [
+        2,
+        4,
+        5,
+        6
+      ],
+      "cycle": 1,
+      "packets": [
+        {
+          "i": 4,
+          "p": {
+            "damageEventId": "player-damage:burst:stress-combat:smoke:T02:0000:F18:1:p1:p1:demon:stress-combat:smoke:T02:0000:F18:fixture:4:5",
+            "rootActionId": "action:stress-combat:smoke:T02:0000:F18:1:p1:p1:demon:stress-combat:smoke:T02:0000:F18:fixture:4",
+            "burstChainId": "burst:stress-combat:smoke:T02:0000:F18:1:p1:p1:demon:stress-combat:smoke:T02:0000:F18:fixture:4",
+            "parentDamageEventId": null,
+            "sourcePlayerId": "p1",
+            "sourceCardId": "p1:demon:stress-combat:smoke:T02:0000:F18:fixture:4",
+            "baseNumber": 6,
+            "baseDamage": 6,
+            "classBonus": 0,
+            "augmentBonus": 0,
+            "totalDamage": 6,
+            "followUp": false,
+            "followUpDepth": 0,
+            "modifierIds": [],
+            "bossThresholdsCrossed": []
+          }
+        }
+      ],
+      "events": [
+        {
+          "i": 1,
+          "p": {
+            "type": "DEVOUR_GAINED",
+            "playerId": "p1",
+            "amount": 1,
+            "before": 6,
+            "after": 7,
+            "totalAward": null,
+            "topDamage": null,
+            "comboConsumed": null,
+            "bonusDamage": null,
+            "cardNumbers": null
+          }
+        }
+      ],
+      "afterKill": null,
+      "baseDevourPersisted": null
+    },
+    "F19_BOSS_MULTI_THRESHOLD": {
+      "resources": {
+        "combo": 0,
+        "devour": 7,
+        "transform": true,
+        "fullBurstReady": null
+      },
+      "cardNumbers": [
+        2,
+        4,
+        5,
+        6
+      ],
+      "cycle": 1,
+      "packets": [
+        {
+          "i": 4,
+          "p": {
+            "damageEventId": "player-damage:burst:stress-combat:smoke:T02:0000:F19:1:p1:p1:demon:stress-combat:smoke:T02:0000:F19:fixture:4:5",
+            "rootActionId": "action:stress-combat:smoke:T02:0000:F19:1:p1:p1:demon:stress-combat:smoke:T02:0000:F19:fixture:4",
+            "burstChainId": "burst:stress-combat:smoke:T02:0000:F19:1:p1:p1:demon:stress-combat:smoke:T02:0000:F19:fixture:4",
+            "parentDamageEventId": null,
+            "sourcePlayerId": "p1",
+            "sourceCardId": "p1:demon:stress-combat:smoke:T02:0000:F19:fixture:4",
+            "baseNumber": 6,
+            "baseDamage": 6,
+            "classBonus": 0,
+            "augmentBonus": 0,
+            "totalDamage": 6,
+            "followUp": false,
+            "followUpDepth": 0,
+            "modifierIds": [],
+            "bossThresholdsCrossed": []
+          }
+        }
+      ],
+      "events": [
+        {
+          "i": 1,
+          "p": {
+            "type": "DEVOUR_GAINED",
+            "playerId": "p1",
+            "amount": 1,
+            "before": 6,
+            "after": 7,
+            "totalAward": null,
+            "topDamage": null,
+            "comboConsumed": null,
+            "bonusDamage": null,
+            "cardNumbers": null
+          }
+        }
+      ],
+      "afterKill": null,
+      "baseDevourPersisted": null
+    },
+    "F20_NO_FOLLOWUP_RECURSION": {
+      "resources": {
+        "combo": 0,
+        "devour": 1,
+        "transform": false,
+        "fullBurstReady": null
+      },
+      "cardNumbers": [
+        1,
+        2,
+        3,
+        4,
+        4
+      ],
+      "cycle": 1,
+      "packets": [
+        {
+          "i": 4,
+          "p": {
+            "damageEventId": "player-damage:burst:stress-combat:smoke:T02:0000:F20:1:p1:p1:base:2:5",
+            "rootActionId": "action:stress-combat:smoke:T02:0000:F20:1:p1:p1:base:2",
+            "burstChainId": "burst:stress-combat:smoke:T02:0000:F20:1:p1:p1:base:2",
+            "parentDamageEventId": null,
+            "sourcePlayerId": "p1",
+            "sourceCardId": "p1:base:2",
+            "baseNumber": 2,
+            "baseDamage": 2,
+            "classBonus": 0,
+            "augmentBonus": 0,
+            "totalDamage": 2,
+            "followUp": false,
+            "followUpDepth": 0,
+            "modifierIds": [],
+            "bossThresholdsCrossed": []
+          }
+        }
+      ],
+      "events": [
+        {
+          "i": 0,
+          "p": {
+            "type": "DEVOUR_GAINED",
+            "playerId": "p1",
+            "amount": 1,
+            "before": 0,
+            "after": 1,
+            "totalAward": null,
+            "topDamage": null,
+            "comboConsumed": null,
+            "bonusDamage": null,
+            "cardNumbers": null
+          }
+        }
+      ],
+      "afterKill": null,
+      "baseDevourPersisted": null
+    },
+    "F21_NO_DUPLICATE_MODIFIER": {
+      "resources": {
+        "combo": 0,
+        "devour": 1,
+        "transform": false,
+        "fullBurstReady": null
+      },
+      "cardNumbers": [
+        1,
+        2,
+        3,
+        4,
+        4
+      ],
+      "cycle": 1,
+      "packets": [
+        {
+          "i": 1,
+          "p": {
+            "damageEventId": "player-damage:burst:stress-combat:smoke:T02:0000:F21:1:p1:p1:base:2:2",
+            "rootActionId": "action:stress-combat:smoke:T02:0000:F21:1:p1:p1:base:2",
+            "burstChainId": "burst:stress-combat:smoke:T02:0000:F21:1:p1:p1:base:2",
+            "parentDamageEventId": null,
+            "sourcePlayerId": "p1",
+            "sourceCardId": "p1:base:2",
+            "baseNumber": 2,
+            "baseDamage": 2,
+            "classBonus": 0,
+            "augmentBonus": 0,
+            "totalDamage": 2,
+            "followUp": false,
+            "followUpDepth": 0,
+            "modifierIds": [],
+            "bossThresholdsCrossed": []
+          }
+        }
+      ],
+      "events": [
+        {
+          "i": 1,
+          "p": {
+            "type": "DEVOUR_GAINED",
+            "playerId": "p1",
+            "amount": 1,
+            "before": 0,
+            "after": 1,
+            "totalAward": null,
+            "topDamage": null,
+            "comboConsumed": null,
+            "bonusDamage": null,
+            "cardNumbers": null
+          }
+        }
+      ],
+      "afterKill": null,
+      "baseDevourPersisted": null
+    },
+    "F22_RUN_VS_COMBAT_RESOURCE": {
+      "resources": {
+        "combo": 0,
+        "devour": 0,
+        "transform": false,
+        "fullBurstReady": null
+      },
+      "cardNumbers": [
+        1,
+        2,
+        3,
+        4,
+        4
+      ],
+      "cycle": 1,
+      "packets": [
+        {
+          "i": 1,
+          "p": {
+            "damageEventId": "player-damage:burst:stress-combat:smoke:T02:0000:F22-released:1:p1:p1:demon:stress-combat:smoke:T02:0000:F22-released:fixture:4:2",
+            "rootActionId": "action:stress-combat:smoke:T02:0000:F22-released:1:p1:p1:demon:stress-combat:smoke:T02:0000:F22-released:fixture:4",
+            "burstChainId": "burst:stress-combat:smoke:T02:0000:F22-released:1:p1:p1:demon:stress-combat:smoke:T02:0000:F22-released:fixture:4",
+            "parentDamageEventId": null,
+            "sourcePlayerId": "p1",
+            "sourceCardId": "p1:demon:stress-combat:smoke:T02:0000:F22-released:fixture:4",
+            "baseNumber": 6,
+            "baseDamage": 6,
+            "classBonus": 0,
+            "augmentBonus": 0,
+            "totalDamage": 6,
+            "followUp": false,
+            "followUpDepth": 0,
+            "modifierIds": [],
+            "bossThresholdsCrossed": []
+          }
+        }
+      ],
+      "events": [
+        {
+          "i": 0,
+          "p": {
+            "type": "DEVOUR_GAINED",
+            "playerId": "p1",
+            "amount": 1,
+            "before": 6,
+            "after": 7,
+            "totalAward": null,
+            "topDamage": null,
+            "comboConsumed": null,
+            "bonusDamage": null,
+            "cardNumbers": null
+          }
+        },
+        {
+          "i": 2,
+          "p": {
+            "type": "DEVOUR_GAINED",
+            "playerId": "p1",
+            "amount": 2,
+            "before": 7,
+            "after": 9,
+            "totalAward": null,
+            "topDamage": null,
+            "comboConsumed": null,
+            "bonusDamage": null,
+            "cardNumbers": null
+          }
+        },
+        {
+          "i": 3,
+          "p": {
+            "type": "DEVOUR_KILL_AWARD",
+            "playerId": "p1",
+            "amount": null,
+            "before": null,
+            "after": null,
+            "totalAward": 3,
+            "topDamage": false,
+            "comboConsumed": null,
+            "bonusDamage": null,
+            "cardNumbers": null
+          }
+        }
+      ],
+      "afterKill": null,
+      "baseDevourPersisted": 5
+    }
+  }
+}

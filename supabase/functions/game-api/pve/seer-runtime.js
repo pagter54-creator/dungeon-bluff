@@ -77,7 +77,7 @@ function eligibleSpent(run,target){
   const submitted=(run.combat||run.roomState)?.turnSubmissions?.[target.playerId]?.cardInstanceId||null;
   const selected=priv.selectedCardId||null;
   return (priv.spentCardIds||[]).map((id,index)=>({id,index,card:target.cardPool.find(c=>c.id===id)})).filter(x=>
-    x.card?.source==='BASE'&&x.id!==submitted&&x.id!==selected&&!(x.card.tags||[]).some(tag=>['TEMPORARY','TRANSFORMED','SPECIAL'].includes(tag))&&!(priv.remainingCardIds||[]).includes(x.id)
+    (x.card?.source==='BASE'&&!(x.card.tags||[]).some(tag=>['TEMPORARY','TRANSFORMED','SPECIAL'].includes(tag))||target.characterId==='demon_swordsman'&&target.publicResources.transformationActive&&x.card?.source==='DEMON_TRANSFORM')&&x.id!==submitted&&x.id!==selected&&!(priv.remainingCardIds||[]).includes(x.id)
   ).sort((a,b)=>b.index-a.index||String(a.id).localeCompare(String(b.id))).map(x=>x.id);
 }
 function seededCandidates(run,owner,target,ids,count,label){

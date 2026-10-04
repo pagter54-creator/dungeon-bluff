@@ -146,8 +146,8 @@ export const CANONICAL_RULES=Object.freeze([
   {id:'RULE-T03-B',topic:'White Magic multi-target',rule:'Tier-I 백마도사는 여러 eligible 아군과 동시에 충돌하면 lobby seat가 가장 빠른 1명만 HP 1 회복한다.'},
   {id:'RULE-T02-A',topic:'Martial previous card',rule:'무투가의 직전 카드는 성공 여부와 무관하게 직전 턴 실제 공개된 final_number를 사용한다.'},
   {id:'RULE-T02-B',topic:'One-Hit Kill failure cost',rule:'일격필살은 유효 공격 성공 시에만 현재 Combo를 전부 소비하며 collision/invalid 실패 시 Combo를 소비하지 않는다.'},
-  {id:'RULE-T02-C',topic:'Demon kill Devour precedence',rule:'귀검사 포식은 일반 유효 공격 총 +1, 막타 총 +3, 막타이면서 처치 턴 최고 피해면 총 +5이며 한 공격에는 가장 높은 조건 하나만 적용한다.'},
-  {id:'RULE-T02-D',topic:'Released Demon Sword card lifecycle',rule:'해방된 귀검은 전투 포식 6에서 귀화하고 카드풀을 2/4/5/6 임시 풀로 교체한다. 4장을 모두 사용하거나 전투가 끝나면 원래 physical card pool과 zone을 복원하며 귀화 종료 포식은 0이다.'},
+  {id:'RULE-T02-C',topic:'Demon kill Devour precedence',rule:'DESIGN-D: 귀검사는 일반 유효 공격 총1, 유효 처치 기여 총4, 처치 턴 공동 최고 피해 총8을 적용한다. threshold8을 소비해 레벨을 올리고 초과분은 RUN에 유지한다.'},
+  {id:'RULE-T02-D',topic:'Released Demon Sword card lifecycle',rule:'USER_CONFIRMED D07: 포식6 이상에서 귀화 READY, 최종 제출 전 수동 활성화로6 소비/현재 normal cycle 폐기/2·4·5·6 임시 풀 생성. 임시 카드 전부 사용 시 새 normal cycle을 만들며 base 포식0. Combat 끝에도 임시 zone과 포식 정리.'},
   {id:'RULE-T02-E',topic:'Full Burst follow-up trigger scope',rule:'전탄발사 follow-up은 남은 physical card별 피해 packet이며, 턴당 1회/첫 유효 공격/기본 ON_VALID_ATTACK 계열은 명시적 multi-hit 허용 없이는 follow-up마다 반복 발동하지 않는다.'},
   {id:'RULE-T05-A',topic:'Multiple Imp PRE_COLLISION_STEAL ordering',rule:'같은 resolve의 여러 Imp는 lobby seat 오름차순, 동률이면 playerId 순서로 처리하며 뒤 Imp는 앞 Imp가 이미 변경한 현재 working number를 본다. victim은 0 아래로 내려가지 않고 actual stolen amount만 source에 더한다.'}
 ]);
@@ -787,6 +787,8 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
       }
       run.combat._t06PendingPolicy=structuredClone(plan);
     }else if(policy==='burst'||policy==='steady_burst'){
+      // The benchmark bot explicitly activates manual Ghost transformation in selection.
+      for(const p of run.players)if(p.characterId==='demon_swordsman'&&p.augments.includes('aug-351')&&p.publicResources.transformationPending&&!p.publicResources.transformationActive&&p.status!=='DOWNED'){activateImmediateCharacterSkill(run,p);actions++;assertRunInvariants(run);}
       const contextKey=`${run.currentRoomNodeId||run.combat?.monster?.id||'combat'}:turn:${turn}`;
       const intents=[],views=new Map();
       for(const p of run.players){

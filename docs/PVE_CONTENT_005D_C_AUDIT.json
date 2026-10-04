@@ -1,0 +1,59 @@
+{
+  "task": "PVE_CONTENT_005D_C",
+  "baselineHead": "62be0b795a325592f258ce68268859d80515262c",
+  "predecessorGate": {
+    "runId": 37196798186,
+    "runNumber": 967,
+    "head": "62be0b795a325592f258ce68268859d80515262c",
+    "status": "completed",
+    "conclusion": "success"
+  },
+  "registered": 30,
+  "executable": 30,
+  "candidateReachable": 30,
+  "positive": 30,
+  "conditionNegative": 30,
+  "wrongRoomNegative": 30,
+  "acquisition": 30,
+  "fullBuilds": 3,
+  "stageProgressionBuilds": 3,
+  "testsPrepared": 174,
+  "inMemoryRepositoryModuleCheck": {
+    "pass": 174,
+    "fail": 0,
+    "limitation": "Supplemental JS module checks; GitHub Node CI is authoritative."
+  },
+  "status": "CI_PENDING",
+  "flags": {
+    "GHOST_RUNTIME_COMPLETE": false,
+    "READY_FOR_PVE_CONTENT_005D_D_TWINS": false
+  },
+  "sourceIntegrity": {
+    "modifiedBETA": 0,
+    "modified005R": 0,
+    "modifiedDESIGN": 0,
+    "modifiedOriginalGolden": 0
+  },
+  "historicalMigration": {
+    "executionRuleSource": "PVE_CONTENT_005Q_DESIGN_D",
+    "authority": "USER_RESUME_NIGHT_RUN_R01_R03",
+    "userConfirmedRuleIds": [
+      "DEVOUR_THRESHOLD_OVERFLOW_CARRY",
+      "GHOST_TRANSFORMATION_MANUAL_PRE_SUBMIT_ACTIVATION"
+    ],
+    "supersedesHistoricalRule": [
+      "rawLifetimeDevourRecomputesLevel",
+      "automaticTransformationAtTurnEnd",
+      "restorePausedNormalPool"
+    ],
+    "originalGoldenFilesUnchanged": [
+      "tests/fixtures/pve-stress-t02-golden.json",
+      "tests/fixtures/pve-stress-t06-golden.json"
+    ],
+    "versionedGoldenFiles": [
+      "tests/fixtures/pve-stress-t02-005d-golden.json",
+      "tests/fixtures/pve-stress-t06-005d-golden.json"
+    ],
+    "proof": "Assert modern comparable fingerprint, then restore ONLY explicitly recorded Ghost historical resources/cards/events/packets and existing Seer bootstrap normalization to assert unchanged original fingerprint. Non-Ghost semantics remain exactly equal."
+  }
+}

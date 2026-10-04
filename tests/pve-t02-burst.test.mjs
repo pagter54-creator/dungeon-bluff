@@ -53,7 +53,7 @@ test('T02 F1-F22 cover Full Burst, Devour/transform, One-Hit Kill, Blood Frenzy,
   const f2=fixture(r,'F2_FULL_BURST_ALL_FOLLOWUPS'),p0=packets(f2,'p0');
   assert.equal(p0.length,4);assert.equal(p0.filter(x=>x.followUp).length,3);assert.ok(p0.every(x=>(x.followUpDepth??0)<=1));
   const f4=fixture(r,'F4_FULL_BURST_FAILURE');assert.equal(card(f4,'p0').fullBurstOutcome,'FAIL_COLLISION');assert.equal(packets(f4,'p0').length,0);assert.equal(f4.hp.p0,2);
-  assert.equal(fixture(r,'F6_DEVOUR_PERSISTENCE').afterKill,5);
+  assert.equal(fixture(r,'F6_DEVOUR_PERSISTENCE').afterKill,1);
   const f7=fixture(r,'F7_TRANSFORMATION_THRESHOLD');assert.equal(f7.resources.p1.transform,true);assert.deepEqual(f7.cardPools.p1.map(x=>x.baseNumber),[2,4,5,6]);
   assert.equal(fixture(r,'F8_NO_DUPLICATE_TRANSFORMATION').transformCount,1);
   assert.equal(fixture(r,'F10_MARTIAL_COMBO_GAIN').resources.p2.combo,1);
@@ -66,13 +66,18 @@ test('T02 F1-F22 cover Full Burst, Devour/transform, One-Hit Kill, Blood Frenzy,
   assert.ok(fixture(r,'F19_BOSS_MULTI_THRESHOLD').thresholdsCrossed.length>=2);
   assert.equal(fixture(r,'F20_NO_FOLLOWUP_RECURSION').recursiveFollowUpCount,0);
   assert.equal(fixture(r,'F21_NO_DUPLICATE_MODIFIER').duplicateModifierCount,0);
-  const f22=fixture(r,'F22_RUN_VS_COMBAT_RESOURCE');assert.equal(f22.baseDevourPersisted,5);assert.equal(f22.resources.p1.transform,false);assert.equal(f22.resources.p2.combo,0);assert.deepEqual(f22.cardPools.p1.map(x=>x.baseNumber),[1,2,3,4,4]);
+  const f22=fixture(r,'F22_RUN_VS_COMBAT_RESOURCE');assert.equal(f22.baseDevourPersisted,1);assert.equal(f22.resources.p1.transform,false);assert.equal(f22.resources.p2.combo,0);assert.deepEqual(f22.cardPools.p1.map(x=>x.baseNumber),[1,2,3,4,4]);
 });
 
 test('T02 fixed semantic golden fingerprint is deterministic',()=>{
   const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/pve-stress-t02-golden.json',import.meta.url),'utf8'));
   const r=replayScenario('T02',golden.seed);
-  assert.equal(semanticFingerprint(t02GoldenComparable(r)),golden.fingerprint);
+  const modern=JSON.parse(fs.readFileSync(new URL('./fixtures/pve-stress-t02-005d-golden.json',import.meta.url),'utf8'));
+  assert.equal(semanticFingerprint(t02GoldenComparable(r)),modern.fingerprint);
+  const historical=structuredClone(t02GoldenComparable(r));
+ const restore=(rows,observations,ownerField,owner)=>{const plain=rows.filter(r=>r[ownerField]!==owner),stored=new Map(observations.map(x=>[x.i,x.p]));return Array.from({length:plain.length+stored.size},(_,i)=>stored.has(i)?stored.get(i):plain.shift());};
+  for(const row of historical.fixtures){const prior=modern.historicalGhostObservations[row.id];row.resources.p1=prior.resources;row.cardNumbers.p1=prior.cardNumbers;row.cycles.p1=prior.cycle;row.packets=restore(row.packets,prior.packets,'sourcePlayerId','p1');row.events=restore(row.events,prior.events,'playerId','p1');row.afterKill=prior.afterKill;row.baseDevourPersisted=prior.baseDevourPersisted;}
+  assert.equal(semanticFingerprint(historical),golden.fingerprint,'all non-Ghost semantics match immutable historical golden');
   const b=replayScenario('T02',golden.seed);
   assert.equal(r.replayFingerprint,b.replayFingerprint);
   assert.deepEqual(t02GoldenComparable(r),t02GoldenComparable(b));

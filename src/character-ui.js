@@ -45,7 +45,9 @@ export function revelationGauge(player) {
   if(player.skillId==='toughness')return resourceGauge('강인함 충전',player.characterRuntimeState?.toughnessCharges||0,2,'toughness-gauge');
   if(player.skillId==='soul_slash'){
     const stacks=player.characterRuntimeState?.predation||0;
-    return `<small class="predation-count">포식 ${stacks} · 귀참 Lv.${Math.floor(stacks/8)} +${1+Math.floor(stacks/8)}</small>${resourceGauge('다음 귀참 레벨 진행도',stacks%8,8,'predation-gauge')}`;
+    const level=player.characterRuntimeState?.ghostSlashLevel??Math.floor(stacks/8),threshold=player.characterRuntimeState?.ghostThreshold||8;
+    if(player.characterRuntimeState?.ghostTransformation)return `<small class="predation-count">포식 ${stacks} · ${player.characterRuntimeState?.transformationActive?'귀화 중':'귀화에 포식 6 필요'}</small>`;
+    return `<small class="predation-count">포식 ${stacks} · 귀참 Lv.${level} +${level+1}</small>${resourceGauge('다음 귀참 레벨 진행도',stacks,threshold,'predation-gauge')}`;
   }
   if (player.skillId === 'combo') return `<div class="revelation-gauge" role="meter" aria-label="연격 중첩" aria-valuemin="0" aria-valuemax="3" aria-valuenow="${player.characterRuntimeState?.comboStacks||0}">${[0,1,2].map(i=>`<i class="revelation-pip ${i<(player.characterRuntimeState?.comboStacks||0)?'filled':''}" aria-hidden="true"></i>`).join('')}</div><small class="combo-previous">직전 카드: ${html(player.characterRuntimeState?.comboPrevious ?? '-')}</small>`;
   if (player.skillId !== 'revelation') return '';
@@ -65,7 +67,8 @@ export function activeButton(player, useSkill, blocked, members=[], players={}, 
   }
   if(player.skillId==='soul_slash'){
     const ready=!!player.activeSkillState?.available&&!blocked;
-    const level=Math.floor((player.characterRuntimeState?.predation||0)/8);
+    if(player.characterRuntimeState?.ghostTransformation)return `<button type="button" class="active-skill" data-action="activate-ghost-transformation" data-network ${!ready?'disabled':''}>귀화 <b>${player.characterRuntimeState?.transformationActive?'귀화 중':ready?'포식 6 소비 · 귀화 시작':'포식 6 필요'}</b></button>${revelationGauge(player)}`;
+    const level=player.characterRuntimeState?.ghostSlashLevel??Math.floor((player.characterRuntimeState?.predation||0)/8);
     return `<button type="button" class="active-skill ${useSkill&&ready?'armed':''}" data-action="toggle-skill" aria-pressed="${Boolean(useSkill&&ready)}" ${!ready?'disabled':''}><span class="soul-slash-level">⚔ 귀참 Lv.${level} +${level+1}</span> <b>${ready?(useSkill?'ON':'READY'):'이번 사이클 사용'}</b></button>${revelationGauge(player)}`;
   }
   if(player.skillId==='amplify'){

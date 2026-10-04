@@ -1,0 +1,597 @@
+{
+  "task": "PVE_CONTENT_005D_C",
+  "entries": [
+    {
+      "augmentId": "aug-331",
+      "name": "포식 귀참",
+      "archetype": "포식 귀참",
+      "stage": 1,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 331 actual contract positive",
+      "negativeTest": "Ghost 331 actual condition negative"
+    },
+    {
+      "augmentId": "aug-332",
+      "name": "탐식",
+      "archetype": "포식 귀참",
+      "stage": 2,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 332 actual contract positive",
+      "negativeTest": "Ghost 332 actual condition negative"
+    },
+    {
+      "augmentId": "aug-333",
+      "name": "막타 본능",
+      "archetype": "포식 귀참",
+      "stage": 2,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 333 actual contract positive",
+      "negativeTest": "Ghost 333 actual condition negative"
+    },
+    {
+      "augmentId": "aug-334",
+      "name": "칼날의 기억",
+      "archetype": "포식 귀참",
+      "stage": 2,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 334 actual contract positive",
+      "negativeTest": "Ghost 334 actual condition negative"
+    },
+    {
+      "augmentId": "aug-335",
+      "name": "끝없는 포식",
+      "archetype": "포식 귀참",
+      "stage": 3,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 335 actual contract positive",
+      "negativeTest": "Ghost 335 actual condition negative"
+    },
+    {
+      "augmentId": "aug-336",
+      "name": "피 냄새",
+      "archetype": "포식 귀참",
+      "stage": 3,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 336 actual contract positive",
+      "negativeTest": "Ghost 336 actual condition negative"
+    },
+    {
+      "augmentId": "aug-337",
+      "name": "마검 숙련",
+      "archetype": "포식 귀참",
+      "stage": 3,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 337 actual contract positive",
+      "negativeTest": "Ghost 337 actual condition negative"
+    },
+    {
+      "augmentId": "aug-338",
+      "name": "끝없는 식욕",
+      "archetype": "포식 귀참",
+      "stage": 4,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 338 actual contract positive",
+      "negativeTest": "Ghost 338 actual condition negative"
+    },
+    {
+      "augmentId": "aug-339",
+      "name": "처형의 귀참",
+      "archetype": "포식 귀참",
+      "stage": 4,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 339 actual contract positive",
+      "negativeTest": "Ghost 339 actual condition negative"
+    },
+    {
+      "augmentId": "aug-340",
+      "name": "마검의 주인",
+      "archetype": "포식 귀참",
+      "stage": 4,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 340 actual contract positive",
+      "negativeTest": "Ghost 340 actual condition negative"
+    },
+    {
+      "augmentId": "aug-341",
+      "name": "굶주린 마검",
+      "archetype": "굶주린 마검",
+      "stage": 1,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 341 actual contract positive",
+      "negativeTest": "Ghost 341 actual condition negative"
+    },
+    {
+      "augmentId": "aug-342",
+      "name": "허기",
+      "archetype": "굶주린 마검",
+      "stage": 2,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 342 actual contract positive",
+      "negativeTest": "Ghost 342 actual condition negative"
+    },
+    {
+      "augmentId": "aug-343",
+      "name": "핏빛 식사",
+      "archetype": "굶주린 마검",
+      "stage": 2,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 343 actual contract positive",
+      "negativeTest": "Ghost 343 actual condition negative"
+    },
+    {
+      "augmentId": "aug-344",
+      "name": "포악한 칼날",
+      "archetype": "굶주린 마검",
+      "stage": 2,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 344 actual contract positive",
+      "negativeTest": "Ghost 344 actual condition negative"
+    },
+    {
+      "augmentId": "aug-345",
+      "name": "폭식",
+      "archetype": "굶주린 마검",
+      "stage": 3,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 345 actual contract positive",
+      "negativeTest": "Ghost 345 actual condition negative"
+    },
+    {
+      "augmentId": "aug-346",
+      "name": "기아의 분노",
+      "archetype": "굶주린 마검",
+      "stage": 3,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 346 actual contract positive",
+      "negativeTest": "Ghost 346 actual condition negative"
+    },
+    {
+      "augmentId": "aug-347",
+      "name": "마검의 요구",
+      "archetype": "굶주린 마검",
+      "stage": 3,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 347 actual contract positive",
+      "negativeTest": "Ghost 347 actual condition negative"
+    },
+    {
+      "augmentId": "aug-348",
+      "name": "끝없는 허기",
+      "archetype": "굶주린 마검",
+      "stage": 4,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 348 actual contract positive",
+      "negativeTest": "Ghost 348 actual condition negative"
+    },
+    {
+      "augmentId": "aug-349",
+      "name": "먹어치워라",
+      "archetype": "굶주린 마검",
+      "stage": 4,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 349 actual contract positive",
+      "negativeTest": "Ghost 349 actual condition negative"
+    },
+    {
+      "augmentId": "aug-350",
+      "name": "굶주린 왕",
+      "archetype": "굶주린 마검",
+      "stage": 4,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 350 actual contract positive",
+      "negativeTest": "Ghost 350 actual condition negative"
+    },
+    {
+      "augmentId": "aug-351",
+      "name": "해방된 귀검",
+      "archetype": "해방된 귀검",
+      "stage": 1,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 351 actual contract positive",
+      "negativeTest": "Ghost 351 actual condition negative"
+    },
+    {
+      "augmentId": "aug-352",
+      "name": "귀기의 응축",
+      "archetype": "해방된 귀검",
+      "stage": 2,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 352 actual contract positive",
+      "negativeTest": "Ghost 352 actual condition negative"
+    },
+    {
+      "augmentId": "aug-353",
+      "name": "핏빛 개안",
+      "archetype": "해방된 귀검",
+      "stage": 2,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 353 actual contract positive",
+      "negativeTest": "Ghost 353 actual condition negative"
+    },
+    {
+      "augmentId": "aug-354",
+      "name": "억눌린 마검",
+      "archetype": "해방된 귀검",
+      "stage": 2,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 354 actual contract positive",
+      "negativeTest": "Ghost 354 actual condition negative"
+    },
+    {
+      "augmentId": "aug-355",
+      "name": "귀화 연장",
+      "archetype": "해방된 귀검",
+      "stage": 3,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 355 actual contract positive",
+      "negativeTest": "Ghost 355 actual condition negative"
+    },
+    {
+      "augmentId": "aug-356",
+      "name": "악귀의 검무",
+      "archetype": "해방된 귀검",
+      "stage": 3,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 356 actual contract positive",
+      "negativeTest": "Ghost 356 actual condition negative"
+    },
+    {
+      "augmentId": "aug-357",
+      "name": "피의 문",
+      "archetype": "해방된 귀검",
+      "stage": 3,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 357 actual contract positive",
+      "negativeTest": "Ghost 357 actual condition negative"
+    },
+    {
+      "augmentId": "aug-358",
+      "name": "완전 귀화",
+      "archetype": "해방된 귀검",
+      "stage": 4,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 358 actual contract positive",
+      "negativeTest": "Ghost 358 actual condition negative"
+    },
+    {
+      "augmentId": "aug-359",
+      "name": "백귀야행",
+      "archetype": "해방된 귀검",
+      "stage": 4,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 359 actual contract positive",
+      "negativeTest": "Ghost 359 actual condition negative"
+    },
+    {
+      "augmentId": "aug-360",
+      "name": "인귀합일",
+      "archetype": "해방된 귀검",
+      "stage": 4,
+      "sourceContract": "PVE_CONTENT_005Q_DESIGN_D",
+      "executable": true,
+      "handler": "GHOST_V02",
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "executionRuleSource": "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+      "positiveTest": "Ghost 360 actual contract positive",
+      "negativeTest": "Ghost 360 actual condition negative"
+    }
+  ],
+  "historicalMigration": {
+    "executionRuleSource": "PVE_CONTENT_005Q_DESIGN_D",
+    "authority": "USER_RESUME_NIGHT_RUN_R01_R03",
+    "userConfirmedRuleIds": [
+      "DEVOUR_THRESHOLD_OVERFLOW_CARRY",
+      "GHOST_TRANSFORMATION_MANUAL_PRE_SUBMIT_ACTIVATION"
+    ],
+    "supersedesHistoricalRule": [
+      "rawLifetimeDevourRecomputesLevel",
+      "automaticTransformationAtTurnEnd",
+      "restorePausedNormalPool"
+    ],
+    "originalGoldenFilesUnchanged": [
+      "tests/fixtures/pve-stress-t02-golden.json",
+      "tests/fixtures/pve-stress-t06-golden.json"
+    ],
+    "versionedGoldenFiles": [
+      "tests/fixtures/pve-stress-t02-005d-golden.json",
+      "tests/fixtures/pve-stress-t06-005d-golden.json"
+    ],
+    "proof": "Assert modern comparable fingerprint, then restore ONLY explicitly recorded Ghost historical resources/cards/events/packets and existing Seer bootstrap normalization to assert unchanged original fingerprint. Non-Ghost semantics remain exactly equal."
+  }
+}

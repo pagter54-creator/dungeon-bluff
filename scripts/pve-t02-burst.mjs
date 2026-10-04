@@ -1,5 +1,6 @@
 import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/pve/model.js';
 import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-api/pve/combat.js';
+import {activateImmediateCharacterSkill} from '../supabase/functions/game-api/pve/characters.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 import {F1_RELIC_DEFINITIONS} from '../supabase/functions/game-api/pve/content-f1.js';
 import {STRESS_REFERENCE_MONSTERS as F1_MONSTER_DEFINITIONS} from './pve-stress-reference-monsters.mjs';
@@ -36,12 +37,7 @@ const ev=(r,type)=>r.events.filter(e=>e.type===type);
 function snap(id,run,result=null,extra={}){
   return {id,phase:run.phase,hp:Object.fromEntries(run.players.map(p=>[p.playerId,p.hp])),resources:Object.fromEntries(run.players.map(p=>[p.playerId,{combo:Number(p.publicResources.combo)||0,devour:Number(p.publicResources.devour)||0,transform:Boolean(p.publicResources.transformationActive),fullBurstReady:p.publicResources.fullBurstReady??null}])),cardPools:Object.fromEntries(run.players.map(p=>[p.playerId,p.cardPool.map(c=>({id:c.id,baseNumber:c.baseNumber,source:c.source}))])),private:Object.fromEntries(run.players.map(p=>{const q=run.combat?.privateByPlayer?.[p.playerId];return [p.playerId,q?{cycleIndex:q.cycleIndex,remaining:[...(q.remainingCardIds||[])],spent:[...(q.spentCardIds||[])],finisherUsedCycle:q.finisherUsedCycle??null}:null]})),result:result?{turn:result.turn,totalDamage:result.totalDamage,cards:structuredClone(result.cards),packets:structuredClone(result.damagePackets),events:structuredClone(result.events),phaseTrace:[...result.phaseTrace]}:null,...extra};
 }
-function forceDemonTransform(run){
-  const p=run.players[1],priv=run.combat.privateByPlayer.p1;
-  priv.demonNormalCardPool=structuredClone(p.cardPool);priv.demonNormalRemaining=[...priv.remainingCardIds];priv.demonNormalSpent=[...priv.spentCardIds];priv.demonNormalCycleIndex=priv.cycleIndex;
-  p.cardPool=[2,4,5,6].map((baseNumber,i)=>({id:`p1:demon:${run.combat.id}:fixture:${i+1}`,baseNumber,source:'DEMON_TRANSFORM',tags:['TEMPORARY','TRANSFORMED']}));
-  priv.remainingCardIds=p.cardPool.map(c=>c.id);priv.spentCardIds=[];p.publicResources.devour=6;p.publicResources.transformationActive=true;p.publicResources.transformationPending=false;
-}
+function forceDemonTransform(run){const p=run.players[1];p.publicResources.devour=6;p.publicResources.transformationPending=true;return activateImmediateCharacterSkill(run,p);}
 function submitUniqueBase(run,fail,{p0=1,p1=2,p2=3,p3=4,skills={}}={}){
   sub(run,'p0',p0,fail,Boolean(skills.p0));sub(run,'p1',p1,fail,Boolean(skills.p1));sub(run,'p2',p2,fail,Boolean(skills.p2));sub(run,'p3',p3,fail,Boolean(skills.p3));return res(run,fail);
 }
@@ -75,18 +71,19 @@ export function runT02Fixtures(seed,fail){
   }
   {
     const aug=[['aug-241'],[],['aug-291'],['aug-121']],run=makeRun(seed,'F6',{augments:aug,monsterDef:{...DUMMY,baseHp:1}});
-    const r=submitUniqueBase(run,fail,{p0:1,p1:4,p2:3,p3:1}),afterKill=Number(run.players[1].publicResources.devour)||0;
+    run.players[1].publicResources.devour=1;const r=submitUniqueBase(run,fail,{p0:1,p1:4,p2:3,p3:1}),afterKill=Number(run.players[1].publicResources.devour)||0;
     run.phase='COMBAT';run.combat=newCombatState(run.players,999,'NORMAL_COMBAT',DUMMY);run.combat.id='stress-combat:'+seed+':F6-next';beginTurn(run);
-    if(afterKill!==5||Number(run.players[1].publicResources.devour)!==5)hard(fail,'DEVOUR_PERSISTENCE_MISMATCH','base Demon Devour did not persist or highest-only kill total is wrong',{afterKill,afterNext:run.players[1].publicResources.devour,events:r.events});
+    if(afterKill!==1||Number(run.players[1].publicResources.devour)!==1||Number(run.players[1].publicResources.ghostSlashLevel)!==1||!r.events.some(e=>e.type==='DEVOUR_KILL_AWARD'&&e.totalAward===8))hard(fail,'DEVOUR_PERSISTENCE_MISMATCH','base Demon kill total8/remainder/level did not persist',{afterKill,afterNext:run.players[1].publicResources.devour,events:r.events});
     rows.push(snap('F6_DEVOUR_PERSISTENCE',run,null,{afterKill}));
   }
   {
     const run=makeRun(seed,'F7');run.players[1].publicResources.devour=5;const r=submitUniqueBase(run,fail);
-    if(!run.players[1].publicResources.transformationActive||JSON.stringify(run.players[1].cardPool.map(c=>c.baseNumber))!=='[2,4,5,6]'||ev(r,'DEMON_TRANSFORMED').length!==1)hard(fail,'DEMON_TRANSFORM_THRESHOLD','Devour 6 did not enter one transformation',{events:r.events,pool:run.players[1].cardPool});
+    if(run.players[1].publicResources.transformationActive||!run.players[1].publicResources.transformationPending||ev(r,'DEMON_TRANSFORMED').length)hard(fail,'DEMON_TRANSFORM_THRESHOLD','Devour6 must arm without automatic transformation');
+    const manualEvent=activateImmediateCharacterSkill(run,run.players[1]);if(run.players[1].publicResources.devour!==0||!manualEvent.manual||JSON.stringify(run.players[1].cardPool.map(c=>c.baseNumber))!=='[2,4,5,6]')hard(fail,'DEMON_MANUAL_TRANSFORM','manual transformation cost/pool diverged');
     rows.push(snap('F7_TRANSFORMATION_THRESHOLD',run,r));
   }
   {
-    const run=makeRun(seed,'F8');run.players[1].publicResources.devour=5;const first=submitUniqueBase(run,fail);
+    const run=makeRun(seed,'F8');run.players[1].publicResources.devour=5;const first=submitUniqueBase(run,fail);activateImmediateCharacterSkill(run,run.players[1]);
     const second=submitUniqueBase(run,fail,{p0:2,p1:6,p2:1,p3:4});
     const transforms=[...ev(first,'DEMON_TRANSFORMED'),...ev(second,'DEMON_TRANSFORMED')];
     if(transforms.length!==1)hard(fail,'DUPLICATE_TRANSFORMATION','same threshold caused duplicate transformation',{transforms});
@@ -94,7 +91,7 @@ export function runT02Fixtures(seed,fail){
   }
   {
     const run=makeRun(seed,'F9');forceDemonTransform(run);const r=submitUniqueBase(run,fail,{p0:1,p1:6,p2:3,p3:4}),ps=packets(r,'p1');
-    if(ps.length!==1||ps[0].baseNumber!==6||!String(ps[0].sourceCardId).includes(':demon:')||run.combat.privateByPlayer.p1.remainingCardIds.length!==3)hard(fail,'TRANSFORMED_ATTACK_MISMATCH','transformed attack/lifecycle diverged',{ps,priv:run.combat.privateByPlayer.p1});
+    if(ps.length!==1||ps[0].baseNumber!==6||!String(ps[0].sourceCardId).includes(':ghost:')||run.combat.privateByPlayer.p1.remainingCardIds.length!==3)hard(fail,'TRANSFORMED_ATTACK_MISMATCH','transformed attack/lifecycle diverged',{ps,priv:run.combat.privateByPlayer.p1});
     rows.push(snap('F9_TRANSFORMED_ATTACK_BURST',run,r));
   }
   {
@@ -143,7 +140,7 @@ export function runT02Fixtures(seed,fail){
     const r=submitUniqueBase(run,fail,{p0:1,p1:6,p2:5,p3:4,skills:{p0:true,p2:true}});
     const effects=[
       rc(r,'p0').fullBurstOutcome==='SUCCESS',
-      packets(r,'p1').some(p=>String(p.sourceCardId).includes(':demon:')),
+      packets(r,'p1').some(p=>String(p.sourceCardId).includes(':ghost:')),
       rc(r,'p2').finisherOutcome==='SUCCESS',
       packets(r,'p3').some(p=>(p.modifierIds||[]).includes('AUG_121_BLOOD_FRENZY'))
     ];
@@ -169,11 +166,11 @@ export function runT02Fixtures(seed,fail){
   }
   {
     const baseAug=[['aug-241'],[],['aug-291'],['aug-121']],base=makeRun(seed,'F22-base',{augments:baseAug,monsterDef:{...DUMMY,baseHp:1}});
-    base.players[3].hp=1;const br=submitUniqueBase(base,fail,{p0:1,p1:4,p2:3,p3:1}),baseDevour=Number(base.players[1].publicResources.devour)||0;
+    base.players[1].publicResources.devour=1;base.players[3].hp=1;const br=submitUniqueBase(base,fail,{p0:1,p1:4,p2:3,p3:1}),baseDevour=Number(base.players[1].publicResources.devour)||0;
     const released=makeRun(seed,'F22-released',{monsterDef:{...DUMMY,baseHp:1}});released.players[1].publicResources.devour=5;released.players[2].publicResources.combo=2;forceDemonTransform(released);
-    // restore a normal valid kill state while retaining transformation snapshot
+    // Resolve a transformed kill; Combat cleanup starts a fresh normal pool.
     const rr=submitUniqueBase(released,fail,{p0:1,p1:6,p2:3,p3:4});
-    if(baseDevour!==5||Number(released.players[1].publicResources.devour??0)!==0||Number(released.players[2].publicResources.combo??0)!==0||Boolean(released.players[1].publicResources.transformationActive))hard(fail,'BURST_RESOURCE_SCOPE','RUN Devour or combat resources reset incorrectly',{baseDevour,released:snap('x',released,rr)});
+    if(baseDevour!==1||Number(released.players[1].publicResources.devour??0)!==0||Number(released.players[2].publicResources.combo??0)!==0||Boolean(released.players[1].publicResources.transformationActive))hard(fail,'BURST_RESOURCE_SCOPE','RUN Devour or combat resources reset incorrectly',{baseDevour,released:snap('x',released,rr)});
     rows.push(snap('F22_RUN_VS_COMBAT_RESOURCE',released,rr,{baseDevourPersisted:baseDevour}));
   }
   return rows;

@@ -518,5 +518,5 @@ test('005C-C immutable DESIGN-C projection and runtime tooltip overlay match str
   for(const id of GAMBLER_CONTRACT_IDS)assert.deepEqual(GAMBLER_CONTRACTS[id],design.cards.find(c=>c.augmentId===id),id);
   assert.equal(EXECUTABLE_AUGMENT_RUNTIME['aug-237'].tooltipBetaV02,'올인 성공 공격의 실제 피해가 8 이상이면 다음 드로우 페널티를 1턴 줄입니다(최소 0턴). 전투당 1회.');
   const ids=Object.keys(EXECUTABLE_AUGMENT_RUNTIME).filter(id=>EXECUTABLE_AUGMENT_RUNTIME[id].executable===true);
-  assert.equal(ids.length,333);assert.equal(ids.filter(id=>Number(id.slice(4))<=270).length,270);
+  assert.equal(ids.length,361);assert.equal(ids.filter(id=>Number(id.slice(4))<=270).length,270);
 });
