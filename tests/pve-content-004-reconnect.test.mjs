@@ -9,6 +9,8 @@ const classes=['adventurer','warrior','rogue','mage','berserker','prophet','imp'
 function make(classId){
  const players=[classId,'adventurer','adventurer','adventurer'].map((character_id,i)=>newPlayerRunState({id:'p'+i,character_id,member_type:'human',seat_index:i}));
  const run={id:'reconnect-'+classId,seed:'reconnect-'+classId,rngCounter:0,phase:'COMBAT',floor:1,depth:1,flame:4,maxFlame:5,players,combat:newCombatState(players,500)};
+ // DESIGN-D seeded parity replays the same authoritative Combat identity.
+ run.combat.id='combat-'+run.id;
  beginTurn(run);return run;
 }
 function select(run,pid){

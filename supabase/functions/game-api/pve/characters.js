@@ -1,3 +1,4 @@
+import {twinsTurnStart,twinsTurnEnd,activateTwins,cleanupTwins} from './twins-runtime.js';
 import {ghostGain,ghostTurnEnd,activateGhostTransformation,ghostCycleExit,cleanupGhost} from './ghost-runtime.js';
 import {cleanupVampire} from './vampire-runtime.js';
 import {resolveMartial,cleanupMartial} from './martial-runtime.js';
@@ -87,12 +88,7 @@ export function onTurnStartCharacter(player,run){
   if(player.characterId==='prophet')onSeerTurnStart(run,player);
   if(player.status==='DOWNED')return;
   if(player.characterId==='mage')mageNaturalManaRecovery(run,player);
-  if(player.characterId==='twins'){
-    if(!Number.isInteger(player.publicResources.parity))player.publicResources.parity=choose(run,[0,1],`twins-parity:${player.playerId}`);
-    const state=run.combat?.privateByPlayer?.[player.playerId]||run.roomState?.privateByPlayer?.[player.playerId];
-    const remaining=(state?.remainingCardIds||[]).map(id=>player.cardPool.find(card=>card.id===id)?.baseNumber).filter(Number.isInteger);
-    if(remaining.length&&!remaining.some(number=>number%2===player.publicResources.parity))player.publicResources.parity=1-player.publicResources.parity;
-  }
+  if(player.characterId==='twins')twinsTurnStart(run,player);
 }
 export function onCycleStartCharacter(player,privateState){
   if(player.characterId==='warrior'){
@@ -114,10 +110,7 @@ export function onCycleStartCharacter(player,privateState){
 }
 export function onTurnEndCharacter(player,run=null,events=[]){
   if(player.characterId==='imp'&&run)onImpTurnEnd(run,player);
-  if(player.characterId==='twins'&&Number.isInteger(player.publicResources.parity)){
-    const before=player.publicResources.parity;player.publicResources.parity=1-before;
-    events.push({type:'TWINS_PARITY_FLIPPED',playerId:player.playerId,before,after:player.publicResources.parity,reason:'TURN_END',turn:run?.combat?.turn??null});
-  }
+  if(player.characterId==='twins'&&run)twinsTurnEnd(run,player,events);
   if(player.characterId==='demon_swordsman'&&run)ghostTurnEnd(run,player,events);
 }
 export function isCardSelectableForCharacter(player,card){
@@ -173,24 +166,7 @@ export function activateImmediateCharacterSkill(run,player,skillData=null){
   if(player.characterId==='prophet')return activateSeerImmediateSkill(run,player,skillData);
   if(player.characterId==='demon_swordsman'&&player.augments.includes('aug-351'))return activateGhostTransformation(run,player);
   if(player.characterId!=='twins')rejectSkill('SKILL_NOT_READY','즉시 발동할 수 있는 PVE 스킬이 아닙니다.');
-  if(!player.publicResources.acrobaticsReady)rejectSkill('SKILL_NOT_READY',player.augments.includes('aug-381')?'유효 공격 3회를 달성하면 곡예가 재충전됩니다.':'새 사이클을 완주하면 곡예가 재충전됩니다.');
-  const previousCycleId=priv.cycleIndex||1,remainingBefore=[...(priv.remainingCardIds||[])],spentBefore=[...(priv.spentCardIds||[])],parityBefore=player.publicResources.parity||0;
-  priv.cycleIndex=previousCycleId+1;
-  priv.spentCardIds=[];
-  priv.remainingCardIds=player.cardPool.map(card=>card.id);
-  player.publicResources.parity=1-parityBefore;
-  player.publicResources.acrobaticsReady=false;
-  if(player.augments.includes('aug-381')){
-    player.publicResources.acrobaticsRechargeProgress=0;
-    player.publicResources.acrobaticsBoostReady=true;
-    delete player.persistentCharacterState.acrobaticsLockCycle;
-  }else player.persistentCharacterState.acrobaticsLockCycle=priv.cycleIndex;
-  c.derivedEventSequence=(Number(c.derivedEventSequence)||0)+1;
-  const rootActionId=`skill:${c.id}:${c.turn}:${player.playerId}:acrobatics`,recoveryChainId=`recovery:${rootActionId}`;
-  const resetEvent={type:'CYCLE_RESET',eventId:`cycle-reset:${c.id}:${c.turn}:${c.derivedEventSequence}`,turn:c.turn,playerId:player.playerId,classId:'twins',previousCycleId,nextCycleId:priv.cycleIndex,resetReason:'ACROBATICS',remainingBefore,spentBefore,remainingAfter:[...priv.remainingCardIds],spentAfter:[],parityBefore,parityAfter:player.publicResources.parity,rootActionId,recoveryChainId,parentEventId:null,chainDepth:1,sourceEffectId:player.augments.includes('aug-381')?'aug-381':'TWINS_BASE'};
-  const used={type:'ACROBATICS_USED',eventId:`acrobatics:${c.id}:${c.turn}:${c.derivedEventSequence}`,playerId:player.playerId,cycleIndex:priv.cycleIndex,parity:player.publicResources.parity,rootActionId,recoveryChainId,parentEventId:null,chainDepth:0,sourceEffectId:player.augments.includes('aug-381')?'aug-381':'TWINS_BASE'};
-  c.pendingSkillEvents||=[];c.pendingSkillEvents.push(used,resetEvent);
-  return used;
+  return activateTwins(run,player);
 }
 export function selfModifyCard(player,resolved,submission){
   if(player.characterId!=='mage'||!submission.skillIntent)return;
@@ -427,20 +403,6 @@ export function resolvePostCollisionCharacter(run,resolved,submission,events=[])
   const player=run.players.find(p=>p.playerId===resolved.playerId);
   if(!player)return;
   const priv=run.combat?.privateByPlayer?.[player.playerId];
-  if(player.characterId==='twins'&&player.augments.includes('aug-381')&&resolved.valid){
-    const cfg=runtimeConfig('aug-381');
-    if(player.publicResources.acrobaticsBoostReady){
-      const bonus=Math.max(0,Number(cfg.postAcrobaticsFirstValidBonusDamage)||2);
-      resolved.acrobaticsBonusDamage=bonus;player.publicResources.acrobaticsBoostReady=false;
-      events.push({type:'AERIAL_ACROBATICS_BONUS_CONSUMED',playerId:player.playerId,bonusDamage:bonus,cardInstanceId:resolved.cardInstanceId});
-    }
-    if(!player.publicResources.acrobaticsReady){
-      const before=Math.max(0,Number(player.publicResources.acrobaticsRechargeProgress)||0),need=Math.max(1,Number(cfg.rechargeValidAttacks)||3),after=Math.min(need,before+1);
-      player.publicResources.acrobaticsRechargeProgress=after;
-      events.push({type:'ACROBATICS_RECHARGE_PROGRESS',playerId:player.playerId,before,after,required:need,cardInstanceId:resolved.cardInstanceId});
-      if(after>=need){player.publicResources.acrobaticsReady=true;events.push({type:'ACROBATICS_RECHARGED',playerId:player.playerId,progress:after,required:need,reason:'VALID_ATTACKS'});}
-    }
-  }
   if(player.characterId==='martial_artist')resolveMartial(run,player,resolved,submission,events);
 
   if(player.characterId==='berserker'&&player.augments.includes('aug-121')&&resolved.valid){
@@ -454,7 +416,7 @@ export function resolvePostCollisionCharacter(run,resolved,submission,events=[])
 export function baseDamageForCharacter(player,resolved){
   if(player.characterId==='rogue'&&resolved.soloLowest&&!player.augments.includes('aug-071'))return 5;
   let damage=resolved.finalNumber;
-  if(player.characterId==='twins')damage+=2+Math.max(0,Number(resolved.acrobaticsBonusDamage)||0);
+  if(player.characterId==='twins')damage+=(resolved.twinsBaseBonus??2)+(Number(resolved.twinsBonus)||0);
   if(player.characterId==='berserker')damage+=1;
   if(player.characterId==='martial_artist')damage+=Math.max(0,Number(resolved.martialComboBonus)||0);
   damage+=Math.max(0,Number(resolved.crushBonusDamage)||0);
@@ -465,7 +427,7 @@ export function baseDamageForCharacter(player,resolved){
   return damage;
 }
 export function onCombatEndCharacter(player,run=null){
-  if(run){cleanupMartial(run,player);cleanupVampire(run,player);cleanupGhost(run,player);}
+  if(run){cleanupMartial(run,player);cleanupVampire(run,player);cleanupGhost(run,player);cleanupTwins(run,player);}
   if(player.characterId==='prophet'&&run)cleanupSeerCombat(run,player);
   if(player.characterId==='imp'&&run)cleanupImpCombat(run,player);
   const priv=run?.combat?.privateByPlayer?.[player.playerId];

@@ -1,3 +1,4 @@
+import {TWINS_CONTRACTS} from './twins-contracts.js';
 import {GHOST_CONTRACTS} from './ghost-contracts.js';
 import {VAMPIRE_CONTRACTS} from './vampire-contracts.js';
 import {MARTIAL_CONTRACTS} from './martial-contracts.js';
@@ -250,6 +251,7 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
   ...MARTIAL_CONTRACTS,
   ...VAMPIRE_CONTRACTS,
   ...GHOST_CONTRACTS,
+  ...TWINS_CONTRACTS,
 });
 
 export function executableAugmentRuntime(augmentId){return EXECUTABLE_AUGMENT_RUNTIME[augmentId]||null;}

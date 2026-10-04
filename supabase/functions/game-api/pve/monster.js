@@ -1,3 +1,4 @@
+import {twinsIncomingProtection} from './twins-runtime.js';
 import {vampireIncomingProtection} from './vampire-runtime.js';
 import {choose} from './rng.js';
 import {applyOwnedEffects} from './effects.js';
@@ -80,6 +81,7 @@ export function applyMonsterDamage(run,originalPlayer,amount,damageType,{damageE
   const beforeEffects=incomingDamage.amount;
   if(damageType==='DIRECT')consumeDirectDamageReduction(run,player,incomingDamage);
   vampireIncomingProtection(player,incomingDamage,damageType);
+  twinsIncomingProtection(player,incomingDamage,damageType);
   modifyImpIncomingDamage(run,player,incomingDamage,damageType,id);
   applyOwnedEffects(run,'BEFORE_PLAYER_DAMAGE',{player,incomingDamage,damageType,damageEventId:id,events,redirectedFrom:redirect.redirected?originalPlayer.playerId:null,redirectSource:redirect.redirectSource||null,sourceAugmentId:redirect.redirected?(redirect.redirectSource===player.playerId?'GUARDIAN_REDIRECT':null):null});
   const afterEffects=Math.max(0,Number(incomingDamage.amount)||0);

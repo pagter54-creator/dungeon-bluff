@@ -39,7 +39,7 @@ export function skillBadge(character) {
   return `<span class="skill-tooltip"><button type="button" class="skill-badge" data-action="skill-info" data-character="${html(character.id)}" aria-label="${html(skill.name)} 스킬 설명">${html(character.definition.icon)} ${type} · ${html(skill.name)}</button><span class="skill-description" role="tooltip"><b>${html(skill.name)} · ${type}</b>${html(skill.description)}</span></span>`;
 }
 export function revelationGauge(player) {
-  if(player.skillId==='acrobatics')return `<div class="twins-parity"><b>${player.characterRuntimeState?.parity===1?'홀 · 소년':'짝 · 소녀'}</b><span>${player.characterRuntimeState?.parity===1?'1 · 3 선택':'2 · 4 선택'} · 다음 턴 교대</span></div>`;
+  if(player.skillId==='acrobatics')return `<div class="twins-parity"><b>${player.characterRuntimeState?.parity===1?'홀 · 소년':'짝 · 소녀'}</b><span>${player.characterRuntimeState?.parity===1?'1 · 3 선택':'2 · 4 선택'} · 다음 턴 교대${player.characterRuntimeState?.sun!=null?' · 태양 '+player.characterRuntimeState.sun+' / 달 '+player.characterRuntimeState.moon:''}</span></div>`;
   if (player.skillId === 'random_hand') return gamblerCharges(player);
   if(player.skillId==='amplify')return resourceGauge('마나',player.characterRuntimeState?.mana||0,4,'mana-gauge');
   if(player.skillId==='toughness')return resourceGauge('강인함 충전',player.characterRuntimeState?.toughnessCharges||0,2,'toughness-gauge');
@@ -59,7 +59,7 @@ export function resourceGauge(label,value,max,extra='') {
 }
 export function nextAmplifyLevel(mana,current){return current===0?mana>=2?1:0:current===1&&mana>=4?2:0;}
 export function activeButton(player, useSkill, blocked, members=[], players={}, hasSelected=false) {
-  if(player.skillId==='acrobatics')return `<button type="button" class="active-skill" data-action="activate-acrobatics" data-network ${blocked||!player.activeSkillState?.available?'disabled':''}>♊ 곡예 <b>${player.activeSkillState?.available?'손패 초기화 · 홀짝 반전':'사이클 완주 시 재충전'}</b></button>`;
+  if(player.skillId==='acrobatics')return `<button type="button" class="active-skill" data-action="activate-acrobatics" data-network ${blocked||!player.activeSkillState?.available?'disabled':''}>♊ 곡예 <b>${player.activeSkillState?.available?'손패 초기화 · 홀짝 반전':player.characterRuntimeState?.acrobaticsRechargeNeed?'유효 공격 '+player.characterRuntimeState.acrobaticsRechargeNeed+'회로 재충전':'사이클 완주 시 재충전'}</b></button>`;
   if(player.skillId==='blood_command'){
     const thrallId=player.characterRuntimeState?.thrallId,target=members.find(m=>m.id===thrallId);
     const ready=!!target&&!players[thrallId]?.knockedOut&&!blocked;

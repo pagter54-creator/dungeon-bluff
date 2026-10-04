@@ -1,0 +1,281 @@
+{
+  "task": "PVE_CONTENT_005D_D",
+  "baselineHead": "857507e02817c8494e569db647cec30ff850a310",
+  "status": "RUNTIME_VERIFIED_FINAL_DOCUMENT_HEAD_PENDING",
+  "registered": 30,
+  "executable": 30,
+  "candidateReachable": 30,
+  "positive": 30,
+  "conditionNegative": 30,
+  "wrongRoomNegative": 30,
+  "acquisition": 30,
+  "fullBuilds": 3,
+  "stageProgressionBuilds": 3,
+  "testsPrepared": 184,
+  "inMemoryRepositoryModuleCheck": {
+    "pass": 184,
+    "fail": 0,
+    "limitation": "Supplemental only; GitHub Node CI remains authoritative."
+  },
+  "sourceIntegrity": {
+    "modifiedBETA": 0,
+    "modified005R": 0,
+    "modifiedDESIGN": 0,
+    "modifiedOriginalGolden": 0
+  },
+  "flags": {
+    "TWINS_RUNTIME_COMPLETE": true,
+    "READY_FOR_PVE_CONTENT_005D_FINAL": true
+  },
+  "sourcePrecedence": [
+    "USER_CONFIRMED_005Q_DESIGN_D_PATCH:D04",
+    "PVE_CONTENT_005Q_DESIGN_D"
+  ],
+  "executionRuleIds": [
+    "TWINS_PARITY_CHECK_ON_PRINTED_CARD_SELECTION"
+  ],
+  "historicalGolden": {
+    "T02": "unchanged original and 005D versioned fingerprint",
+    "T06": "unchanged original and 005D versioned fingerprint; restored Acrobatics event envelope compatibility",
+    "T04": "unchanged"
+  },
+  "predecessorGate": {
+    "head": "857507e02817c8494e569db647cec30ff850a310",
+    "runId": 37210639547,
+    "runNumber": 971,
+    "status": "completed",
+    "conclusion": "success"
+  },
+  "historicalFixtureMigration": {
+    "executionRuleSource": "PVE_CONTENT_005Q_DESIGN_D",
+    "authorization": "RESUME_NIGHT_RUN_R01_R03",
+    "supersedesHistoricalRule": "Deterministic Twins replay fixtures omitted shared authoritative combat identity.",
+    "files": [
+      "tests/pve-007-008.test.mjs",
+      "tests/pve-014-playtest.test.mjs",
+      "tests/pve-content-004-reconnect.test.mjs"
+    ],
+    "preserved": "All determinism, legality and privacy assertions; canonical combatId/ownerId seeded parity unchanged."
+  },
+  "githubEvidence": {
+    "head": "d5ebd7059f6818885e8e32bdb3ea833cc0ebc288",
+    "id": 37212085893,
+    "runNumber": 975,
+    "status": "completed",
+    "conclusion": "success",
+    "npmTest": {
+      "total": 2129,
+      "pass": 2129,
+      "fail": 0,
+      "skipped": 0
+    },
+    "check": "PASS",
+    "targeted": {
+      "pass": 184,
+      "fail": 0
+    },
+    "stress": [
+      {
+        "mode": "smoke",
+        "seeds": 10,
+        "hard": 0,
+        "warningSeeds": 54,
+        "scenarios": [
+          {
+            "id": "T00",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 0,
+            "warningCodes": []
+          },
+          {
+            "id": "T05",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 10,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          },
+          {
+            "id": "T09",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 10,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          },
+          {
+            "id": "T14",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 0,
+            "warningCodes": []
+          },
+          {
+            "id": "T02",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 10,
+            "warningCodes": [
+              "REPEATED_BURST"
+            ]
+          },
+          {
+            "id": "T03",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 30,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          },
+          {
+            "id": "T04",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 4,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          },
+          {
+            "id": "T06",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 27,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT",
+              "SAME_CARD_RECOVERY_HIGH",
+              "CARD_REUSE_HIGH"
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warningSeeds": 100,
+        "scenarios": [
+          {
+            "id": "T06",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 261,
+            "warningCodes": [
+              "SAME_CARD_RECOVERY_HIGH",
+              "CARD_REUSE_HIGH",
+              "TURN_LENGTH_OUTSIDE_35_PERCENT",
+              "RECOVERY_DOMINATES"
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warningSeeds": 100,
+        "scenarios": [
+          {
+            "id": "T02",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 100,
+            "warningCodes": [
+              "REPEATED_BURST"
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warningSeeds": 1,
+        "scenarios": [
+          {
+            "id": "T00",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 1,
+            "warningCodes": [
+              "REFERENCE_CLASS_COLLISION_2X_SAME_AVAILABILITY"
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warningSeeds": 99,
+        "scenarios": [
+          {
+            "id": "T05",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 99,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warningSeeds": 100,
+        "scenarios": [
+          {
+            "id": "T09",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 100,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warningSeeds": 47,
+        "scenarios": [
+          {
+            "id": "T04",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 47,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warningSeeds": 100,
+        "scenarios": [
+          {
+            "id": "T03",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 300,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "finalDocumentGate": "This final documentation commit must independently complete Project Checks success with matching head_sha before FINAL branch creation; external PR body records that result."
+}

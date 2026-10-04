@@ -103,6 +103,8 @@ test('PVE-014 AI combat submissions are deterministic, legal, private, and allow
     const members=bundle().members.map(newPlayerRunState),run={id:'r',seed:'ai-combat',rngCounter:0,phase:'COMBAT',floor:1,depth:1,flame:3,maxFlame:5,players:members,map:{nodes:[],edges:{}}};
     installRelicCatalog(run,F1_RELIC_DEFINITIONS);
     run.combat=newCombatState(run.players,90,'NORMAL_COMBAT',F1_MONSTER_DEFINITIONS.f1_coward_hunter);
+    // DESIGN-D parity replay requires the same authoritative combat identity.
+    run.combat.id='pve-014-fixed-authoritative-combat';
     beginTurn(run);return run;
   };
   const a=make(),b=make();

@@ -1,3 +1,4 @@
+import {TWINS_CONTRACTS} from './twins-contracts.js';
 import {GHOST_CONTRACTS} from './ghost-contracts.js';
 import {VAMPIRE_CONTRACTS} from './vampire-contracts.js';
 import {MARTIAL_CONTRACTS} from './martial-contracts.js';
@@ -55,6 +56,8 @@ for(const c of Object.values(VAMPIRE_CONTRACTS)){
 }
 SOURCE.demon_swordsman={};
 for(const c of Object.values(GHOST_CONTRACTS)){SOURCE.demon_swordsman[c.archetype]||={};SOURCE.demon_swordsman[c.archetype][c.stage]||=[];const n=Number(c.augmentId.slice(4)),offset=(n-331)%10;SOURCE.demon_swordsman[c.archetype][c.stage].push({n,o:offset===0?1:(offset-1)%3+1,name:c.name});}
+SOURCE.twins={};
+for(const c of Object.values(TWINS_CONTRACTS)){SOURCE.twins[c.archetype]||={};SOURCE.twins[c.archetype][c.stage]||=[];const n=Number(c.augmentId.slice(4)),offset=(n-361)%10;SOURCE.twins[c.archetype][c.stage].push({n,o:offset===0?1:(offset-1)%3+1,name:c.name});}
 const defs=[];
 for(const [characterId,builds] of Object.entries(SOURCE))for(const [build,tiers] of Object.entries(builds))for(const [tier,items] of Object.entries(tiers))for(const item of items){
   const id=`aug-${String(item.n).padStart(3,'0')}`;const runtime=executableAugmentRuntime(id);

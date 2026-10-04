@@ -14,6 +14,8 @@ function makeRun(ids=['adventurer','adventurer','adventurer','adventurer'],optio
   }));
   const players=members.map(newPlayerRunState);
   const run={id:'run-007008',seed:options.seed||'fixed-007008',rngCounter:0,version:0,phase:'COMBAT',floor:1,depth:1,flame:3,maxFlame:5,players,map:{nodes:[],edges:{}},combat:newCombatState(players,options.hp||500)};
+  // DESIGN-D parity replay requires the same authoritative combat identity.
+  run.combat.id='combat-007008:'+run.seed;
   beginTurn(run);return run;
 }
 function priv(run,pid){return run.combat.privateByPlayer[pid];}

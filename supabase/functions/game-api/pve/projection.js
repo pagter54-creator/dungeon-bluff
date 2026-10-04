@@ -18,6 +18,8 @@ export function projectRun(run,viewerPlayerId){
   if(ghost&&run.players.find(p=>p.playerId===viewerPlayerId)?.characterId==='demon_swordsman')out.privateGhostState={transformationReady:Boolean(run.players.find(p=>p.playerId===viewerPlayerId)?.publicResources.transformationPending)};
   const vampire=run.augmentFramework?.cardState?.[viewerPlayerId+':vampire'];
   if(vampire&&run.players.find(p=>p.playerId===viewerPlayerId)?.characterId==='vampire')out.privateVampireState={commandReserve:Boolean(vampire.reserve)};
+  const twins=run.augmentFramework?.cardState?.[viewerPlayerId+':twins'];
+  if(twins&&run.players.find(p=>p.playerId===viewerPlayerId)?.characterId==='twins')out.privateTwinsState={validStreak:twins.streak,postAcrobaticsAttempts:twins.postAttempts,postAcrobaticsAllValid:twins.postAll};
   delete out.augmentFramework;
   delete out.frameworkEffects;
   if(publicFramework)out.augmentStatuses=publicFramework.statuses;
@@ -81,6 +83,7 @@ export function projectRun(run,viewerPlayerId){
         for(const key of Object.keys(card))if(key.startsWith('gunner'))delete card[key];
         for(const key of ['allInCardIds','allInValues','allInSum','allInRootActionId','gamblerBorrowBonus','doubleDownSecond','allAssets','aug237Reduced'])delete card[key];
       }
+      if(card.playerId!==viewerPlayerId)for(const key of Object.keys(card))if(key.startsWith('twins'))delete card[key];
       delete card.numberHistory;
       delete card.stealTargets;
       delete card.dominanceBefore;

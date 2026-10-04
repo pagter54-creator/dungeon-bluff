@@ -1,3 +1,4 @@
+import {twinsResolve,twinsAfterSpend,twinsCycleComplete,twinsAfterHpDamage} from './twins-runtime.js';
 import {ghostResolve,ghostPostDamage} from './ghost-runtime.js';
 import {protectVampireCollision,resolveVampireValidity,vampirePostDamage,vampirePreDown} from './vampire-runtime.js';
 import {prepareMartialCollision,martialPacket,afterMartialDamage} from './martial-runtime.js';
@@ -44,6 +45,7 @@ function resetCycleIfNeeded(run,player,events=[],meta={}){
   if(player.characterId==='gambler'){drawGamblerHand(run,player,priv);return true;}
   if(handleCycleExhaustedCharacter(player,priv,run,events))return true;
   const previousCycleId=priv.cycleIndex||1,remainingBefore=[...(priv.remainingCardIds||[])],spentBefore=[...(priv.spentCardIds||[])],parityBefore=player.publicResources.parity??null;
+  twinsCycleComplete(run,player,events);
   applyOwnedEffects(run,'CYCLE_END',{player,privateState:priv,events});
   cleanupAugmentScope(run,'CYCLE',{playerId:player.playerId});
   priv.cycleIndex=previousCycleId+1;
@@ -76,6 +78,7 @@ function spendResolvedCards(run,cards,events=[]){
     delete priv.selectedCardId;delete priv.skillIntent;
     if(run.combat.turnSubmissions[rc.playerId]?.autoSubmitted&&player.status==='STUNNED_NEXT_TURN')player.status='ACTIVE';
     const rootActionId=`action:${run.combat.id}:${run.combat.turn}:${rc.playerId}:${rc.cardInstanceId}`;
+    twinsAfterSpend(run,player,rc,events);
     resetCycleIfNeeded(run,player,events,{reason:(rc.followUpCardIds||[]).length?'FULL_BURST':'NATURAL_EXHAUSTION',rootActionId,recoveryChainId:`recovery:${rootActionId}`,parentEventId:null,chainDepth:1,sourceEffectId:(rc.followUpCardIds||[]).length?'FULL_BURST':'CYCLE_EXHAUSTION'});
     if(player.characterId==='gunner'){
       if(rc.skillUsed==='full_burst'){
@@ -250,7 +253,7 @@ export function resolveBasicTurn(run){
   for(const rc of cards){const p=playerFor(run,rc.playerId);if(p?.characterId==='gambler')finalizeGamblerAllIn(run,p,c.privateByPlayer[p.playerId],rc);}
   applyMonsterCardRules(run,cards,events);
   resolveVampireValidity(run,cards,events);
-  for(const rc of cards)ghostResolve(run,playerFor(run,rc.playerId),rc,c.turnSubmissions[rc.playerId],events);
+  for(const rc of cards){const p=playerFor(run,rc.playerId);ghostResolve(run,p,rc,c.turnSubmissions[rc.playerId],events);twinsResolve(run,p,rc,events);}
   c.phase='DAMAGE_BUILD';phaseTrace.push(c.phase);
   const defense=Math.max(0,Number(c.monster.defense)||0);
   const packets=[],monsterHpBeforeBatch=c.monster.hp;
@@ -308,6 +311,7 @@ export function resolveBasicTurn(run){
       if(extraQueued.length){const error=new Error('Tier-I Full Burst follow-up이 추가 follow-up을 재귀 생성했습니다.');error.code='RECURSIVE_FOLLOW_UP';throw error;}
       packet.amount=Math.max(0,damage.amount);packet.followUpDamage=packet.amount;packets.push(packet);
     }
+    if(rc.twinsExtra>0)packets.push(burstPacket({sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,amount:rc.twinsExtra,extraDamageComponent:true,tags:['TWINS_EXTRA_DAMAGE_COMPONENT'],followUp:false},{resolved:rc,player,baseDamage:0,modifierIds:['aug-379']}));
     if(rc.ghostExtra>0)packets.push(burstPacket({sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,amount:rc.ghostExtra,extraDamageComponent:true,tags:['GHOST_EXTRA_DAMAGE_COMPONENT'],followUp:false},{resolved:rc,player,baseDamage:0,modifierIds:['aug-359']}));
     if(martial.extra>0)packets.push(burstPacket({sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,amount:martial.extra,extraDamageComponent:true,tags:['MARTIAL_EXTRA_DAMAGE_COMPONENT'],followUp:false},{resolved:rc,player,baseDamage:0,modifierIds:['MARTIAL_EXTRA_DAMAGE_COMPONENT']}));
     if(player.characterId==='gunner'){
@@ -402,6 +406,7 @@ export function resolveBasicTurn(run){
     return c.publicTurnResult;
   }
   c.phase='MONSTER_ACTION';phaseTrace.push(c.phase);events.push(...executeMonsterIntent(run));
+  twinsAfterHpDamage(run,events);
   vampirePreDown(run,cards,events);
   c.phase='DOWN_RESOLVE';phaseTrace.push(c.phase);events.push(...resolveDowns(run));
   spendResolvedCards(run,cards,events);c.turnSubmissions={};
