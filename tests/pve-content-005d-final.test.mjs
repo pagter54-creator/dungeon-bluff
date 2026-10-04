@@ -82,7 +82,7 @@ for(const killed of [false,true])test('005D FINAL new-class Flame0 full wipe '+(
  const run=fixture();run.floor=3;run.flame=0;run.combat.roomType=killed?'BOSS':'NORMAL_COMBAT';run.combat.monster.hp=killed?1:999;
  run.combat.monster.intent={type:'AOE_DAMAGE',payload:{amount:99}};const numbers=[1,2,3,4];run.players[3].publicResources.parity=0;
  for(const [i,p] of run.players.entries()){const id=run.combat.privateByPlayer[p.playerId].remainingCardIds.find(id=>p.cardPool.find(c=>c.id===id).baseNumber===numbers[i]);submitCard(run,p.playerId,id);if(killed)p.hp=0;}
- const result=resolveBasicTurn(run);assert.equal(run.phase,'RUN_FAILED');assert.equal(run.players.every(p=>p.status==='DOWNED'),true);assert.equal(run.players.reduce((sum,p)=>sum+p.runGold,0),0);assert.equal(run.finalSummary,undefined);assert.ok(result.events.some(e=>e.type==='RUN_FAILED'));
+ const result=resolveBasicTurn(run);assert.equal(run.phase,'RUN_FAILED');assert.equal(run.players.every(p=>p.status==='DOWNED'),true);assert.equal(run.players.reduce((sum,p)=>sum+p.runGold,0),0);assert.equal(run.finalSummary,undefined);assert.ok(result.events.some(e=>e.type==='RUN_FAILED'));if(killed){assert.ok(run.combat.monster.hp<=0,'boss actually killed in the same resolve');assert.equal(run.flame,0);assert.equal(result.events.some(e=>e.source==='BOSS_CLEAR'),false);}
 });
 
 test('005D FINAL bounded Ghost/Twins root journals and physical recovery sequence over400 turns',()=>{

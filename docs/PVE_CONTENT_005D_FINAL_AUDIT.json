@@ -1,6 +1,6 @@
 {
   "task": "PVE_CONTENT_005D_FINAL",
-  "status": "CI_PENDING",
+  "status": "RUNTIME_VERIFIED_FINAL_DOCUMENT_HEAD_PENDING",
   "registeredNew": 120,
   "executableNew": 120,
   "candidateReachableNew": 120,
@@ -196,25 +196,131 @@
   "performance": "Dispatch indexed handlers for owned augments; no new 390 registry scan in combat hot paths. Guard journals are turn/cycle/combat bounded; recovery sequence keeps current physical IDs only. 400 actual turns covered.",
   "warningsPolicy": "Record stress balance warnings unchanged; no runtime tuning.",
   "stressGate": {
+    "status": "PASS",
+    "head": "69a2add966c04be7ea1c981d6f381b8625329c0b",
+    "runId": 37213935258,
+    "runNumber": 977,
     "scenarios": [
-      "T00",
-      "T02",
-      "T03",
-      "T04",
-      "T05",
-      "T06",
-      "T09",
-      "T14"
+      {
+        "id": "T00",
+        "seeds": 500,
+        "hardFailures": 0,
+        "failedSeeds": 0,
+        "warningSeeds": 1,
+        "individualWarnings": 1,
+        "warningCodes": [
+          "REFERENCE_CLASS_COLLISION_2X_SAME_AVAILABILITY"
+        ],
+        "status": "BALANCE_WARNING"
+      },
+      {
+        "id": "T02",
+        "seeds": 500,
+        "hardFailures": 0,
+        "failedSeeds": 0,
+        "warningSeeds": 500,
+        "individualWarnings": 500,
+        "warningCodes": [
+          "REPEATED_BURST"
+        ],
+        "status": "BALANCE_WARNING"
+      },
+      {
+        "id": "T03",
+        "seeds": 500,
+        "hardFailures": 0,
+        "failedSeeds": 0,
+        "warningSeeds": 500,
+        "individualWarnings": 1500,
+        "warningCodes": [
+          "TURN_LENGTH_OUTSIDE_35_PERCENT"
+        ],
+        "status": "BALANCE_WARNING"
+      },
+      {
+        "id": "T04",
+        "seeds": 500,
+        "hardFailures": 0,
+        "failedSeeds": 0,
+        "warningSeeds": 266,
+        "individualWarnings": 266,
+        "warningCodes": [
+          "TURN_LENGTH_OUTSIDE_35_PERCENT"
+        ],
+        "status": "BALANCE_WARNING"
+      },
+      {
+        "id": "T05",
+        "seeds": 500,
+        "hardFailures": 0,
+        "failedSeeds": 0,
+        "warningSeeds": 496,
+        "individualWarnings": 496,
+        "warningCodes": [
+          "TURN_LENGTH_OUTSIDE_35_PERCENT"
+        ],
+        "status": "BALANCE_WARNING"
+      },
+      {
+        "id": "T06",
+        "seeds": 500,
+        "hardFailures": 0,
+        "failedSeeds": 0,
+        "warningSeeds": 500,
+        "individualWarnings": 1325,
+        "warningCodes": [
+          "SAME_CARD_RECOVERY_HIGH",
+          "CARD_REUSE_HIGH",
+          "TURN_LENGTH_OUTSIDE_35_PERCENT",
+          "RECOVERY_DOMINATES"
+        ],
+        "status": "BALANCE_WARNING"
+      },
+      {
+        "id": "T09",
+        "seeds": 500,
+        "hardFailures": 0,
+        "failedSeeds": 0,
+        "warningSeeds": 500,
+        "individualWarnings": 500,
+        "warningCodes": [
+          "TURN_LENGTH_OUTSIDE_35_PERCENT"
+        ],
+        "status": "BALANCE_WARNING"
+      },
+      {
+        "id": "T14",
+        "seeds": 500,
+        "hardFailures": 0,
+        "failedSeeds": 0,
+        "warningSeeds": 0,
+        "individualWarnings": 0,
+        "warningCodes": [],
+        "status": "PASS"
+      }
     ],
     "seedsEach": 500,
     "seedsTotal": 4000,
-    "status": "PENDING"
+    "hardFailures": 0,
+    "failedSeeds": 0,
+    "warningSeeds": 2763,
+    "individualWarnings": 4588,
+    "warningFrequency": {
+      "REFERENCE_CLASS_COLLISION_2X_SAME_AVAILABILITY": 1,
+      "REPEATED_BURST": 500,
+      "TURN_LENGTH_OUTSIDE_35_PERCENT": 3265,
+      "SAME_CARD_RECOVERY_HIGH": 317,
+      "CARD_REUSE_HIGH": 500,
+      "RECOVERY_DOMINATES": 5
+    },
+    "artifacts": "Project Checks #977: pve-stress-005d-final-{scenario}-{workflow merge ref SHA}; reports build.commit identifies exact PR HEAD.",
+    "runtimeTuning": false
   },
   "flags": {
-    "PVE_CONTENT_005D_FINAL_ACCEPTED": false,
-    "PVE_ALL_390_AUGMENTS_RUNTIME_COMPLETE": false,
-    "MERGE_RECOMMENDED": false,
-    "READY_FOR_NEXT_PVE_PHASE": false
+    "PVE_CONTENT_005D_FINAL_ACCEPTED": true,
+    "PVE_ALL_390_AUGMENTS_RUNTIME_COMPLETE": true,
+    "MERGE_RECOMMENDED": true,
+    "READY_FOR_NEXT_PVE_PHASE": true
   },
   "operations": {
     "GitHubDirectEdits": true,
@@ -269,5 +375,384 @@
     "head": "a2958a289f7b3b7650d686725b1d40ea51a231b3",
     "status": "completed",
     "conclusion": "success"
-  }
+  },
+  "verificationBoundaries": {
+    "runtime": "Actual engine/API effects and physical state assertions.",
+    "database": "No live database; existing SQL static invariants and memory admin settlement/CAS contract.",
+    "balance": "Stress warnings recorded, no numeric runtime adjustment.",
+    "historical": "Original unrelated golden fingerprints preserved; only source-authorized narrow migration documented."
+  },
+  "sourceIntegrity": {
+    "comparedFiles": 22,
+    "changedFiles": 0,
+    "baselineTree": "14f7f6f2501fdd01491c03b6b10e95384b5bff57",
+    "checkedTree": "40b395499fcaecc4924673b826c400d88d01b114",
+    "proof": [
+      {
+        "path": "docs/PVE_CONTENT_005Q_DECISIONS.json",
+        "baseline": "12e1370373c45b29c7680bb8b041b3951e82d6aa",
+        "current": "12e1370373c45b29c7680bb8b041b3951e82d6aa"
+      },
+      {
+        "path": "docs/PVE_CONTENT_005Q_DESIGN_B.json",
+        "baseline": "690c7d5977178fbdd3441f71335f92fda370b6fd",
+        "current": "690c7d5977178fbdd3441f71335f92fda370b6fd"
+      },
+      {
+        "path": "docs/PVE_CONTENT_005Q_DESIGN_B.md",
+        "baseline": "7bd47fef0aa4a4ebe6b3e38a8081e028d05d2f6a",
+        "current": "7bd47fef0aa4a4ebe6b3e38a8081e028d05d2f6a"
+      },
+      {
+        "path": "docs/PVE_CONTENT_005Q_DESIGN_C.json",
+        "baseline": "4b9b2dab17d0a0138abde0aa97a999a39b83a8d4",
+        "current": "4b9b2dab17d0a0138abde0aa97a999a39b83a8d4"
+      },
+      {
+        "path": "docs/PVE_CONTENT_005Q_DESIGN_C.md",
+        "baseline": "b03cf28567907d8bf644b582ab99769371b7f0e0",
+        "current": "b03cf28567907d8bf644b582ab99769371b7f0e0"
+      },
+      {
+        "path": "docs/PVE_CONTENT_005Q_DESIGN_D.json",
+        "baseline": "cbc221ba94f0517d3fc1b6d6519ab8494505a677",
+        "current": "cbc221ba94f0517d3fc1b6d6519ab8494505a677"
+      },
+      {
+        "path": "docs/PVE_CONTENT_005Q_DESIGN_D.md",
+        "baseline": "debddad45f19e66b9efd94662de62423c28027ac",
+        "current": "debddad45f19e66b9efd94662de62423c28027ac"
+      },
+      {
+        "path": "docs/PVE_CONTENT_005Q_DESIGN_D_USER_CONFIRMED.json",
+        "baseline": "c97428ebcf09d623c4da4f89f092ec50ebdb4619",
+        "current": "c97428ebcf09d623c4da4f89f092ec50ebdb4619"
+      },
+      {
+        "path": "docs/PVE_CONTENT_005R.md",
+        "baseline": "98df3fd0a2821857bd0a66f1eafcce8be937c8b5",
+        "current": "98df3fd0a2821857bd0a66f1eafcce8be937c8b5"
+      },
+      {
+        "path": "docs/PVE_CONTENT_005R_CONDITION_AUDIT.json",
+        "baseline": "3334ac50a36a18a931bf2cb6bba43fe653a01406",
+        "current": "3334ac50a36a18a931bf2cb6bba43fe653a01406"
+      },
+      {
+        "path": "docs/PVE_CONTENT_005R_DECISIONS.json",
+        "baseline": "3411c25b9d9a016da0fd089f44970cc9a885d532",
+        "current": "3411c25b9d9a016da0fd089f44970cc9a885d532"
+      },
+      {
+        "path": "docs/PVE_CONTENT_005R_DEPENDENCIES.json",
+        "baseline": "87bbb2f086b05ed237c983e105b38a481c610cc6",
+        "current": "87bbb2f086b05ed237c983e105b38a481c610cc6"
+      },
+      {
+        "path": "docs/PVE_CONTENT_005R_EXECUTABLE_AUDIT.json",
+        "baseline": "c2a51ed39629c363c76a2a3c13c1f7f521c8a1c9",
+        "current": "c2a51ed39629c363c76a2a3c13c1f7f521c8a1c9"
+      },
+      {
+        "path": "docs/pve-augment-beta-005b.json",
+        "baseline": "644b1b6b1193887f09a663a943fcd0629dbf9b8c",
+        "current": "644b1b6b1193887f09a663a943fcd0629dbf9b8c"
+      },
+      {
+        "path": "docs/pve-augment-beta-005c.json",
+        "baseline": "dd591a32cc486d9acddce54b1aba66782bcc5c01",
+        "current": "dd591a32cc486d9acddce54b1aba66782bcc5c01"
+      },
+      {
+        "path": "docs/pve-augment-beta-005d.json",
+        "baseline": "98c975149f7e5ad4af26cb9f560804618b25ad0b",
+        "current": "98c975149f7e5ad4af26cb9f560804618b25ad0b"
+      },
+      {
+        "path": "docs/pve-augment-resolution-005b.json",
+        "baseline": "e0643fd27b13b2c0f734e745e78e44e639d5a91d",
+        "current": "e0643fd27b13b2c0f734e745e78e44e639d5a91d"
+      },
+      {
+        "path": "docs/pve-augment-resolution-005c.json",
+        "baseline": "4eeadf703dc486c6049a4ade8130b6e47659c870",
+        "current": "4eeadf703dc486c6049a4ade8130b6e47659c870"
+      },
+      {
+        "path": "docs/pve-augment-resolution-005d.json",
+        "baseline": "26dd9d360d0a4692c52a33fd83ef1d2a171b3b17",
+        "current": "26dd9d360d0a4692c52a33fd83ef1d2a171b3b17"
+      },
+      {
+        "path": "tests/fixtures/pve-stress-t02-golden.json",
+        "baseline": "7bdf1e13333d0c5ab6f4bd293f762059d18b9794",
+        "current": "7bdf1e13333d0c5ab6f4bd293f762059d18b9794"
+      },
+      {
+        "path": "tests/fixtures/pve-stress-t04-golden.json",
+        "baseline": "30c8680a937d74981ee0aeff968a139ce293c5e5",
+        "current": "30c8680a937d74981ee0aeff968a139ce293c5e5"
+      },
+      {
+        "path": "tests/fixtures/pve-stress-t06-golden.json",
+        "baseline": "25cf1ab9dc82865e4ccdd543f9a427871697d0d7",
+        "current": "25cf1ab9dc82865e4ccdd543f9a427871697d0d7"
+      }
+    ],
+    "stableIdEvidence": "Full Node registry assertions exact aug-001~390 once; protected source row stable IDs unchanged."
+  },
+  "githubMainEvidence": {
+    "head": "69a2add966c04be7ea1c981d6f381b8625329c0b",
+    "runId": 37213935258,
+    "runNumber": 977,
+    "npmTest": {
+      "total": 2321,
+      "pass": 2321,
+      "fail": 0,
+      "skipped": 0
+    },
+    "check": {
+      "status": "PASS",
+      "parsedFiles": 234
+    },
+    "sourceHashTests": 19,
+    "SQLStaticTests": 2,
+    "stress": [
+      {
+        "mode": "smoke",
+        "seeds": 10,
+        "hard": 0,
+        "warningSeeds": 54,
+        "scenarios": [
+          {
+            "id": "T00",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 0,
+            "warningCodes": []
+          },
+          {
+            "id": "T05",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 10,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          },
+          {
+            "id": "T09",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 10,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          },
+          {
+            "id": "T14",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 0,
+            "warningCodes": []
+          },
+          {
+            "id": "T02",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 10,
+            "warningCodes": [
+              "REPEATED_BURST"
+            ]
+          },
+          {
+            "id": "T03",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 30,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          },
+          {
+            "id": "T04",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 4,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          },
+          {
+            "id": "T06",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 27,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT",
+              "SAME_CARD_RECOVERY_HIGH",
+              "CARD_REUSE_HIGH"
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warningSeeds": 100,
+        "scenarios": [
+          {
+            "id": "T06",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 261,
+            "warningCodes": [
+              "SAME_CARD_RECOVERY_HIGH",
+              "CARD_REUSE_HIGH",
+              "TURN_LENGTH_OUTSIDE_35_PERCENT",
+              "RECOVERY_DOMINATES"
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warningSeeds": 100,
+        "scenarios": [
+          {
+            "id": "T02",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 100,
+            "warningCodes": [
+              "REPEATED_BURST"
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warningSeeds": 1,
+        "scenarios": [
+          {
+            "id": "T00",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 1,
+            "warningCodes": [
+              "REFERENCE_CLASS_COLLISION_2X_SAME_AVAILABILITY"
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warningSeeds": 99,
+        "scenarios": [
+          {
+            "id": "T05",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 99,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warningSeeds": 100,
+        "scenarios": [
+          {
+            "id": "T09",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 100,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warningSeeds": 47,
+        "scenarios": [
+          {
+            "id": "T04",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 47,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warningSeeds": 100,
+        "scenarios": [
+          {
+            "id": "T03",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 300,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "githubRuntimeGate": {
+    "id": 37213935258,
+    "runNumber": 977,
+    "status": "completed",
+    "conclusion": "success",
+    "head": "69a2add966c04be7ea1c981d6f381b8625329c0b"
+  },
+  "finalDocumentGate": "These completion flags require this final documentation commit to complete Project Checks success with exact head_sha. PR body records the final HEAD gate after verification; no merge/Ready/deploy/DB/schema action is authorized.",
+  "finalTestStrengthening": "Final documentation commit adds assertions that simultaneous boss-kill/full-wipe fixture actually kills boss, keeps Flame0, and applies no BOSS_CLEAR heal. Test count unchanged; full final-head CI reruns all tests and4000 seeds.",
+  "knownStressNotes": [
+    {
+      "id": "AMB-T09-SEER-PEEK-TARGET",
+      "scenarioId": "T09",
+      "topic": "Prophet Revelation target priority when multiple teammates are READY",
+      "detail": "PVE combat UX forbids direct player targeting, while the current Prophet base rule does not define a class-specific priority among multiple READY teammates. The executable T09 path uses the existing stable automatic-target convention: first eligible READY teammate by lobby seat. The reveal scope is fixed, but a future class-content rule may replace this target priority without changing resource semantics."
+    },
+    {
+      "id": "AMB-T02-MARTIAL-COMBO-DAMAGE-TIMING",
+      "scenarioId": "T02",
+      "topic": "Martial Artist current-hit Combo damage timing",
+      "detail": "Canonical docs fix previous-card comparison to prior revealed final_number and define valid higher card => Combo +1, but do not explicitly say whether that same attack uses Combo before or after the increment. Runtime follows engine phase order CARD_VALIDATED before DAMAGE_BUILD, so the current valid higher attack uses the post-increment Combo. This is isolated as an ambiguity rather than a balance value."
+    },
+    {
+      "id": "AMB-T06-RECOVER-PREVIOUS-CYCLE-CARD",
+      "scenarioId": "T06",
+      "topic": "Fate Manipulator recovery after target cycle reset",
+      "detail": "BETA v0.1 defines recovery from an ally used card but does not define an archive for cards belonging to a completed prior cycle. Runtime therefore treats only the target current-cycle spent zone as eligible. After Full Burst or Acrobatics creates a new cycle, prior-cycle cards are not recoverable unless a future canonical rule introduces an explicit cross-cycle archive."
+    },
+    {
+      "id": "AMB-T06-TWINS-RECOVERY-CYCLE-COMPLETION",
+      "scenarioId": "T06",
+      "topic": "Recovered Twins card contribution to cycle completion",
+      "detail": "BETA v0.1 does not define how an extra recovered physical card changes Twins parity scheduling or cycle-completion accounting. Runtime does not invent an extra parity flip or forced reset. Fate Manipulator therefore limits Twins recovery candidates to cards whose addition leaves the current-cycle remaining zone fully consumable under the existing one-flip-per-turn parity rule."
+    }
+  ]
 }
