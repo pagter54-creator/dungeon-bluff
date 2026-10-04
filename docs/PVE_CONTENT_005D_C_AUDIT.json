@@ -23,10 +23,10 @@
     "fail": 0,
     "limitation": "Supplemental JS module checks; GitHub Node CI is authoritative."
   },
-  "status": "CI_PENDING",
+  "status": "RUNTIME_VERIFIED_FINAL_DOCUMENT_HEAD_PENDING",
   "flags": {
-    "GHOST_RUNTIME_COMPLETE": false,
-    "READY_FOR_PVE_CONTENT_005D_D_TWINS": false
+    "GHOST_RUNTIME_COMPLETE": true,
+    "READY_FOR_PVE_CONTENT_005D_D_TWINS": true
   },
   "sourceIntegrity": {
     "modifiedBETA": 0,
@@ -55,5 +55,180 @@
       "tests/fixtures/pve-stress-t06-005d-golden.json"
     ],
     "proof": "Assert modern comparable fingerprint, then restore ONLY explicitly recorded Ghost historical resources/cards/events/packets and existing Seer bootstrap normalization to assert unchanged original fingerprint. Non-Ghost semantics remain exactly equal."
+  },
+  "githubEvidence": {
+    "head": "a7ccb941dba39de1be243b735bbae4448e1af2e6",
+    "runId": 37209967863,
+    "runNumber": 970,
+    "status": "completed",
+    "conclusion": "success",
+    "tests": 1945,
+    "pass": 1945,
+    "fail": 0,
+    "skip": 0,
+    "newTests": 174,
+    "newPass": 174,
+    "projectCheckFiles": 228,
+    "stress": [
+      {
+        "mode": "smoke",
+        "seeds": 10,
+        "hard": 0,
+        "warnings": 54,
+        "scenarios": [
+          {
+            "id": "T00",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 0
+          },
+          {
+            "id": "T05",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 10
+          },
+          {
+            "id": "T09",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 10
+          },
+          {
+            "id": "T14",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 0
+          },
+          {
+            "id": "T02",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 10,
+            "transformedDemonTurns": 51,
+            "transformedDamage": 239
+          },
+          {
+            "id": "T03",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 30
+          },
+          {
+            "id": "T04",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 4
+          },
+          {
+            "id": "T06",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 27
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 100,
+        "scenarios": [
+          {
+            "id": "T06",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 257
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 100,
+        "scenarios": [
+          {
+            "id": "T02",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 100,
+            "transformedDemonTurns": 463,
+            "transformedDamage": 2176
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 1,
+        "scenarios": [
+          {
+            "id": "T00",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 1
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 99,
+        "scenarios": [
+          {
+            "id": "T05",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 99
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 100,
+        "scenarios": [
+          {
+            "id": "T09",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 100
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 47,
+        "scenarios": [
+          {
+            "id": "T04",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 47
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 100,
+        "scenarios": [
+          {
+            "id": "T03",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 300
+          }
+        ]
+      }
+    ],
+    "productionRelease": "skipped"
   }
 }

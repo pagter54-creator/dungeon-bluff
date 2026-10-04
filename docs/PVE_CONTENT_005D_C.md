@@ -12,9 +12,9 @@ R01/R03 source precedence로 과거의 누적 포식 레벨 재계산 및 자동
 
 ## 검증 상태
 
-보조 검증 174 PASS/0 FAIL: 카드별 positive/negative/room/candidate/acquisition 각30, 세 빌드 실제 전투 및 EXP 단계, 복구·서로 다른 소유자·재접속·기간·물리 카드·privacy 포함. GitHub 전체 Node tests/check/smoke/100시드 결과는 아직 대기 중이다.
+보조 검증 174 PASS/0 FAIL: 카드별 positive/negative/room/candidate/acquisition 각30, 세 빌드 실제 전투 및 EXP 단계, 복구·서로 다른 소유자·재접속·기간·물리 카드·privacy 포함. GitHub Project Checks #970 / run37209967863 completed/success. 검증 HEAD `a7ccb941dba39de1be243b735bbae4448e1af2e6`. 전체1945/1945 PASS,0 FAIL/skip. 프로젝트 검사228 files PASS. smoke80 및 T00/T02/T03/T04/T05/T06/T09 각100시드 hard failure0/failedSeeds0. 상세 warning 및 귀화 피해 통계는 audit JSON에 기록한다.
 
-GHOST_RUNTIME_COMPLETE=false
-READY_FOR_PVE_CONTENT_005D_D_TWINS=false
+GHOST_RUNTIME_COMPLETE=true
+READY_FOR_PVE_CONTENT_005D_D_TWINS=true
 
 Draft 유지. 최종 문서 HEAD의 Project Checks 완료/성공 후 다음 단계 시작.
