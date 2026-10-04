@@ -24,6 +24,17 @@ const files = {
   f2_thread_witch: 'f2_thread_witch.png',
   f2_rottenheart_ancient: 'f2_rottenheart_ancient.png',
   f2_moon_eating_witch: 'f2_moon_eating_witch.png',
+  // Public Beta F3 uses existing painted art until dedicated variants arrive.
+  f3_royal_tax_collector: 'Chaos_Goblin.png',
+  f3_abyss_duelist: 'f1_fallen_lord.png',
+  f3_black_choir: 'Cursed_Prophet.png',
+  f3_skillfeed_familiar: 'echo_bat.png',
+  f3_abyss_archivist: 'Cursed_Prophet.png',
+  f3_royal_appraiser: 'Chaos_Goblin.png',
+  f3_abyss_auditor: 'Cursed_Prophet.png',
+  f3_null_choir_priest: 'f1_iron_bell_keeper.png',
+  f3_abyss_king: 'f1_fallen_lord.png',
+  f3_masked_queen: 'f2_moon_eating_witch.png',
 };
 export const MONSTER_IMAGES = Object.fromEntries(Object.entries(files).map(([shape,file]) =>
   [shape,new URL(`../monster/${file}`,import.meta.url).href]));

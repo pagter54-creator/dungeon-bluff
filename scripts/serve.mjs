@@ -11,7 +11,7 @@ const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, `http://localhost:${port}`);
     const relative = decodeURIComponent(url.pathname).replace(/^\/+/, '') || 'index.html';
     // Only public web assets are served; backend source, dotfiles and credentials are not.
-    if (!['index.html', 'config.js', 'styles.css', 'bgm_lobby.mp3', 'bgm_dungeon.mp3'].includes(relative) && !/^sfx_[a-z_]+\.mp3$/.test(relative) && !/^(src|assets)\/[a-zA-Z0-9_./-]+$/.test(relative) && !/^(skin image|monster)\/[a-zA-Z0-9_-]+\.png$/.test(relative) && !/^background\/background[1-9][0-9]*\.png$/.test(relative)) throw new Error('not found');
+    if (!['index.html', 'config.js', 'styles.css', 'bgm_lobby.mp3', 'bgm_dungeon.mp3'].includes(relative) && !/^sfx_[a-z_]+\.mp3$/.test(relative) && !/^(src|assets)\/[a-zA-Z0-9_./-]+$/.test(relative) && !/^(skin image|monster)\/[a-zA-Z0-9_가-힣 -]+\.png$/.test(relative) && !/^background\/background[1-9][0-9]*\.png$/.test(relative)) throw new Error('not found');
     const filename = path.resolve(root, relative);
     if (!filename.startsWith(root) || relative.split('/').some(p => p.startsWith('.'))) throw new Error('not found');
     const info = await stat(filename);
