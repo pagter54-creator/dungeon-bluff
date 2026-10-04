@@ -24,7 +24,7 @@ test('skill ordering, actor target identity and semantic aggregation never expos
 test('queue parallelizes actors and bounds repeated intervention waves without losing counts',()=>{
  const cues=Array.from({length:7},(_,i)=>({actorId:'a',count:1,label:'스킬'+i}));cues.push({actorId:'b',count:1,label:'보호'});
  const waves=cueWaves(cues);assert.equal(waves.length,3);assert.equal(waves[0].length,2);
- assert.equal(waves.flat().reduce((n,c)=>n+c.count,0),8);assert.ok(waves[2][0].label.includes('스킬6'));
+ assert.equal(waves.flat().reduce((n,c)=>n+c.count,0),8);assert.ok(waves[2][0].label.includes('추가 효과'));
 });
 test('hunter telegraph preparation, activation, suppression and partial defense are different',()=>{
  const before={id:'f1_coward_hunter',intent:{type:'DIRECT_DAMAGE'},presentation:{}};

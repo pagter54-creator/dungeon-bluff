@@ -490,7 +490,7 @@ export function cueWaves(cues){
  const actors=new Map();for(const c of cues){const row=actors.get(c.actorId)||[];row.push(c);actors.set(c.actorId,row);}
  const waves=[];
  for(let i=0;i<3;i++){const wave=[];for(const row of actors.values()){
-  if(!row[i])continue;wave.push(i===2&&row.length>3?{...row[i],label:[...new Set(row.slice(2).map(c=>c.label))].slice(0,3).join(' · ')+([...new Set(row.slice(2).map(c=>c.label))].length>3?' · 추가 효과':''),count:row.slice(2).reduce((n,c)=>n+c.count,0),targetIds:[...new Set(row.slice(2).map(c=>c.targetId))]}:row[i]);
+  if(!row[i])continue;wave.push(i===2&&row.length>3?{...row[i],label:[...new Set(row.slice(2).map(c=>c.label))].slice(0,3).join(' · ')+([...new Set(row.slice(2).map(c=>c.label))].length>3?' · 추가 효과':''),count:row.slice(2).reduce((n,c)=>n+c.count,0),targetIds:[...new Set(row.slice(2).map(c=>c.targetId))],afterValue:row.at(-1).afterValue}:row[i]);
  }if(wave.length)waves.push(wave);}
  return waves;
 }
