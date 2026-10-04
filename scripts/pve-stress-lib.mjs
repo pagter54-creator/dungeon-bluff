@@ -788,7 +788,7 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
       run.combat._t06PendingPolicy=structuredClone(plan);
     }else if(policy==='burst'||policy==='steady_burst'){
       // The benchmark bot explicitly activates manual Ghost transformation in selection.
-      for(const p of run.players)if(p.characterId==='demon_swordsman'&&p.augments.includes('aug-351')&&p.publicResources.transformationPending&&!p.publicResources.transformationActive&&p.status!=='DOWNED'){activateImmediateCharacterSkill(run,p);actions++;assertRunInvariants(run);}
+      for(const p of run.players)if(p.characterId==='demon_swordsman'&&p.augments.includes('aug-351')&&p.publicResources.transformationPending&&!p.publicResources.transformationActive&&p.status!=='DOWNED'&&!run.combat.turnSubmissions[p.playerId]){activateImmediateCharacterSkill(run,p);actions++;assertRunInvariants(run);}
       const contextKey=`${run.currentRoomNodeId||run.combat?.monster?.id||'combat'}:turn:${turn}`;
       const intents=[],views=new Map();
       for(const p of run.players){

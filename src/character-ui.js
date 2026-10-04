@@ -47,7 +47,7 @@ export function revelationGauge(player) {
     const stacks=player.characterRuntimeState?.predation||0;
     const level=player.characterRuntimeState?.ghostSlashLevel??Math.floor(stacks/8),threshold=player.characterRuntimeState?.ghostThreshold||8;
     if(player.characterRuntimeState?.ghostTransformation)return `<small class="predation-count">포식 ${stacks} · ${player.characterRuntimeState?.transformationActive?'귀화 중':'귀화에 포식 6 필요'}</small>`;
-    return `<small class="predation-count">포식 ${stacks} · 귀참 Lv.${level} +${level+1}</small>${resourceGauge('다음 귀참 레벨 진행도',stacks,threshold,'predation-gauge')}`;
+    return `<small class="predation-count">포식 ${stacks} · 귀참 Lv.${level} +${level+1}</small>${resourceGauge('다음 귀참 레벨 진행도',player.characterRuntimeState?.ghostSlashLevel==null?stacks%threshold:stacks,threshold,'predation-gauge')}`;
   }
   if (player.skillId === 'combo') return `<div class="revelation-gauge" role="meter" aria-label="연격 중첩" aria-valuemin="0" aria-valuemax="3" aria-valuenow="${player.characterRuntimeState?.comboStacks||0}">${[0,1,2].map(i=>`<i class="revelation-pip ${i<(player.characterRuntimeState?.comboStacks||0)?'filled':''}" aria-hidden="true"></i>`).join('')}</div><small class="combo-previous">직전 카드: ${html(player.characterRuntimeState?.comboPrevious ?? '-')}</small>`;
   if (player.skillId !== 'revelation') return '';

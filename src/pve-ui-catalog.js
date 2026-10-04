@@ -30,7 +30,7 @@ export const PVE_AUGMENT_NAMES=Object.freeze({
 "aug-359":"백귀야행",
 "aug-360":"인귀합일",
 
-"aug-001": "노련한 탐험가",
+  "aug-001": "노련한 탐험가",
   "aug-002": "튼튼한 여행복",
   "aug-003": "노련한 검술",
   "aug-004": "경험자의 감각",
@@ -391,6 +391,7 @@ export const PVE_AUGMENT_NAMES=Object.freeze({
 "aug-327":"응급 수혈",
 "aug-328":"혈액은행",
 "aug-329":"붉은 성찬",
+"aug-330":"생명의 순환",
 });
 export const PVE_EXECUTABLE_AUGMENT_UI=Object.freeze({
   "aug-001": {
