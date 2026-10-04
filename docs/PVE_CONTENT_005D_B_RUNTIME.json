@@ -1204,5 +1204,36 @@
         "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
       }
     }
-  ]
+  ],
+  "historicalRuleMigration": {
+    "executionRuleSource": "PVE_CONTENT_005Q_DESIGN_D",
+    "supersedesHistoricalRule": [
+      "growthExpThrallTarget",
+      "manualTransfusion"
+    ],
+    "userAuthorization": "RESUME_NIGHT_RUN_FROM_005D_B",
+    "T03": {
+      "oldFingerprint": "28a6727133092508f88abb361575255fd0cdf33e372f6a05fbb8d04618b33896",
+      "newFingerprint": "12292814768c38fb679c62113bd2e5ef193f9f2ed0242c7bde02a9af992e6cc2",
+      "changed": [
+        "transfusion",
+        "fullChain.eventTypes",
+        "fullChain.transfusion"
+      ],
+      "unchanged": [
+        "guard",
+        "redirect",
+        "whiteMagic",
+        "revenge",
+        "noRecursion"
+      ],
+      "automaticTransfusionRegressionFixtures": 24
+    },
+    "T04": {
+      "oldFingerprint": "f26911b190b9064ce3f79fef62f936dd1475415f5b3d56b780411dc87ae6db16",
+      "newFingerprint": "f26911b190b9064ce3f79fef62f936dd1475415f5b3d56b780411dc87ae6db16",
+      "goldenChanged": false,
+      "reason": "Smoke seed score ties and seat precedence match the historical target. Preserve benchmark once-per-cycle decision policy in a private harness journal, not an engine cooldown. High-score precedence is covered by the 005D-B runtime tests."
+    }
+  }
 }

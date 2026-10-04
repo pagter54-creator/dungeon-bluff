@@ -25,14 +25,14 @@ test('T03 uses the locked BETA Tier-I sustain configs without balance invention'
   assert.deepEqual(PVE_RESOURCE_DEFS.blood,{resetScope:'COMBAT',baseMax:6});
 });
 
-test('T03 F1-F20 cover guard redirect blood White Magic Immortal Fighter and recursion edges',()=>{
+test('T03 F1-F24 cover guard redirect blood White Magic Immortal Fighter and recursion edges',()=>{
   const r=run();
-  assert.equal(r.fixtures.length,20);
+  assert.equal(r.fixtures.length,24);
   assert.deepEqual(r.fixtures.map(x=>x.id),[
     'F1_GUARD_COLLISION_RESCUE','F2_GUARD_NO_COLLISION','F3_GUARD_MULTI_ALLY','F4_DAMAGE_REDIRECT','F5_REDIRECT_ONCE',
     'F6_VAMPIRE_BLOOD_GAIN','F7_TRANSFUSION_INSUFFICIENT','F8_TRANSFUSION_SUCCESS','F9_TRANSFUSION_TIE','F10_NO_RESURRECTION',
     'F11_WHITE_MAGIC_SUCCESS','F12_WHITE_MAGIC_NO_MANA','F13_WHITE_MAGIC_NO_COLLISION','F14_BERSERKER_COLLISION_HEAL',
-    'F15_REVENGE_DIRECT','F16_ZERO_DAMAGE_NO_REVENGE','F17_GUARD_TRANSFUSION','F18_GUARD_WHITE_MAGIC','F19_FULL_SUSTAIN_CHAIN','F20_NO_SUSTAIN_RECURSION'
+    'F15_REVENGE_DIRECT','F16_ZERO_DAMAGE_NO_REVENGE','F17_GUARD_TRANSFUSION','F18_GUARD_WHITE_MAGIC','F19_FULL_SUSTAIN_CHAIN','F20_NO_SUSTAIN_RECURSION','F21_FULL_HP_NO_SPEND','F22_RETRY_RECONNECT_ONCE','F23_LETHAL_PRE_DOWN_NO_REVIVE','F24_DAMAGE_THEN_AUTO_PRE_DOWN'
   ]);
   const f1=fixture(r,'F1_GUARD_COLLISION_RESCUE');assert.equal(f1.cards.p0.valid,false);assert.equal(f1.cards.p1.valid,true);
   assert.equal(fixture(r,'F5_REDIRECT_ONCE').rejectCode,'DAMAGE_PACKET_REENTRY');
@@ -90,4 +90,20 @@ test('T03 canonicalizes T04 zero-damage Revenge semantics and reports only unres
   assert.ok(CANONICAL_RULES.some(x=>x.id==='RULE-T03-A'));assert.ok(CANONICAL_RULES.some(x=>x.id==='RULE-T03-B'));
   assert.equal(SPEC_AMBIGUITIES.some(x=>x.id==='AMB-T03-GUARD-OVERWRITE'),false);
   assert.equal(SPEC_AMBIGUITIES.some(x=>x.id==='AMB-T03-WHITE-MULTI-TARGET'),false);
+});
+
+test('T03 automatic Transfusion has no activation with insufficient Blood or full party HP',()=>{
+ const r=run();assert.equal(fixture(r,'F7_TRANSFUSION_INSUFFICIENT').stateUnchanged,true);
+ assert.equal(fixture(r,'F21_FULL_HP_NO_SPEND').blood,4);
+ assert.equal(fixture(r,'F21_FULL_HP_NO_SPEND').directEvents.length,0);
+ const f=fixture(r,'F8_TRANSFUSION_SUCCESS');assert.equal(f.skillEvent.automatic,true);assert.equal(f.skillEvent.phase,'POST_DAMAGE_PRE_DOWN');assert.equal(f.skillEvent.bloodSpent,4);
+});
+test('T03 automatic Transfusion retries and authoritative reconnect restore without another heal or spend',()=>{
+ const f=fixture(run(),'F22_RETRY_RECONNECT_ONCE');assert.equal(f.stateUnchanged,true);assert.deepEqual(f.retryEvents,[]);assert.deepEqual(f.reconnectEvents,[]);assert.equal(f.blood,2);
+});
+test('T03 automatic Transfusion cannot revive DOWNED or a lethal pending-down HP0 target',()=>{
+ const r=run();assert.equal(fixture(r,'F10_NO_RESURRECTION').statuses.p0,'DOWNED');assert.equal(fixture(r,'F23_LETHAL_PRE_DOWN_NO_REVIVE').hp.p0,0);
+});
+test('T03 automatic healing follows real incoming damage before DOWN and never recursively heals',()=>{
+ const r=run(),f=fixture(r,'F24_DAMAGE_THEN_AUTO_PRE_DOWN');assert.ok(f.healIndex>f.damageIndex);assert.equal(f.statuses.p0,'ACTIVE');assert.equal(fixture(r,'F20_NO_SUSTAIN_RECURSION').healCount,1);
 });

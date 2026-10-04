@@ -117,7 +117,9 @@ function blood(run,p,value,n,events=[],rc=null){const before=Number(p.publicReso
 function heal(run,p,target,n,events){
  const before=target.hp;target.hp=Math.min(target.maxHp,before+1);if(target.hp<=before)return false;
  const root=run.combat.turn+':'+(card(run.combat._vampireCards||[],p.playerId)?.cardInstanceId||p.playerId),s=vampireState(run,p);
- events.push({type:'PLAYER_HEALED',phase:'POST_DAMAGE_PRE_DOWN',playerId:target.playerId,sourcePlayerId:p.playerId,source:'TRANSFUSION',amount:1,before,after:target.hp});
+ const healEventId='heal:auto-transfusion:'+run.combat.id+':'+run.combat.turn+':'+p.playerId+':aug-'+n,bloodSpent=n===321&&has(p,328)?3:4,bloodAfter=Number(p.publicResources.blood)||0;
+ events.push({type:'TRANSFUSION_USED',phase:'POST_DAMAGE_PRE_DOWN',automatic:true,healEventId,playerId:p.playerId,targetId:target.playerId,sourceAugmentId:'aug-'+n,amount:1,before,after:target.hp,bloodBefore:bloodAfter+bloodSpent,bloodSpent,bloodAfter});
+ events.push({type:'PLAYER_HEALED',phase:'POST_DAMAGE_PRE_DOWN',healEventId,playerId:target.playerId,sourcePlayerId:p.playerId,source:'TRANSFUSION',sourceAugmentId:'aug-'+n,amount:1,before,after:target.hp});
  if(has(p,323)&&before===1&&claim(run,p,323,'COMBAT'))protection(target);
  if(has(p,325)||has(p,329)){arm(run,target,2,'transfusion',root);if(has(p,325))claim(run,p,325);if(has(p,329)){claim(run,p,329);protection(target);}}
  if(has(p,330)){s.receipts.push({targetId:target.playerId,afterTurn:run.combat.turn,id:++s.sequence});}
