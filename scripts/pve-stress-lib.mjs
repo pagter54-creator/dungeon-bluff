@@ -560,7 +560,7 @@ function assertT02BurstTurn(run,result,policyPlan){
   for(const [pid,card] of Object.entries(resolvedByPlayer)){
     if(card.fullBurstOutcome==='SUCCESS')activeBurstEffects.push({playerId:pid,effect:'FULL_BURST'});
     if(card.finisherOutcome==='SUCCESS')activeBurstEffects.push({playerId:pid,effect:'ONE_HIT_KILL'});
-    if(packets.some(p=>p.sourcePlayerId===pid&&String(p.sourceCardId).includes(':demon:')))activeBurstEffects.push({playerId:pid,effect:'DEMON_TRANSFORM'});
+    if(packets.some(p=>p.sourcePlayerId===pid&&(String(p.sourceCardId).includes(':demon:')||String(p.sourceCardId).includes(':DEMON_TRANSFORM:'))))activeBurstEffects.push({playerId:pid,effect:'DEMON_TRANSFORM'});
     if(packets.some(p=>p.sourcePlayerId===pid&&(p.modifierIds||[]).includes('AUG_121_BLOOD_FRENZY')))activeBurstEffects.push({playerId:pid,effect:'BLOOD_FRENZY'});
   }
   const events=result.events||[],thresholds=[...new Set(packets.flatMap(p=>p.bossThresholdsCrossed||[]))].sort((a,b)=>b-a);
