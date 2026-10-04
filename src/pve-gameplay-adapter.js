@@ -1,3 +1,4 @@
+import {skillCues,monsterCue} from './pve-combat-presentation.js';
 import {PVE_CHARACTER_TO_LOBBY} from './game-mode.js';
 
 const skillByCharacter=Object.freeze({
@@ -178,6 +179,7 @@ export function adaptPveTurnResult(bundle,beforeRun,afterRun){
       memberId:card.playerId,
       cardId:card.cardInstanceId,
       value:card.finalNumber,
+      ...(['amplify','reverse_math'].includes(card.skillUsed)?{pveNumberBefore:card.baseNumber}:{}),
       valid:Boolean(card.valid),
       resisted:Boolean(card.collisionImmune&&card.valid&&Number(card.collisionGroupSize)>1),
       skillUsed:Boolean(skillId),
@@ -186,6 +188,7 @@ export function adaptPveTurnResult(bundle,beforeRun,afterRun){
     };
   });
   return {
+    pvePresentation:{skills:skillCues(turnResult,afterRun.players||[]),pattern:monsterCue(beforeMonster,turnResult,afterMonster)},
     turnIndex:turnResult.turn,
     stageIndex:beforeRun?.depth||afterRun.depth||1,
     stage,
