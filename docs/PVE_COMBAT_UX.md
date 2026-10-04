@@ -8,7 +8,7 @@
 - 플레이어 피해 적용 전: 몬스터 판정 → 발동/저지/부분 결과.
 - 턴 종료 전: 카드 복구/회복/표식/자원 변화.
 - 직접 활성화 응답 후: 귀화/곡예/계시.
-판정 로직은 변경하지 않는다. adapter가 projected turn result를 순수 cue로 변환하고 reveal의 선택적 checkpoint가 DOM controller에 전달한다. 기존 PVP 호출은 기본 no-op callback.
+판정 로직은 변경하지 않는다. 서버 read-only presentation mapper가 penalty state reset 이전에 패턴 결과 메타데이터를 기록한다. adapter가 projected turn result를 순수 cue로 변환하고 reveal의 선택적 checkpoint가 DOM controller에 전달한다. 기존 PVP 호출은 기본 no-op callback.
 스킬: actor 강조 → 스킬 배지 → target 강조 → kind별 변화 → 결과. 정상 680ms.
 몬스터: 예고 → 판정 220ms → 결과 650ms(보스 850ms). 총 870/1070ms.
 동일 phase의 서로 다른 actor는 병렬. 같은 actor는 순차 최대 세 wave. 세 번째 wave에 남은 라벨/횟수 요약. phase 간 순서 유지. 배열/원본 상태 변경 없음.
@@ -74,6 +74,7 @@ ACTIVE 발동, BLOCKED 저지/피해 방어, PARTIAL 일부 방어/머리 제거
 ## 수정 파일
 src/pve-combat-presentation.js, src/pve-combat-presentation-dom.js, src/pve-combat-presentation.css,
 src/pve-gameplay-adapter.js, src/app.js, src/fx.js, index.html,
+supabase/functions/game-api/pve/presentation.js, supabase/functions/game-api/pve/combat.js,
 tests/pve-combat-presentation.test.mjs, docs/PVE_COMBAT_UX.md.
 
 ## 검증

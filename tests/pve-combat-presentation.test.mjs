@@ -71,3 +71,36 @@ test('PVE checkpoint integration keeps normal competitive reveal defaults and cl
  assert.ok(fx.indexOf('await onPvePattern()')>fx.indexOf('for (const effect of result.effects.filter(e => e.type ==='));
  assert.ok(app.includes('cuePlayer?.dispose()'));assert.ok(app.includes('patternPanelMarkup(monster,run.players)'));
 });
+
+import {describeMonsterPattern} from '../supabase/functions/game-api/pve/presentation.js';
+import {createMonsterBehaviorState} from '../supabase/functions/game-api/pve/monster-behavior.js';
+import {F2_MONSTER_DEFINITIONS} from '../supabase/functions/game-api/pve/content-f2.js';
+import {F3_MONSTER_DEFINITIONS} from '../supabase/functions/game-api/pve/content-f3.js';
+import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/pve/model.js';
+import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-api/pve/combat.js';
+import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
+test('every actual monster has a nonmutating authoritative descriptor with no state dump',()=>{
+ for(const def of Object.values({...F1_MONSTER_DEFINITIONS,...F2_MONSTER_DEFINITIONS,...F3_MONSTER_DEFINITIONS})){
+  const run={combat:{monster:{...structuredClone(def),presentation:{statusText:'공개 진행'},behaviorState:createMonsterBehaviorState(def.mechanic),intent:{type:'CHARGE'}}}};
+  const snapshot=JSON.stringify(run),cue=describeMonsterPattern(run,[],0);
+  assert.ok(['ACTIVE','BLOCKED','PARTIAL','WAIT'].includes(cue.outcome),def.id);assert.equal(JSON.stringify(run),snapshot);
+  assert.equal(cue.detail,'공개 진행');assert.ok(!JSON.stringify(cue).includes('behaviorState'));
+ }
+});
+test('authoritative metadata wins over ordinary damage and client heuristics',()=>{
+ const b={id:'f2_thorn_dryad',intent:{type:'DIRECT_DAMAGE'}};
+ const cue=monsterCue(b,{monsterPattern:{outcome:'WAIT',label:'가시 비활성',targetIds:[],detail:'공개'},events:[{type:'PLAYER_DAMAGED',playerId:'a',rawDamage:1,amount:1}]},{});
+ assert.equal(cue.outcome,'WAIT');assert.equal(cue.label,'가시 비활성');
+});
+test('real hunter resolution projects suppression metadata without a second collision pass',()=>{
+ const ps=Array.from({length:4},(_,i)=>newPlayerRunState({id:'p'+i,user_id:'u'+i,seat_index:i,member_type:'human',character_id:'adventurer'}));
+ const run={id:'ux-real',seed:'ux',rngCounter:0,version:1,floor:1,depth:1,currentRoomNodeId:'n',phase:'COMBAT',players:ps,flame:5,maxFlame:5};
+ run.combat=newCombatState(ps,90,'NORMAL_COMBAT',F1_MONSTER_DEFINITIONS.f1_coward_hunter);
+ run.combat.turn=2;beginTurn(run);
+ for(let i=0;i<ps.length;i++)submitCard(run,ps[i].playerId,ps[i].cardPool.find(c=>c.baseNumber===i+1).id,false,{});
+ const resolved=resolveBasicTurn(run);
+ assert.equal(resolved.monsterPattern.outcome,'BLOCKED');
+ assert.equal(resolved.collisionResolutionPasses,1);assert.equal(resolved.postCollisionEffectPasses,1);
+ const projected=projectRun(run,'p0');assert.equal(projected.combat.publicTurnResult.monsterPattern.label,'저지 성공');
+ assert.ok(!projected.combat.monster.behaviorState);assert.equal(projected.combat.publicTurnResult.totalDamage,resolved.totalDamage);
+});

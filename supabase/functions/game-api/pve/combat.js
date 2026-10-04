@@ -1,3 +1,4 @@
+import {describeMonsterPattern} from './presentation.js';
 import {twinsResolve,twinsAfterSpend,twinsCycleComplete,twinsAfterHpDamage} from './twins-runtime.js';
 import {ghostResolve,ghostPostDamage} from './ghost-runtime.js';
 import {protectVampireCollision,resolveVampireValidity,vampirePostDamage,vampirePreDown} from './vampire-runtime.js';
@@ -334,7 +335,9 @@ export function resolveBasicTurn(run){
   recordMonsterDamageBatch(run,totalDamage);
   attachDamage(cards,packets);
   validateNumberMutationState(run,cards,mutationEvents,{packets});
+  const monsterPattern=describeMonsterPattern(run,cards,totalDamage,events);
   const buildTurnResult=(trace=phaseTrace)=>({
+    monsterPattern:c.monster.hp<=0&&monsterPattern?{...monsterPattern,outcome:'BLOCKED',label:'격파 · 패턴 종료'}:monsterPattern,
     turn:c.turn,cards,damagePackets:packets,totalDamage,phaseTrace:trace,events,
     collisionGroups:structuredClone(collisionGroups),collisionResolutionPasses:1,postCollisionEffectPasses:1,
     numberHistories:cards.map(card=>structuredClone(card.numberHistory)),

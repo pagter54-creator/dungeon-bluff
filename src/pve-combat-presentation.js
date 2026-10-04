@@ -413,6 +413,10 @@ export function skillCues(result,players=[]){
 export function monsterCue(before,result,after){
  if(!before)return null;
  const theme=MONSTER_THEMES[before.id]||{name:before.name,glyph:'◇',color:'#a49bb5',motif:'unknown',boss:false};
+ const authoritative=result.monsterPattern;
+ if(authoritative&&['ACTIVE','BLOCKED','PARTIAL','WAIT'].includes(authoritative.outcome)){
+  return {theme,outcome:authoritative.outcome,label:authoritative.label,detail:authoritative.detail||'',targetIds:[...(authoritative.targetIds||[])]};
+ }
  const p=before.presentation||{},cards=result.cards||[],valid=cards.filter(c=>c.valid),events=result.events||[];
  const has=t=>events.some(e=>e.type===t),type=before.intent?.type,id=before.id;
  let outcome='ACTIVE',label='패턴 발동';
