@@ -23,18 +23,180 @@
     "unrelatedGoldenChanges": 0
   },
   "flags": {
-    "VAMPIRE_RUNTIME_COMPLETE": false,
-    "READY_FOR_PVE_CONTENT_005D_C_GHOST": false
+    "VAMPIRE_RUNTIME_COMPLETE": true,
+    "READY_FOR_PVE_CONTENT_005D_C_GHOST": true
   },
-  "status": "HISTORICAL_MIGRATION_AUTHORIZED_AWAITING_FINAL_CI",
+  "status": "RUNTIME_VERIFIED_FINAL_DOCUMENT_HEAD_PENDING",
   "githubEvidence": {
-    "head": "166226f15fc1a8ea9952313bba09a4ff61eaf6f9",
-    "tests": 1767,
-    "pass": 1762,
-    "fail": 5,
+    "head": "26a4ccb9576e8af7e4d11b20afd19a6ef1e0fc42",
+    "runId": 37196034193,
+    "runNumber": 966,
+    "status": "completed",
+    "conclusion": "success",
+    "tests": 1771,
+    "pass": 1771,
+    "fail": 0,
+    "skip": 0,
     "newTests": 182,
     "newPass": 182,
-    "note": "Pre-migration evidence. New migration CI remains pending."
+    "projectCheckFiles": 225,
+    "stress": [
+      {
+        "mode": "smoke",
+        "seeds": 10,
+        "hard": 0,
+        "warnings": 54,
+        "scenarios": [
+          {
+            "id": "T00",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 0
+          },
+          {
+            "id": "T05",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 10
+          },
+          {
+            "id": "T09",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 10
+          },
+          {
+            "id": "T14",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 0
+          },
+          {
+            "id": "T02",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 10
+          },
+          {
+            "id": "T03",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 30
+          },
+          {
+            "id": "T04",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 4
+          },
+          {
+            "id": "T06",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 27
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 100,
+        "scenarios": [
+          {
+            "id": "T06",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 257
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 100,
+        "scenarios": [
+          {
+            "id": "T02",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 100
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 1,
+        "scenarios": [
+          {
+            "id": "T00",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 1
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 99,
+        "scenarios": [
+          {
+            "id": "T05",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 99
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 100,
+        "scenarios": [
+          {
+            "id": "T09",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 100
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 47,
+        "scenarios": [
+          {
+            "id": "T04",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 47
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 100,
+        "scenarios": [
+          {
+            "id": "T03",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 300
+          }
+        ]
+      }
+    ],
+    "finalDocumentHeadGate": "Next branch only after final document HEAD Project Checks completed/success."
   },
   "unaffectedFixes": [
     "Stable Vampire names populated; follow-up comma syntax error repaired",

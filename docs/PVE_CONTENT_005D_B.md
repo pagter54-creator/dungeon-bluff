@@ -17,9 +17,10 @@ T04 smoke seed는 score 동점으로 기존 target과 동일하다. 기존 비�
 
 ## 검증
 
-흡혈귀 신규 실제 Node 테스트182개는 이전 HEAD에서182/182 PASS. 이관 전 전체1767개는1762 PASS/5 FAIL. 이관 후 최종 GitHub npm test/check/smoke 및 지정 스트레스 검증은 진행 중이며, 아직 수락하지 않는다.
+GitHub Project Checks #966 (run37196034193) completed/success. 검증 HEAD: 26a4ccb9576e8af7e4d11b20afd19a6ef1e0fc42.
+전체1771/1771 PASS,0 FAIL/skip. 흡혈귀 신규182/182 PASS. 프로젝트 검사225 files PASS. 기존 smoke 및 T00/T02/T03/T04/T05/T06/T09 각100시드 hard failure0/failedSeeds0. 상세 warning 수는 audit JSON에 기록한다. 수치 조정은 하지 않았다.
 
-VAMPIRE_RUNTIME_COMPLETE=false
-READY_FOR_PVE_CONTENT_005D_C_GHOST=false
+VAMPIRE_RUNTIME_COMPLETE=true
+READY_FOR_PVE_CONTENT_005D_C_GHOST=true
 
-Draft 유지. merge/Ready/deploy/Supabase/DB/schema 변경0.
+최종 문서 HEAD의 Project Checks 완료/성공을 별도로 확인한 뒤 C 브랜치를 만든다. Draft 유지. merge/Ready/deploy/Supabase/DB/schema 변경0.
