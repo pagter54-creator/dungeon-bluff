@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {chooseCoverageNode} from './helpers/pve-route.mjs';
 import assert from 'node:assert/strict';
 import {buildInitialPveRun,handlePveAction} from '../supabase/functions/game-api/pve/api.js';
 import {connectedNodeIds} from '../supabase/functions/game-api/pve/map.js';
@@ -46,9 +47,7 @@ test('full generated Floor 1→2→3 route reaches RUN_CLEAR and settles Gold ex
   if(r.phase==='MAP_VOTE'){
    if(!floors.includes(r.floor))floors.push(r.floor);
    if(r.floor>1){assert.equal(r.combat,undefined);assert.equal(r.players[0].relics.includes('f1_guard_charm'),true);assert.equal(r.players[0].augments.includes('aug-001'),true);}
-   const nodes=connectedNodeIds(r.map).map(id=>r.map.nodes.find(x=>x.id===id));
-   const desired=r.floor===3?['NORMAL_COMBAT','EVENT','NORMAL_COMBAT','ELITE_COMBAT','REST','SHOP','NORMAL_COMBAT','REWARD_ROOM','ELITE_COMBAT','BOSS'][nodes[0].depth-1]:null;
-   r=(await call(admin,'voteNextRoom',n++,{node_id:(nodes.find(x=>x.type===desired)||nodes[0]).id})).run;continue;
+   r=(await call(admin,'voteNextRoom',n++,{node_id:chooseCoverageNode(r)})).run;continue;
   }
   if(r.floor===3&&r.currentRoomNodeId&&f3Types.length<r.depth)f3Types.push(r.map.nodes.find(x=>x.id===r.currentRoomNodeId).type);
   if(r.phase==='COMBAT'){
@@ -58,15 +57,16 @@ test('full generated Floor 1→2→3 route reaches RUN_CLEAR and settles Gold ex
   if(r.phase==='EVENT'){r=(await call(admin,'submitEventCard',n++,{card_instance_id:legal(r,true)})).run;continue;}
   if(r.phase==='REST'){r=(await call(admin,'restChoice',n++,{choice:'FULL_HEAL'})).run;continue;}
   if(r.phase==='SHOP'){r=(await call(admin,'shopReady',n++)).run;continue;}
-  if(r.phase==='REWARD_ROOM'){r=r.roomState.pickOrder?.length?(await call(admin,'rewardChooseRelic',n++,{relic_id:r.roomState.relicIds[0]})).run:(await call(admin,'rewardSubmitCard',n++,{card_instance_id:legal(r,true)})).run;continue;}
+  if(r.phase==='REWARD_ROOM'){r=r.roomState.pickOrder?.length?(await call(admin,'rewardChooseRelic',n++,{relic_id:r.roomState.relicIds.find(id=>!r.players[0].relics.includes(id))})).run:(await call(admin,'rewardSubmitCard',n++,{card_instance_id:legal(r,true)})).run;continue;}
   if(r.phase==='ROOM_RESULT'){r=(await call(admin,'roomReady',n++)).run;continue;}
   if(r.phase==='AUGMENT_CHOICE'){r=(await call(admin,'chooseAugment',n++,{augment_id:r.privateAugmentOffer.augmentIds[0]})).run;continue;}
   if(r.phase==='FLOOR_CLEAR'){r=(await call(admin,'continueFloor',n++)).run;continue;}
   assert.fail('unhandled phase '+r.phase);
  }
  assert.equal(r.phase,'RUN_CLEAR');assert.deepEqual(floors,[1,2,3]);assert.equal(r.id,id);
- assert.deepEqual(f3Types,['NORMAL_COMBAT','EVENT','NORMAL_COMBAT','ELITE_COMBAT','REST','SHOP','NORMAL_COMBAT','REWARD_ROOM','ELITE_COMBAT','BOSS']);
- assert.equal(species.size,6);assert.equal(sawPrivate,true);assert.equal(r.combat,undefined);assert.equal(r.finalSummary.clearedFloors,3);
+ assert.equal(f3Types.length,12);assert.equal(f3Types[0],'NORMAL_COMBAT');assert.deepEqual(f3Types.slice(-2),['REST','BOSS']);
+ for(const type of ['EVENT','SHOP','ELITE_COMBAT','REWARD_ROOM'])assert.ok(f3Types.includes(type));
+ assert.equal(species.size,f3Types.filter(type=>['NORMAL_COMBAT','ELITE_COMBAT','BOSS'].includes(type)).length);assert.equal(sawPrivate,true);assert.equal(r.combat,undefined);assert.equal(r.finalSummary.clearedFloors,3);
  assert.ok(r.players[0].runGold>=5);assert.ok(r.players[0].score>=7);assert.equal(r.players[0].engravings['2'],1);assert.equal(r.players[0].relics.includes('f1_guard_charm'),true);assert.equal(r.players[0].augments.includes('aug-001'),true);assert.ok(r.players[0].cardPool.length>0);assert.ok(r.players[0].hp>0);
  assert.equal(admin.paid,admin.state.players[0].runGold);const once=admin.paid;
  const back=(await call(admin,'getState',n++,{runGold:99999,rp_delta:99999})).run;

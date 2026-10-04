@@ -3,7 +3,7 @@ import {newPlayerRunState,newCombatState} from './model.js';
 import {PVE_CHARACTER_DEFS} from './characters.js';
 import {GAME_MODE,roomGameMode} from '../game-mode.js';
 import {beginEntryLoading,finishEntryLoading} from '../entry-loading.js';
-import {generateFloorMap,connectedNodeIds,resolveVote} from './map.js';
+import {generateFloorMap,connectedNodeIds,resolveVote,floorRoomCount} from './map.js';
 import {restoreCardCycle} from './card-cycle.js';
 import {setGamblerDrawPreference} from './gambler.js';
 import {projectRun} from './projection.js';
@@ -32,7 +32,7 @@ export function unsupportedPveRoomCharacters(members){
     const mapped=pveCharacterIdForRoom(id);return !mapped||!Object.hasOwn(PVE_CHARACTER_DEFS,mapped);
   }))];
 }
-export function buildInitialPveRun(bundle,{seed=null,depthCount=8,now=Date.now()}={}){
+export function buildInitialPveRun(bundle,{seed=null,depthCount=floorRoomCount(1),now=Date.now()}={}){
   const unsupported=unsupportedPveRoomCharacters(bundle?.members||[]);
   if(unsupported.length){
     const error=new Error(`현재 협력 탐험에서 지원하지 않는 캐릭터가 있습니다: ${unsupported.join(', ')}`);
@@ -47,7 +47,7 @@ export function buildInitialPveRun(bundle,{seed=null,depthCount=8,now=Date.now()
   const run={id:crypto.randomUUID(),roomId:bundle.room.id,seed:typeof seed==='string'&&seed.length<=128?seed:crypto.randomUUID(),rngCounter:0,version:0,phase:'MAP_VOTE',floor:1,depth:0,flame:4,maxFlame:5,map:null,currentRoomNodeId:null,players,usedMonsterIds:[],chosenBossIds:{},contentVersion:'F1_CONTENT_001B',createdAt:new Date(now).toISOString(),updatedAt:new Date(now).toISOString()};
   run.chosenBossIds[1]=choose(run,Object.values(F1_MONSTER_DEFINITIONS).filter(def=>def.tier==='BOSS'),`f1-boss:${run.seed}`).id;
   installRelicCatalog(run,F1_RELIC_DEFINITIONS);
-  run.map=generateFloorMap(run,Number.isInteger(depthCount)&&depthCount>=2&&depthCount<=12?depthCount:8);
+  run.map=generateFloorMap(run,Number.isInteger(depthCount)&&depthCount>=2&&depthCount<=12?depthCount:floorRoomCount(1));
   run.map.voteDeadline=new Date(now+15000).toISOString();
   return run;
 }
@@ -160,7 +160,7 @@ export async function handlePveAction({admin,user,body,json}){
     if(bundle.members?.length!==4)return fail(json,'PVE 원정은 4인이 필요합니다.');
     if(canonicalRoomMode&&!bundle.members.every(m=>m.member_type==='ai'||m.lobby_ready===true))return fail(json,'모든 플레이어가 준비를 완료해야 합니다.',409);
     if(bundle.session)return fail(json,'기존 PVP 원정이 진행 중입니다.');
-    let run;try{run=buildInitialPveRun(bundle,{seed:body.seed,depthCount:body.depth_count});}
+    let run;try{run=buildInitialPveRun(bundle,{seed:body.seed,depthCount:floorRoomCount(1)});}
     catch(error){return fail(json,error.message||'PVE 캐릭터 구성을 확인해 주세요.',409);}
     if(canonicalRoomMode)beginEntryLoading(run);
     const createArgs=canonicalRoomMode

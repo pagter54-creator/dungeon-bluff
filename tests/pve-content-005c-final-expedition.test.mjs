@@ -61,7 +61,7 @@ for(const [partyName,classes,equipped] of [
     if(run.phase==='EVENT'){run=await call(admin,'submitEventCard',n++,{card_instance_id:legal(run,true)});continue;}
     if(run.phase==='REST'){run=await call(admin,'restChoice',n++,{choice:'FULL_HEAL'});continue;}
     if(run.phase==='SHOP'){run=await call(admin,'shopReady',n++);continue;}
-    if(run.phase==='REWARD_ROOM'){run=run.roomState.pickOrder?.length?await call(admin,'rewardChooseRelic',n++,{relic_id:run.roomState.relicIds[0]}):await call(admin,'rewardSubmitCard',n++,{card_instance_id:legal(run,true)});continue;}
+    if(run.phase==='REWARD_ROOM'){run=run.roomState.pickOrder?.length?await call(admin,'rewardChooseRelic',n++,{relic_id:run.roomState.relicIds.find(id=>!run.players[0].relics.includes(id))}):await call(admin,'rewardSubmitCard',n++,{card_instance_id:legal(run,true)});continue;}
     if(run.phase==='ROOM_RESULT'){run=await call(admin,'roomReady',n++);continue;}
     if(run.phase==='AUGMENT_CHOICE'){run=await call(admin,'chooseAugment',n++,{augment_id:run.privateAugmentOffer.augmentIds[0]});continue;}
     if(run.phase==='FLOOR_CLEAR'){run=await call(admin,'continueFloor',n++);continue;}

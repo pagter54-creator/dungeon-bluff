@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {chooseCoverageNode} from './helpers/pve-route.mjs';
 import assert from 'node:assert/strict';
 import {handlePveAction} from '../supabase/functions/game-api/pve/api.js';
 import {connectedNodeIds} from '../supabase/functions/game-api/pve/map.js';
@@ -83,20 +84,7 @@ function rewardCard(run){
   const cards=run.players.find(p=>p.playerId==='p0').cardPool||[];
   return remaining.map(id=>cards.find(c=>c.id===id)).filter(Boolean).sort((a,b)=>b.baseNumber-a.baseNumber)[0]?.id;
 }
-function chooseRouteNode(run){
-  const ids=connectedNodeIds(run.map),nodes=ids.map(id=>run.map.nodes.find(n=>n.id===id));
-  const desired={
-    1:'NORMAL_COMBAT',
-    2:'EVENT',
-    3:'SHOP',
-    4:'ELITE_COMBAT',
-    5:'REST',
-    6:'NORMAL_COMBAT',
-    7:'REWARD_ROOM',
-    8:'BOSS'
-  }[nodes[0]?.depth];
-  return nodes.find(n=>n.type===desired)?.id||nodes[0]?.id;
-}
+function chooseRouteNode(run){return chooseCoverageNode(run);}
 
 test('PVE-014 AI combat submissions are deterministic, legal, private, and allow a human+AI turn to resolve',()=>{
   const make=()=>{
@@ -213,7 +201,7 @@ test('PVE-014 internal API playtest: four humans can traverse every F1 room fami
     }
     if(run.phase==='REWARD_ROOM'){
       if(run.roomState.pickOrder?.length){
-        const pid=run.roomState.pickOrder[0],picker=run.players.find(p=>p.playerId===pid),relicId=run.roomState.relicIds[0];
+        const pid=run.roomState.pickOrder[0],picker=run.players.find(p=>p.playerId===pid),relicId=run.roomState.relicIds.find(id=>!picker.relics.includes(id));
         run=await call(admin,{action:'pve.rewardChooseRelic',run_id:run.id,action_id:actionId(seq++),expected_version:version(),relic_id:relicId},picker.userId);
         if(run.phase==='ROOM_RESULT')rewardResolved=true;
         continue;
@@ -260,7 +248,8 @@ test('PVE-014 internal API playtest: four humans can traverse every F1 room fami
 
   assert.notEqual(run.phase,'RUN_FAILED',JSON.stringify({visited,combatTurns,flame:run.flame,players:run.players.map(p=>({id:p.playerId,hp:p.hp,status:p.status,gold:p.runGold}))}));
   assert.equal(run.phase,'MAP_VOTE',JSON.stringify({visited,combatTurns}));assert.equal(run.floor,2);
-  assert.deepEqual(visited,['NORMAL_COMBAT','EVENT','SHOP','ELITE_COMBAT','REST','NORMAL_COMBAT','REWARD_ROOM','BOSS']);
+  assert.equal(visited.length,10);assert.equal(visited[0],'NORMAL_COMBAT');assert.deepEqual(visited.slice(-2),['REST','BOSS']);
+  for(const type of ['EVENT','SHOP','ELITE_COMBAT','REWARD_ROOM'])assert.ok(visited.includes(type));
   assert.equal(run.floorClear.bossId,selectedBossId);
   assert.equal(sawBossAugment,true,'boss reward must exercise the augment-choice API before transition');
   assert.equal(rewardResolved,true);
@@ -271,7 +260,7 @@ test('PVE-014 internal API playtest: four humans can traverse every F1 room fami
   const committed=admin.state,committedVersion=admin.version;
   assert.equal(committed.id,run.id);assert.equal(committed.floor,2);assert.equal(committed.phase,'MAP_VOTE');
   assert.equal(committed.combat,undefined);assert.ok(committed.map.nodes.some(node=>node.type==='BOSS'));
-  assert.equal(committed.map.depthCount,12);assert.equal(committed.currentRoomNodeId,null);
+  assert.equal(committed.map.depthCount,11);assert.equal(committed.currentRoomNodeId,null);
   for(const userId of users){
     const reconnect=await call(admin,{action:'pve.getState',run_id:run.id},userId);
     const own=reconnect.players.find(player=>player.userId===userId),saved=committed.players.find(player=>player.userId===userId);

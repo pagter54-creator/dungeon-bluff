@@ -23,6 +23,10 @@ export function pveConnectedNodes(run){
   return ids.map(id=>(map.nodes||[]).find(n=>n.id===id)).filter(Boolean);
 }
 function pointFor(map,node){
+  if(Number.isInteger(node.column)&&Number.isInteger(map.gridWidth)&&map.gridWidth>1){
+    const offset=Math.max(-18,Math.min(18,Number(node.mapOffset)||0));
+    return {x:80+node.column*840/(map.gridWidth-1)+offset,y:80+(node.depth-1)*150};
+  }
   const row=(map.nodes||[]).filter(n=>n.depth===node.depth).sort((a,b)=>a.id.localeCompare(b.id));
   const index=Math.max(0,row.findIndex(n=>n.id===node.id));
   const xs=row.length<=1?[500]:row.length===2?[330,670]:row.map((_,i)=>220+i*(560/(row.length-1)));
@@ -48,7 +52,7 @@ export function pveMapOverlayMarkup(run,userId,{visitedNodes=[]}={}){
     return '<button type="button" class="pve-map-node '+state+' '+(mine?'mine':'')+'" style="--map-x:'+(node.x/10)+'%;--map-y:'+node.y+'px" data-action="'+action+'" data-node-id="'+esc(node.id)+'" '+(canVote&&isReachable?'':'disabled')+'><i>'+(ROOM_ICONS[node.type]||'◇')+'</i><b>'+esc(PVE_ROOM_LABELS[node.type]||node.type)+'</b><small>D'+node.depth+(voteCount?' · '+voteCount+'표':'')+'</small></button>';
   }).join('');
   const legend=Object.entries(ROOM_ICONS).map(([type,icon])=>'<span><i>'+icon+'</i>'+esc(PVE_ROOM_LABELS[type])+'</span>').join('');
-  return '<div class="pve-map-layer"><button type="button" class="pve-map-backdrop" data-action="pve-map-close" aria-label="지도 닫기"></button><section class="pve-map-overlay" role="dialog" aria-modal="true" aria-label="협력 탐험 지도"><div class="pve-map-toolbar"><div><div class="eyebrow">EXPEDITION MAP · FLOOR '+esc(run.floor)+'</div><h2>경로 지도</h2><p>'+'지도는 언제든 확인할 수 있습니다. 이동은 방 종료 후에만 투표합니다.'+'</p></div><button class="icon-button" data-action="pve-map-close" aria-label="지도 닫기">×</button></div><div class="pve-map-scroll"><div class="pve-map-canvas" style="height:'+geo.height+'px"><svg class="pve-map-edges" viewBox="0 0 1000 '+geo.height+'" preserveAspectRatio="none" aria-hidden="true">'+lines+'</svg>'+nodes+'</div></div><div class="pve-map-legend">'+legend+'</div></section></div>';
+  return '<div class="pve-map-layer"><button type="button" class="pve-map-backdrop" data-action="pve-map-close" aria-label="지도 닫기"></button><section class="pve-map-overlay" role="dialog" aria-modal="true" aria-label="협력 탐험 지도"><div class="pve-map-toolbar"><div><div class="eyebrow">EXPEDITION MAP · FLOOR '+esc(run.floor)+'</div><h2>경로 지도</h2><p>'+'지도는 언제든 확인할 수 있습니다. 이동은 방 종료 후에만 투표합니다.'+'</p></div><button class="icon-button" data-action="pve-map-close" aria-label="지도 닫기">×</button></div><div class="pve-map-scroll"><div class="pve-map-canvas'+(map.gridWidth?' procedural':'')+'" style="height:'+geo.height+'px"><svg class="pve-map-edges" viewBox="0 0 1000 '+geo.height+'" preserveAspectRatio="none" aria-hidden="true">'+lines+'</svg>'+nodes+'</div></div><div class="pve-map-legend">'+legend+'</div></section></div>';
 }
 export function pveRelicStripMarkup(bundle,run){
   const rows=(run.players||[]).filter(p=>(p.relics||[]).length);if(!rows.length)return '';

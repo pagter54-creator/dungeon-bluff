@@ -119,7 +119,7 @@ async function playFloor({seed,characters,mixed=false}){
         const view=await call(admin,userId,{action:'pve.getState',run_id:run.id});run=view;
         if(run.phase!=='EVENT')break;
         const me=run.players.find(p=>p.userId===userId);
-        if(run.roomState.choicesByPlayer?.[me.playerId])continue;
+        if(me.status==='DOWNED'||run.roomState.readyPlayerIds?.includes(me.playerId)||run.roomState.choicesByPlayer?.[me.playerId])continue;
         const cardId=run.privateRoomState.remainingCardIds.find(id=>{const card=me.cardPool.find(c=>c.id===id);return card&&(me.characterId!=='twins'||card.baseNumber%2===(me.publicResources.parity||0));});
         assert.ok(cardId,'event card is available');
         run=await call(admin,userId,{action:'pve.submitEventCard',run_id:run.id,action_id:aid(seq++),expected_version:admin.version,card_instance_id:cardId});
@@ -150,7 +150,7 @@ async function playFloor({seed,characters,mixed=false}){
       if(run.roomState.pickOrder?.length){
         const pid=run.roomState.pickOrder[0],picker=run.players.find(p=>p.playerId===pid);
         if(picker?.memberType==='human'){
-          const relicId=run.roomState.relicIds.find(id=>!picker.relics.includes(id))||run.roomState.relicIds[0];
+          const relicId=run.roomState.relicIds.find(id=>!picker.relics.includes(id));
           run=await call(admin,picker.userId,{action:'pve.rewardChooseRelic',run_id:run.id,action_id:aid(seq++),expected_version:admin.version,relic_id:relicId});
           continue;
         }
@@ -158,13 +158,13 @@ async function playFloor({seed,characters,mixed=false}){
       const attempt=run.roomState.attempt,used=new Set();
       for(const userId of humanUsers){
         const view=await call(admin,userId,{action:'pve.getState',run_id:run.id});run=view;
-        if(run.phase!=='REWARD_ROOM'||run.roomState.attempt!==attempt)break;
+        if(run.phase!=='REWARD_ROOM'||run.roomState.attempt!==attempt||run.roomState.pickOrder?.length)break;
         const me=run.players.find(p=>p.userId===userId);
-        if(run.roomState.readyPlayerIds?.includes(me.playerId))continue;
+        if(me.status==='DOWNED'||run.roomState.readyPlayerIds?.includes(me.playerId))continue;
         const plan=plannedCard(run,me,used,true);if(!plan)continue;
         used.add(plan.final);
         run=await call(admin,userId,{action:'pve.rewardSubmitCard',run_id:run.id,action_id:aid(seq++),expected_version:admin.version,card_instance_id:plan.card.id,skill_intent:false});
-        if(run.phase!=='REWARD_ROOM'||run.roomState.attempt!==attempt)break;
+        if(run.phase!=='REWARD_ROOM'||run.roomState.attempt!==attempt||run.roomState.pickOrder?.length)break;
       }
       continue;
     }

@@ -131,7 +131,7 @@ for(const bossId of ['f1_fallen_lord','f1_gatebreaker_colossus'])test(`${bossId}
 test('CONTENT-001B Floor 1 to Floor 2 keeps persistent state and prevents unimplemented voting',()=>{
   const run=make('f1_fallen_lord');run.phase='FLOOR_CLEAR';run.floorClear={floor:1,bossId:'f1_fallen_lord'};
   const player=run.players[0];player.hp=2;player.runGold=7;player.growthExp=51;player.score=9;player.engravings={'4':1};player.relics=['f1_worn_whetstone'];player.augments=['aug-001'];player.publicResources={mana:3,devour:2};
-  const id=run.id;assert.equal(advanceCompletedFloor(run),true);assert.equal(run.id,id);assert.equal(run.floor,2);assert.equal(run.phase,'MAP_VOTE');assert.equal(run.map.depthCount,12);assert.equal(run.combat,undefined);
+  const id=run.id;assert.equal(advanceCompletedFloor(run),true);assert.equal(run.id,id);assert.equal(run.floor,2);assert.equal(run.phase,'MAP_VOTE');assert.equal(run.map.depthCount,11);assert.equal(run.combat,undefined);
   assert.deepEqual([player.hp,player.runGold,player.growthExp,player.score],[2,7,51,9]);assert.equal(player.engravings['4'],1);assert.deepEqual(player.relics,['f1_worn_whetstone']);assert.deepEqual(player.augments,['aug-001']);
   assert.equal(player.publicResources.mana,undefined);assert.equal(player.publicResources.devour,2);
   assert.equal(advanceCompletedFloor(run),false);assert.equal(structuredClone(run).floor,2);

@@ -248,7 +248,7 @@ test('PVE map has forced stretches, real forks, and reachable boss routes',()=>{
   const run={seed:'map-route-test',floor:1,depth:0,rngCounter:0};
   const map=generateFloorMap(run,8);
   const byId=new Map(map.nodes.map(node=>[node.id,node]));
-  assert.equal(map.nodes.filter(node=>node.depth===1).length,2);
+  assert.ok(map.nodes.filter(node=>node.depth===1).length>=3);
   assert.ok(map.nodes.some(node=>(map.edges[node.id]||[]).length===1&&node.depth<7));
   assert.ok(map.nodes.some(node=>(map.edges[node.id]||[]).length===2&&node.depth>1));
   for(const start of map.nodes.filter(node=>node.depth===1)){
@@ -262,7 +262,7 @@ test('PVE map has forced stretches, real forks, and reachable boss routes',()=>{
     };
     visit(start.id);
   }
-  const forced=map.nodes.find(node=>node.depth===2);
+  const forced=map.nodes.find(node=>node.depth<8&&(map.edges[node.id]||[]).length===1);
   map.currentNodeId=forced.id;run.map=map;run.depth=forced.depth;
   assert.equal(connectedNodeIds(map).length,1);
   assert.equal(resolveVote(run,[]),map.edges[forced.id][0]);

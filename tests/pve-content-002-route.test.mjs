@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {chooseCoverageNode} from './helpers/pve-route.mjs';
 import assert from 'node:assert/strict';
 import {handlePveAction} from '../supabase/functions/game-api/pve/api.js';
 import {connectedNodeIds,generateFloorMap} from '../supabase/functions/game-api/pve/map.js';
@@ -36,7 +37,7 @@ function initial(){
   ];
   const run={id:'20000000-0000-4000-8000-000000000002',roomId:'20000000-0000-4000-8000-000000000001',seed:'f2-full-route',rngCounter:0,version:0,phase:'MAP_VOTE',floor:2,depth:0,flame:50,maxFlame:50,players:members.map(newPlayerRunState),usedMonsterIds:[],chosenBossIds:{2:'f2_rottenheart_ancient'},cardCycles:{}};
   installRelicCatalog(run,F1_RELIC_DEFINITIONS);
-  run.map=generateFloorMap(run,12);
+  run.map=generateFloorMap(run);
   return run;
 }
 async function call(admin,action,seq,more={}){
@@ -62,9 +63,7 @@ test('Floor 2 generated route exercises combat, shared rooms, reward, boss clear
       if(run.combat)combatSpecies.add(run.combat.monster.id);
     }
     if(run.phase==='MAP_VOTE'){
-      const nodes=connectedNodeIds(run.map).map(id=>run.map.nodes.find(n=>n.id===id));
-      const desired={1:'NORMAL_COMBAT',2:'EVENT',3:'SHOP',4:'ELITE_COMBAT',5:'REST',6:'NORMAL_COMBAT',7:'REWARD_ROOM',8:'NORMAL_COMBAT',9:'REST',10:'NORMAL_COMBAT',11:'ELITE_COMBAT',12:'BOSS'}[nodes[0].depth];
-      const chosen=nodes.find(node=>node.type===desired)||nodes[0];
+      const chosen={id:chooseCoverageNode(run)};
       run=await call(admin,'voteNextRoom',seq++,{node_id:chosen.id});continue;
     }
     if(run.phase==='COMBAT'){
@@ -86,7 +85,7 @@ test('Floor 2 generated route exercises combat, shared rooms, reward, boss clear
     if(run.phase==='REWARD_ROOM'){
       const room=run.roomState;
       if(room.pickOrder?.length){
-        const relicId=room.relicIds?.[0];run=await call(admin,'rewardChooseRelic',seq++,{relic_id:relicId});continue;
+        const relicId=room.relicIds.find(id=>!run.players[0].relics.includes(id));run=await call(admin,'rewardChooseRelic',seq++,{relic_id:relicId});continue;
       }
       run=await call(admin,'rewardSubmitCard',seq++,{card_instance_id:legal(run,{room:true})});continue;
     }

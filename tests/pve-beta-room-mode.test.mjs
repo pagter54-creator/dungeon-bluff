@@ -63,7 +63,7 @@ test('MODE-08 initial COOP run reuses actual PVE map/model and preserves lobby c
  assert.equal(run.phase,'MAP_VOTE');assert.equal(run.floor,1);assert.equal(run.depth,0);assert.equal(run.players.length,4);
  assert.equal(run.players[0].characterId,'prophet');assert.equal(run.players[0].lobbyCharacterId,'seer');
  assert.equal(run.players[1].characterId,'martial_artist');assert.equal(run.players[2].characterId,'demon_swordsman');
- assert.equal(pveConnectedNodes(run).length,2);
+ assert.equal(pveConnectedNodes(run).length,run.map.laneCount);assert.ok(run.map.laneCount>=3);
 });
 test('PVE Beta result UI states Gold separately and clearly says RP does not change',()=>{
  const roomMembers=members();

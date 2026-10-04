@@ -21,7 +21,7 @@ export function advanceCompletedFloor(run){
   run.floor=nextFloor;run.depth=0;run.currentRoomNodeId=null;run.usedMonsterIds=[];
   if(nextFloor===2){run.chosenBossIds||={};run.chosenBossIds[2]=choose(run,Object.values(F2_MONSTER_DEFINITIONS).filter(def=>def.tier==='BOSS'),`f2-boss:${run.seed}`).id;}
   if(nextFloor===3){run.chosenBossIds||={};run.chosenBossIds[3]=choose(run,Object.values(F3_MONSTER_DEFINITIONS).filter(def=>def.tier==='BOSS'),`f3-boss:${run.seed}`).id;}
-  run.map=generateFloorMap(run,nextFloor===3?10:12);run.map.voteDeadline=null;
+  run.map=generateFloorMap(run);run.map.voteDeadline=null;
   run.phase='MAP_VOTE';run.floorClear={...run.floorClear,completed:true,advancedTo:nextFloor};
   if(run.id!==runId)throw new Error('PVE run identity changed during floor transition.');
   return true;

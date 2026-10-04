@@ -101,3 +101,11 @@
 .pve-monster-portrait{display:block;width:min(240px,72vw);height:180px;object-fit:contain;margin:4px auto 12px;filter:drop-shadow(0 12px 18px rgba(0,0,0,.36))}
 
 .pve-shop-item.unaffordable{border-color:#80505c}.pve-shop-item .pve-shop-insufficient{color:#e59aa8;font-weight:700}
+
+/* Preserve lane spacing inside the existing scrollable map popup. */
+.pve-map-canvas.procedural{min-width:680px}
+
+/* Fit 10/11/12 progress markers without widening the existing battle header. */
+.pve-shared-top .stage-track{min-width:0;gap:clamp(2px,.6vw,8px)}
+.pve-shared-top .stage-node{margin:0;flex:0 1 30px;min-width:16px;height:auto;aspect-ratio:1}
+.pve-shared-top .stage-node:not(:last-child):after{left:100%;width:clamp(2px,.6vw,8px)}
