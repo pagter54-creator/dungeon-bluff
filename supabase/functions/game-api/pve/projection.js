@@ -58,7 +58,20 @@ export function projectRun(run,viewerPlayerId){
         cardCounter:Number(state.cardCounter)||0,firstDrawAfterShuffle:Boolean(state.firstDrawAfterShuffle)};
     }
   }
-  // Physical card numbers are public; current-cycle usage stays private.
+  // Publish cycle usage, never pending selections, physical IDs or skill intent.
+  const publicCycles=states=>Object.fromEntries((run.players||[]).map(player=>{
+    const state=states?.[player.playerId]||run.cardCycles?.[player.playerId];
+    if(!state)return [player.playerId,{cycleIndex:1,cards:(player.cardPool||[]).map(card=>({baseNumber:card.baseNumber,used:false}))}];
+    if(player.characterId==='gambler'){
+      // Random current hands stay concealed, just as in competitive play.
+      return [player.playerId,{cycleIndex:state.cycleIndex||1,cards:(state.remainingCardIds||[]).map(()=>({baseNumber:null,used:false}))}];
+    }
+    const remaining=new Set(state.remainingCardIds||[]);
+    return [player.playerId,{cycleIndex:state.cycleIndex||1,cards:(player.cardPool||[]).map(card=>({baseNumber:card.baseNumber,used:!remaining.has(card.id)}))}];
+  }));
+  out.publicCardCycles=publicCycles(run.cardCycles);
+  if(out.combat)out.combat.publicCardCycles=publicCycles(run.combat?.privateByPlayer);
+  if(out.roomState)out.roomState.publicCardCycles=publicCycles(run.roomState?.privateByPlayer);
 
   for(const player of out.players||[]){
     if(player.playerId!==viewerPlayerId&&player.characterId==='demon_swordsman')delete player.publicResources.transformationPending;

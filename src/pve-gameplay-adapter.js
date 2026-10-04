@@ -12,7 +12,7 @@ const characterForPlayer=(bundle,player)=>bundle?.characters?.find(c=>c.id===lob
 
 function publicCycle(run,player,scope='combat'){
   const state=scope==='room'||scope==='event'?run.roomState:run.combat;
-  const publicState=state?.publicCardCycles?.[player.playerId];
+  const publicState=state?.publicCardCycles?.[player.playerId]||run.publicCardCycles?.[player.playerId];
   if(publicState)return publicState;
   const own=scope==='room'||scope==='event'?run.privateRoomState:run.privateCombat;
   if(own?.playerId!==player.playerId){
