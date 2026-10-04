@@ -30,7 +30,7 @@ export function twinsTurnStart(run,p){
 }
 export function activateTwins(run,p){
  const c=run.combat,z=c?.privateByPlayer?.[p.playerId];if(!isTwin(p)||!active(run)||c?.phase!=='SELECTION_OPEN'||!live(p)||c.turnSubmissions[p.playerId]){const e=new Error('곡예는 카드 확정 제출 전에 사용합니다.');e.code='INVALID_PHASE';throw e;};
- if(!p.publicResources.acrobaticsReady){const e=new Error('곡예가 아직 재충전되지 않았습니다.');e.code='SKILL_NOT_READY';throw e;};
+ if(!p.publicResources.acrobaticsReady){const e=new Error(has(p,381)?'유효 공격 '+need(p)+'회를 달성하면 곡예가 재충전됩니다.':'새 사이클을 완주하면 곡예가 재충전됩니다.');e.code='SKILL_NOT_READY';throw e;};
  const s=tick(run,p),remaining=z.remainingCardIds.length,previous=z.cycleIndex||1,parity=p.publicResources.parity||0,remainingBefore=[...z.remainingCardIds],spentBefore=[...z.spentCardIds];
  z.cycleIndex=previous+1;z.remainingCardIds=p.cardPool.filter(x=>x.source==='BASE').map(x=>x.id);z.spentCardIds=[];delete z.selectedCardId;delete z.skillIntent;s.spentById={};
  p.publicResources.parity=1-parity;p.publicResources.acrobaticsReady=false;p.publicResources.acrobaticsRechargeProgress=0;s.progress=0;s.serial++;s.activation=s.serial;s.postAttempts=0;s.postAll=true;s.postValid=0;s.postStreak=0;s.alternating=0;s.previousPrinted=null;
