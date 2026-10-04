@@ -65,8 +65,8 @@ test('final Boss victory clears combat, while simultaneous full wipe fails',()=>
  const clear=finish(false);assert.equal(clear.phase,'RUN_CLEAR');assert.equal(clear.combat,undefined);assert.equal(clear.finalSummary.clearedFloors,3);
  const failed=finish(true);assert.equal(failed.phase,'RUN_FAILED');assert.equal(failed.finalSummary,undefined);
 });
-test('only existing Floor 3 artwork is shown; missing art has no generic monster',()=>{
- for(const d of Object.values(F3_MONSTER_DEFINITIONS)){const stage=pveStageModel({floor:3,depth:1,combat:{roomType:d.tier==='BOSS'?'BOSS':d.tier==='ELITE'?'ELITE_COMBAT':'NORMAL_COMBAT',monster:d}});const art=creatureArt(stage.shape);if(['f3_greed_mimic','f3_execution_golem'].includes(d.id))assert.ok(art.includes('<img'));else assert.equal(art,'');}
+test('every Floor 3 monster renders existing artwork, including documented reused illustrations',()=>{
+ for(const d of Object.values(F3_MONSTER_DEFINITIONS)){const stage=pveStageModel({floor:3,depth:1,combat:{roomType:d.tier==='BOSS'?'BOSS':d.tier==='ELITE'?'ELITE_COMBAT':'NORMAL_COMBAT',monster:d}});const art=creatureArt(stage.shape);assert.ok(art.includes('<img'),d.id);}
 });
 
 test('Abyss King damage-band learning, modified final values, collision filtering, and reconnect',()=>{

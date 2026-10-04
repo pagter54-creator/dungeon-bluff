@@ -128,9 +128,10 @@ test('PVE-UI-10 MAP_VOTE exposes only connected server nodes as vote actions',()
  assert.equal((html.match(/data-action="pve-vote"/g)||[]).length,2);
  assert.match(html,/data-node-id="n3"/);assert.match(html,/data-node-id="n4"/);
 });
-test('PVE projection keeps current-cycle usage private while exposing card-pool numbers',()=>{
+test('PVE projection exposes cycle usage while keeping pending selections and physical IDs private',()=>{
  const view=projectRun(baseRun(),'p0');
- assert.equal(view.combat.publicCardCycles,undefined);
+ assert.ok(Array.isArray(view.combat.publicCardCycles.p1.cards));
+ assert.ok(view.combat.publicCardCycles.p1.cards.every(card=>Object.keys(card).every(key=>['baseNumber','used'].includes(key))));
  assert.equal(view.privateCombat.playerId,'p0');
  assert.equal(view.players[1].cardPool[0].id,undefined);
  assert.equal(view.combat.privateByPlayer,undefined);
