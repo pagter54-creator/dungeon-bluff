@@ -8,7 +8,7 @@ aug-361~390의 연속 유효/충돌 기록, 사이클 완료 보너스, 태양·
 
 ## 검증 대기
 
-보조 검증183 PASS/0 FAIL. 카드별 positive/negative/room/candidate/acquisition 각30, EXP 네 단계·세 전체 빌드·혼합 파이프라인·다중 소유자·재접속·privacy·실제 Vampire 교환 후 홀짝·복구 순서·빈 후보·사용 제한 포함. GitHub 전체 Node/check/smoke/100시드 결과는 대기 중이다.
+보조 검증184 PASS/0 FAIL. 카드별 positive/negative/room/candidate/acquisition 각30, EXP 네 단계·세 전체 빌드·혼합 파이프라인·다중 소유자·재접속·privacy·실제 Vampire 교환 후 홀짝·복구 순서·빈 후보·사용 제한 포함. GitHub 전체 Node/check/smoke/100시드 결과는 대기 중이다.
 
 TWINS_RUNTIME_COMPLETE=false
 READY_FOR_PVE_CONTENT_005D_FINAL=false

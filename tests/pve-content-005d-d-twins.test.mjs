@@ -183,3 +183,7 @@ test('Twins printed eligibility treats explicit BASE zero and six as even',()=>{
 test('Twins final submit prohibits Acrobatics and does not change pool or parity',()=>{
  const f=fixture();submitCard(f.run,'p0',f.rc.cardInstanceId);const before=JSON.stringify(f.priv),parity=f.p.publicResources.parity;assert.throws(()=>activateImmediateCharacterSkill(f.run,f.p),/확정/);assert.equal(JSON.stringify(f.priv),before);assert.equal(f.p.publicResources.parity,parity);
 });
+
+test('Twins 390 normal physical recovery excludes tagged temporary transformed special and derived cards',()=>{
+ for(const tag of ['TEMPORARY','TRANSFORMED','SPECIAL','DERIVED','VANISHED_SOURCE']){const f=fixture([381,390]);acro(f);const id=spent(f);f.p.cardPool.find(c=>c.id===id).tags=[tag];f.s.postAttempts=2;valid(f);twinsAfterSpend(f.run,f.p,f.rc);assert.equal(f.priv.remainingCardIds.includes(id),false,tag);assert.equal(f.p.publicResources.acrobaticsRechargeProgress,2);}
+});

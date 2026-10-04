@@ -100,13 +100,13 @@ export function twinsAfterSpend(run,p,c,events=[]){
  // Preserve deterministic prior SPENT order before recording the current submission.
  for(const id of z.spentCardIds)if(id!==c.cardInstanceId&&!s.spentById[id])s.spentById[id]=++s.spentSequence;
  if(z.spentCardIds.includes(c.cardInstanceId))s.spentById[c.cardInstanceId]=++s.spentSequence;
- const eligible=()=>z.spentCardIds.filter(id=>id!==c.cardInstanceId&&id!==z.selectedCardId&&!z.remainingCardIds.includes(id)&&p.cardPool.some(x=>x.id===id&&x.source==='BASE'&&!(x.tags||[]).some(t=>['TEMPORARY','VANISHED_SOURCE','DERIVED'].includes(t))));
+ const eligible=()=>z.spentCardIds.filter(id=>id!==c.cardInstanceId&&id!==z.selectedCardId&&!z.remainingCardIds.includes(id)&&p.cardPool.some(x=>x.id===id&&x.source==='BASE'&&!(x.tags||[]).some(t=>['TEMPORARY','TRANSFORMED','SPECIAL','VANISHED_SOURCE','DERIVED'].includes(t))));
  const recover=(n,parity=null,recent=false)=>{
  let ids=eligible().filter(id=>parity==null||p.cardPool.find(x=>x.id===id).baseNumber%2===parity);if(!ids.length)return false;
  if(s.guards['CYCLE:'+n+':'+(z.cycleIndex||1)])return false;
  ids.sort((a,b)=>recent?(s.spentById[b]-s.spentById[a]||a.localeCompare(b)):a.localeCompare(b));
  const id=recent?ids[0]:choose(run,ids,'twins-recover:'+r+':'+n);z.spentCardIds=z.spentCardIds.filter(x=>x!==id);z.remainingCardIds.push(id);delete s.spentById[id];claim(run,p,n,n===390?'TURN':'CYCLE');
- events.push({type:'CARD_RECOVERED',playerId:p.playerId,cardInstanceId:id,fromZone:'SPENT',toZone:'REMAINING',rootActionId:r,sourceEffectId:'aug-'+n});return true;
+ events.push({type:'CARD_RECOVERED',eventId:'twins-recovery:'+r+':'+n,playerId:p.playerId,actorId:p.playerId,targetPlayerId:p.playerId,cardInstanceId:id,fromZone:'SPENT',toZone:'REMAINING',rootActionId:r,recoveryChainId:'recovery:'+r,parentEventId:null,chainDepth:1,sourceEffectId:'aug-'+n});return true;
  };
  if(c.valid&&has(p,364)&&s.streak>=2)recover(364,1-(p.publicResources.parity||0));
  if(c.valid&&has(p,370)&&s.streak>=4)recover(370);
