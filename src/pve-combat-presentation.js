@@ -370,7 +370,7 @@ export const MONSTER_THEMES=Object.freeze({
     "suppressionGlyph": "✓"
   }
 });
-const SKILLS={toughness:['강인함','protect'],amplify:['증폭','number'],reverse_math:['역산','number'],revelation:['계시','recover'],full_burst:['전탄발사','burst'],blood_command:['피의 명령','swap'],ghost_slash:['귀참','slash'],soul_slash:['귀참','slash'],number_steal:['슬쩍','steal'],acrobatics:['곡예','parity']};
+const SKILLS={toughness:['강인함','protect'],amplify:['증폭','number'],reverse_math:['역산','number'],revelation:['계시','recover'],precision_shot:['정밀 사격','burst'],full_burst:['전탄발사','burst'],blood_command:['피의 명령','swap'],ghost_slash:['귀참','slash'],soul_slash:['귀참','slash'],number_steal:['슬쩍','steal'],acrobatics:['곡예','parity']};
 const EVENT_SKILLS={
  CARD_RECOVERED:['카드 복구','recover'],THRALL_MARKED:['권속','mark'],DEMON_TRANSFORMED:['귀화','transform'],
  DEMON_TRANSFORMATION_ENDED:['귀화 종료','transform'],REVELATION_USED:['계시','predict'],FATE_MANIPULATOR_USED:['운명 조작','recover'],
@@ -398,6 +398,7 @@ export function skillCues(result,players=[]){
   const prev=out.length;
   if(s&&!['blood_command','number_steal'].includes(c.skillUsed)&&!(['amplify','reverse_math'].includes(c.skillUsed)&&(result.presentationMutations||[]).some(e=>e.actorId===c.playerId)))add(c.playerId,c.playerId,s[0],s[1],c.skillUsed==='toughness'?'protection':['amplify','reverse_math'].includes(c.skillUsed)?'selfModify':'attack',['amplify','reverse_math'].includes(c.skillUsed)?c.baseNumber+' → '+c.finalNumber:c.valid?'유효':'무효',Boolean(c.valid));
   if(out.length>prev&&['amplify','reverse_math'].includes(c.skillUsed)){out[out.length-1].beforeValue=c.baseNumber;out[out.length-1].afterValue=c.finalNumber;}
+  if(c.allIn)add(c.playerId,c.playerId,'올인','burst','attack',c.valid?'성공':'무효',Boolean(c.valid));
   if(c.collisionImmune&&c.valid&&c.collisionGroupSize>1)add(c.playerId,c.playerId,'충돌 차단','protect','protection','유효');
  }
  for(const e of result.events||[]){
@@ -405,6 +406,9 @@ export function skillCues(result,players=[]){
   const actor=e.ownerVampireId||e.redirectSource||e.actorId||e.ownerId||e.sourcePlayerId||e.playerId;
   add(actor,e.targetPlayerId||e.targetId||e.thrallPlayerId||e.originalTarget||e.playerId,s[0],s[1],
    ['protect'].includes(s[1])?'protection':'aftermath',e.amount>0?'+'+e.amount:e.type==='CARD_RECOVERED'?'복구 완료':'완료');
+ }
+ for(const e of result.skillInterventions||[]){
+  if(['PREDICTION_RESULT','PRECISION_PRESERVED'].includes(e.kind))add(e.actorId,e.actorId,e.kind==='PREDICTION_RESULT'?'예측':'정밀 보호',e.kind==='PREDICTION_RESULT'?'predict':'protect',e.kind==='PREDICTION_RESULT'?'aftermath':'protection',e.success?'성공':'실패',Boolean(e.success));
  }
  // Semantic summaries preserve phase, actor, target and outcome; never merge opponents.
  const groups=new Map();
@@ -486,7 +490,7 @@ export function cueWaves(cues){
  const actors=new Map();for(const c of cues){const row=actors.get(c.actorId)||[];row.push(c);actors.set(c.actorId,row);}
  const waves=[];
  for(let i=0;i<3;i++){const wave=[];for(const row of actors.values()){
-  if(!row[i])continue;wave.push(i===2&&row.length>3?{...row[i],label:row.slice(2).map(c=>c.label).join(' · '),count:row.slice(2).reduce((n,c)=>n+c.count,0),targetIds:[...new Set(row.slice(2).map(c=>c.targetId))]}:row[i]);
+  if(!row[i])continue;wave.push(i===2&&row.length>3?{...row[i],label:[...new Set(row.slice(2).map(c=>c.label))].slice(0,3).join(' · ')+([...new Set(row.slice(2).map(c=>c.label))].length>3?' · 추가 효과':''),count:row.slice(2).reduce((n,c)=>n+c.count,0),targetIds:[...new Set(row.slice(2).map(c=>c.targetId))]}:row[i]);
  }if(wave.length)waves.push(wave);}
  return waves;
 }

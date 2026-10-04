@@ -23,13 +23,14 @@ export function createPveCuePlayer(root=globalThis.document?.querySelector('#app
  async function skill(cue,context={}){
   if(!alive())return;
   const actor=nodesFor(cue.actorId)[0],target=nodesFor(cue.targetId)[0]||actor;if(!actor)return;
+  const targets=[...new Set((cue.targetIds||[cue.targetId]).flatMap(nodesFor))];if(!targets.length)targets.push(target);
   actor.style.setProperty('--cue-color',cue.theme.color);actor.classList.add('pve-cue-actor');
   const badge=document.createElement('div');owned.add(badge);badge.className='pve-skill-cue pve-cue-'+cue.kind;
   badge.style.setProperty('--cue-color',cue.theme.color);badge.setAttribute('role','status');
   badge.textContent=cue.theme.glyph+' '+cue.label+(cue.count>1?' ×'+cue.count:'');actor.append(badge);
   try{
    if(!motionPreference.matches)await wait(100);if(!alive())return;
-   target.style.setProperty('--cue-color',cue.theme.color);target.classList.add('pve-cue-target');
+   for(const n of targets){n.style.setProperty('--cue-color',cue.theme.color);n.classList.add('pve-cue-target');}
    badge.dataset.step='target';
    if(!motionPreference.matches)await wait(100);if(!alive())return;
    badge.dataset.step='change';
@@ -45,7 +46,7 @@ export function createPveCuePlayer(root=globalThis.document?.querySelector('#app
    badge.dataset.step='result';badge.classList.toggle('cue-failed',!cue.success);
    badge.textContent=cue.theme.glyph+' '+cue.label+' · '+(cue.value||'완료')+(cue.count>1?' ×'+cue.count:'');
    await wait(motionPreference.matches?400:180);
-  }finally{actor.classList.remove('pve-cue-actor');target.classList.remove('pve-cue-target');badge.remove();owned.delete(badge);}
+  }finally{actor.classList.remove('pve-cue-actor');for(const n of targets)n.classList.remove('pve-cue-target');badge.remove();owned.delete(badge);}
  }
  async function phase(cues,name,context={}){for(const wave of cueWaves(cues.filter(c=>c.phase===name))){if(!alive())return;await Promise.all(wave.map(cue=>skill(cue,context)));}}
  async function monster(cue){

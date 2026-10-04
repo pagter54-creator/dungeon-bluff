@@ -1,4 +1,4 @@
-import {describeMonsterPattern} from './presentation.js';
+import {describeMonsterPattern,describeResolvedSkills} from './presentation.js';
 import {twinsResolve,twinsAfterSpend,twinsCycleComplete,twinsAfterHpDamage} from './twins-runtime.js';
 import {ghostResolve,ghostPostDamage} from './ghost-runtime.js';
 import {protectVampireCollision,resolveVampireValidity,vampirePostDamage,vampirePreDown} from './vampire-runtime.js';
@@ -335,8 +335,10 @@ export function resolveBasicTurn(run){
   recordMonsterDamageBatch(run,totalDamage);
   attachDamage(cards,packets);
   validateNumberMutationState(run,cards,mutationEvents,{packets});
+  let skillInterventions=[];
   const monsterPattern=describeMonsterPattern(run,cards,totalDamage,events);
   const buildTurnResult=(trace=phaseTrace)=>({
+    skillInterventions,
     monsterPattern:c.monster.hp<=0&&monsterPattern?{...monsterPattern,outcome:'BLOCKED',label:'격파 · 패턴 종료'}:monsterPattern,
     turn:c.turn,cards,damagePackets:packets,totalDamage,phaseTrace:trace,events,
     collisionGroups:structuredClone(collisionGroups),collisionResolutionPasses:1,postCollisionEffectPasses:1,
@@ -357,6 +359,7 @@ export function resolveBasicTurn(run){
     const before=p.hp;p.hp=Math.max(0,p.hp-1);state.telemetry.failureSelfDamage+=before-p.hp;
     events.push({type:'FULL_BURST_MISFIRE',playerId:p.playerId,amount:before-p.hp,hp:p.hp,source:'GUNSLINGER_FULL_BURST_FAILURE',damageType:'SELF',canDown:true,minHP:0,timing:'POST_PLAYER_ATTACK'});
   }
+  skillInterventions=describeResolvedSkills(run,cards);
   resolveF2AfterDamage(run,events,applyMonsterDamage);
   resolveF3AfterDamage(run,events,applyMonsterDamage);
   c.phase='KILL_CHECK';phaseTrace.push(c.phase);

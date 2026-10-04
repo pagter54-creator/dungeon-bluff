@@ -124,3 +124,12 @@ test('reduced mode keeps readable result badges and cancellation removes pending
   player.dispose();assert.equal(listeners.size,0);
  }finally{player?.dispose();globalThis.document=previous;setMotionMode(mode);}
 });
+
+import {describeResolvedSkills} from '../supabase/functions/game-api/pve/presentation.js';
+test('prediction outcome publishes only resolved success, never hidden prediction target or number',()=>{
+ const run={combat:{turn:2},players:[{playerId:'a',characterId:'prophet'}],augmentFramework:{cardState:{'a:seer':{prediction:{targetTurn:2,evaluatedTurn:2,success:false,targetPlayerId:'secret',number:6}}}}};
+ const hints=describeResolvedSkills(run,[]);assert.deepEqual(hints,[{actorId:'a',kind:'PREDICTION_RESULT',success:false}]);
+ const cues=skillCues({skillInterventions:hints},[{playerId:'a',characterId:'prophet'}]);
+ assert.equal(cues[0].label,'예측');assert.equal(cues[0].success,false);assert.ok(!JSON.stringify(cues).includes('secret'));
+ run.combat.turn=3;assert.deepEqual(describeResolvedSkills(run,[]),[]);
+});

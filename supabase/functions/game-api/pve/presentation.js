@@ -56,3 +56,16 @@ export function describeMonsterPattern(run,cards,totalDamage,events=[]){
  const targetIds=[...new Set([s.targetPlayerId,s.lastHighestPlayerId,m.intent?.payload?.targetPlayerId,...(s.linkedPlayerIds||[]),...(s.pendingHits||[])].filter(Boolean))];
  return {outcome,label,targetIds,mechanicType:k.type,detail:m.presentation?.statusText||'',phase:'MONSTER_PATTERN'};
 }
+
+export function describeResolvedSkills(run,cards){
+ const out=[],state=run.augmentFramework?.cardState||{};
+ for(const p of run.players||[]){
+  const prediction=state[p.playerId+':seer']?.prediction;
+  if(p.characterId==='prophet'&&prediction?.evaluatedTurn===run.combat?.turn&&typeof prediction.success==='boolean')
+   out.push({actorId:p.playerId,kind:'PREDICTION_RESULT',success:prediction.success});
+  const gunner=state[p.playerId+':gunner'];
+  if(p.characterId==='gunner'&&cards.some(c=>c.playerId===p.playerId&&c.skillUsed==='precision_shot'&&c.invalidReason==='COLLISION')&&gunner?.aug253?.preservedForCycleId!=null)
+   out.push({actorId:p.playerId,kind:'PRECISION_PRESERVED',success:true});
+ }
+ return out;
+}
