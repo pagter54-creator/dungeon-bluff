@@ -17,4 +17,4 @@ Draft 유지. 최종 문서 HEAD의 Project Checks 성공 후 FINAL을 시작한
 
 ## 기존 fixture 보완
 
-R01/R03 승인 및 DESIGN-D의 combatId/ownerId parity seed 규칙에 따라 두 재현성 테스트의 전투 ID를 동일하게 고정했다. 기존 비교·합법성·privacy assertion과 원본 golden은 유지한다. 곡예 미충전 안내에 기본 사이클 완주 조건을 명시한다.
+R01/R03 승인 및 DESIGN-D의 combatId/ownerId parity seed 규칙에 따라 세 재현성 테스트의 전투 ID를 동일하게 고정했다. 기존 비교·합법성·privacy assertion과 원본 golden은 유지한다. 곡예 미충전 안내에 기본 사이클 완주 조건을 명시한다.

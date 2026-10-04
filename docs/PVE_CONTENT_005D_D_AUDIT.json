@@ -52,7 +52,8 @@
     "supersedesHistoricalRule": "Deterministic Twins replay fixtures omitted shared authoritative combat identity.",
     "files": [
       "tests/pve-007-008.test.mjs",
-      "tests/pve-014-playtest.test.mjs"
+      "tests/pve-014-playtest.test.mjs",
+      "tests/pve-content-004-reconnect.test.mjs"
     ],
     "preserved": "All determinism, legality and privacy assertions; canonical combatId/ownerId seeded parity unchanged."
   }
