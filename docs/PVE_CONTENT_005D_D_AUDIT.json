@@ -1,7 +1,7 @@
 {
   "task": "PVE_CONTENT_005D_D",
   "baselineHead": "857507e02817c8494e569db647cec30ff850a310",
-  "status": "CI_PENDING",
+  "status": "RUNTIME_VERIFIED_FINAL_DOCUMENT_HEAD_PENDING",
   "registered": 30,
   "executable": 30,
   "candidateReachable": 30,
@@ -24,8 +24,8 @@
     "modifiedOriginalGolden": 0
   },
   "flags": {
-    "TWINS_RUNTIME_COMPLETE": false,
-    "READY_FOR_PVE_CONTENT_005D_FINAL": false
+    "TWINS_RUNTIME_COMPLETE": true,
+    "READY_FOR_PVE_CONTENT_005D_FINAL": true
   },
   "sourcePrecedence": [
     "USER_CONFIRMED_005Q_DESIGN_D_PATCH:D04",
@@ -56,5 +56,226 @@
       "tests/pve-content-004-reconnect.test.mjs"
     ],
     "preserved": "All determinism, legality and privacy assertions; canonical combatId/ownerId seeded parity unchanged."
-  }
+  },
+  "githubEvidence": {
+    "head": "d5ebd7059f6818885e8e32bdb3ea833cc0ebc288",
+    "id": 37212085893,
+    "runNumber": 975,
+    "status": "completed",
+    "conclusion": "success",
+    "npmTest": {
+      "total": 2129,
+      "pass": 2129,
+      "fail": 0,
+      "skipped": 0
+    },
+    "check": "PASS",
+    "targeted": {
+      "pass": 184,
+      "fail": 0
+    },
+    "stress": [
+      {
+        "mode": "smoke",
+        "seeds": 10,
+        "hard": 0,
+        "warningSeeds": 54,
+        "scenarios": [
+          {
+            "id": "T00",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 0,
+            "warningCodes": []
+          },
+          {
+            "id": "T05",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 10,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          },
+          {
+            "id": "T09",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 10,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          },
+          {
+            "id": "T14",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 0,
+            "warningCodes": []
+          },
+          {
+            "id": "T02",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 10,
+            "warningCodes": [
+              "REPEATED_BURST"
+            ]
+          },
+          {
+            "id": "T03",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 30,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          },
+          {
+            "id": "T04",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 4,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          },
+          {
+            "id": "T06",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 27,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT",
+              "SAME_CARD_RECOVERY_HIGH",
+              "CARD_REUSE_HIGH"
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warningSeeds": 100,
+        "scenarios": [
+          {
+            "id": "T06",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 261,
+            "warningCodes": [
+              "SAME_CARD_RECOVERY_HIGH",
+              "CARD_REUSE_HIGH",
+              "TURN_LENGTH_OUTSIDE_35_PERCENT",
+              "RECOVERY_DOMINATES"
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warningSeeds": 100,
+        "scenarios": [
+          {
+            "id": "T02",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 100,
+            "warningCodes": [
+              "REPEATED_BURST"
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warningSeeds": 1,
+        "scenarios": [
+          {
+            "id": "T00",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 1,
+            "warningCodes": [
+              "REFERENCE_CLASS_COLLISION_2X_SAME_AVAILABILITY"
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warningSeeds": 99,
+        "scenarios": [
+          {
+            "id": "T05",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 99,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warningSeeds": 100,
+        "scenarios": [
+          {
+            "id": "T09",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 100,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warningSeeds": 47,
+        "scenarios": [
+          {
+            "id": "T04",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 47,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warningSeeds": 100,
+        "scenarios": [
+          {
+            "id": "T03",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 300,
+            "warningCodes": [
+              "TURN_LENGTH_OUTSIDE_35_PERCENT"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "finalDocumentGate": "This final documentation commit must independently complete Project Checks success with matching head_sha before FINAL branch creation; external PR body records that result."
 }
