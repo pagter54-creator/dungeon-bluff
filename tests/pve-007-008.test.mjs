@@ -161,7 +161,7 @@ test('PVE-008 combat integration gates room result when a valid attack crosses t
   run.players[0].growthExp=49;
   submitNumber(run,'p0',1);submitNumber(run,'p1',2);submitNumber(run,'p2',3);submitNumber(run,'p3',4);
   resolveBasicTurn(run);
-  assert.equal(run.players[0].growthExp,50);
+  assert.equal(run.players[0].growthExp,51);
   assert.equal(run.phase,'AUGMENT_CHOICE');
   assert.deepEqual(run.augmentChoice.pendingByPlayer.p0,[1]);
   assert.deepEqual(run.augmentChoice.offersByPlayer.p0,['aug-001','aug-011','aug-021']);

@@ -99,3 +99,5 @@
 }
 
 .pve-monster-portrait{display:block;width:min(240px,72vw);height:180px;object-fit:contain;margin:4px auto 12px;filter:drop-shadow(0 12px 18px rgba(0,0,0,.36))}
+
+.pve-shop-item.unaffordable{border-color:#80505c}.pve-shop-item .pve-shop-insufficient{color:#e59aa8;font-weight:700}

@@ -44,7 +44,7 @@ test('T00 Adventurer base grants +1 EXP on valid monster attack and +1G on posit
   const run=makeRun(['adventurer','warrior','mage','rogue']);
   const before=run.players[0].growthExp;
   submitNums(run,[5,2,3,1]);
-  assert.equal(run.players[0].growthExp,before+1);
+  assert.equal(run.players[0].growthExp,before+5+1);
   const p=run.players[0],gold=p.runGold;
   assert.equal(grantRunGold(p,1),2);
   assert.equal(p.runGold,gold+2);

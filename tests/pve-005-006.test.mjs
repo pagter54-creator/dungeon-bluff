@@ -108,8 +108,8 @@ test('PVE-006 physical card consumption resets cycle and knight gains one charge
 
 test('PVE-006 adventurer gains growth EXP only on valid attacks and gets +1 on positive run-gold grants',()=>{
   const run=makeRun();
-  play(run,[1,2,4,5]);assert.equal(run.players[0].growthExp,1);
-  play(run,[3,3,1,2]);assert.equal(run.players[0].growthExp,1);
+  play(run,[1,2,4,5]);assert.equal(run.players[0].growthExp,2);
+  play(run,[3,3,1,2]);assert.equal(run.players[0].growthExp,2);
   assert.equal(grantRunGold(run.players[0],1),2);assert.equal(run.players[0].runGold,2);
   assert.equal(grantRunGold(run.players[0],0),0);assert.equal(run.players[0].runGold,2);
 });

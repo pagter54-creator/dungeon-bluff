@@ -110,6 +110,7 @@ export function reserveShopCard(run,playerId,productId,nowMs=Date.now()){
   if(p.characterId==='gambler')throw new Error('도박사는 카드 상품을 구매할 수 없습니다.');
   if(run.roomState.readyPlayerIds.includes(playerId))throw new Error('상점 이용을 종료한 플레이어입니다.');
   if(item.reservedByPlayerId&&item.reservedByPlayerId!==playerId)throw new Error('다른 플레이어가 예약 중인 상품입니다.');
+  if(p.runGold<adventurerShopPrice(run,p,item.price))throw new Error('골드가 부족합니다.');
   item.reservedByPlayerId=playerId;item.reservedUntil=nowMs+CARD_RESERVATION_MS;return item;
 }
 export function cancelShopCardReservation(run,playerId,productId){
@@ -124,7 +125,7 @@ export function confirmShopCard(run,playerId,productId,replaceCardId,nowMs=Date.
   if(item.reservedByPlayerId!==playerId||Number(item.reservedUntil)<=nowMs)throw new Error('유효한 카드 상품 예약이 필요합니다.');
   const old=cardFor(p,replaceCardId);if(!old)throw new Error('교체할 물리 카드를 찾을 수 없습니다.');
   const price=adventurerShopPrice(run,p,item.price);
-  if(p.runGold<price)throw new Error('런 골드가 부족합니다.');
+  if(p.runGold<price)throw new Error('골드가 부족합니다.');
   p.runGold-=price;adventurerShopPrice(run,p,item.price,{consume:true});
   p.cardPool=p.cardPool.filter(c=>c.id!==replaceCardId);
   p.cardPool.push({id:`${playerId}:shop:${run.currentRoomNodeId}:${productId}`,baseNumber:item.value,source:'SHOP'});
@@ -137,7 +138,7 @@ export function buyShopRelic(run,playerId,productId){
   if(run.roomState.readyPlayerIds.includes(playerId))throw new Error('상점 이용을 종료한 플레이어입니다.');
   if(p.relics.includes(item.relicId))throw new Error('동일 유물을 중복 보유할 수 없습니다.');
   const price=adventurerShopPrice(run,p,item.price);
-  if(p.runGold<price)throw new Error('런 골드가 부족합니다.');
+  if(p.runGold<price)throw new Error('골드가 부족합니다.');
   p.runGold-=price;adventurerShopPrice(run,p,item.price,{consume:true});p.relics.push(item.relicId);item.sold=true;item.buyerPlayerId=playerId;return item;
 }
 export function finishShop(run,playerId){
@@ -237,7 +238,9 @@ function autoAssignRemaining(run,playerIds){
   const room=run.roomState;
   for(const playerId of playerIds){
     if(!room.relicIds.length){room.autoAssigned[playerId]=null;continue;}
-    const relicId=choose(run,room.relicIds,`reward-auto:${run.currentRoomNodeId}:${room.attempt}:${playerId}`);
+    const eligible=room.relicIds.filter(id=>!playerFor(run,playerId).relics.includes(id));
+    if(!eligible.length){room.autoAssigned[playerId]=null;continue;}
+    const relicId=choose(run,eligible,`reward-auto:${run.currentRoomNodeId}:${room.attempt}:${playerId}`);
     room.relicIds=room.relicIds.filter(x=>x!==relicId);playerFor(run,playerId).relics.push(relicId);room.autoAssigned[playerId]=relicId;
   }
   room.resolved=true;finishRoom(run);
@@ -245,9 +248,12 @@ function autoAssignRemaining(run,playerIds){
 function autoResolveAiPickers(run){
   const room=run.roomState;
   while(room.pickOrder.length){
-    const pid=room.pickOrder[0],p=playerFor(run,pid);if(p.memberType!=='ai')break;
+    const pid=room.pickOrder[0],p=playerFor(run,pid);
+    const eligible=room.relicIds.filter(id=>!p.relics.includes(id));
+    if(!eligible.length){room.picks[pid]=null;room.pickOrder.shift();continue;}
+    if(p.memberType!=='ai')break;
     refreshRewardLuckWindow(run);if(room.gamblerLuckWindows?.[pid]?.phase==='LUCK_AVAILABLE')useRewardGamblerLuck(run,pid,'ATTACK',`reward-ai-luck:${run.currentRoomNodeId}:${pid}`);
-    const candidates=room.relicIds.filter(id=>!p.relics.includes(id));const source=candidates.length?candidates:room.relicIds;if(!source.length){room.pickOrder.shift();continue;}
+    const source=eligible;
     const relicId=choose(run,source,`reward-ai-pick:${run.currentRoomNodeId}:${pid}`);
     const luckWindow=room.gamblerLuckWindows?.[pid];if(luckWindow)luckWindow.phase='CONFIRMED';
     p.relics.push(relicId);room.picks[pid]=relicId;room.relicIds=room.relicIds.filter(x=>x!==relicId);room.pickOrder.shift();refreshRewardLuckWindow(run);

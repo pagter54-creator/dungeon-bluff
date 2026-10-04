@@ -16,7 +16,7 @@ export function sharedGameTopMarkup({
 export function sharedEncounterMarkup({
   categoryLabel='ENCOUNTER',name='',subtitle='',color='#8a6fa0',enemyArt='',
   monster=null,turnIndex=1,revealing=false,threatLabel=null,threatValue='Ⅰ',
-  threatDetail='',intentLabel='',intentText='',bossStatus=''
+  threatDetail='',intentLabel='',intentText='',bossStatus='',intentMarkup=''
 }={}){
   const hasMonster=Boolean(monster);
   const hp=Number(monster?.hp)||0,maxHp=Math.max(0,Number(monster?.maxHp)||0);
@@ -27,7 +27,7 @@ export function sharedEncounterMarkup({
     <div class="arena-side left"><span>TURN</span><b>${esc(String(turnIndex).padStart(2,'0'))}</b><small>${revealing?'REVEALING':'SELECTING'}</small></div>
     <div class="arena-side right"><span>${esc(threatLabel|| (hasMonster?'THREAT':'ENCOUNTER'))}</span><b>${esc(threatValue)}</b><small>${esc(threatDetail)}</small></div>
     ${hasMonster?`<div class="enemy-health"><div><span>${monster.boss?'BOSS':'MONSTER'} HP</span><b>${hp} <small>/ ${maxHp}</small></b></div><div class="health-track"><i style="width:${maxHp?Math.max(0,Math.min(100,hp/maxHp*100)):0}%"></i></div></div>`:''}
-    <div class="intent ${monster?.imminent?'imminent':''}"><span>${esc(intentLabel||'◇ 방의 규칙')}</span><p>${esc(intentText)}</p></div>
+    ${intentMarkup||`<div class="intent ${monster?.imminent?'imminent':''}"><span>${esc(intentLabel||'◇ 방의 규칙')}</span><p>${esc(intentText)}</p></div>`}
     ${bossStatus?`<div class="boss-status"><b>이번 턴 특수 효과</b><p>${esc(bossStatus)}</p></div>`:''}
   </section>`;
 }

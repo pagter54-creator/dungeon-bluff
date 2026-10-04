@@ -29,7 +29,7 @@ function ownCards(run,me,{reward=false}={}){
 }
 function pveHeader(bundle){
   const r=bundle.run,mode=GAME_MODE.COOP_PVE;
-  return `<section class="pve-beta-header"><div><div class="eyebrow">CO-OP EXPEDITION · BETA</div><h1>${esc(bundle.room.room_title)}</h1><div class="pve-mode-line">${gameModeBadge(mode)}<span>Gold 획득 가능 · RP 변동 없음</span></div></div><div class="pve-run-stats"><span>FLOOR <b>${r.floor}</b></span><span>DEPTH <b>${r.depth}</b></span><span>FLAME <b>${r.flame} / ${r.maxFlame}</b></span></div><button class="button secondary small" data-action="leave-confirm">나가기 ↗</button></section>`;
+  return `<section class="pve-beta-header"><div><div class="eyebrow">CO-OP EXPEDITION · BETA</div><h1>${esc(bundle.room.room_title)}</h1><div class="pve-mode-line">${gameModeBadge(mode)}<span>Gold 획득 가능 · RP 변동 없음</span></div></div><div class="pve-run-stats"><span>FLOOR <b>${r.floor}</b></span><span>DEPTH <b>${r.depth}</b></span><span>불씨 <b>${r.flame} / ${r.maxFlame}</b></span></div><button class="button secondary small" data-action="leave-confirm">나가기 ↗</button></section>`;
 }
 function mapVoteMarkup(run){
   const nodes=pveConnectedNodes(run),votes=run.map?.votes||{};
@@ -51,7 +51,7 @@ function eventMarkup(run){
   return `<section class="pve-panel"><div class="eyebrow">EVENT</div><h2>${esc(room.name||'던전 이벤트')}</h2><div class="pve-action-grid">${(room.options||[]).map(o=>`<button class="button secondary" data-action="pve-event" data-option-id="${esc(o.id)}">${esc(o.label)}</button>`).join('')}</div></section>`;
 }
 function restMarkup(){
-  return `<section class="pve-panel"><div class="eyebrow">REST</div><h2>휴식처</h2><p>이번 Beta UI에서는 핵심 선택부터 제공합니다.</p><div class="pve-action-grid"><button class="button secondary" data-action="pve-rest" data-choice="FULL_HEAL">HP 전부 회복</button><button class="button secondary" data-action="pve-rest" data-choice="FLAME">Flame +1</button></div></section>`;
+  return `<section class="pve-panel"><div class="eyebrow">REST</div><h2>휴식처</h2><p>이번 Beta UI에서는 핵심 선택부터 제공합니다.</p><div class="pve-action-grid"><button class="button secondary" data-action="pve-rest" data-choice="FULL_HEAL">HP 전부 회복</button><button class="button secondary" data-action="pve-rest" data-choice="FLAME">불씨 +1</button></div></section>`;
 }
 function shopMarkup(run){
   const room=run.roomState||{};
@@ -75,7 +75,7 @@ function terminalMarkup(bundle,me){
   const settlement=bundle.pveSettlement;
   const settlementText=!clear?'실패 또는 중도 종료된 협력 탐험의 Run Gold는 영구 지급되지 않습니다.'
     : bundle.pveRewardsCommitted||settlement?.settled?'계정 Gold 정산 완료':'계정 Gold를 서버에서 정산 중입니다.';
-  return `<section class="end-screen ${clear?'victory':'failure'}"><div class="end-emblem">${clear?'♛':'♠'}</div><div class="eyebrow">CO-OP EXPEDITION · BETA</div><h1>${clear?'협력 탐험 완료':'협력 탐험 종료'}</h1><p>${clear?'PVE 런을 완료했습니다.':'이번 협력 탐험은 여기까지입니다.'}</p><div class="account-notice"><b>RP 변동 없음</b><br>협력 탐험은 경쟁 RP와 랭킹에 영향을 주지 않습니다.</div><div class="end-stats"><span>내 Run Gold <b>${mineGold}G</b></span><span>FLOOR <b>${run.floor}</b></span><span>FLAME <b>${run.flame}</b></span>${clear&&run.finalSummary?`<span>공략 <b>${esc(run.finalSummary.clearedFloors)} / 3층</b></span><span>파티 Run Gold <b>${esc(run.finalSummary.totalRunGold)}G</b></span>`:''}</div><p class="muted">${settlementText}</p><button class="button primary" data-action="leave" data-network>원정대 나가기 →</button></section>`;
+  return `<section class="end-screen ${clear?'victory':'failure'}"><div class="end-emblem">${clear?'♛':'♠'}</div><div class="eyebrow">CO-OP EXPEDITION · BETA</div><h1>${clear?'협력 탐험 완료':'협력 탐험 종료'}</h1><p>${clear?'PVE 런을 완료했습니다.':'이번 협력 탐험은 여기까지입니다.'}</p><div class="account-notice"><b>RP 변동 없음</b><br>협력 탐험은 경쟁 RP와 랭킹에 영향을 주지 않습니다.</div><div class="end-stats"><span>내 Run Gold <b>${mineGold}G</b></span><span>FLOOR <b>${run.floor}</b></span><span>불씨 <b>${run.flame}</b></span>${clear&&run.finalSummary?`<span>공략 <b>${esc(run.finalSummary.clearedFloors)} / 3층</b></span><span>파티 Run Gold <b>${esc(run.finalSummary.totalRunGold)}G</b></span>`:''}</div><p class="muted">${settlementText}</p><button class="button primary" data-action="leave" data-network>원정대 나가기 →</button></section>`;
 }
 export function pveBetaMarkup(bundle,userId){
   const run=bundle?.run;if(!run)return'';

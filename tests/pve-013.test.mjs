@@ -149,7 +149,7 @@ test('PVE-013 boss clear pauses for due augment choices and resumes specifically
   const values=[1,2,3,2];
   values.forEach((n,i)=>submitCard(run,`p${i}`,cardId(run,`p${i}`,n)));
   resolveBasicTurn(run);
-  assert.equal(run.players[0].growthExp,50);
+  assert.equal(run.players[0].growthExp,51);
   assert.equal(run.phase,'AUGMENT_CHOICE');
   assert.equal(run.augmentChoice.resumePhase,'FLOOR_CLEAR');
   assert.deepEqual(run.augmentChoice.pendingByPlayer.p0,[1]);

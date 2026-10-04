@@ -18,7 +18,7 @@ import {advanceCompletedFloor,finalizeExpeditionClear} from './floor-transition.
 import {resolveF2AfterDamage} from './monster-behavior-f2.js';
 import {resolveF3AfterDamage} from './monster-behavior-f3.js';
 import {applyMonsterDamage} from './monster.js';
-import {beginAugmentChoices} from './augments.js';
+import {beginAugmentChoices,grantGrowthExp} from './augments.js';
 import {applyOwnedEffects} from './effects.js';
 import {rogueArmorPenetration} from './rogue-runtime.js';
 import {applyMageCollisionCorrection} from './mage-runtime.js';
@@ -334,6 +334,24 @@ export function resolveBasicTurn(run){
   c.monster.hp=Math.max(0,c.monster.hp-totalDamage);
   recordMonsterDamageBatch(run,totalDamage);
   attachDamage(cards,packets);
+  // Final attack packets match displayed damage, including Full Burst and extra
+  // components. Armor/invalidity have already resolved; poison is applied later.
+  // The persisted turn guard prevents duplicate grants on resolution replay.
+  if(c.attackExpGrantedTurn!==c.turn){
+    const validOwners=new Set(cards.filter(card=>card.valid).map(card=>card.playerId));
+    const expByPlayer=new Map();
+    for(const packet of packets){
+      if(!validOwners.has(packet.sourcePlayerId))continue;
+      const amount=Math.max(0,Number(packet.amount)||0);
+      if(!Number.isSafeInteger(amount))throw new Error('INVALID_ATTACK_EXP_AMOUNT');
+      expByPlayer.set(packet.sourcePlayerId,(expByPlayer.get(packet.sourcePlayerId)||0)+amount);
+    }
+    for(const [playerId,amount] of expByPlayer){
+      const gained=grantGrowthExp(run,playerId,amount);
+      if(gained)events.push({type:'GROWTH_EXP_GAINED',playerId,amount:gained,source:'COMBAT_DAMAGE',turn:c.turn});
+    }
+    c.attackExpGrantedTurn=c.turn;
+  }
   validateNumberMutationState(run,cards,mutationEvents,{packets});
   let skillInterventions=[];
   const monsterPattern=describeMonsterPattern(run,cards,totalDamage,events);

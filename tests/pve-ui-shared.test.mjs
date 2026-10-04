@@ -233,7 +233,7 @@ test('PVE room result shows server-baselined HP EXP Gold relic and Flame deltas'
  assert.match(html,/EXP 5 \(\+3\)/);
  assert.match(html,/RUN GOLD 2G \(\+1\)/);
  assert.match(html,/획득 · 닳은 숫돌/);
- assert.match(html,/EXPEDITION FLAME[\s\S]*\(\+1\)/);
+ assert.match(html,/불씨[\s\S]*\(\+1\)/);
  const apiSource=await readFile(new URL('../supabase/functions/game-api/pve/api.js',import.meta.url),'utf8');
  assert.match(apiSource,/captureRoomPresentationBaseline\(run,id,type\);run\.currentRoomNodeId=id/);
 });

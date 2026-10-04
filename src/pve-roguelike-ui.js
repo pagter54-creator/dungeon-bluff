@@ -64,9 +64,16 @@ export function pveEventActionsMarkup(run){
 }
 export function pveRestActionsMarkup(run,{engraveMode=false,selectedNumber=null}={}){
   if(engraveMode)return '<section class="pve-context-panel card-selector-mode"><div class="eyebrow">NUMBER ENGRAVING</div><h3>각인할 숫자의 카드를 선택하세요.</h3><p>물리 슬롯이 아니라 <b>숫자 값</b>을 강화합니다.</p><div class="pve-inline-confirm"><span>'+(selectedNumber==null?'카드를 선택하세요.':'숫자 '+esc(selectedNumber)+' 선택')+'</span><button class="button primary" data-action="pve-rest-engrave-confirm" '+(selectedNumber==null?'disabled':'')+'>각인 확정 →</button><button class="button secondary" data-action="pve-rest-engrave-cancel">취소</button></div></section>';
-  return '<section class="pve-context-panel"><div class="eyebrow">REST</div><h3>각자 휴식 방법을 선택합니다.</h3><div class="pve-action-grid"><button class="button secondary" data-action="pve-rest" data-choice="FULL_HEAL">♥ HP 전부 회복</button><button class="button secondary" data-action="pve-rest" data-choice="FLAME">✦ Expedition Flame +1</button><button class="button secondary" data-action="pve-rest-engrave">◇ Number Engraving</button></div></section>';
+  return '<section class="pve-context-panel"><div class="eyebrow">REST</div><h3>각자 휴식 방법을 선택합니다.</h3><div class="pve-action-grid"><button class="button secondary" data-action="pve-rest" data-choice="FULL_HEAL">♥ HP 전부 회복</button><button class="button secondary" data-action="pve-rest" data-choice="FLAME">✦ 불씨 +1</button><button class="button secondary" data-action="pve-rest-engrave">◇ Number Engraving</button></div></section>';
 }
-export function pveShopMarkup(run,{reservation=null,selectedCardId=null}={}){
+export function pveShopPurchaseIssue(run,item,playerId){
+  if(!item)return '구매할 수 없는 상품입니다.';
+  const player=(run?.players||[]).find(p=>p.playerId===playerId);
+  // Projected prices already include the owner's authoritative discount.
+  if(player&&Number(player.runGold||0)<Number(item.price))return '골드가 부족합니다.';
+  return '';
+}
+export function pveShopMarkup(run,{reservation=null,selectedCardId=null,playerId=null}={}){
   const room=run.roomState||{},products=[...(room.cardStock||[]),...(room.relicStock||[])];
   if(reservation){
     const item=(room.cardStock||[]).find(x=>x.id===reservation);
@@ -75,8 +82,8 @@ export function pveShopMarkup(run,{reservation=null,selectedCardId=null}={}){
   const cards=products.map(item=>{
     const relic=item.kind==='RELIC'?relicUi(item.relicId):null,sold=item.sold;
     const title=item.kind==='CARD'?'숫자 '+item.value+' 카드':relic?.name||item.relicId;
-    const desc=item.kind==='CARD'?'카드 교체 상품':relic?.text||'유물';
-    return '<button class="pve-shop-item '+(sold?'sold':'')+'" data-action="pve-shop-item" data-product-id="'+esc(item.id)+'" data-kind="'+esc(item.kind)+'" '+(sold?'disabled':'')+'><i>'+(item.kind==='CARD'?esc(item.value):'✦')+'</i><b>'+esc(title)+'</b><span>'+esc(item.price)+'G</span><small>'+esc(desc)+'</small></button>';
+    const desc=item.kind==='CARD'?'카드 교체 상품':relic?.text||'유물',issue=playerId?pveShopPurchaseIssue(run,item,playerId):'';
+    return '<button class="pve-shop-item '+(sold?'sold':issue?'unaffordable':'')+'" data-action="pve-shop-item" data-product-id="'+esc(item.id)+'" data-kind="'+esc(item.kind)+'" '+(sold?'disabled':'')+'><i>'+(item.kind==='CARD'?esc(item.value):'✦')+'</i><b>'+esc(title)+'</b><span>'+esc(item.price)+'G</span><small>'+esc(desc)+'</small>'+(issue?'<small class="pve-shop-insufficient" role="status">'+esc(issue)+'</small>':'')+'</button>';
   }).join('');
   return '<section class="pve-context-panel pve-shop-display"><div class="eyebrow">DUNGEON SHOP</div><h3>진열 상품</h3><div class="pve-shop-grid">'+cards+'</div><button class="button primary pve-shop-ready" data-action="pve-shop-ready">상점 이용 종료 →</button></section>';
 }
@@ -106,13 +113,13 @@ export function pveRoomResultOverlayMarkup(bundle,run,{interactive=true,playerId
     const m=bundle.members?.find(x=>x.id===p.playerId),name=m?.display_name||p.displayName||'플레이어',before=baseline?.players?.[p.playerId]||null;
     const hpDelta=before?Number(p.hp)-Number(before.hp):null,expDelta=before?Number(p.growthExp||0)-Number(before.growthExp||0):null,goldDelta=before?Number(p.runGold||0)-Number(before.runGold||0):null,scoreDelta=before?Number(p.score||0)-Number(before.score||0):null;
     const eventCard=run.roomState?.type==='EVENT'?run.roomState.publicTurnResult?.cards?.find(card=>card.playerId===p.playerId):null;
-    const eventResult=eventCard?'<small class="summary-reward">카드 '+esc(eventCard.finalNumber)+' · '+(eventCard.valid?'유효':'중복')+(eventCard.rewards?.length?' · '+eventCard.rewards.map(reward=>{const label={ADD_RUN_GOLD:'Gold +',SPEND_RUN_GOLD:'Gold -',ADD_EXP:'EXP +',ADD_SCORE:'Score +',HEAL:'HP +',DAMAGE_HP:'HP -',ADD_FLAME:'Flame +',SPEND_FLAME:'Flame -'}[reward.type]||reward.type;return esc(label)+esc(reward.amount??'');}).join(' · '):' · 결과 없음')+'</small>':'';
+    const eventResult=eventCard?'<small class="summary-reward">카드 '+esc(eventCard.finalNumber)+' · '+(eventCard.valid?'유효':'중복')+(eventCard.rewards?.length?' · '+eventCard.rewards.map(reward=>{const label={ADD_RUN_GOLD:'Gold +',SPEND_RUN_GOLD:'Gold -',ADD_EXP:'EXP +',ADD_SCORE:'Score +',HEAL:'HP +',DAMAGE_HP:'HP -',ADD_FLAME:'불씨 +',SPEND_FLAME:'불씨 -'}[reward.type]||reward.type;return esc(label)+esc(reward.amount??'');}).join(' · '):' · 결과 없음')+'</small>':'';
     const newRelics=before?(p.relics||[]).filter(id=>!(before.relics||[]).includes(id)):[];
     const rewardText=newRelics.length?'<small class="summary-reward">획득 · '+newRelics.map(id=>esc(relicUi(id).name)).join(' · ')+'</small>':'';
     return '<article><div class="summary-portrait">'+skinPortrait(pveLobbyCharacterId(p),m?.loadout)+'</div><b title="'+esc(name)+'">'+esc(name)+'</b><div class="summary-changes"><span>HP '+p.hp+'/'+p.maxHp+(hpDelta==null?'':' ('+delta(hpDelta)+')')+'</span><span>EXP '+(p.growthExp||0)+(expDelta==null?'':' ('+delta(expDelta)+')')+'</span><span>RUN GOLD '+(p.runGold||0)+'G'+(goldDelta==null?'':' ('+delta(goldDelta)+')')+'</span>'+(run.roomState?.type==='EVENT'?'<span>SCORE '+(p.score||0)+(scoreDelta==null?'':' ('+delta(scoreDelta)+')')+'</span>':'')+'</div>'+rewardText+eventResult+'<small class="summary-ready">'+(ready.has(p.playerId)?'✓ 확인 완료':'결과 확인 대기')+'</small></article>';
   }).join('');
   const mineReady=Boolean(playerId&&ready.has(playerId)),readyText=readyIds.length+' / '+(run.players?.length||0)+' 확인';
-  const flameDelta=baseline?Number(run.flame)-Number(baseline.flame):null,flameText='EXPEDITION FLAME <b>'+esc(run.flame)+' / '+esc(run.maxFlame)+'</b>'+(flameDelta==null?'':' <small>('+delta(flameDelta)+')</small>');
+  const flameDelta=baseline?Number(run.flame)-Number(baseline.flame):null,flameText='불씨 <b>'+esc(run.flame)+' / '+esc(run.maxFlame)+'</b>'+(flameDelta==null?'':' <small>('+delta(flameDelta)+')</small>');
   const actions=interactive?'<footer><span>'+readyText+'</span><button class="button secondary" data-action="pve-map-open">지도 미리보기 ◇</button><button class="button primary" data-action="pve-room-ready" data-network '+(mineReady?'disabled data-unavailable="true"':'')+'>'+(mineReady?'확인 완료 ✓':'지도로 →')+'</button></footer>':'<footer><span>증강 선택 후 결과 확인을 계속합니다.</span></footer>';
   const content='<small class="eyebrow">ROOM COMPLETE</small><h2 id="pve-room-result-title">방 공략 완료 <small>협력 탐험</small></h2><div class="room-result-party">'+rows+'</div><div class="summary-party">'+flameText+'</div>'+actions;
   return sharedResultOverlayMarkup({contentMarkup:content,extraClass:'pve-room-result',sheetClass:'pve-room-result-sheet',titleId:'pve-room-result-title'});
@@ -120,5 +127,5 @@ export function pveRoomResultOverlayMarkup(bundle,run,{interactive=true,playerId
 export function pveTerminalMarkup(bundle,run,me){
   const clear=run.phase==='RUN_CLEAR',mineGold=Number(me?.runGold)||0,settlement=bundle.pveSettlement;
   const text=!clear?'실패 또는 중도 종료된 협력 탐험의 Run Gold는 영구 지급되지 않습니다.':bundle.pveRewardsCommitted||settlement?.settled?'계정 Gold 정산 완료':'계정 Gold를 서버에서 정산 중입니다.';
-  return '<section class="end-screen '+(clear?'victory':'failure')+'"><div class="end-emblem">'+(clear?'♛':'♠')+'</div><div class="eyebrow">CO-OP EXPEDITION · BETA</div><h1>'+(clear?'협력 탐험 완료':'협력 탐험 종료')+'</h1><p>'+(clear?'PVE 런을 완료했습니다.':'이번 협력 탐험은 여기까지입니다.')+'</p><div class="account-notice"><b>RP 변동 없음</b><br>협력 탐험은 경쟁 RP와 랭킹에 영향을 주지 않습니다.</div><div class="end-stats"><span>내 Run Gold <b>'+mineGold+'G</b></span><span>FLOOR <b>'+run.floor+'</b></span><span>FLAME <b>'+run.flame+'</b></span>'+(clear&&run.finalSummary?'<span>공략 <b>'+esc(run.finalSummary.clearedFloors)+' / 3층</b></span><span>파티 Run Gold <b>'+esc(run.finalSummary.totalRunGold)+'G</b></span>':'')+'</div><p class="muted">'+text+'</p><button class="button primary" data-action="leave" data-network>원정대 나가기 →</button></section>';
+  return '<section class="end-screen '+(clear?'victory':'failure')+'"><div class="end-emblem">'+(clear?'♛':'♠')+'</div><div class="eyebrow">CO-OP EXPEDITION · BETA</div><h1>'+(clear?'협력 탐험 완료':'협력 탐험 종료')+'</h1><p>'+(clear?'PVE 런을 완료했습니다.':'이번 협력 탐험은 여기까지입니다.')+'</p><div class="account-notice"><b>RP 변동 없음</b><br>협력 탐험은 경쟁 RP와 랭킹에 영향을 주지 않습니다.</div><div class="end-stats"><span>내 Run Gold <b>'+mineGold+'G</b></span><span>FLOOR <b>'+run.floor+'</b></span><span>불씨 <b>'+run.flame+'</b></span>'+(clear&&run.finalSummary?'<span>공략 <b>'+esc(run.finalSummary.clearedFloors)+' / 3층</b></span><span>파티 Run Gold <b>'+esc(run.finalSummary.totalRunGold)+'G</b></span>':'')+'</div><p class="muted">'+text+'</p><button class="button primary" data-action="leave" data-network>원정대 나가기 →</button></section>';
 }

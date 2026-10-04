@@ -154,7 +154,7 @@ test('PVE-012 completed combat queues required balance fields and per-player arr
   const log=run._telemetryPending.find(x=>x.logType==='COMBAT')?.payload;assert.ok(log);
   assert.equal(log.run_id,RUN_ID);assert.equal(log.floor,1);assert.equal(log.room_type,'NORMAL_COMBAT');assert.equal(log.turn_count,1);
   assert.equal(log.party_damage_total,result.totalDamage);assert.equal(log.valid_attack_count.p0,1);assert.equal(log.collision_count.p0,0);
-  assert.equal(log.exp_gained.p0,1);assert.ok(Object.hasOwn(log.damage_taken,'p0'));assert.ok(Object.hasOwn(log.healing_done,'p0'));
+  assert.equal(log.exp_gained.p0,2);assert.ok(Object.hasOwn(log.damage_taken,'p0'));assert.ok(Object.hasOwn(log.healing_done,'p0'));
   assert.ok(Object.hasOwn(log.down_count,'p0'));assert.equal(log.flame_spent,0);
 });
 

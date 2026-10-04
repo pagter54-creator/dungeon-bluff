@@ -27,7 +27,8 @@ export function createPveCuePlayer(root=globalThis.document?.querySelector('#app
   actor.style.setProperty('--cue-color',cue.theme.color);actor.classList.add('pve-cue-actor');
   const badge=document.createElement('div');owned.add(badge);badge.className='pve-skill-cue pve-cue-'+cue.kind;
   badge.style.setProperty('--cue-color',cue.theme.color);badge.setAttribute('role','status');
-  badge.textContent=cue.theme.glyph+' '+cue.label+(cue.count>1?' ×'+cue.count:'');actor.append(badge);
+  // Render the complete badge at once; phase changes affect emphasis only.
+  badge.textContent=cue.theme.glyph+' '+cue.label+' · '+(cue.value||'완료')+(cue.count>1?' ×'+cue.count:'');actor.append(badge);
   try{
    if(!motionPreference.matches)await wait(100);if(!alive())return;
    for(const n of targets){n.style.setProperty('--cue-color',cue.theme.color);n.classList.add('pve-cue-target');}
@@ -44,7 +45,6 @@ export function createPveCuePlayer(root=globalThis.document?.querySelector('#app
    animate(card,frames,300);
    if(!motionPreference.matches)await wait(300);if(!alive())return;
    badge.dataset.step='result';badge.classList.toggle('cue-failed',!cue.success);
-   badge.textContent=cue.theme.glyph+' '+cue.label+' · '+(cue.value||'완료')+(cue.count>1?' ×'+cue.count:'');
    await wait(motionPreference.matches?400:180);
   }finally{actor.classList.remove('pve-cue-actor');for(const n of targets)n.classList.remove('pve-cue-target');badge.remove();owned.delete(badge);}
  }

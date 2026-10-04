@@ -57,7 +57,7 @@ async function expedition(characters,seed){
     if(run.phase==='REST'){run=await call(admin,'restChoice',n++,{choice:'FULL_HEAL'});continue;}
     if(run.phase==='SHOP'){run=await call(admin,'shopReady',n++);continue;}
     if(run.phase==='REWARD_ROOM'){
-      run=run.roomState.pickOrder?.length?await call(admin,'rewardChooseRelic',n++,{relic_id:run.roomState.relicIds[0]}):await call(admin,'rewardSubmitCard',n++,{card_instance_id:legal(run,true)});
+      run=run.roomState.pickOrder?.length?await call(admin,'rewardChooseRelic',n++,{relic_id:run.roomState.relicIds.find(id=>!run.players[0].relics.includes(id))}):await call(admin,'rewardSubmitCard',n++,{card_instance_id:legal(run,true)});
       continue;
     }
     if(run.phase==='ROOM_RESULT'){run=await call(admin,'roomReady',n++);continue;}
@@ -68,6 +68,7 @@ async function expedition(characters,seed){
   assert.equal(run.phase,'RUN_CLEAR',characters.join('/')+' ended at '+run.phase);
   assert.deepEqual(floors,[1,2,3]);
   assert.equal(run.combat,undefined);
+  for(const player of run.players)assert.equal(new Set(player.relics).size,player.relics.length,'No duplicate relics for '+player.playerId);
   assert.equal(run.finalSummary.clearedFloors,3);
   assert.equal(new Set(run.players[0].cardPool.map(c=>c.id)).size,run.players[0].cardPool.length);
 }

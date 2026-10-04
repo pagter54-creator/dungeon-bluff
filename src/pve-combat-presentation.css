@@ -1,10 +1,11 @@
 /* Scoped additive layer: original reveal, collision and damage effects remain intact. */
-.pve-pattern-panel{border:1px solid color-mix(in srgb,var(--cue-color) 45%,transparent);border-radius:12px;background:#181620;margin:10px 0 14px;padding:12px 16px;color:#e0d9df;box-shadow:inset 3px 0 var(--cue-color)}
-.pve-pattern-panel header{display:flex;align-items:center;gap:10px}
-.pve-pattern-panel header i{font-style:normal;color:var(--cue-color);font-size:22px}
-.pve-pattern-panel header span{margin-left:auto;font-size:12px;border:1px solid currentColor;border-radius:5px;padding:3px 8px;color:var(--cue-color)}
-.pve-pattern-panel p{font-size:13px;line-height:1.6;margin:7px 0}
-.pve-pattern-panel small,.pve-pattern-panel [data-pattern-progress]{font-size:12px;line-height:1.6;color:#bcb4c3;overflow-wrap:anywhere}
+.arena .pve-pattern-panel{display:block;box-sizing:border-box;min-width:0;border-radius:0;color:#e0d9df;box-shadow:none}
+.pve-pattern-panel header{display:flex;align-items:center;gap:6px}
+.pve-pattern-panel header i{font-style:normal;color:var(--cue-color);font-size:14px}
+.pve-pattern-panel header b{font-size:11px;min-width:0;overflow-wrap:anywhere}
+.pve-pattern-panel header span{margin-left:auto;font-size:10px;border:1px solid currentColor;border-radius:5px;padding:2px 5px;color:var(--cue-color)}
+.arena .pve-pattern-panel p{font-size:11px;line-height:1.4;margin:5px 0;max-width:100%}
+.pve-pattern-panel small,.pve-pattern-panel [data-pattern-progress]{font-size:10px;line-height:1.4;color:#bcb4c3;overflow-wrap:anywhere}
 .pve-pattern-panel[data-outcome=BLOCKED]{box-shadow:inset 3px 0 #93bdae,0 0 14px #93bdae22}
 .pve-pattern-panel[data-outcome=BLOCKED] header span{color:#a3d2bb}
 .pve-pattern-panel[data-outcome=ACTIVE] header span{color:#df8995}
@@ -26,7 +27,7 @@
 .pve-pattern-seal[data-outcome=BLOCKED]{border:2px dashed var(--cue-color);border-radius:50%}
 .pve-pattern-seal[data-outcome=PARTIAL]{border-inline:3px solid var(--cue-color)}
 .boss-arena .pve-pattern-seal{font-size:120px}
-@media(max-width:600px){.pve-pattern-panel{padding:10px 12px}.pve-pattern-seal{font-size:64px}.pve-skill-cue{font-size:11px}}
+@media(max-width:600px){.arena .pve-pattern-panel{padding:4px 0}.pve-pattern-seal{font-size:64px}.pve-skill-cue{font-size:11px}}
 .motion-reduced .pve-cue-actor{box-shadow:0 0 0 1px var(--cue-color)!important}
 @media(prefers-reduced-motion:reduce){.pve-pattern-seal{display:none}}
 

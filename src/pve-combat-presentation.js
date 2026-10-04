@@ -482,7 +482,7 @@ export function patternPanelMarkup(monster,players=[]){
  const t=MONSTER_THEMES[monster.id]||{glyph:'◇',color:'#a49bb5',motif:'unknown'},p=monster.presentation||{};
  const ids=[monster.intent?.payload?.targetPlayerId,p.targetPlayerId,p.threatPlayerId,...(p.linkedPlayerIds||[])].filter(Boolean);
  const targets=[...new Set(ids)].map(id=>{const player=players.find(x=>x.playerId===id);return player?String(player.seat+1)+'번 자리':'표적';});
- return '<section class="pve-pattern-panel" style="--cue-color:'+esc(t.color)+'" data-motif="'+esc(t.motif)+'" aria-label="몬스터 패턴"><header><i aria-hidden="true">'+esc(t.glyph)+'</i><b>'+esc(t.name||monster.name)+'</b><span data-pattern-result>예고</span></header><p>'+esc(monster.ruleSummary||p.ruleSummary||monster.intent?.telegraphText)+'</p><small>표적 · '+esc(targets.join(' / ')||(monster.intent?.type==='AOE_DAMAGE'?'전원':'조건에 따라 결정'))+'</small><div data-pattern-progress>'+esc(p.statusText||'이번 턴 판정 대기')+'</div></section>';
+ return '<div class="intent pve-pattern-panel" style="--cue-color:'+esc(t.color)+'" data-motif="'+esc(t.motif)+'" role="region" aria-label="몬스터 패턴"><header><i aria-hidden="true">'+esc(t.glyph)+'</i><b>'+esc(t.name||monster.name)+'</b><span data-pattern-result>예고</span></header><p>'+esc(monster.ruleSummary||p.ruleSummary||monster.intent?.telegraphText)+'</p><small>표적 · '+esc(targets.join(' / ')||(monster.intent?.type==='AOE_DAMAGE'?'전원':'조건에 따라 결정'))+'</small><div data-pattern-progress>'+esc(p.statusText||'이번 턴 판정 대기')+'</div></div>';
 }
 // A->B->C->D->E. Different actors in a phase run in parallel; three waves max.
 // Same actor's remaining chain is retained in the final wave as a readable summary.
