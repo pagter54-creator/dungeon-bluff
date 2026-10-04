@@ -28,7 +28,7 @@ function activeSkillAvailable(player){
   if(player.characterId==='mage')return (r.mana||0)>=2;
   if(player.characterId==='gunner')return Boolean(r.fullBurstReady);
   if(player.characterId==='vampire')return Boolean(r.thrallPlayerId);
-  if(player.characterId==='demon_swordsman')return r.ghostSlashReady!==false;
+  if(player.characterId==='demon_swordsman')return player.augments?.includes('aug-351')?Boolean(r.transformationPending)&&!r.transformationActive:r.ghostSlashReady!==false;
   if(player.characterId==='twins')return Boolean(r.acrobaticsReady);
   if(player.characterId==='prophet')return (r.revelationStacks||r.revelation||0)>0;
   return false;
@@ -39,6 +39,8 @@ function runtimeState(player){
   const manaMax=(player.augments||[]).includes('aug-091')?6:4;
   return {
     ...r,
+    ghostTransformation:player.augments?.includes('aug-351')||false,
+    ghostThreshold:player.augments?.includes('aug-348')?4:player.augments?.includes('aug-342')?5:player.augments?.includes('aug-341')?6:8,
     mana:r.mana||0,
     manaMax,
     reverseMath,

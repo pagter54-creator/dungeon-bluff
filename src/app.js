@@ -550,6 +550,7 @@ document.addEventListener('click', async event => {
     if (skill) showModal(`<div class="eyebrow">${skill.type === 'hybrid' ? 'PASSIVE & ACTIVE' : skill.type.toUpperCase()} · ${escape(c.display_name)}</div><h2>${escape(skill.name)}</h2><p>${escape(skill.description)}</p>`);
   }
   if (action === 'toggle-skill' && !animating && !pveAnimating) { if(view==='pve'){const p=pvePlayerForUser(bundle?.run,api.user?.id);if(p?.characterId==='mage'){const choices=pveMageIntentChoices(p,pveSelected),current=Number(pveUseSkill)||0,index=choices.indexOf(current);pveUseSkill=choices.length?(index<0?choices[0]:index===choices.length-1?0:choices[index+1]):0;}else pveUseSkill=!pveUseSkill;renderPve();}else{const p=bundle?.session?.state.players[mine()?.id];useSkill=p?.skillId==='amplify'?nextAmplifyLevel(p.characterRuntimeState.mana||0,Number(useSkill)||0):!useSkill;renderGame();} }
+  if(action==='activate-ghost-transformation'&&!animating&&!pveAnimating&&view==='pve'){void (async()=>{const response=await performPve('pve.activateSkill');if(response){pveSelected=null;pveUseSkill=false;renderPve();}})();}
   if(action==='activate-acrobatics'&&!animating&&!pveAnimating&&view==='pve'){void performPve(bundle.run?.phase==='REWARD_ROOM'?'pve.rewardActivateSkill':'pve.activateSkill');}
   else if(action==='activate-acrobatics'&&!animating&&bundle?.session){
     const member=mine(),session=bundle.session;

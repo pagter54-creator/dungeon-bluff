@@ -1,3 +1,4 @@
+import {ghostResolve,ghostPostDamage} from './ghost-runtime.js';
 import {protectVampireCollision,resolveVampireValidity,vampirePostDamage,vampirePreDown} from './vampire-runtime.js';
 import {prepareMartialCollision,martialPacket,afterMartialDamage} from './martial-runtime.js';
 import {gunnerPenetration,gunnerExtraComponent,gunnerState,markGunnerBurstPhase,syncGunnerMagazine} from './gunner-runtime.js';
@@ -41,7 +42,7 @@ function resetCycleIfNeeded(run,player,events=[],meta={}){
   const priv=run.combat.privateByPlayer[player.playerId];
   if(priv.remainingCardIds.length)return false;
   if(player.characterId==='gambler'){drawGamblerHand(run,player,priv);return true;}
-  if(handleCycleExhaustedCharacter(player,priv,run))return true;
+  if(handleCycleExhaustedCharacter(player,priv,run,events))return true;
   const previousCycleId=priv.cycleIndex||1,remainingBefore=[...(priv.remainingCardIds||[])],spentBefore=[...(priv.spentCardIds||[])],parityBefore=player.publicResources.parity??null;
   applyOwnedEffects(run,'CYCLE_END',{player,privateState:priv,events});
   cleanupAugmentScope(run,'CYCLE',{playerId:player.playerId});
@@ -249,6 +250,7 @@ export function resolveBasicTurn(run){
   for(const rc of cards){const p=playerFor(run,rc.playerId);if(p?.characterId==='gambler')finalizeGamblerAllIn(run,p,c.privateByPlayer[p.playerId],rc);}
   applyMonsterCardRules(run,cards,events);
   resolveVampireValidity(run,cards,events);
+  for(const rc of cards)ghostResolve(run,playerFor(run,rc.playerId),rc,c.turnSubmissions[rc.playerId],events);
   c.phase='DAMAGE_BUILD';phaseTrace.push(c.phase);
   const defense=Math.max(0,Number(c.monster.defense)||0);
   const packets=[],monsterHpBeforeBatch=c.monster.hp;
@@ -282,7 +284,7 @@ export function resolveBasicTurn(run){
     const armorPenetration=Math.min(defense,knightArmorPenetration+roguePoisonPenetration+gunnerArmorPenetration+martial.penetration);
     if(knightArmorPenetration)modifierIds.push('AUG_052_ARMOR_PENETRATION');
     if(roguePoisonPenetration)modifierIds.push('ROGUE_POISON_DEFENSE');
-    const ordinaryAmount=Math.max(0,baseDamageForCharacter(player,rc)+engraving+martial.bonus+(Number(rc.vampireBonus)||0)-Math.max(0,martial.defense-armorPenetration)-(rc.monsterDamagePenalty||0));
+    const ordinaryAmount=Math.max(0,baseDamageForCharacter(player,rc)+engraving+martial.bonus+(Number(rc.vampireBonus)||0)+(Number(rc.ghostBonus)||0)-Math.max(0,martial.defense-armorPenetration)-(rc.monsterDamagePenalty||0));
     const resolvedAmount=player.characterId==='gambler'?gamblerSetDamage(run,player,c.privateByPlayer[player.playerId],rc,ordinaryAmount):ordinaryAmount;
     let primary=burstPacket({sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,amount:resolvedAmount,armorPenetration,tags:[...(rc.allIn?['ALL_IN','SET_DAMAGE']:['BASE_CARD'])],followUp:false},
       {resolved:rc,player,baseNumber:rc.finalNumber,baseDamage:rc.finalNumber,classBonus,augmentBonus,modifierIds});
@@ -306,6 +308,7 @@ export function resolveBasicTurn(run){
       if(extraQueued.length){const error=new Error('Tier-I Full Burst follow-up이 추가 follow-up을 재귀 생성했습니다.');error.code='RECURSIVE_FOLLOW_UP';throw error;}
       packet.amount=Math.max(0,damage.amount);packet.followUpDamage=packet.amount;packets.push(packet);
     }
+    if(rc.ghostExtra>0)packets.push(burstPacket({sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,amount:rc.ghostExtra,extraDamageComponent:true,tags:['GHOST_EXTRA_DAMAGE_COMPONENT'],followUp:false},{resolved:rc,player,baseDamage:0,modifierIds:['aug-359']}));
     if(martial.extra>0)packets.push(burstPacket({sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,amount:martial.extra,extraDamageComponent:true,tags:['MARTIAL_EXTRA_DAMAGE_COMPONENT'],followUp:false},{resolved:rc,player,baseDamage:0,modifierIds:['MARTIAL_EXTRA_DAMAGE_COMPONENT']}));
     if(player.characterId==='gunner'){
       const component=gunnerExtraComponent(run,player,rc);
@@ -337,6 +340,7 @@ export function resolveBasicTurn(run){
   for(const rc of cards)if(rc.valid)onValidAttack(playerFor(run,rc.playerId),run,rc,events);
   for(const rc of cards)afterMartialDamage(run,playerFor(run,rc.playerId),rc);
   vampirePostDamage(run,cards,packets,events,monsterHpBeforeBatch);
+  ghostPostDamage(run,cards,packets,events);
   c.phase='POST_PLAYER_ATTACK';phaseTrace.push(c.phase);
   for(const rc of cards.filter(x=>x.valid))applyPostPlayerAttackCharacter(run,rc,events);
   for(const rc of cards.filter(x=>x.burstMisfire)){

@@ -14,6 +14,8 @@ export function projectRun(run,viewerPlayerId){
     if(shatter&&run.players.some(p=>p.augments?.includes('aug-281')))out.combat.shatter={count:shatter.units.length,suppliers:shatter.units.map(u=>u.supplierOwnerId)};
     delete out.combat.martialEnemy;
   }
+  const ghost=run.augmentFramework?.cardState?.[viewerPlayerId+':ghost'];
+  if(ghost&&run.players.find(p=>p.playerId===viewerPlayerId)?.characterId==='demon_swordsman')out.privateGhostState={transformationReady:Boolean(run.players.find(p=>p.playerId===viewerPlayerId)?.publicResources.transformationPending)};
   const vampire=run.augmentFramework?.cardState?.[viewerPlayerId+':vampire'];
   if(vampire&&run.players.find(p=>p.playerId===viewerPlayerId)?.characterId==='vampire')out.privateVampireState={commandReserve:Boolean(vampire.reserve)};
   delete out.augmentFramework;
@@ -57,6 +59,7 @@ export function projectRun(run,viewerPlayerId){
   // Physical card numbers are public; current-cycle usage stays private.
 
   for(const player of out.players||[]){
+    if(player.playerId!==viewerPlayerId&&player.characterId==='demon_swordsman')delete player.publicResources.transformationPending;
     if(player.playerId!==viewerPlayerId&&Array.isArray(player.cardPool)){
       player.cardPool=player.cardPool.map(({baseNumber,source,tags})=>({baseNumber,source,...(tags?{tags}: {})}));
     }

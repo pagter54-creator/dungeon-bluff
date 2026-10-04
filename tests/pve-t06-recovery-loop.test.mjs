@@ -67,7 +67,7 @@ test('T06 F1-F26 cover recovery, cycle reset, Full Burst, Acrobatics, Ghost Slas
   const f21=fixture(r,'F21_RECOVERY_RESET_RECOVERY');assert.notEqual(f21.firstRoot,f21.secondRoot);
   const f22=fixture(r,'F22_SAME_ROOT_ACTION_CHAIN_BOUND');assert.ok(f22.maxDepth<=4);assert.ok(f22.maxDerived<=24);
   const f23=fixture(r,'F23_CARD_OWNERSHIP_INVARIANT');assert.equal(f23.ownerId,'p1');
-  const f24=fixture(r,'F24_COMBAT_END_CLEANUP');assert.equal(f24.resources.p2.acrobaticsRechargeProgress,null);assert.equal(f24.resources.p3.ghostSlashReady,null);assert.ok(f24.resources.p3.devour>=8);
+  const f24=fixture(r,'F24_COMBAT_END_CLEANUP');assert.equal(f24.resources.p2.acrobaticsRechargeProgress,null);assert.equal(f24.resources.p3.ghostSlashReady,null);assert.ok(f24.resources.p3.devour>=0&&f24.resources.p3.devour<8);assert.ok(f24.resources.p3.ghostSlashLevel>=1);
   assert.ok(fixture(r,'F25_DETERMINISTIC_RECOVERED_CARD').recoveredCardId);
   const f26=fixture(r,'F26_ACTION_CEILING_TRAP');assert.equal(f26.guardCode,'ACTION_CHAIN_CEILING_EXCEEDED');assert.equal(f26.ceiling,24);
 });
@@ -89,8 +89,12 @@ test('T06 fixed semantic golden fingerprint is deterministic',()=>{
     assert.equal(f.resources.p0.revelation,1,f.id+' confirmed initial resource');
     f.resources.p0.revelation=0;
   }
-  assert.equal(semanticFingerprint(historical),golden.fingerprint,'all unaffected semantics equal immutable historical golden');
-  assert.equal(semanticFingerprint(current),'a622988f744176176663eaffa83b5f891e8ab925058d5bc9d508192e711d6a1c','confirmed bootstrap overlay fingerprint');
+  const modern=JSON.parse(fs.readFileSync(new URL('./fixtures/pve-stress-t06-005d-golden.json',import.meta.url),'utf8'));
+ const restore=(rows,observations,ownerField,owner)=>{const plain=rows.filter(r=>r[ownerField]!==owner),stored=new Map(observations.map(x=>[x.i,x.p]));return Array.from({length:plain.length+stored.size},(_,i)=>stored.has(i)?stored.get(i):plain.shift());};
+  for(const row of historical.fixtures){const prior=modern.historicalGhostObservations[row.id];if(prior){row.resources.p3=prior.resources;row.events=restore(row.events,prior.events,'playerId','p3');}}
+  assert.equal(semanticFingerprint(historical),golden.fingerprint,'all non-Ghost/non-bootstrap semantics equal immutable historical golden');
+  assert.equal(semanticFingerprint(current),modern.fingerprint,'DESIGN-D remainder and user confirmed bootstrap');
+
   const b=replayScenario('T06',golden.seed);
   assert.equal(r.replayFingerprint,b.replayFingerprint);
   assert.deepEqual(t06GoldenComparable(r),t06GoldenComparable(b));

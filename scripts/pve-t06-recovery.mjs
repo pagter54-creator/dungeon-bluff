@@ -240,9 +240,9 @@ export function runT06Fixtures(seed,fail){
     rows.push(snapshot('F23_CARD_OWNERSHIP_INVARIANT',run,null,{cardId:id,ownerId:'p1'}));
   }
   {
-    const run=makeRun(seed,'F24',{monsterDef:{...DUMMY,baseHp:1}});run.players[0].publicResources.revelation=1;run.players[2].publicResources.acrobaticsRechargeProgress=2;run.players[3].publicResources.devour=8;run.players[3].publicResources.ghostSlashLevel=1;
+    const run=makeRun(seed,'F24',{monsterDef:{...DUMMY,baseHp:1}});run.players[0].publicResources.revelation=1;run.players[2].publicResources.acrobaticsRechargeProgress=2;run.players[3].publicResources.devour=0;run.players[3].publicResources.ghostSlashLevel=1;
     const result=uniqueTurn(run,fail);
-    if(Object.hasOwn(run.players[0].publicResources,'revelation')||Object.hasOwn(run.players[2].publicResources,'acrobaticsRechargeProgress')||Object.hasOwn(run.players[3].publicResources,'ghostSlashReady')||!(Number(run.players[3].publicResources.devour)>=8)||Number(run.players[3].publicResources.ghostSlashLevel)<1)hard(fail,'COMBAT_RESOURCE_LEAK','combat cleanup/run persistence mismatch',{resources:run.players.map(p=>p.publicResources)});
+    if(Object.hasOwn(run.players[0].publicResources,'revelation')||Object.hasOwn(run.players[2].publicResources,'acrobaticsRechargeProgress')||Object.hasOwn(run.players[3].publicResources,'ghostSlashReady')||!(Number(run.players[3].publicResources.devour)>=0&&Number(run.players[3].publicResources.devour)<8)||Number(run.players[3].publicResources.ghostSlashLevel)<1)hard(fail,'COMBAT_RESOURCE_LEAK','combat cleanup/run persistence mismatch',{resources:run.players.map(p=>p.publicResources)});
     rows.push(snapshot('F24_COMBAT_END_CLEANUP',run,result));
   }
   {
