@@ -816,10 +816,7 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
         intents.push(intent);views.set(p.playerId,view);
       }
       const plan=planSustainTurn(intents,{seed,contextKey,optimized:policy==='sustain'});
-      for(const decision of plan.decisions.filter(x=>x.requestTransfusion)){
-        const p=run.players.find(x=>x.playerId===decision.playerId);
-        activateImmediateCharacterSkill(run,p);actions++;assertRunInvariants(run);
-      }
+      // Transfusion is automatic after damage and before DOWN; no bot activation.
       for(const decision of plan.decisions){
         const view=projectRun(run,decision.playerId);
         const choices=legalCardsFromView(view,decision.playerId).filter(card=>card.baseNumber===decision.baseNumber).sort((a,b)=>a.id.localeCompare(b.id));
@@ -835,6 +832,8 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
         if(p.status==='DOWNED'||run.combat.turnSubmissions[p.playerId])continue;
         const view=projectRun(run,p.playerId);assertNoHiddenInfo(view,p.playerId);
         const intent=buildCollisionFarmIntent(view,p.playerId);
+        // Preserve the historical comparison policy independently of runtime availability.
+        if(intent)intent.privateCycle.bloodCommandUsedCycle=run.combat._t04CommandPolicyUsedCycle?.[p.playerId]??null;
         if(!intent)fail('BOT_NO_LEGAL_ACTION','T04 bot could not build owner intent',{seed,playerId:p.playerId,turn,policy});
         intents.push(intent);views.set(p.playerId,view);
       }
@@ -851,6 +850,8 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
         submitCard(run,decision.playerId,card.id,decision.skillIntent,decision.skillData);actions++;
         assertRunInvariants(run);
       }
+      run.combat._t04CommandPolicyUsedCycle||={};
+      for(const decision of plan.decisions)if(decision.characterId==='vampire'&&decision.skillIntent)run.combat._t04CommandPolicyUsedCycle[decision.playerId]=run.combat.privateByPlayer[decision.playerId].cycleIndex||1;
       run.combat._t04PendingPolicy=structuredClone(plan);
     }else{
       for(const p of run.players){

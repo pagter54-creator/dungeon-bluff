@@ -1,0 +1,1239 @@
+{
+  "task": "PVE_CONTENT_005D_B",
+  "source": "PVE_CONTENT_005Q_DESIGN_D_CLOSEOUT",
+  "executionRuleSources": [
+    "USER_CONFIRMED_005Q_DESIGN_D_PATCH",
+    "BETA_V02_INFERRED"
+  ],
+  "sourcePreserved": true,
+  "entries": [
+    {
+      "augmentId": "aug-301",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "VALIDITY"
+      ],
+      "conditions": {
+        "expression": "BLOOD_COMMAND_USED && OWNER_FINAL_VALID && !HAS_AUG_308",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "ADD_DAMAGE_FROM_OLD_DOMINANCE",
+          "valuePerStack": 1
+        },
+        {
+          "op": "CONSUME_OLD_DOMINANCE_THEN_GAIN",
+          "gain": 1,
+          "cap": 2
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": true,
+        "REWARD": true,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "CYCLE",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-302",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "POST_VALIDITY"
+      ],
+      "conditions": {
+        "expression": "THRALL_MARK_LIFECYCLE",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "PRESERVE_UNCONSUMED_MARK_OWNER_TARGET"
+        },
+        {
+          "op": "CLEAR_OWNER_MARK_ON_TARGET_DOWNED"
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "NONE",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-303",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "POST_VALIDITY"
+      ],
+      "conditions": {
+        "expression": "BLOOD_COMMAND_USED && OWNER_FINAL_VALID && ROOT_THRALL_FINAL_VALID",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "GRANT_COMMAND_RESERVE",
+          "value": 1,
+          "cap": 1,
+          "newMarkOnly": true,
+          "overflow": "DISCARD"
+        },
+        {
+          "op": "DEFER_NEXT_NEW_MARK_CONSUMPTION",
+          "uses": 1
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "CYCLE",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-304",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "PRE_DAMAGE"
+      ],
+      "conditions": {
+        "expression": "BLOOD_COMMAND_USED && OWNER_FINAL_VALID && receivedWorkingNumber > ownerPreSwapWorkingNumber",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "ADD_DAMAGE",
+          "value": 1
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "TURN",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-305",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "PRE_DAMAGE"
+      ],
+      "conditions": {
+        "expression": "BLOOD_COMMAND_USED && OWNER_FINAL_VALID",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "GAIN_STACK",
+          "key": "commandPower",
+          "value": 1,
+          "cap": 3
+        },
+        {
+          "op": "ADD_DAMAGE",
+          "valueFrom": "commandPowerAfter"
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "NONE",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-306",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "PRE_DAMAGE"
+      ],
+      "conditions": {
+        "expression": "BLOOD_COMMAND_USED && OWNER_FINAL_VALID && ROOT_THRALL_FINAL_VALID && targetPreSwapDuplicateCount >= 2",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "ADD_DAMAGE",
+          "value": 2
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "TURN",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-307",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "COLLISION_RESOLUTION"
+      ],
+      "conditions": {
+        "expression": "BLOOD_COMMAND_USED && OWNER_COLLISION && OWNER_NOT_DOWNED && NO_OTHER_INVALID_REASON",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "PROTECT_OWNER_COLLISION_VALIDITY",
+          "value": true,
+          "leaveOtherMembersInvalid": true
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "COMBAT",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-308",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "PRE_COLLISION_SWAP"
+      ],
+      "conditions": {
+        "expression": "NORMAL_BLOOD_COMMAND_USE",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "GAIN_DOMINANCE_NONCONSUMED",
+          "value": 1,
+          "cap": 4
+        },
+        {
+          "op": "ARM_COMMAND_DAMAGE_STREAM",
+          "valueFrom": "currentDominance",
+          "eligibleFrom": "NEXT_DISTINCT_PRIMARY_ATTACK_AFTER_COMMAND_RESOLVE",
+          "consumeDominance": false,
+          "streamMode": "NEXT_VALID_ATTACK_ONCE_PER_COMMAND",
+          "charges": 1,
+          "consumeCharge": true,
+          "merge": "REPLACE_PENDING_CHARGE_NOT_QUEUE",
+          "excludeBloodCommandResolvingRoots": true
+        },
+        {
+          "op": "FIRST_DOMINANCE_4_GRANT_RESERVE",
+          "value": 1,
+          "cap": 1,
+          "once": "COMBAT",
+          "overflow": "DISCARD"
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "NONE",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-309",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "PRE_DAMAGE"
+      ],
+      "conditions": {
+        "expression": "BLOOD_COMMAND_USED && OWNER_FINAL_VALID && commandValidSuccessesAfter >= 2",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "ADD_DAMAGE",
+          "value": 4
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "TURN",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-310",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "PRE_DAMAGE"
+      ],
+      "conditions": {
+        "expression": "BLOOD_COMMAND_USED && OWNER_FINAL_VALID && ROOT_THRALL_FINAL_VALID && jointCommandSuccessesAfter >= 2",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "ADD_PAIR_DAMAGE",
+          "value": 3
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "TURN",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-311",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "PRE_DAMAGE"
+      ],
+      "conditions": {
+        "expression": "BOUND_PAIR_TURN_RESOLVED",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "PAIR_BOTH_VALID_GAIN_PACT",
+          "value": 1,
+          "cap": 3,
+          "predicate": "BOUND_PAIR_BOTH_VALID"
+        },
+        {
+          "op": "PAIR_ANY_INVALID_LOSE_PACT",
+          "value": 1,
+          "min": 0,
+          "predicate": "NOT_BOUND_PAIR_BOTH_VALID"
+        },
+        {
+          "op": "PAIR_BOTH_VALID_DAMAGE_IF_PACT",
+          "threshold": 2,
+          "value": 1,
+          "predicate": "BOUND_PAIR_BOTH_VALID"
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "NONE",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-312",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "PRE_DAMAGE"
+      ],
+      "conditions": {
+        "expression": "BOUND_PAIR_BOTH_VALID",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "OVERRIDE_PACT_GAIN",
+          "value": 2,
+          "replaces": "aug-311 gain1",
+          "cap": 3
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "CYCLE",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-313",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "PRE_DAMAGE"
+      ],
+      "conditions": {
+        "expression": "BOUND_PAIR_BOTH_VALID && abs(ownerFINAL - boundThrallFINAL) >= 2",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "ADD_PAIR_DAMAGE",
+          "value": 1
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "TURN",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-314",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "POST_DAMAGE"
+      ],
+      "conditions": {
+        "expression": "BOUND_PAIR_BOTH_VALID && abs(ownerFINAL - boundThrallFINAL) == 1",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "GRANT_PAIR_NEXT_DIRECT_PROTECTION",
+          "value": 1,
+          "merge": "MAX"
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "COMBAT",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-315",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "POST_DAMAGE"
+      ],
+      "conditions": {
+        "expression": "BOUND_THRALL_PRIMARY_VALID && boundThrallActualDamage >= 4",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "ARM_NEXT_VALID_DAMAGE",
+          "value": 2,
+          "charges": 1,
+          "availableFrom": "NEXT_TURN",
+          "merge": "MAX"
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "TURN",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-316",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "POST_DAMAGE"
+      ],
+      "conditions": {
+        "expression": "BOUND_PAIR_MEMBER_RECEIVED_POSITIVE_DIRECT_HP_DAMAGE",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "IF_THRALL_DAMAGED_ARM_OWNER_BONUS",
+          "value": 1,
+          "availableFrom": "NEXT_ROOT_ACTION",
+          "merge": "MAX"
+        },
+        {
+          "op": "IF_OWNER_DAMAGED_PROTECT_THRALL",
+          "value": 1,
+          "merge": "MAX"
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "COMBAT",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-317",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "PRE_DAMAGE"
+      ],
+      "conditions": {
+        "expression": "BOUND_PAIR_BOTH_VALID && jointValidStreakAfter >= 2",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "ADD_PAIR_DAMAGE",
+          "value": 2
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "TURN",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-318",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "VALIDITY"
+      ],
+      "conditions": {
+        "expression": "pactBefore == 3 && EXACTLY_ONE_BOUND_PAIR_INVALID",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "SUPPRESS_PACT_LOSS",
+          "value": true
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "CYCLE",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-319",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "PRE_DAMAGE"
+      ],
+      "conditions": {
+        "expression": "BOUND_PAIR_BOTH_VALID && ownerFINAL >= 4 && boundThrallFINAL >= 4",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "ADD_PAIR_DAMAGE",
+          "value": 3
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "TURN",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-320",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "POST_DAMAGE"
+      ],
+      "conditions": {
+        "expression": "PACT_3_PAIR_EVENT",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "ON_PAIR_DIRECT_DAMAGE_PROTECT_OTHER",
+          "value": 1,
+          "oncePerBranch": "TURN",
+          "merge": "MAX"
+        },
+        {
+          "op": "ON_PAIR_BOTH_VALID_ARM_PAIR_NEXT_DAMAGE",
+          "value": 1,
+          "charges": 1,
+          "availableFrom": "NEXT_ROOT_ACTION",
+          "oncePerBranch": "TURN",
+          "merge": "MAX"
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "TURN",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-321",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "POST_DAMAGE_PRE_DOWN"
+      ],
+      "conditions": {
+        "expression": "OWNER_PRIMARY_VALID",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "GAIN_BLOOD",
+          "value": 1,
+          "cap": 6
+        },
+        {
+          "op": "AUTO_TRANSFUSE_IF_ENOUGH_AND_HEALABLE",
+          "cost": 4,
+          "heal": 1,
+          "once": "TURN",
+          "includeOwner": true,
+          "skipAndKeepBloodIfAllFull": true
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "TURN",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-322",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "POST_DAMAGE_PRE_DOWN"
+      ],
+      "conditions": {
+        "expression": "OWNER_PRIMARY_VALID && ownerActualDamage >= 4",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "GAIN_BLOOD",
+          "value": 1,
+          "cap": "effectiveBloodCap"
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "TURN",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-323",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "POST_DAMAGE_PRE_DOWN"
+      ],
+      "conditions": {
+        "expression": "OWNER_TRANSFUSION_ACTUAL_HEAL && targetHPBeforeHeal == 1",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "GRANT_TARGET_NEXT_DIRECT_PROTECTION",
+          "value": 1,
+          "merge": "MAX"
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "COMBAT",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-324",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "ACQUISITION"
+      ],
+      "conditions": {
+        "expression": "ON_ACQUIRE",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "SET_BLOOD_CAP",
+          "value": 8
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "ACQUISITION",
+      "resetScope": "NEVER_WITHIN_RUN",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-325",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "POST_DAMAGE_PRE_DOWN"
+      ],
+      "conditions": {
+        "expression": "OWNER_TRANSFUSION_ACTUAL_HEAL",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "ARM_TARGET_NEXT_VALID_DAMAGE",
+          "value": 2,
+          "charges": 1,
+          "availableFrom": "NEXT_ROOT_ACTION",
+          "merge": "MAX_WITH_AUG_329"
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "NONE",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-326",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "POST_DAMAGE_PRE_DOWN"
+      ],
+      "conditions": {
+        "expression": "OWNER_PRIMARY_VALID && (enemyHPBefore * 2 >= enemyMaxHP || ENEMY_IS_BOSS)",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "GAIN_BLOOD",
+          "value": 2,
+          "cap": "effectiveBloodCap"
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "TURN",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-327",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "POST_DAMAGE_PRE_DOWN"
+      ],
+      "conditions": {
+        "expression": "OTHER_LIVING_ALLY_POSITIVE_HP_DAMAGE && targetHPAfterDamage == 1 && bloodBefore >= 4",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "EMERGENCY_TRANSFUSE",
+          "cost": 4,
+          "heal": 1,
+          "includeOwner": false,
+          "allowAlreadyDowned": false,
+          "allowPendingLethal": false
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "COMBAT",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-328",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "ACQUISITION"
+      ],
+      "conditions": {
+        "expression": "ON_ACQUIRE",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "SET_BLOOD_CAP",
+          "value": 8
+        },
+        {
+          "op": "OVERRIDE_AUTO_TRANSFUSION_COST",
+          "value": 3,
+          "appliesTo": "aug-321",
+          "exclude": "aug-327 fixedcost4"
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "ACQUISITION",
+      "resetScope": "NEVER_WITHIN_RUN",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-329",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "POST_DAMAGE_PRE_DOWN"
+      ],
+      "conditions": {
+        "expression": "OWNER_TRANSFUSION_ACTUAL_HEAL",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "ENSURE_TRANSFUSION_HEAL",
+          "value": 1,
+          "replaces": "base heal1 not extra heal"
+        },
+        {
+          "op": "ARM_TARGET_NEXT_VALID_DAMAGE",
+          "value": 2,
+          "charges": 1,
+          "availableFrom": "NEXT_ROOT_ACTION",
+          "merge": "MAX_WITH_AUG_325"
+        },
+        {
+          "op": "GRANT_TARGET_NEXT_DIRECT_PROTECTION",
+          "value": 1,
+          "merge": "MAX"
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "NONE",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    },
+    {
+      "augmentId": "aug-330",
+      "executable": true,
+      "handler": "vampire-runtime.js",
+      "triggers": [
+        "POST_DAMAGE_PRE_DOWN"
+      ],
+      "conditions": {
+        "expression": "HEALED_TARGET_NEXT_DISTINCT_PRIMARY_VALID",
+        "context": "executionModel.conditions + baseCanonicals.vampire",
+        "primaryOnly": true,
+        "roomGate": true
+      },
+      "operations": [
+        {
+          "op": "CONSUME_HEAL_RECEIPT_GAIN_OWNER_BLOOD",
+          "value": 1,
+          "cap": "effectiveBloodCap",
+          "oncePer": "TRANSFUSION_RECEIPT"
+        }
+      ],
+      "roomApplicability": {
+        "COMBAT": true,
+        "EVENT": false,
+        "REWARD": false,
+        "SHOP": false,
+        "REST": false
+      },
+      "onceScope": "NONE",
+      "resetScope": "COMBAT_END",
+      "visibility": {
+        "state": "OWNER_ONLY",
+        "resolvedEffect": "PUBLIC",
+        "guard": "SERVER_ONLY",
+        "resources": "baseCanonicals.vampire.visibility",
+        "preReveal": "Owner-authorized only; no opponent hidden card/selected value exposure."
+      }
+    }
+  ],
+  "historicalRuleMigration": {
+    "executionRuleSource": "PVE_CONTENT_005Q_DESIGN_D",
+    "supersedesHistoricalRule": [
+      "growthExpThrallTarget",
+      "manualTransfusion"
+    ],
+    "userAuthorization": "RESUME_NIGHT_RUN_FROM_005D_B",
+    "T03": {
+      "oldFingerprint": "28a6727133092508f88abb361575255fd0cdf33e372f6a05fbb8d04618b33896",
+      "newFingerprint": "12292814768c38fb679c62113bd2e5ef193f9f2ed0242c7bde02a9af992e6cc2",
+      "changed": [
+        "transfusion",
+        "fullChain.eventTypes",
+        "fullChain.transfusion"
+      ],
+      "unchanged": [
+        "guard",
+        "redirect",
+        "whiteMagic",
+        "revenge",
+        "noRecursion"
+      ],
+      "automaticTransfusionRegressionFixtures": 24
+    },
+    "T04": {
+      "oldFingerprint": "f26911b190b9064ce3f79fef62f936dd1475415f5b3d56b780411dc87ae6db16",
+      "newFingerprint": "f26911b190b9064ce3f79fef62f936dd1475415f5b3d56b780411dc87ae6db16",
+      "goldenChanged": false,
+      "reason": "Smoke seed score ties and seat precedence match the historical target. Preserve benchmark once-per-cycle decision policy in a private harness journal, not an engine cooldown. High-score precedence is covered by the 005D-B runtime tests."
+    }
+  }
+}

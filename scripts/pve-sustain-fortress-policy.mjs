@@ -55,15 +55,7 @@ export function planSustainTurn(intents,{seed='t03',contextKey='turn',optimized=
   const vampire=byClass('vampire'),mage=byClass('mage'),warrior=byClass('warrior'),berserker=byClass('berserker');
   const hurt=wounded(clean);
 
-  if(vampire){
-    const blood=Number(vampire.publicResources?.blood)||0;
-    const threshold=optimized?1:0;
-    const need=hurt.some(x=>optimized?x.hp<x.maxHp:x.hp<=1);
-    if(blood>=4&&need){
-      skills.get(vampire.playerId).requestTransfusion=true;
-      reasons.set(vampire.playerId,optimized?'TRANSFUSION':'EMERGENCY_TRANSFUSION');
-    }
-  }
+  // Blood healing is automatic; the policy submits cards without manual Transfusion.
 
   if(optimized&&mage&&hurt.length){
     const mana=Number(mage.publicResources?.mana)||0;

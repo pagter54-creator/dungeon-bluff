@@ -1,3 +1,4 @@
+import {cleanupVampire} from './vampire-runtime.js';
 import {resolveMartial,cleanupMartial} from './martial-runtime.js';
 import {ensureGunnerMagazine,resolveGunnerSelected} from './gunner-runtime.js';
 import {grantAugmentExp} from './augment-framework.js';
@@ -104,7 +105,7 @@ export function initializeCombatCharacter(player){
   if(player.characterId==='mage')player.publicResources.mana=0;
   if(player.characterId==='prophet')initializeSeerCombat(player);
   if(player.characterId==='berserker'&&player.augments.includes('aug-131'))player.publicResources.revenge=0;
-  if(player.characterId==='vampire'&&player.augments.includes('aug-321'))player.publicResources.blood=0;
+  if(player.characterId==='vampire'){player.publicResources.blood=0;player.publicResources.dominance=0;player.publicResources.pact=0;}
   if(player.characterId==='gunner'){
     // Construct the starting magazine before its first physical cycle exists.
     // Later acquisitions preserve identities through ensureGunnerMagazine.
@@ -211,10 +212,10 @@ export function validateCharacterSkillIntent(player,privateState,skillIntent,car
     }
   }
   if(player.characterId==='vampire'){
-    if(player.augments.includes('aug-321'))rejectSkill('INVALID_PHASE','수혈은 카드 제출 전에 별도 스킬로 사용해야 합니다.');
+
     const targetId=player.publicResources.thrallPlayerId;
     if(!targetId)rejectSkill('SKILL_NOT_READY','피의 명령에 사용할 권속 표식이 없습니다.');
-    if(player.augments.includes('aug-301')&&(privateState?.bloodCommandUsedCycle=== (privateState?.cycleIndex||1)))rejectSkill('ALREADY_USED','완전한 권속의 피의 명령은 사이클당 1회만 사용할 수 있습니다.');
+
   }
 }
 export function activateImmediateCharacterSkill(run,player,skillData=null){
@@ -222,30 +223,7 @@ export function activateImmediateCharacterSkill(run,player,skillData=null){
   if(player.status==='DOWNED')rejectSkill('INVALID_PHASE','쓰러진 플레이어는 스킬을 사용할 수 없습니다.');
   if(c.turnSubmissions[player.playerId])rejectSkill('ALREADY_USED','카드 확정 제출 이후에는 이번 턴 즉시 스킬을 사용할 수 없습니다.');
   const priv=c.privateByPlayer[player.playerId];
-  if(player.characterId==='vampire'&&player.augments.includes('aug-321')){
-    const cfg=executableAugmentRuntime('aug-321')?.config||{};
-    const cost=Math.max(1,Number(cfg.bloodCost)||4),healAmount=Math.max(1,Number(cfg.healAmount)||1);
-    const blood=Math.max(0,Number(player.publicResources.blood)||0);
-    if(blood<cost)rejectSkill('INSUFFICIENT_RESOURCE','수혈에 필요한 혈액이 부족합니다.');
-    c.transfusionUsedTurnByPlayer||={};
-    if(c.transfusionUsedTurnByPlayer[player.playerId]===c.turn)rejectSkill('ALREADY_USED','수혈은 턴당 1회만 사용할 수 있습니다.');
-    const candidates=run.players
-      .filter(p=>p.status!=='DOWNED'&&p.hp>0&&p.hp<p.maxHp&&(cfg.includeSelf!==false||p.playerId!==player.playerId))
-      .sort((a,b)=>a.hp-b.hp||a.seat-b.seat||a.playerId.localeCompare(b.playerId));
-    const target=candidates[0];
-    if(!target)rejectSkill('SKILL_NOT_READY','회복이 필요한 생존 아군이 없습니다.');
-    player.publicResources.blood=blood-cost;
-    const before=target.hp,after=Math.min(target.maxHp,before+healAmount),healed=Math.max(0,after-before);
-    target.hp=after;c.transfusionUsedTurnByPlayer[player.playerId]=c.turn;
-    const healEventId=`heal:transfusion:${run.floor}:${run.depth}:${c.monster?.id||'combat'}:${c.turn}:${player.playerId}`;
-    const event={type:'TRANSFUSION_USED',phase:'SELECTION_OPEN',healEventId,playerId:player.playerId,targetId:target.playerId,bloodBefore:blood,bloodSpent:cost,bloodAfter:player.publicResources.blood,requestedHeal:healAmount,amount:healed,before,after,wastedHeal:Math.max(0,healAmount-healed)};
-    c.pendingSkillEvents||=[];c.pendingSkillEvents.push(event);
-    if(healed>0){
-      c.pendingSkillEvents.push({type:'PLAYER_HEALED',phase:'SELECTION_OPEN',healEventId,playerId:target.playerId,sourcePlayerId:player.playerId,source:'TRANSFUSION',amount:healed,before,after});
-      notifyBerserkerHeal(run,target,healed,'TRANSFUSION');
-    }
-    return event;
-  }
+  if(player.characterId==='vampire')rejectSkill('INVALID_PHASE','피의 명령은 카드 제출 시 사용하며 수혈은 자동 처리됩니다.');
   if(player.characterId==='prophet')return activateSeerImmediateSkill(run,player,skillData);
   if(player.characterId!=='twins')rejectSkill('SKILL_NOT_READY','즉시 발동할 수 있는 PVE 스킬이 아닙니다.');
   if(!player.publicResources.acrobaticsReady)rejectSkill('SKILL_NOT_READY',player.augments.includes('aug-381')?'유효 공격 3회를 달성하면 곡예가 재충전됩니다.':'새 사이클을 완주하면 곡예가 재충전됩니다.');
@@ -544,7 +522,7 @@ export function baseDamageForCharacter(player,resolved){
   return damage;
 }
 export function onCombatEndCharacter(player,run=null){
-  if(run)cleanupMartial(run,player);
+  if(run){cleanupMartial(run,player);cleanupVampire(run,player);}
   if(player.characterId==='prophet'&&run)cleanupSeerCombat(run,player);
   if(player.characterId==='imp'&&run)cleanupImpCombat(run,player);
   const priv=run?.combat?.privateByPlayer?.[player.playerId];
@@ -574,12 +552,6 @@ export function onValidAttack(player,run=null,resolved=null,events=[]){
       const extra=Math.max(0,Number(runtimeConfig('aug-331').extraDevourOnValidGhostSlash)||1);
       if(extra>0)gainDevour(player,extra,events,'GHOST_SLASH_VALID',{...context,sourceEffectId:'aug-331',chainDepth:2});
     }
-  }
-  if(player.characterId==='vampire'&&player.augments.includes('aug-321')){
-    const cfg=runtimeConfig('aug-321'),gain=Math.max(0,Number(cfg.bloodPerValidAttack)||1);
-    const before=Math.max(0,Number(player.publicResources.blood)||0),max=resourceMax(player,'blood',Number(cfg.bloodMax)||6),after=Math.min(max,before+gain);
-    player.publicResources.blood=after;
-    if(after>before)events.push({type:'VAMPIRE_BLOOD_GAINED',phase:'POST_DAMAGE',playerId:player.playerId,amount:after-before,before,after,sourceCardId:resolved?.cardInstanceId||null});
   }
 }
 export function onMonsterKilledCharacter(run,cards,packets,events=[]){

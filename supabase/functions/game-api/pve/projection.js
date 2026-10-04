@@ -14,6 +14,8 @@ export function projectRun(run,viewerPlayerId){
     if(shatter&&run.players.some(p=>p.augments?.includes('aug-281')))out.combat.shatter={count:shatter.units.length,suppliers:shatter.units.map(u=>u.supplierOwnerId)};
     delete out.combat.martialEnemy;
   }
+  const vampire=run.augmentFramework?.cardState?.[viewerPlayerId+':vampire'];
+  if(vampire&&run.players.find(p=>p.playerId===viewerPlayerId)?.characterId==='vampire')out.privateVampireState={commandReserve:Boolean(vampire.reserve)};
   delete out.augmentFramework;
   delete out.frameworkEffects;
   if(publicFramework)out.augmentStatuses=publicFramework.statuses;

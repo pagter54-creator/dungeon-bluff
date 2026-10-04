@@ -1,0 +1,241 @@
+{
+  "task": "PVE_CONTENT_005D_B",
+  "registered": 30,
+  "executable": 30,
+  "candidateReachable": 30,
+  "positive": 30,
+  "conditionNegative": 30,
+  "wrongRoomNegative": 30,
+  "acquisition": 30,
+  "fullBuilds": 3,
+  "stageProgressionBuilds": 3,
+  "testsPrepared": 182,
+  "inMemoryRepositoryModuleCheck": {
+    "pass": 182,
+    "fail": 0,
+    "limitation": "Supplemental in-memory module checks use deterministic UUID and clone shims; required GitHub Node CI remains authoritative."
+  },
+  "sourceIntegrity": {
+    "modifiedBETA": 0,
+    "modified005R": 0,
+    "modifiedDESIGN": 0,
+    "modifiedGolden": 1,
+    "unrelatedGoldenChanges": 0
+  },
+  "flags": {
+    "VAMPIRE_RUNTIME_COMPLETE": true,
+    "READY_FOR_PVE_CONTENT_005D_C_GHOST": true
+  },
+  "status": "RUNTIME_VERIFIED_FINAL_DOCUMENT_HEAD_PENDING",
+  "githubEvidence": {
+    "head": "26a4ccb9576e8af7e4d11b20afd19a6ef1e0fc42",
+    "runId": 37196034193,
+    "runNumber": 966,
+    "status": "completed",
+    "conclusion": "success",
+    "tests": 1771,
+    "pass": 1771,
+    "fail": 0,
+    "skip": 0,
+    "newTests": 182,
+    "newPass": 182,
+    "projectCheckFiles": 225,
+    "stress": [
+      {
+        "mode": "smoke",
+        "seeds": 10,
+        "hard": 0,
+        "warnings": 54,
+        "scenarios": [
+          {
+            "id": "T00",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 0
+          },
+          {
+            "id": "T05",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 10
+          },
+          {
+            "id": "T09",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 10
+          },
+          {
+            "id": "T14",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 0
+          },
+          {
+            "id": "T02",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 10
+          },
+          {
+            "id": "T03",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 30
+          },
+          {
+            "id": "T04",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 4
+          },
+          {
+            "id": "T06",
+            "seeds": 10,
+            "failed": 0,
+            "warnings": 27
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 100,
+        "scenarios": [
+          {
+            "id": "T06",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 257
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 100,
+        "scenarios": [
+          {
+            "id": "T02",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 100
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 1,
+        "scenarios": [
+          {
+            "id": "T00",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 1
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 99,
+        "scenarios": [
+          {
+            "id": "T05",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 99
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 100,
+        "scenarios": [
+          {
+            "id": "T09",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 100
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 47,
+        "scenarios": [
+          {
+            "id": "T04",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 47
+          }
+        ]
+      },
+      {
+        "mode": "balance",
+        "seeds": 100,
+        "hard": 0,
+        "warnings": 100,
+        "scenarios": [
+          {
+            "id": "T03",
+            "seeds": 100,
+            "failed": 0,
+            "warnings": 300
+          }
+        ]
+      }
+    ],
+    "finalDocumentHeadGate": "Next branch only after final document HEAD Project Checks completed/success."
+  },
+  "unaffectedFixes": [
+    "Stable Vampire names populated; follow-up comma syntax error repaired",
+    "Base aug-321 numeric config metadata preserved",
+    "Blood gain event compatibility restored",
+    "Shop/Rest rejection and Event/Reward number-only branch tests added",
+    "Alternate Beta UI exposes Blood Command when a Thrall mark is present",
+    "Restore existing base Vampire Event numeric swap eligibility; aug-301 Combat-only secondary effects remain excluded from Event/Reward."
+  ],
+  "designBlockers": [],
+  "historicalRuleMigration": {
+    "executionRuleSource": "PVE_CONTENT_005Q_DESIGN_D",
+    "supersedesHistoricalRule": [
+      "growthExpThrallTarget",
+      "manualTransfusion"
+    ],
+    "userAuthorization": "RESUME_NIGHT_RUN_FROM_005D_B",
+    "T03": {
+      "oldFingerprint": "28a6727133092508f88abb361575255fd0cdf33e372f6a05fbb8d04618b33896",
+      "newFingerprint": "12292814768c38fb679c62113bd2e5ef193f9f2ed0242c7bde02a9af992e6cc2",
+      "changed": [
+        "transfusion",
+        "fullChain.eventTypes",
+        "fullChain.transfusion"
+      ],
+      "unchanged": [
+        "guard",
+        "redirect",
+        "whiteMagic",
+        "revenge",
+        "noRecursion"
+      ],
+      "automaticTransfusionRegressionFixtures": 24
+    },
+    "T04": {
+      "oldFingerprint": "f26911b190b9064ce3f79fef62f936dd1475415f5b3d56b780411dc87ae6db16",
+      "newFingerprint": "f26911b190b9064ce3f79fef62f936dd1475415f5b3d56b780411dc87ae6db16",
+      "goldenChanged": false,
+      "reason": "Smoke seed score ties and seat precedence match the historical target. Preserve benchmark once-per-cycle decision policy in a private harness journal, not an engine cooldown. High-score precedence is covered by the 005D-B runtime tests."
+    }
+  }
+}

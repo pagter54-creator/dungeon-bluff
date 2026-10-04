@@ -1,3 +1,4 @@
+import {performVampireSwap,assignVampireMarks} from './vampire-runtime.js';
 import {applyImpPreCollisionSteal} from './imp-runtime.js';
 const cardByPlayer=(cards,playerId)=>cards.find(card=>card.playerId===playerId)||null;
 const playerById=(run,playerId)=>run.players.find(player=>player.playerId===playerId)||null;
@@ -56,33 +57,14 @@ export function recordSelfModification(cards,events){
   }
 }
 export function applyPreCollisionSwap(run,cards,events,state=run.combat){
-  const vampires=run.players.filter(p=>p.characterId==='vampire'&&p.status!=='DOWNED').sort((a,b)=>a.seat-b.seat);
-  for(const vampire of vampires){
-    const submission=state.turnSubmissions[vampire.playerId];
-    if(!submission?.skillIntent)continue;
-    const actor=cardByPlayer(cards,vampire.playerId);
-    const targetId=vampire.publicResources.thrallPlayerId;
-    const target=targetId?cardByPlayer(cards,targetId):null;
-    if(!actor||!target)throw new Error('피의 명령 대상이 이번 턴 판정에 없습니다.');
-    const priv=state.privateByPlayer[vampire.playerId];
-    const cycleIndex=priv?.cycleIndex||1;
-    if(vampire.augments.includes('aug-301')&&priv.bloodCommandUsedCycle===cycleIndex)throw new Error('완전한 권속의 피의 명령은 사이클당 1회만 사용할 수 있습니다.');
-    const actorBefore=actor.workingNumber,targetBefore=target.workingNumber;
-    actor.workingNumber=targetBefore;target.workingNumber=actorBefore;
-    actor.bloodCommandUsed=true;actor.bloodCommandTargetId=target.playerId;
-    actor.dominanceBefore=Math.max(0,Number(vampire.publicResources.dominance)||0);
-    if(vampire.augments.includes('aug-301'))priv.bloodCommandUsedCycle=cycleIndex;
-    delete vampire.publicResources.thrallPlayerId;
-    actor.numberHistory.postSwapNumber=actor.workingNumber;
-    target.numberHistory.postSwapNumber=target.workingNumber;
-    for(const card of cards)if(card!==actor&&card!==target)card.numberHistory.postSwapNumber=card.workingNumber;
-    events.push({
-      phase:'PRE_COLLISION_SWAP',effectId:'vampire-blood-command',
-      actorId:vampire.playerId,targetId:target.playerId,
-      actorBefore,targetBefore,actorAfter:actor.workingNumber,targetAfter:target.workingNumber
-    });
-  }
-  for(const card of cards)card.numberHistory.postSwapNumber=card.workingNumber;
+ const owners=run.players.filter(p=>p.characterId==='vampire'&&p.status!=='DOWNED').sort((a,b)=>a.seat-b.seat||a.playerId.localeCompare(b.playerId));
+ for(const p of owners){
+ if(!state.turnSubmissions[p.playerId]?.skillIntent)continue;
+ const actor=cardByPlayer(cards,p.playerId),target=cardByPlayer(cards,p.publicResources.thrallPlayerId);
+ if(!actor||!target)throw new Error('피의 명령 대상이 이번 턴 판정에 없습니다.');
+ performVampireSwap(run,p,actor,target,cards,events,state);
+ }
+ for(const c of cards)c.numberHistory.postSwapNumber=c.workingNumber;
 }
 export function applyPreCollisionSteal(run,cards,events){
   return applyImpPreCollisionSteal(run,cards,events);
@@ -117,19 +99,7 @@ export function attachDamage(cards,packets){
       .reduce((sum,packet)=>sum+(Number(packet.amount)||0),0);
   }
 }
-export function assignVampireThralls(run,cards,groups,events){
-  const collisionExists=[...groups.values()].some(group=>group.length>1);
-  if(!collisionExists)return;
-  for(const vampire of run.players.filter(p=>p.characterId==='vampire'&&p.status!=='DOWNED').sort((a,b)=>a.seat-b.seat)){
-    if(vampire.publicResources.thrallPlayerId)continue;
-    const candidates=run.players
-      .filter(p=>p.playerId!==vampire.playerId&&p.status!=='DOWNED')
-      .sort((a,b)=>(b.growthExp-a.growthExp)||(a.seat-b.seat)||a.playerId.localeCompare(b.playerId));
-    const target=candidates[0];if(!target)continue;
-    vampire.publicResources.thrallPlayerId=target.playerId;
-    events.push({type:'THRALL_MARKED',playerId:vampire.playerId,targetId:target.playerId,growthExp:target.growthExp});
-  }
-}
+export const assignVampireThralls=assignVampireMarks;
 export function validateNumberMutationState(run,cards,events,{minimum=0,packets=[]}={}){
   for(const card of cards){
     const h=card.numberHistory;
