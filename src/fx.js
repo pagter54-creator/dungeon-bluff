@@ -79,7 +79,7 @@ async function bolt(from, to, color) {
   try{await projectileFlight(el,[{ transform: 'translate(-50%,-50%) scale(.5)', opacity: .8 }, { opacity: 1, offset: .2 }, { transform: `translate(calc(-50% + ${to.x-from.x}px),calc(-50% + ${to.y-from.y}px)) scale(1.5)`, opacity: 1 }], { duration: 420, easing: 'cubic-bezier(.6,0,.9,.6)' },reduced.matches);}
   finally{el.remove();} burst(to, color, 65, 9); ring(to, color);
 }
-export async function reveal(result) {
+export async function reveal(result,{onPvePhase=async()=>{},onPvePattern=async()=>{}}={}) {
   const cardFor = id => document.querySelector(`[data-reveal="${id}"]`);
   const playerFor = id => document.querySelector(`[data-player="${id}"]`);
   const target = () => center(document.querySelector('#enemy-art'));
@@ -146,6 +146,8 @@ export async function reveal(result) {
     }
     for(const e of impSteals)skill(e.memberId,'number_steal','슬쩍 · 숫자 강탈','imp');
   }
+  await onPvePhase('mutation');
+  await onPvePhase('protection');
   const duplicates = result.cards.filter(c => !c.valid);
   const resisted = result.cards.filter(c => c.resisted);
   const resistanceAnimations = [];
@@ -171,6 +173,7 @@ export async function reveal(result) {
   await Promise.allSettled(resistanceAnimations);
   await sleep(170);
   }finally{showcase.remove();}
+  await onPvePhase('attack');
   skillPhase('clash');
   for(const c of result.cards.filter(c=>c.skillUsed))skill(c.memberId,c.skillId||'amplify',c.skillId==='blood_command'?'피의 명령 · 카드 교환':c.skillId==='soul_slash'?(c.valid?'귀참 · 강화 공격':'귀참 · 중복 무효'):c.skillId==='full_burst'?(c.valid?'전탄발사 · 손패 전체 사용':'전탄발사 · 중복 무효'):c.skillId==='toughness'?'강인함 · 행동 유지':c.valid?`증폭 · ${c.legacyAmplify?'효과':'숫자'} +${c.amplifyLevel||1}`:'증폭 · 중복 무효');
   if (result.monsterBefore) {
@@ -248,6 +251,7 @@ export async function reveal(result) {
       if(progress===0){ring(point,'#ffc0d2');textAt(point,`귀참 Lv.${level}`,'heal');}
     }
   }
+  await onPvePattern();
   for(const effect of result.effects.filter(e=>['boss_special','boss_status','boss_mark'].includes(e.type))){
     const point=effect.memberId?center(playerFor(effect.memberId)):target();
     ring(point,'#e5afff');burst(point,'#c586ff',140,13,true);textAt(point,effect.label,'critical');
@@ -313,6 +317,7 @@ export async function reveal(result) {
       if(el.dataset.cardInstance===card.cardId) { el.classList.add('spent'); const small=el.querySelector('small'); if(small) small.textContent='OFF'; }
     });
   }
+  await onPvePhase('aftermath');
   skillPhase('refill');
   await Promise.allSettled(result.effects.filter(e=>e.type==='refill' && e.cards).map(e=>{
     if(e.random)skill(e.memberId,'random_hand','운명의 패 · 새 카드');

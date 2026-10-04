@@ -1,3 +1,4 @@
+import {skillCues,monsterCue} from './pve-combat-presentation.js';
 import {PVE_CHARACTER_TO_LOBBY} from './game-mode.js';
 
 const skillByCharacter=Object.freeze({
@@ -186,6 +187,7 @@ export function adaptPveTurnResult(bundle,beforeRun,afterRun){
     };
   });
   return {
+    pvePresentation:{skills:skillCues(turnResult,afterRun.players||[]),pattern:monsterCue(beforeMonster,turnResult,afterMonster)},
     turnIndex:turnResult.turn,
     stageIndex:beforeRun?.depth||afterRun.depth||1,
     stage,
