@@ -389,12 +389,15 @@ export function skillCues(result,players=[]){
  };
  for(const e of result.presentationMutations||[]){
   const kind=e.effectId==='vampire-blood-command'?'swap':String(e.effectId).includes('steal')?'steal':'number';
-  add(e.actorId,e.targetId,kind==='swap'?'피의 명령':kind==='steal'?'슬쩍':'숫자 재작성',kind,'mutation',
+  add(e.actorId,e.targetId,kind==='swap'?'피의 명령':kind==='steal'?'슬쩍':'숫자 재작성',kind,kind==='number'?'selfModify':'mutation',
    Number.isFinite(e.before)&&Number.isFinite(e.after)?e.before+' → '+e.after:kind==='swap'?e.actorBefore+' ⇄ '+e.targetBefore:kind==='steal'?'숫자 강탈':'변경');
+  if(kind==='number'&&out.length){out[out.length-1].beforeValue=e.before;out[out.length-1].afterValue=e.after;}
  }
  for(const c of result.cards||[]){
   const s=SKILLS[c.skillUsed];
-  if(s&&!['blood_command','number_steal'].includes(c.skillUsed)&&!(['amplify','reverse_math'].includes(c.skillUsed)&&(result.presentationMutations||[]).some(e=>e.actorId===c.playerId)))add(c.playerId,c.playerId,s[0],s[1],c.skillUsed==='toughness'?'protection':['amplify','reverse_math'].includes(c.skillUsed)?'mutation':'attack',['amplify','reverse_math'].includes(c.skillUsed)?c.baseNumber+' → '+c.finalNumber:c.valid?'유효':'무효',Boolean(c.valid));
+  const prev=out.length;
+  if(s&&!['blood_command','number_steal'].includes(c.skillUsed)&&!(['amplify','reverse_math'].includes(c.skillUsed)&&(result.presentationMutations||[]).some(e=>e.actorId===c.playerId)))add(c.playerId,c.playerId,s[0],s[1],c.skillUsed==='toughness'?'protection':['amplify','reverse_math'].includes(c.skillUsed)?'selfModify':'attack',['amplify','reverse_math'].includes(c.skillUsed)?c.baseNumber+' → '+c.finalNumber:c.valid?'유효':'무효',Boolean(c.valid));
+  if(out.length>prev&&['amplify','reverse_math'].includes(c.skillUsed)){out[out.length-1].beforeValue=c.baseNumber;out[out.length-1].afterValue=c.finalNumber;}
   if(c.collisionImmune&&c.valid&&c.collisionGroupSize>1)add(c.playerId,c.playerId,'충돌 차단','protect','protection','유효');
  }
  for(const e of result.events||[]){
@@ -483,7 +486,7 @@ export function cueWaves(cues){
  const actors=new Map();for(const c of cues){const row=actors.get(c.actorId)||[];row.push(c);actors.set(c.actorId,row);}
  const waves=[];
  for(let i=0;i<3;i++){const wave=[];for(const row of actors.values()){
-  if(!row[i])continue;wave.push(i===2&&row.length>3?{...row[i],label:row.slice(2).map(c=>c.label).join(' · '),count:row.slice(2).reduce((n,c)=>n+c.count,0)}:row[i]);
+  if(!row[i])continue;wave.push(i===2&&row.length>3?{...row[i],label:row.slice(2).map(c=>c.label).join(' · '),count:row.slice(2).reduce((n,c)=>n+c.count,0),targetIds:[...new Set(row.slice(2).map(c=>c.targetId))]}:row[i]);
  }if(wave.length)waves.push(wave);}
  return waves;
 }

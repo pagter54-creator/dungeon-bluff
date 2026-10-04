@@ -20,7 +20,7 @@ export function createPveCuePlayer(root=globalThis.document?.querySelector('#app
   const a=node.animate(frames,{duration,easing:'ease-out'});animations.add(a);
   Promise.resolve(a.finished).catch(()=>{}).finally(()=>animations.delete(a));
  };
- async function skill(cue){
+ async function skill(cue,context={}){
   if(!alive())return;
   const actor=nodesFor(cue.actorId)[0],target=nodesFor(cue.targetId)[0]||actor;if(!actor)return;
   actor.style.setProperty('--cue-color',cue.theme.color);actor.classList.add('pve-cue-actor');
@@ -33,6 +33,7 @@ export function createPveCuePlayer(root=globalThis.document?.querySelector('#app
    badge.dataset.step='target';
    if(!motionPreference.matches)await wait(100);if(!alive())return;
    badge.dataset.step='change';
+   if(cue.kind==='number'&&Number.isFinite(cue.afterValue))for(const el of [context.cardFor?.(cue.actorId),context.showcaseCardFor?.(cue.actorId)]){const value=el?.querySelector('.reveal-value');if(value)value.textContent=String(cue.afterValue);}
    const card=['number','swap','steal','protect'].includes(cue.kind)?target.querySelector('[data-reveal]'):target.querySelector('.player-portrait, .portrait')||target;
    const frames=cue.kind==='recover'?[{opacity:.4,transform:'translateY(9px)'},{opacity:1,transform:'translateY(0)'}]:
     cue.kind==='number'?[{filter:'brightness(1)'},{filter:'brightness(1.8)',offset:.5},{filter:'brightness(1)'}]:
@@ -43,10 +44,10 @@ export function createPveCuePlayer(root=globalThis.document?.querySelector('#app
    if(!motionPreference.matches)await wait(300);if(!alive())return;
    badge.dataset.step='result';badge.classList.toggle('cue-failed',!cue.success);
    badge.textContent=cue.theme.glyph+' '+cue.label+' · '+(cue.value||'완료')+(cue.count>1?' ×'+cue.count:'');
-   await wait(motionPreference.matches?160:180);
+   await wait(motionPreference.matches?400:180);
   }finally{actor.classList.remove('pve-cue-actor');target.classList.remove('pve-cue-target');badge.remove();owned.delete(badge);}
  }
- async function phase(cues,name){for(const wave of cueWaves(cues.filter(c=>c.phase===name))){if(!alive())return;await Promise.all(wave.map(skill));}}
+ async function phase(cues,name,context={}){for(const wave of cueWaves(cues.filter(c=>c.phase===name))){if(!alive())return;await Promise.all(wave.map(cue=>skill(cue,context)));}}
  async function monster(cue){
   if(!cue||!alive())return;
   const panel=root.querySelector('.pve-pattern-panel'),enemy=root.querySelector('#enemy-art');
@@ -65,7 +66,7 @@ export function createPveCuePlayer(root=globalThis.document?.querySelector('#app
    partial?[{transform:'rotate(-20deg) scale(.6)',opacity:0},{transform:'rotate(20deg) scale(1.1)',opacity:1},{opacity:0}]:
    [{transform:'scale(.5)',opacity:0},{transform:'scale(1.4)',opacity:1,offset:.5},{transform:'scale(1.8)',opacity:0}],cue.theme.boss?800:600);
   const targets=cue.targetIds.flatMap(nodesFor);for(const n of targets)n.classList.add('pve-cue-target');
-  try{await wait(motionPreference.matches?180:cue.theme.boss?850:650);}
+  try{await wait(motionPreference.matches?450:cue.theme.boss?850:650);}
   finally{seal.remove();owned.delete(seal);for(const n of targets)n.classList.remove('pve-cue-target');}
  }
  return {phase,monster,cancel,dispose(){cancel();observe?.disconnect();globalThis.document?.removeEventListener('visibilitychange',onVisibility);}};

@@ -284,7 +284,7 @@ async function presentPveTurn(beforeRun,afterRun,presentation){
   if(pveAnimating)return;
   pveAnimating=true;pveSelected=null;pveUseSkill=false;pveImpSpend=0;pveImpTradeMode='';
   let cuePlayer;
-  try{renderPveGameplay(beforeRun,{presentation});cuePlayer=createPveCuePlayer(app);await reveal(presentation,{onPvePhase:phase=>cuePlayer.phase(presentation.pvePresentation?.skills||[],phase),onPvePattern:()=>cuePlayer.monster(presentation.pvePresentation?.pattern)});pveLastPresentedTurn=Math.max(pveLastPresentedTurn,presentation.turnIndex||0);}
+  try{renderPveGameplay(beforeRun,{presentation});cuePlayer=createPveCuePlayer(app);await reveal(presentation,{onPvePhase:(phase,context)=>cuePlayer.phase(presentation.pvePresentation?.skills||[],phase,context),onPvePattern:()=>cuePlayer.monster(presentation.pvePresentation?.pattern)});pveLastPresentedTurn=Math.max(pveLastPresentedTurn,presentation.turnIndex||0);}
   catch(error){console.error('PVE turn presentation failed:',error);toast('일부 협력 전투 연출을 재생하지 못했습니다. 최신 상태로 복구합니다.');}
   finally{cuePlayer?.dispose();pveAnimating=false;if(bundle?.run?.id===afterRun.id)renderPve();}
 }

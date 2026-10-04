@@ -17,7 +17,7 @@ test('skill ordering, actor target identity and semantic aggregation never expos
  const raw={cards:[],presentationMutations:[{effectId:'mage-amplify',actorId:'a',before:2,after:4},{effectId:'vampire-blood-command',actorId:'b',targetId:'c',actorBefore:1,targetBefore:5}],
  events:[{type:'CARD_RECOVERED',playerId:'a',cardInstanceId:'private',secret:'hidden'},{type:'CARD_RECOVERED',playerId:'a',cardInstanceId:'private2'}]};
  const snapshot=JSON.stringify(raw),cues=skillCues(raw,players);
- assert.equal(cues[0].phase,'mutation');assert.equal(cues[0].value,'2 → 4');
+ assert.equal(cues[0].phase,'selfModify');assert.equal(cues[0].value,'2 → 4');
  assert.equal(cues[1].targetId,'c');assert.equal(cues[2].count,2);
  assert.equal(JSON.stringify(raw),snapshot);assert.ok(!JSON.stringify(cues).includes('private'));assert.ok(!JSON.stringify(cues).includes('hidden'));
 });
@@ -56,7 +56,7 @@ test('adapter adds cues without changing resolved cards, damage packets or sourc
  const after={...before,combat:{monster:{...before.combat.monster,hp:16},publicTurnResult:result}};
  const snapshot=JSON.stringify(after),adapted=adaptPveTurnResult({characters:[]},before,after);
  assert.equal(adapted.totalDamage,4);assert.equal(adapted.cards[0].value,4);assert.equal(adapted.effects.find(e=>e.type==='attack').amount,4);
- assert.equal(adapted.pvePresentation.skills[0].phase,'mutation');assert.equal(JSON.stringify(after),snapshot);
+ assert.equal(adapted.pvePresentation.skills[0].phase,'selfModify');assert.equal(JSON.stringify(after),snapshot);
 });
 test('immediate skill changes are only emitted for same authoritative combat; reconnect snapshots do not replay',()=>{
  const before={id:'r',combat:{id:'c'},players:[{playerId:'a',characterId:'demon_swordsman',publicResources:{transformationActive:false}}]};
@@ -103,4 +103,24 @@ test('real hunter resolution projects suppression metadata without a second coll
  assert.equal(resolved.collisionResolutionPasses,1);assert.equal(resolved.postCollisionEffectPasses,1);
  const projected=projectRun(run,'p0');assert.equal(projected.combat.publicTurnResult.monsterPattern.label,'저지 성공');
  assert.ok(!projected.combat.monster.behaviorState);assert.equal(projected.combat.publicTurnResult.totalDamage,resolved.totalDamage);
+});
+
+import {createPveCuePlayer} from '../src/pve-combat-presentation-dom.js';
+import {setMotionMode,getMotionMode} from '../src/motion.js';
+test('reduced mode keeps readable result badges and cancellation removes pending nodes and listeners',async()=>{
+ const previous=globalThis.document,mode=getMotionMode(),listeners=new Map();
+ const node=()=>{const classes=new Set();return {dataset:{},children:[],style:{setProperty(){}},classList:{add:x=>classes.add(x),remove:x=>classes.delete(x),toggle(x,on){on?classes.add(x):classes.delete(x);},contains:x=>classes.has(x)},append(c){c.parent=this;this.children.push(c);},remove(){if(this.parent)this.parent.children=this.parent.children.filter(x=>x!==this);},querySelector(){return null;}};};
+ const actor=node();actor.dataset.player='a';const party=node(),root=node();
+ root.isConnected=true;root.querySelector=s=>s==='.party-grid'?party:null;root.querySelectorAll=()=>[actor];
+ globalThis.document={hidden:false,documentElement:node(),createElement:()=>{const n=node();n.setAttribute=()=>{};return n;},querySelector:()=>null,
+ addEventListener:(t,fn)=>listeners.set(t,fn),removeEventListener:(t,fn)=>{if(listeners.get(t)===fn)listeners.delete(t);}};
+ let player;
+ try{
+  setMotionMode('reduced');player=createPveCuePlayer(root);
+  const promise=player.phase([{actorId:'a',targetId:'a',label:'복구',kind:'recover',value:'복구 완료',success:true,phase:'aftermath',count:1,theme:CLASS_THEMES.prophet}],'aftermath');
+  assert.equal(actor.children.length,1);assert.ok(actor.children[0].textContent.includes('복구 완료'));
+  assert.equal(actor.children[0].dataset.step,'result');
+  player.cancel();await promise;assert.equal(actor.children.length,0);assert.ok(!actor.classList.contains('pve-cue-actor'));
+  player.dispose();assert.equal(listeners.size,0);
+ }finally{player?.dispose();globalThis.document=previous;setMotionMode(mode);}
 });

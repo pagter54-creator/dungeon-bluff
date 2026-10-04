@@ -110,9 +110,10 @@ export async function reveal(result,{onPvePhase=async()=>{},onPvePattern=async()
   const showcase=revealShowcase(result.cards,cardFor,playerFor);
   try{
   combatCue('flip');
-  await Promise.all(result.cards.flatMap(c=>{const initial=c.exchangeFrom==null&&c.impFrom==null?c:{...c,value:c.exchangeFrom??c.impFrom,amplified:false};return [flipRevealCard(cardFor(c.memberId),initial,reduced.matches),flipRevealCard(showcase.cardFor(c.memberId),initial,reduced.matches)];}));
+  await Promise.all(result.cards.flatMap(c=>{const initial=c.pveNumberBefore!=null?{...c,value:c.pveNumberBefore,amplified:false}:c.exchangeFrom==null&&c.impFrom==null?c:{...c,value:c.exchangeFrom??c.impFrom,amplified:false};return [flipRevealCard(cardFor(c.memberId),initial,reduced.matches),flipRevealCard(showcase.cardFor(c.memberId),initial,reduced.matches)];}));
   combatCue('reveal');
   await sleep(360);
+  await onPvePhase('selfModify',{cardFor,showcaseCardFor:showcase.cardFor});
   for(const exchange of result.effects.filter(e=>e.type==='vampire_swap')){
     const source=showcase.cardFor(exchange.sourceId)||cardFor(exchange.sourceId),targetCard=showcase.cardFor(exchange.targetId)||cardFor(exchange.targetId);
     const a=center(source),b=center(targetCard),line=document.createElement('div');

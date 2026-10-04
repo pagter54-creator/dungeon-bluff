@@ -179,6 +179,7 @@ export function adaptPveTurnResult(bundle,beforeRun,afterRun){
       memberId:card.playerId,
       cardId:card.cardInstanceId,
       value:card.finalNumber,
+      ...(['amplify','reverse_math'].includes(card.skillUsed)?{pveNumberBefore:card.baseNumber}:{}),
       valid:Boolean(card.valid),
       resisted:Boolean(card.collisionImmune&&card.valid&&Number(card.collisionGroupSize)>1),
       skillUsed:Boolean(skillId),
