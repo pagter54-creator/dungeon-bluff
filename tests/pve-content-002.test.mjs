@@ -46,7 +46,10 @@ test('Floor 2 roster and runtime selection are complete and deterministic',()=>{
   const selected=[];
   for(let i=0;i<7;i++){const def=selectF2Monster(run,'NORMAL_COMBAT');selected.push(def.id);run.usedMonsterIds.push(def.id);}
   assert.equal(new Set(selected).size,7);
-  assert.throws(()=>selectF2Monster(run,'NORMAL_COMBAT'));
+  // REBALANCE 002 keeps tier and falls back to the previous floor after seven.
+  const fallback=selectF2Monster(run,'NORMAL_COMBAT');
+  assert.equal(fallback.floor,1);assert.equal(fallback.tier,'NORMAL');
+  assert.equal(run.monsterSelection.monsterSelectionSource,'PREVIOUS_FLOOR_UNSEEN');
 });
 test('F2-N01 prophecy warns one turn ahead and uses final numbers',()=>{
   const run=make('f2_cursed_prophet');publishMonsterIntent(run);

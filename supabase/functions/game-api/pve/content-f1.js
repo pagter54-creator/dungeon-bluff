@@ -1,3 +1,4 @@
+import {selectFloorMonster} from './monster-selection.js';
 import {choose} from './rng.js';
 
 export const F1_MONSTER_DEFINITIONS=Object.freeze({
@@ -198,17 +199,8 @@ export const F1_MAP_LAYOUT=Object.freeze([
 
 export function f1MonsterById(id){return F1_MONSTER_DEFINITIONS[id]||null;}
 export function selectF1Monster(run,roomType){
-  if(roomType==='BOSS')return F1_MONSTER_DEFINITIONS[run.chosenBossIds?.[1]]||F1_MONSTER_DEFINITIONS.f1_fallen_lord;
-  if(roomType==='ELITE_COMBAT'){
-    const pool=Object.values(F1_MONSTER_DEFINITIONS).filter(x=>x.tier==='ELITE');
-    const unseen=pool.filter(x=>!(run.usedMonsterIds||[]).includes(x.id));
-    return choose(run,unseen.length?unseen:pool,`f1-elite:${run.floor}:${run.depth}:${run.currentRoomNodeId||'unknown'}`);
-  }
-  if(roomType!=='NORMAL_COMBAT')throw new Error('전투방 타입이 아닙니다.');
-  const pool=Object.values(F1_MONSTER_DEFINITIONS).filter(x=>x.tier==='NORMAL');
-  const unseen=pool.filter(x=>!(run.usedMonsterIds||[]).includes(x.id));
-  const source=unseen.length?unseen:pool;
-  return choose(run,source,`f1-monster:${run.floor}:${run.depth}:${run.currentRoomNodeId||'unknown'}`);
+ const key=roomType==='ELITE_COMBAT'?'f1-elite':'f1-monster';
+ return selectFloorMonster(run,1,roomType,key+':'+run.floor+':'+run.depth+':'+(run.currentRoomNodeId||'unknown'));
 }
 export function markF1MonsterUsed(run,monster){
   run.usedMonsterIds||=[];
