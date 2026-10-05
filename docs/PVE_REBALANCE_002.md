@@ -77,7 +77,7 @@ More late progression can increase total run turns/downs/Flame despite reduced p
 | F2 | 384 | 69.2708% | 30.7292% | 12.057292 | 2.528646 | 0.770833 | 1.326172 |
 | F3 | 75 | 81.3333% | 18.6667% | 12.026667 | 1.586667 | 0.600000 | 2.010000 |
 
-Floor is captured at encounter entry because boss resolution can auto-advance it. A second identical 500-seed measurement run verified unchanged terminal outcomes, action/pool/growth/Flame traces and combat values after this attribution correction. Ending HP is the authoritative post-resolution value and includes any boss-clear heal. Encounter wipe counts include recoverable wipes, distinct from terminal RUN_FAILED.
+Floor is captured at encounter entry because boss resolution can auto-advance it. A second identical 500-seed measurement run verified unchanged terminal outcomes, action/pool/growth/Flame traces and combat values after this attribution correction. Ending HP is the authoritative post-resolution value and includes any boss-clear heal. Encounter wipe means combat ending in terminal RUN_FAILED; recoverable downs and Flame use are counted separately.
 
 ### Pool telemetry
 
@@ -115,15 +115,21 @@ node simulate.mjs 0 1 full-only
 
 ```text
 MONSTER_POOL_FALLBACK_IMPLEMENTED=true
-MONSTER_TIER_PRESERVED=true
+ROOM_TIER_PRESERVED=true
+POOL_EXHAUSTION_ERRORS=0
+F1_HP=90_160_240
+F2_HP=120_200_290
+F3_HP=145_230_340
 BOSS_SELECTION_CONTRACT_PRESERVED=true
 HP_CURVE_FLATTENED=true
 PR33_FEATURES_PRESERVED=true
 FULL_TEST_SUITE_PASS=true
 RANDOM_EXPEDITION_RUNS=500
+GOOGLE_SHEETS_REWORK_002_UPDATED=true
 SUPABASE_CALLS=0
 PRODUCTION_MUTATION=0
 READY_FOR_PRODUCTION=false
 ```
 
-Google Sheet publication and exact-HEAD CI are verified separately in the final task report. No merge or deploy authorized for this task.
+All six Google Sheet tabs and every cell were verified by API readback; prior 26 tab properties and formats unchanged. Exact-HEAD CI is verified separately in the final task report. No merge or deploy authorized for this task.
+
