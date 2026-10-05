@@ -48,7 +48,7 @@ export function monsterPresentation(run){
   if(publicState.countdown!=null)details.push(`남은 턴 ${publicState.countdown}`);
   if(publicState.progress!=null)details.push(`피해 ${publicState.progress}/${publicState.threshold}`);
   if(publicState.forbiddenNumber!=null)details.push(`금지 숫자 ${publicState.forbiddenNumber}`);
-  if(publicState.phase==='ODD'||publicState.phase==='EVEN')details.push(`${publicState.phase==='ODD'?'홀수':'짝수'}의 종`);
+  if(publicState.phase==='ODD'||publicState.phase==='EVEN')details.push(`${publicState.phase==='ODD'?'홀수':'짝수'}의 종 · ${publicState.phase==='ODD'?'짝수':'홀수'} 공격 -1 (종 패널티만 최소 1)`);
   if(publicState.echoNumbers?.length)details.push(`직전 유효 숫자 ${publicState.echoNumbers.join(', ')}`);
   publicState.statusText=details.join(' · ');
   return publicState;
@@ -116,7 +116,7 @@ export function applyMonsterCardRules(run,cards,events=[]){
     state.lastValidNumbers=[...new Set(valid.map(card=>card.finalNumber))].sort((a,b)=>a-b);
   }else if(mechanic.type==='PARITY_BELL'){
     const parity=state.phase==='ODD'?1:0;
-    for(const card of valid)if(Math.abs(card.finalNumber%2)!==parity)card.monsterDamagePenalty=(card.monsterDamagePenalty||0)+mechanic.damagePenalty;
+    for(const card of valid)if(Math.abs(card.finalNumber%2)!==parity){card.monsterDamagePenalty=(card.monsterDamagePenalty||0)+mechanic.damagePenalty;card.parityBellPenalty=mechanic.damagePenalty;card.parityBellMinimumDamage=1;}
   }else if(mechanic.type==='DOMINION'){
     state.meter=Math.max(0,Math.min(mechanic.maximum,state.meter+(valid.length>=patternRequirement(run,'requiredValidCount')?-1:1)));
   }

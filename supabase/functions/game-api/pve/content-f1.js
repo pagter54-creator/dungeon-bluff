@@ -80,7 +80,7 @@ export const F1_MONSTER_DEFINITIONS=Object.freeze({
   },
   f1_iron_bell_keeper:{
     id:'f1_iron_bell_keeper',name:'철종지기',floor:1,tier:'ELITE',baseHp:160,tags:['F1','ELITE','PARITY'],
-    mechanic:{type:'PARITY_BELL',damagePenalty:1},ruleSummary:'매 턴 홀수/짝수 종 교대 · 종과 다른 유효 숫자의 피해 -1',
+    mechanic:{type:'PARITY_BELL',damagePenalty:1},ruleSummary:'매 턴 홀수/짝수 종 교대 · 종과 다른 유효 숫자의 피해 -1 · 종 패널티만으로 피해 0 방지',
     pattern:[
       {type:'CHARGE',telegraphText:'철종이 울린다',payload:{}},
       {type:'DIRECT_DAMAGE',telegraphText:'종지기가 한 명을 공격한다',payload:{target:'RANDOM_LIVING',amount:1}}

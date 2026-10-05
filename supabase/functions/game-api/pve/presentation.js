@@ -4,7 +4,7 @@ import {patternRequirement} from './adaptive-pattern.js';
 export function describeMonsterPattern(run,cards,totalDamage,events=[]){
  const m=run.combat?.monster,k=m?.mechanic,s=m?.behaviorState;
  if(!m||!k||!s)return null;
- const valid=cards.filter(c=>c.valid),penalized=valid.filter(c=>c.monsterDamagePenalty>0);
+ const valid=cards.filter(c=>c.valid),penalized=valid.filter(c=>c.monsterDamagePenalty>0||c.parityBellPenalty>0);
  let outcome='ACTIVE',label='패턴 발동';
  const set=(o,l)=>{outcome=o;label=l;};
  const block=(label='저지 성공')=>set('BLOCKED',label),wait=(label='준비 중')=>set('WAIT',label);
