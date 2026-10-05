@@ -79,7 +79,7 @@ const cases=[
     executeMonsterIntent(run);assert.equal(run.players[0].publicResources.chain,undefined);
   }],
   ['F1-E01 echo bat','f1_echo_bat',(run)=>{
-    turn(run,[1,2,3,4]);run.combat.turn=2;turn(run,[1,2,5,6]);assert.equal(run.combat.monster.behaviorState.stacks.echo,2);
+    turn(run,[1,2,3,4]);run.combat.turn=2;turn(run,[1,2,5,6]);assert.equal(run.combat.monster.behaviorState.stacks.echo,1);
     run.combat.turn=7;const a=turn(run,[1,2,3,4]);assert.equal(a.action.payload.amount,2);
     const bad=make('f1_echo_bat');turn(bad,[1,2,3,4]);bad.combat.turn=2;turn(bad,[4,5,6,7]);assert.equal(bad.combat.monster.behaviorState.stacks.echo,1);
   }],

@@ -19,7 +19,7 @@ export function describeMonsterPattern(run,cards,totalDamage,events=[]){
   case 'COLLISION_STACK':if(s.collisionCount===0)block('쥐떼 억제');else set('PARTIAL','쥐떼 집결');break;
   case 'VALID_GUARD':if(!s.guardPending)block('방어 저지');else label='방어 강화';break;
   case 'FORBIDDEN_NUMBER':case 'PARITY_BELL':penalty();break;
-  case 'ECHO':if(!s.stacks?.echo)block('메아리 억제');else set('PARTIAL','메아리 축적');break;
+  case 'ECHO':{const change=events.find(e=>e.type==='ECHO_CHANGED');if(change){const cue=change.repeatedPlayerIds.length?`반복 발생 · 메아리 ${change.delta>0?'+1':'유지'}`:`반복 없음 · 메아리 ${change.delta<0?'-1':'0'}`;set(change.repeatedPlayerIds.length?'PARTIAL':'BLOCKED',cue);}else if(!s.stacks?.echo)block('메아리 억제');else set('PARTIAL','메아리 축적');break;}
   case 'DOMINION':if(valid.length>=patternRequirement(run,'requiredValidCount'))set('PARTIAL','지배 약화');else label='지배 강화';break;
   case 'F2_PROPHECY':
    if(s.currentDangerNumber==null)wait('저주 예고');

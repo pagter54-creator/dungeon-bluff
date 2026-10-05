@@ -109,7 +109,9 @@ export function applyMonsterCardRules(run,cards,events=[]){
   }else if(mechanic.type==='ECHO'){
     const previous=new Set(state.lastValidNumbers);
     const repeated=valid.filter(card=>previous.has(card.finalNumber));
-    if(repeated.length)changeMonsterStack(state,'echo',repeated.length,{maximum:3});
+    const before=state.stacks.echo||0;
+    changeMonsterStack(state,'echo',repeated.length?1:-1,{maximum:3});
+    events.push({type:'ECHO_CHANGED',before,after:state.stacks.echo,delta:state.stacks.echo-before,repeatedNumbers:[...new Set(repeated.map(c=>c.finalNumber))].sort((a,b)=>a-b),repeatedPlayerIds:repeated.map(c=>c.playerId)});
     for(const card of valid)trackPlayerNumber(state,card.playerId,card.finalNumber);
     state.lastValidNumbers=[...new Set(valid.map(card=>card.finalNumber))].sort((a,b)=>a-b);
   }else if(mechanic.type==='PARITY_BELL'){

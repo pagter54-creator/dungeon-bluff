@@ -1,4 +1,5 @@
 import {selectFloorMonster} from './monster-selection.js';
+import {WISP_FLAME_SUMMARY} from './wisp-flame.js';
 import {choose} from './rng.js';
 
 const hit=(text)=>[{type:'CHARGE',telegraphText:text,payload:{}},{type:'DIRECT_DAMAGE',telegraphText:'한 명을 공격한다',payload:{target:'RANDOM_LIVING',amount:1}}];
@@ -15,7 +16,7 @@ export const F2_MONSTER_DEFINITIONS=Object.freeze({
   f2_spore_acolyte:{id:'f2_spore_acolyte',name:'포자 시종',floor:2,tier:'NORMAL',baseHp:120,tags:['F2','SPORE'],mechanic:{type:'F2_SPORE',threshold:2},ruleSummary:'중복으로 무효가 된 플레이어는 포자 +1 · 2중첩 시 피해 1 후 초기화',pattern:hit('포자를 흩뿌린다')},
   f2_swamp_leech:{id:'f2_swamp_leech',name:'늪지 흡혈충',floor:2,tier:'NORMAL',baseHp:120,tags:['F2','DRAIN'],mechanic:{type:'F2_LEECH',heal:3},ruleSummary:'공개된 표적이 유효 공격에 실패하면 피해 1 · 흡혈충 HP 3 회복',pattern:hit('흡혈 표적을 고른다')},
   f2_mycelium_doppelganger:{id:'f2_mycelium_doppelganger',name:'균사 도플갱어',floor:2,tier:'NORMAL',baseHp:120,tags:['F2','COPY'],mechanic:{type:'F2_COPY',damagePenalty:2},ruleSummary:'직전 턴 복제한 유효 최종 숫자를 다시 쓰면 그 카드 피해 -2',pattern:hit('직전 숫자를 복제한다')},
-  f2_wisp_lamplighter:{id:'f2_wisp_lamplighter',name:'늪불 등불지기',floor:2,tier:'NORMAL',baseHp:120,tags:['F2','FLAME'],mechanic:{type:'F2_FLAME'},ruleSummary:'낮은 불꽃에는 4~6, 높은 불꽃에는 1~3을 내면 피해 1',pattern:hit('늪불의 높이를 바꾼다')},
+  f2_wisp_lamplighter:{id:'f2_wisp_lamplighter',name:'늪불 등불지기',floor:2,tier:'NORMAL',baseHp:120,tags:['F2','FLAME'],mechanic:{type:'F2_FLAME'},ruleSummary:WISP_FLAME_SUMMARY,pattern:hit('늪불의 높이를 바꾼다')},
   f2_thorn_dryad:{id:'f2_thorn_dryad',name:'가시 드라이어드',floor:2,tier:'NORMAL',baseHp:120,tags:['F2','THORNS'],mechanic:{type:'F2_THORNS'},ruleSummary:'가시 활성 턴에는 단독 최고 유효 최종 숫자 플레이어가 반격 피해 1',pattern:hit('가시를 세운다')},
   f2_chaos_goblin:{id:'f2_chaos_goblin',name:'혼돈 고블린',floor:2,tier:'ELITE',baseHp:200,tags:['F2','CHAOS'],mechanic:{type:'F2_CHAOS'},ruleSummary:'공개된 혼돈 규칙에 따라 카드 피해 -1 또는 괴물 압박 +1',pattern:hit('혼돈 규칙을 공개한다')},
   f2_rootjaw_hydra:{id:'f2_rootjaw_hydra',name:'뿌리턱 히드라',floor:2,tier:'ELITE',baseHp:200,tags:['F2','HEADS'],mechanic:{type:'F2_HYDRA',heads:3,requiredDistinct:3},ruleSummary:'서로 다른 유효 최종 숫자 3종 이상이면 머리 1개 제거 · 머리 2개 이상이면 단일 공격 피해 +1',pattern:hit('남은 머리가 공격을 준비한다')},

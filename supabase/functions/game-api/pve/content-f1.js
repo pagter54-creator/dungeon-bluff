@@ -60,7 +60,7 @@ export const F1_MONSTER_DEFINITIONS=Object.freeze({
   },
   f1_echo_bat:{
     id:'f1_echo_bat',name:'메아리 박쥐',floor:1,tier:'ELITE',baseHp:160,tags:['F1','ELITE','ECHO'],
-    mechanic:{type:'ECHO',threshold:2},ruleSummary:'직전 턴의 유효 숫자를 반복하면 메아리 +1 · 2 이상이면 광역 공격 강화',
+    mechanic:{type:'ECHO',threshold:2},ruleSummary:'직전 유효 숫자 반복 시 턴당 메아리 +1 · 반복 없으면 -1(최소 0) · 2 이상이면 광역 공격 강화',
     pattern:[
       {type:'CHARGE',telegraphText:'동굴을 울리는 초음파를 모은다',payload:{}},
       {type:'DIRECT_DAMAGE',telegraphText:'메아리를 따라 한 명에게 급강하한다',payload:{target:'RANDOM_LIVING',amount:1}},
