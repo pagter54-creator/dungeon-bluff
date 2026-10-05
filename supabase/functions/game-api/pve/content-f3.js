@@ -15,6 +15,12 @@ export const F3_MONSTER_DEFINITIONS=Object.freeze({
  f3_abyss_king:{id:'f3_abyss_king',name:'심연왕',floor:3,tier:'BOSS',baseHp:420,mechanic:{type:'F3_ADAPT',maximum:3},ruleSummary:'최근 3턴 최고 유효 숫자/유효 인원/피해 구간 반복을 학습 · 전략 변경 2턴이면 적응 -1',pattern:boss('파티 습관을 관찰한다')},
  f3_masked_queen:{id:'f3_masked_queen',name:'가면의 여왕',floor:3,tier:'BOSS',baseHp:420,mechanic:{type:'F3_MASK',masks:['SILENCE','GREED','HUMILITY','DISCORD']},ruleSummary:'가면 하나만 적용 · 침묵: 스킬 반격 / 탐욕: 최고 숫자 반격 / 겸손: 4~6 피해 -1 / 불화: 중복 시 방어 +1',pattern:boss('가면 규칙을 펼친다')}
 });
+// Base content values are preserved; runtime declares its two independent layers.
+for(const monster of Object.values(F3_MONSTER_DEFINITIONS))monster.actionCadenceDelay=1;
+F3_MONSTER_DEFINITIONS.f3_royal_tax_collector.mechanic.adaptiveRequirement={type:'PARTY_SUM_OR_DAMAGE_REQUIREMENT',field:'requiredSum',baseContributors:4};
+F3_MONSTER_DEFINITIONS.f3_black_choir.mechanic.adaptiveRequirement={type:'DISTINCT_COUNT_REQUIREMENT',field:'requiredDistinct',baseContributors:4,table:{1:1,2:2,3:3,4:3}};
+F3_MONSTER_DEFINITIONS.f3_execution_golem.mechanic.adaptiveRequirement={type:'WINDOW_HIT_REQUIREMENT',field:'requiredHits',baseContributors:4};
+
 export function selectF3Monster(run,roomType){
  const tier=roomType==='BOSS'?'BOSS':roomType==='ELITE_COMBAT'?'ELITE':'NORMAL';
  if(!['BOSS','ELITE_COMBAT','NORMAL_COMBAT'].includes(roomType))throw new Error('전투방 타입이 아닙니다.');

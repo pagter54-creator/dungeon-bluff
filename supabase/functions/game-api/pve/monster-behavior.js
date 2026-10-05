@@ -1,3 +1,4 @@
+import {patternRequirement,adaptivePresentation,adaptiveRuleSummary} from './adaptive-pattern.js';
 import {trackPlayerNumber,changeMonsterStack,checkPartyDamage,advanceMonsterPhase,tickMonsterCountdown} from './monster-primitives.js';
 import {choose} from './rng.js';
 import {createF2State,f2Presentation,prepareF2Turn,applyF2CardRules,recordF2DamageBatch,prepareF2Action} from './monster-behavior-f2.js';
@@ -26,12 +27,12 @@ export function monsterPresentation(run){
   if(!monster||!mechanic)return null;
   if(mechanic.type.startsWith('F2_'))return f2Presentation(run);
   if(mechanic.type.startsWith('F3_'))return f3Presentation(run);
-  const publicState={ruleSummary:mechanic.ruleSummary||monster.ruleSummary||'',validCount:state.validCount||0,collisionCount:state.collisionCount||0};
+  const publicState={...adaptivePresentation(run),ruleSummary:adaptiveRuleSummary(run),validCount:state.validCount||0,collisionCount:state.collisionCount||0};
   if(Number.isInteger(state.armor))publicState.armor=state.armor;
   if(Number.isInteger(state.countdown))publicState.countdown=state.countdown;
-  if(Number.isInteger(state.progress)){publicState.progress=state.progress;publicState.threshold=mechanic.minimumDamage;}
+  if(Number.isInteger(state.progress)){publicState.progress=state.progress;publicState.threshold=patternRequirement(run,'minimumDamage');}
   if(Number.isInteger(state.forbiddenNumber))publicState.forbiddenNumber=state.forbiddenNumber;
-  if(Number.isInteger(mechanic.requiredValidCount))publicState.requiredValidCount=mechanic.requiredValidCount;
+  if(Number.isInteger(patternRequirement(run,'requiredValidCount')))publicState.requiredValidCount=patternRequirement(run,'requiredValidCount');
   if(Number.isInteger(state.meter))publicState.meter=state.meter;
   if(Number.isInteger(state.stacks?.swarm))publicState.swarm=state.stacks.swarm;
   if(Number.isInteger(state.stacks?.echo))publicState.echo=state.stacks.echo;
@@ -72,7 +73,7 @@ export function prepareMonsterTurn(run,intent){
   }
   const extra=monsterPresentation(run)?.statusText;
   intent.telegraphText+=extra?` · ${extra}`:'';
-  intent.telegraphText+=monster.ruleSummary?` · ${monster.ruleSummary}`:'';
+  intent.telegraphText+=` · ${adaptiveRuleSummary(run)}`;
   monster.presentation=monsterPresentation(run);
   return intent;
 }
@@ -89,16 +90,16 @@ export function applyMonsterCardRules(run,cards,events=[]){
   if(mechanic.type==='ARMOR_VALID_HITS'){
     for(const card of valid){if(state.armor>0){card.monsterDamagePenalty=(card.monsterDamagePenalty||0)+1;state.armor--;}}
   }else if(mechanic.type==='HUNT'){
-    state.attackBlocked=valid.length>=mechanic.requiredValidCount;
+    state.attackBlocked=valid.length>=patternRequirement(run,'requiredValidCount');
   }else if(mechanic.type==='COUNTDOWN_STRIKE'||mechanic.type==='PARTY_ORDER'){
-    state.attackBlocked=valid.length>=mechanic.requiredValidCount;
+    state.attackBlocked=valid.length>=patternRequirement(run,'requiredValidCount');
   }else if(mechanic.type==='LAST_HIGHEST_TARGET'){
     const ordered=valid.map(card=>({card,player:playerFor(run,card.playerId)})).sort((a,b)=>b.card.finalNumber-a.card.finalNumber||bySeat(a.player,b.player));
     state.lastHighestPlayerId=ordered[0]?.card.playerId||null;
   }else if(mechanic.type==='COLLISION_STACK'){
     changeMonsterStack(state,'swarm',collisionGroups.size?collisionGroups.size:-1,{maximum:3});
   }else if(mechanic.type==='VALID_GUARD'){
-    state.guardPending=valid.length<mechanic.requiredValidCount;
+    state.guardPending=valid.length<patternRequirement(run,'requiredValidCount');
   }else if(mechanic.type==='FORBIDDEN_NUMBER'){
     for(const card of cards.filter(card=>card.finalNumber===state.forbiddenNumber)){
       card.monsterDamagePenalty=(card.monsterDamagePenalty||0)+mechanic.damagePenalty;
@@ -115,7 +116,7 @@ export function applyMonsterCardRules(run,cards,events=[]){
     const parity=state.phase==='ODD'?1:0;
     for(const card of valid)if(Math.abs(card.finalNumber%2)!==parity)card.monsterDamagePenalty=(card.monsterDamagePenalty||0)+mechanic.damagePenalty;
   }else if(mechanic.type==='DOMINION'){
-    state.meter=Math.max(0,Math.min(mechanic.maximum,state.meter+(valid.length>=mechanic.requiredValidCount?-1:1)));
+    state.meter=Math.max(0,Math.min(mechanic.maximum,state.meter+(valid.length>=patternRequirement(run,'requiredValidCount')?-1:1)));
   }
   monster.presentation=monsterPresentation(run);
 }
@@ -128,7 +129,7 @@ export function recordMonsterDamageBatch(run,totalDamage){
   state.progress+=totalDamage;
   const tick=tickMonsterCountdown(state);
   if(tick.ready&&state.resolvedCycle!==state.cycle){
-    state.pendingFailure=!checkPartyDamage(state.progress,{minimum:mechanic.minimumDamage}).passed;
+    state.pendingFailure=!checkPartyDamage(state.progress,{minimum:patternRequirement(run,'minimumDamage')}).passed;
     state.resolvedCycle=state.cycle;
   }
   monster.presentation=monsterPresentation(run);

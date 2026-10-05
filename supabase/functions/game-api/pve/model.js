@@ -17,6 +17,6 @@ export function newPrivateCombatState(player){
 }
 export function newCombatState(players,hp=90,roomType='NORMAL_COMBAT',monsterDef=null){
   for(const p of players)initializeCombatCharacter(p);
-  const monster=monsterDef?{id:monsterDef.id,name:monsterDef.name,tier:monsterDef.tier,hp:monsterDef.baseHp,maxHp:monsterDef.baseHp,statuses:[],intent:null,defense:0,...(monsterDef.mechanic?{ruleSummary:monsterDef.ruleSummary,mechanic:structuredClone(monsterDef.mechanic),behaviorState:createMonsterBehaviorState(monsterDef.mechanic)}:{}),...(monsterDef.mechanic||monsterDef.usePattern?{pattern:structuredClone(monsterDef.pattern)}:{})}:{id:'pve_training_monster',name:'훈련용 괴물',hp,maxHp:hp,statuses:[],intent:null,defense:0};
+  const monster=monsterDef?{id:monsterDef.id,name:monsterDef.name,tier:monsterDef.tier,hp:monsterDef.baseHp,maxHp:monsterDef.baseHp,statuses:[],intent:null,defense:0,actionCadenceDelay:monsterDef.actionCadenceDelay||0,...(monsterDef.mechanic?{ruleSummary:monsterDef.ruleSummary,mechanic:structuredClone(monsterDef.mechanic),behaviorState:createMonsterBehaviorState(monsterDef.mechanic)}:{}),...(monsterDef.mechanic||monsterDef.usePattern?{pattern:structuredClone(monsterDef.pattern)}:{})}:{id:'pve_training_monster',name:'훈련용 괴물',hp,maxHp:hp,statuses:[],intent:null,defense:0};
   return {id:crypto.randomUUID(),roomType,phase:'TURN_START',turn:1,monster,privateByPlayer:Object.fromEntries(players.map(p=>[p.playerId,newPrivateCombatState(p)])),turnSubmissions:{},effectCounters:{},pendingDownPlayerIds:[]};
 }

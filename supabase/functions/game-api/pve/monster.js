@@ -1,3 +1,4 @@
+import {cadenceTemplate} from './monster-cadence.js';
 import {twinsIncomingProtection} from './twins-runtime.js';
 import {vampireIncomingProtection} from './vampire-runtime.js';
 import {choose} from './rng.js';
@@ -24,7 +25,7 @@ export function publishMonsterIntent(run){
   const def=c.monster.pattern?.length?c.monster:f1MonsterById(c.monster.id);
   let intent;
   if(def?.pattern?.length){
-    const template=def.pattern[(c.turn-1)%def.pattern.length];
+    const template=cadenceTemplate(def,c.turn);
     intent=materializeIntent(run,template);
   }else if(c.turn%3===0){
     const target=choose(run,living,`monster-target:${run.floor}:${run.depth}:${run.currentRoomNodeId||c.monster.id}:${c.turn}:${c.monster.id}`);

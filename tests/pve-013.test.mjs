@@ -69,7 +69,7 @@ test('PVE-013 monster definitions drive public telegraphs and executable intents
   executeMonsterIntent(boar);assert.equal(boar.combat.monster.defense,1);
 
   const hunter=combatRun(F1_MONSTER_DEFINITIONS.f1_coward_hunter);
-  hunter.combat.turn=2;const intent=publishMonsterIntent(hunter);
+  hunter.combat.turn=3;const intent=publishMonsterIntent(hunter);
   assert.equal(intent.type,'DIRECT_DAMAGE');assert.ok(intent.payload.targetPlayerId);
   assert.equal(intent.payload.target,undefined);
 });

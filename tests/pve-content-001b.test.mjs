@@ -51,12 +51,12 @@ const cases=[
     const bad=make('f1_armored_boar');applyMonsterCardRules(bad,cards([1,1,2,2],[false,false,false,false]));assert.equal(bad.combat.monster.behaviorState.armor,2);
   }],
   ['F1-N02 coward hunter','f1_coward_hunter',(run)=>{
-    run.combat.turn=2;const success=turn(run,[1,2,3,4]);assert.ok(success.intent.payload.targetPlayerId);assert.equal(success.action.type,'CHARGE');
-    const bad=make('f1_coward_hunter');bad.combat.turn=2;assert.equal(turn(bad,[1,1,2,2],[false,false,false,false]).action.type,'DIRECT_DAMAGE');
+    run.combat.turn=3;const success=turn(run,[1,2,3,4]);assert.ok(success.intent.payload.targetPlayerId);assert.equal(success.action.type,'CHARGE');
+    const bad=make('f1_coward_hunter');bad.combat.turn=3;assert.equal(turn(bad,[1,1,2,2],[false,false,false,false]).action.type,'DIRECT_DAMAGE');
   }],
   ['F1-N03 rusty ballista','f1_rusty_ballista',(run)=>{
-    run.combat.turn=3;const success=turn(run,[1,2,3,4]);assert.equal(success.action.type,'CHARGE');
-    const bad=make('f1_rusty_ballista');bad.combat.turn=3;assert.equal(turn(bad,[1,1,2,2],[false,false,false,false]).action.type,'AOE_DAMAGE');
+    run.combat.turn=4;const success=turn(run,[1,2,3,4]);assert.equal(success.action.type,'CHARGE');
+    const bad=make('f1_rusty_ballista');bad.combat.turn=4;assert.equal(turn(bad,[1,1,2,2],[false,false,false,false]).action.type,'AOE_DAMAGE');
   }],
   ['F1-N04 gate guard dog','f1_gate_guard_dog',(run)=>{
     turn(run,[1,4,4,2],[true,true,true,true]);assert.equal(run.combat.monster.behaviorState.lastHighestPlayerId,'p1');
@@ -65,7 +65,7 @@ const cases=[
   }],
   ['F1-N05 sewer rat swarm','f1_sewer_rat_swarm',(run)=>{
     turn(run,[1,1,2,2],[false,false,false,false]);assert.equal(run.combat.monster.behaviorState.stacks.swarm,2);
-    run.combat.turn=2;const attack=turn(run,[1,1,2,2],[false,false,false,false]);assert.equal(attack.action.type,'AOE_DAMAGE');
+    run.combat.turn=3;const attack=turn(run,[1,1,2,2],[false,false,false,false]);assert.equal(attack.action.type,'AOE_DAMAGE');
     const bad=make('f1_sewer_rat_swarm');bad.combat.monster.behaviorState.stacks.swarm=2;turn(bad,[1,2,3,4]);assert.equal(bad.combat.monster.behaviorState.stacks.swarm,1);
   }],
   ['F1-N06 graveyard sentinel','f1_graveyard_sentinel',(run)=>{
@@ -80,12 +80,12 @@ const cases=[
   }],
   ['F1-E01 echo bat','f1_echo_bat',(run)=>{
     turn(run,[1,2,3,4]);run.combat.turn=2;turn(run,[1,2,5,6]);assert.equal(run.combat.monster.behaviorState.stacks.echo,2);
-    run.combat.turn=5;const a=turn(run,[1,2,3,4]);assert.equal(a.action.payload.amount,2);
+    run.combat.turn=7;const a=turn(run,[1,2,3,4]);assert.equal(a.action.payload.amount,2);
     const bad=make('f1_echo_bat');turn(bad,[1,2,3,4]);bad.combat.turn=2;turn(bad,[4,5,6,7]);assert.equal(bad.combat.monster.behaviorState.stacks.echo,1);
   }],
   ['F1-E02 siege captain','f1_siege_captain',(run)=>{
     run.combat.turn=2;assert.equal(turn(run,[1,2,3,4]).action.type,'CHARGE');
-    const bad=make('f1_siege_captain');bad.combat.turn=2;assert.equal(turn(bad,[1,1,2,2],[false,false,false,false]).action.type,'AOE_DAMAGE');
+    const bad=make('f1_siege_captain');bad.combat.turn=3;assert.equal(turn(bad,[1,1,2,2],[false,false,false,false]).action.type,'AOE_DAMAGE');
   }],
   ['F1-E03 iron bell keeper','f1_iron_bell_keeper',(run)=>{
     publishMonsterIntent(run);const c=cards([1,2,3,4]);applyMonsterCardRules(run,c);

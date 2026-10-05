@@ -1,3 +1,4 @@
+import {patternRequirement,adaptivePresentation,adaptiveRuleSummary} from './adaptive-pattern.js';
 import {choose} from './rng.js';
 import {changeMonsterStack,tickMonsterCountdown} from './monster-primitives.js';
 const state=run=>run.combat.monster.behaviorState,mechanic=run=>run.combat.monster.mechanic;
@@ -18,17 +19,17 @@ export function createF3State(k){
 }
 export function f3Presentation(run){
  const m=run.combat?.monster;if(!m?.mechanic?.type?.startsWith('F3_'))return null;
- const s=m.behaviorState,k=m.mechanic,t=k.type,p={ruleSummary:m.ruleSummary,validCount:s.validCount||0,collisionCount:s.collisionCount||0};
+ const s=m.behaviorState,k=m.mechanic,t=k.type,p={...adaptivePresentation(run),ruleSummary:adaptiveRuleSummary(run),validCount:s.validCount||0,collisionCount:s.collisionCount||0};
  const parts=[];
  if(t==='F3_GREED')parts.push('탐욕 '+(s.greedActive?'활성 · 최고 숫자 반격':'비활성'));
  if(s.targetPlayerId)parts.push('표적 '+seat(run,s.targetPlayerId));
- if(t==='F3_TAX')parts.push('세금 회피 유효 합 '+k.requiredSum+' 이상 · 현재 '+(s.validSum||0));
+ if(t==='F3_TAX')parts.push('세금 회피 유효 합 '+patternRequirement(run,'requiredSum')+' 이상 · 현재 '+(s.validSum||0));
  if(t==='F3_DUEL')parts.push('결투 승리 유효 최종 숫자 '+(k.threshold+1)+' 이상');
- if(t==='F3_CHOIR')parts.push('침묵 서로 다른 유효 숫자 '+k.requiredDistinct+'종 · 현재 '+(s.distinctCount||0));
+ if(t==='F3_CHOIR')parts.push('침묵 서로 다른 유효 숫자 '+patternRequirement(run,'requiredDistinct')+'종 필요 · 현재 '+(s.distinctCount||0)+'/'+patternRequirement(run,'requiredDistinct'));
  if(t==='F3_SKILL_FEED')parts.push('기술먹이 '+s.stacks.feed+'/'+k.threshold+(s.boostReady?' · 다음 공격 +1 대기':''));
  if(t==='F3_ARCHIVIST')parts.push('기록 숫자 '+(s.recorded??'없음')+' · 해당 유효 공격 피해 -1');
  if(t==='F3_APPRAISAL')parts.push('우대 숫자 '+(s.mode==='LOW'?'1~2':'4~6')+' · 그 밖의 피해 -1');
- if(t==='F3_EXECUTION')parts.push('처형 남은 턴 '+s.countdown+' · 유효 공격 '+s.progress+'/'+k.requiredHits);
+ if(t==='F3_EXECUTION')parts.push('처형 남은 턴 '+s.countdown+' · 유효 공격 '+s.progress+'/'+patternRequirement(run,'requiredHits'));
  if(t==='F3_AUDIT')parts.push('감사 '+s.stacks.audit+'/'+k.threshold+' · 직전 유효 인원 '+(s.previousCount??'없음'));
  if(t==='F3_NULL')parts.push('이번 턴 약화 '+(s.nullRule==='ODD'?'홀수':'4~6')+' 유효 공격 피해 -1');
  if(t==='F3_ADAPT'){parts.push('관찰: 최고 유효 숫자 / 유효 인원 / 피해 구간');parts.push(s.adaptation?'학습 '+s.adaptation.kind+' '+s.adaptation.value+' · 적응 '+s.adaptation.stack+'/'+k.maximum+' · '+(s.adaptation.kind==='BAND'?'같은 피해 구간이면 표적 피해 1':'해당 유효 공격 피해 -1'):'적응 없음');parts.push('다른 전략 2턴이면 적응 -1 · 현재 '+s.misses+'/2');}
@@ -50,7 +51,7 @@ export function prepareF3Turn(run,intent){
  if(t==='F3_AUDIT')s.targetPlayerId=pick(run,'audit');
  if(t==='F3_NULL')s.nullRule=run.combat.turn%2?'ODD':'HIGH';
  if(t==='F3_MASK'){s.late=m.hp<=m.maxHp/2;if(run.combat.turn>1&&(s.late||s.maskTurns>=2)){s.maskIndex=(s.maskIndex+1)%k.masks.length;s.maskTurns=0;}s.mask=k.masks[s.maskIndex];s.maskTurns++;s.untilChange=s.late?1:3-s.maskTurns;}
- m.presentation=f3Presentation(run);intent.telegraphText+=' · '+m.presentation.statusText+' · '+m.ruleSummary;
+ m.presentation=f3Presentation(run);intent.telegraphText+=' · '+m.presentation.statusText+' · '+adaptiveRuleSummary(run);
  return intent;
 }
 export function applyF3CardRules(run,cards,events=[]){
@@ -62,7 +63,7 @@ export function applyF3CardRules(run,cards,events=[]){
  if(t==='F3_GREED'&&s.greedActive&&highest.length===1)s.pendingHits.push(highest[0].playerId);
  if(t==='F3_TAX')s.validSum=nums.reduce((a,b)=>a+b,0);
  if(t==='F3_DUEL'&&!valid.some(c=>c.playerId===s.targetPlayerId&&c.finalNumber>k.threshold))s.pendingHits.push(s.targetPlayerId);
- if(t==='F3_CHOIR'){s.distinctCount=new Set(nums).size;s.pendingAoe=s.distinctCount<k.requiredDistinct;}
+ if(t==='F3_CHOIR'){s.distinctCount=new Set(nums).size;s.pendingAoe=s.distinctCount<patternRequirement(run,'requiredDistinct');}
  if(t==='F3_SKILL_FEED'){const used=Object.values(run.combat.turnSubmissions).filter(x=>x.skillIntent).length;changeMonsterStack(s,'feed',used,{maximum:3});if(s.stacks.feed>=k.threshold){s.boostReady=true;s.stacks.feed=0;}if(used)events.push({type:'SKILL_FEED',used,stack:s.stacks.feed});}
  if(t==='F3_ARCHIVIST'){valid.filter(c=>c.finalNumber===s.recorded).forEach(penalty);s.recent.push(nums);s.recent=s.recent.slice(-2);}
  if(t==='F3_APPRAISAL')valid.filter(c=>s.mode==='LOW'?c.finalNumber>2:c.finalNumber<4).forEach(penalty);
@@ -97,8 +98,8 @@ export function resolveF3AfterDamage(run,events,applyDamage){
  const m=run.combat.monster,s=state(run),k=mechanic(run),t=k?.type;
  if(!t?.startsWith('F3_')||m.hp<=0||s.resolvedTurn===run.combat.turn)return;
  s.resolvedTurn=run.combat.turn;
- if(t==='F3_TAX'&&s.validSum<k.requiredSum){const p=run.players.find(p=>p.playerId===s.targetPlayerId);if(p){const amount=Math.min(1,Math.max(0,p.runGold||0));p.runGold-=amount;events.push({type:'TAX_COLLECTED',playerId:p.playerId,amount});}}
- if(t==='F3_EXECUTION'&&s.executionReady){if(s.progress<k.requiredHits){const p=run.players.find(p=>p.playerId===s.targetPlayerId);if(p)events.push(...applyDamage(run,p,2,'DIRECT'));events.push({type:'EXECUTION_FAILED',progress:s.progress});}else events.push({type:'EXECUTION_CANCELLED',progress:s.progress});s.countdown=k.length;s.progress=0;s.executionReady=false;s.targetPlayerId=null;}
+ if(t==='F3_TAX'&&s.validSum<patternRequirement(run,'requiredSum')){const p=run.players.find(p=>p.playerId===s.targetPlayerId);if(p){const amount=Math.min(1,Math.max(0,p.runGold||0));p.runGold-=amount;events.push({type:'TAX_COLLECTED',playerId:p.playerId,amount});}}
+ if(t==='F3_EXECUTION'&&s.executionReady){if(s.progress<patternRequirement(run,'requiredHits')){const p=run.players.find(p=>p.playerId===s.targetPlayerId);if(p)events.push(...applyDamage(run,p,2,'DIRECT'));events.push({type:'EXECUTION_FAILED',progress:s.progress});}else events.push({type:'EXECUTION_CANCELLED',progress:s.progress});s.countdown=k.length;s.progress=0;s.executionReady=false;s.targetPlayerId=null;}
  if(s.pendingAoe)for(const p of living(run))events.push(...applyDamage(run,p,1,'AOE'));
  for(const id of s.pendingHits){const p=run.players.find(p=>p.playerId===id);if(p)events.push(...applyDamage(run,p,1,'DIRECT'));}
  s.pendingHits=[];s.pendingAoe=false;m.presentation=f3Presentation(run);

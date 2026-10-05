@@ -10,7 +10,7 @@ import {advanceCompletedFloor} from './floor-transition.js';
 import {acquireAugmentOnce} from './augment-framework.js';
 import {applyContent005B} from './content-005b-runtime.js';
 
-export const AUGMENT_THRESHOLDS=[50,150,350,750];
+export const AUGMENT_THRESHOLDS=[30,100,250,500];
 
 function completedTiers(player){
   player.persistentCharacterState.augmentTiers ||= [];

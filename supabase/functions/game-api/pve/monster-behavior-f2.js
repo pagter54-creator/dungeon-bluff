@@ -1,3 +1,4 @@
+import {patternRequirement,adaptivePresentation,adaptiveRuleSummary} from './adaptive-pattern.js';
 import {choose} from './rng.js';
 import {trackPlayerNumber,changeMonsterStack,checkPartyDamage} from './monster-primitives.js';
 
@@ -24,7 +25,7 @@ export function createF2State(mechanic){
 export function f2Presentation(run){
   const m=run.combat?.monster,s=stateOf(run),k=mechOf(run);
   if(!m||!k||!k.type.startsWith('F2_'))return null;
-  const p={ruleSummary:m.ruleSummary,validCount:s.validCount||0,collisionCount:s.collisionCount||0};
+  const p={...adaptivePresentation(run),ruleSummary:adaptiveRuleSummary(run),validCount:s.validCount||0,collisionCount:s.collisionCount||0};
   for(const field of ['currentDangerNumber','nextDangerNumber','copiedNumber','flameMode','thornsActive','chaosRule','heads','targetPlayerId','linkedPlayerIds','phase','threshold','partyDamage','minimumDamage','maximumDamage','growth'])if(s[field]!=null)p[field]=structuredClone(s[field]);
   if(s.stacks?.growth!=null)p.growth=s.stacks.growth;
   if(s.curseByPlayer)p.curseByPlayer={...s.curseByPlayer};
@@ -37,9 +38,9 @@ export function f2Presentation(run){
   if(p.copiedNumber!=null)parts.push(`복제 숫자 ${p.copiedNumber}`);
   if(p.flameMode)parts.push(`늪불 ${p.flameMode==='LOW'?'낮음 · 4~6 위험':'높음 · 1~3 위험'}`);
   if(p.thornsActive!=null)parts.push(`가시 ${p.thornsActive?'활성 · 단독 최고 유효 숫자 반격':'비활성'}`);
-  if(p.chaosRule)parts.push(`혼돈 ${p.chaosRule==='ODD'?'짝수 카드 피해 -1':p.chaosRule==='LOW'?'4~6 카드 피해 -1':'유효 숫자 합 10 미만이면 표적 피해 1'}`);
-  if(p.heads!=null)parts.push(`머리 ${p.heads} · 서로 다른 유효 숫자 3종이면 -1`);
-  if(p.growth!=null)parts.push(`성장 ${p.growth} · 피해 8 이상이면 방지`);
+  if(p.chaosRule)parts.push(`혼돈 ${p.chaosRule==='ODD'?'짝수 카드 피해 -1':p.chaosRule==='LOW'?'4~6 카드 피해 -1':`유효 숫자 합 ${patternRequirement(run,'requiredSum')} 미만이면 표적 피해 1`}`);
+  if(p.heads!=null)parts.push(`머리 ${p.heads} · 서로 다른 유효 숫자 ${patternRequirement(run,'requiredDistinct')}종이면 -1`);
+  if(p.growth!=null)parts.push(`성장 ${p.growth} · 피해 ${patternRequirement(run,'minimumDamage')} 이상이면 방지`);
   if(p.targetPlayerId){const target=run.players.find(player=>player.playerId===p.targetPlayerId);parts.push(`표적 ${target?`${target.seat+1}번 자리`:p.targetPlayerId}`);}
   if(p.linkedPlayerIds)parts.push(`실타래 ${p.linkedPlayerIds.map(id=>{const player=run.players.find(p=>p.playerId===id);return player?`${player.seat+1}번 자리`:id}).join(' / ')} · ${s.linkReady?'이번 턴 서로 다른 숫자로 끊기':'다음 턴 서로 다른 숫자로 끊기'}`);
   if(p.phase)parts.push(`${p.phase==='MIN'?'만월 · 최소':'신월 · 최대'} ${p.threshold} · 현재 ${p.partyDamage||0}`);
@@ -71,11 +72,11 @@ export function prepareF2Turn(run,intent){
   if(type==='F2_FLAME')s.flameMode=run.combat.turn%2?'LOW':'HIGH';
   if(type==='F2_THORNS')s.thornsActive=run.combat.turn%2===1;
   if(type==='F2_CHAOS')s.chaosRule=pick(run,['ODD','LOW','VALID_SUM'],'chaos-rule');
-  if(type==='F2_MOON'){s.phase=run.combat.turn%2?'MIN':'MAX';s.threshold=s.phase==='MIN'?k.minimumDamage:k.maximumDamage;s.partyDamage=0;s.minimumDamage=k.minimumDamage;s.maximumDamage=k.maximumDamage;}
-  if(type==='F2_HYDRA')s.requiredDistinct=k.requiredDistinct;
+  if(type==='F2_MOON'){s.phase=run.combat.turn%2?'MIN':'MAX';s.threshold=s.phase==='MIN'?patternRequirement(run,'minimumDamage'):k.maximumDamage;s.partyDamage=0;s.minimumDamage=patternRequirement(run,'minimumDamage');s.maximumDamage=k.maximumDamage;}
+  if(type==='F2_HYDRA')s.requiredDistinct=patternRequirement(run,'requiredDistinct');
   const p=f2Presentation(run);m.presentation=p;
   intent.telegraphText+=p?.statusText?` · ${p.statusText}`:'';
-  intent.telegraphText+=m.ruleSummary?` · ${m.ruleSummary}`:'';
+  intent.telegraphText+=` · ${adaptiveRuleSummary(run)}`;
   return intent;
 }
 export function applyF2CardRules(run,cards,events){
@@ -99,9 +100,9 @@ export function applyF2CardRules(run,cards,events){
   if(type==='F2_CHAOS'){
     if(s.chaosRule==='ODD')for(const c of valid.filter(c=>c.finalNumber%2===0))c.monsterDamagePenalty=(c.monsterDamagePenalty||0)+1;
     if(s.chaosRule==='LOW')for(const c of valid.filter(c=>c.finalNumber>=4))c.monsterDamagePenalty=(c.monsterDamagePenalty||0)+1;
-    if(s.chaosRule==='VALID_SUM')s.chaosFailure=valid.reduce((sum,c)=>sum+c.finalNumber,0)<10;
+    if(s.chaosRule==='VALID_SUM')s.chaosFailure=valid.reduce((sum,c)=>sum+c.finalNumber,0)<patternRequirement(run,'requiredSum');
   }
-  if(type==='F2_HYDRA'&&new Set(valid.map(c=>c.finalNumber)).size>=k.requiredDistinct&&s.heads>0){s.heads--;events.push({type:'HYDRA_HEAD_REMOVED',heads:s.heads});}
+  if(type==='F2_HYDRA'&&new Set(valid.map(c=>c.finalNumber)).size>=patternRequirement(run,'requiredDistinct')&&s.heads>0){s.heads--;events.push({type:'HYDRA_HEAD_REMOVED',heads:s.heads});}
   if(type==='F2_THREAD'&&s.linkedPlayerIds&&s.linkReady){
     const [a,b]=s.linkedPlayerIds.map(id=>cards.find(c=>c.playerId===id));
     if(a&&b&&a.finalNumber===b.finalNumber)s.pendingHits.push(a.playerId,b.playerId);
@@ -118,11 +119,11 @@ export function recordF2DamageBatch(run,totalDamage){
   const s=stateOf(run),k=mechOf(run),type=k?.type;
   if(!type?.startsWith('F2_'))return;
   if(type==='F2_GROWTH'){
-    if(!checkPartyDamage(totalDamage,{minimum:k.minimumDamage}).passed)changeMonsterStack(s,'growth',1,{maximum:3});
+    if(!checkPartyDamage(totalDamage,{minimum:patternRequirement(run,'minimumDamage')}).passed)changeMonsterStack(s,'growth',1,{maximum:3});
   }
   if(type==='F2_MOON'){
     s.partyDamage=totalDamage;
-    s.thresholdPassed=checkPartyDamage(totalDamage,s.phase==='MIN'?{minimum:k.minimumDamage}:{maximum:k.maximumDamage}).passed;
+    s.thresholdPassed=checkPartyDamage(totalDamage,s.phase==='MIN'?{minimum:patternRequirement(run,'minimumDamage')}:{maximum:k.maximumDamage}).passed;
   }
   run.combat.monster.presentation=f2Presentation(run);
 }

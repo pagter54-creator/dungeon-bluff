@@ -38,9 +38,9 @@ test('Full Burst grants primary and remaining card damage exactly once',()=>{
  assert.ok(packets.some(p=>p.followUp));assert.equal(run.players[0].growthExp,packets.reduce((n,p)=>n+p.amount,0));
  assert.equal(result.events.filter(e=>e.source==='COMBAT_DAMAGE'&&e.playerId==='p0').length,1);
 });
-test('damage EXP uses existing thresholds and waits for the existing combat-end choice window',()=>{
- const run=runFor();run.players[0].growthExp=49;play(run,[2,1,3,4]);
- assert.equal(run.players[0].growthExp,51);assert.deepEqual(AUGMENT_THRESHOLDS,[50,150,350,750]);
+test('damage EXP uses REBALANCE-001 thresholds and waits for the existing combat-end choice window',()=>{
+ const run=runFor();run.players[0].growthExp=29;play(run,[2,1,3,4]);
+ assert.equal(run.players[0].growthExp,31);assert.deepEqual(AUGMENT_THRESHOLDS,[30,100,250,500]);
  assert.ok(dueAugmentTiers(run.players[0]).includes(1));assert.equal(run.phase,'COMBAT');assert.ok(!run.augmentChoice);
 });
 test('pattern replaces the existing intent inside the encounter; competitive fallback remains',async()=>{
@@ -78,3 +78,4 @@ test('rest and final summary display the unified Korean flame label',()=>{
  const run=runFor();assert.match(pveRestActionsMarkup(run),/불씨 \+1/);
  assert.match(pveTerminalMarkup({},run,run.players[0]),/불씨 <b>/);
 });
+

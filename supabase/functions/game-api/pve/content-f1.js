@@ -109,6 +109,15 @@ export const F1_MONSTER_DEFINITIONS=Object.freeze({
     pattern:[{type:'CHARGE',telegraphText:'성문 파쇄를 준비한다',payload:{}}]
   }
 });
+// Base content values are preserved; runtime declares its two independent layers.
+for(const monster of Object.values(F1_MONSTER_DEFINITIONS))monster.actionCadenceDelay=1;
+F1_MONSTER_DEFINITIONS.f1_coward_hunter.mechanic.adaptiveRequirement={type:'PLAYER_COUNT_REQUIREMENT',field:'requiredValidCount',baseContributors:4,table:{1:1,2:2,3:3,4:3}};
+F1_MONSTER_DEFINITIONS.f1_rusty_ballista.mechanic.adaptiveRequirement={type:'PLAYER_COUNT_REQUIREMENT',field:'requiredValidCount',baseContributors:4,table:{1:1,2:2,3:3,4:3}};
+F1_MONSTER_DEFINITIONS.f1_siege_captain.mechanic.adaptiveRequirement={type:'PLAYER_COUNT_REQUIREMENT',field:'requiredValidCount',baseContributors:4,table:{1:1,2:2,3:3,4:3}};
+F1_MONSTER_DEFINITIONS.f1_graveyard_sentinel.mechanic.adaptiveRequirement={type:'PLAYER_COUNT_REQUIREMENT',field:'requiredValidCount',baseContributors:4,table:{1:1,2:2,3:3,4:3}};
+F1_MONSTER_DEFINITIONS.f1_fallen_lord.mechanic.adaptiveRequirement={type:'PLAYER_COUNT_REQUIREMENT',field:'requiredValidCount',baseContributors:4,table:{1:1,2:2,3:3,4:3}};
+F1_MONSTER_DEFINITIONS.f1_gatebreaker_colossus.mechanic.adaptiveRequirement={type:'PARTY_SUM_OR_DAMAGE_REQUIREMENT',field:'minimumDamage',baseContributors:4};
+
 
 export const F1_EVENT_DEFINITIONS=Object.freeze([
   {

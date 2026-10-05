@@ -1,3 +1,4 @@
+import {patternRequirement} from './adaptive-pattern.js';
 // Read-only presentation metadata captured before monster penalties reset their state.
 // This module never grants resources, changes validity or executes a monster action.
 export function describeMonsterPattern(run,cards,totalDamage,events=[]){
@@ -19,11 +20,11 @@ export function describeMonsterPattern(run,cards,totalDamage,events=[]){
   case 'VALID_GUARD':if(!s.guardPending)block('방어 저지');else label='방어 강화';break;
   case 'FORBIDDEN_NUMBER':case 'PARITY_BELL':penalty();break;
   case 'ECHO':if(!s.stacks?.echo)block('메아리 억제');else set('PARTIAL','메아리 축적');break;
-  case 'DOMINION':if(valid.length>=k.requiredValidCount)set('PARTIAL','지배 약화');else label='지배 강화';break;
+  case 'DOMINION':if(valid.length>=patternRequirement(run,'requiredValidCount'))set('PARTIAL','지배 약화');else label='지배 강화';break;
   case 'F2_PROPHECY':
    if(s.currentDangerNumber==null)wait('저주 예고');
    else hit(cards.filter(c=>c.finalNumber===s.currentDangerNumber),'저주 중첩');break;
-  case 'F2_GROWTH':if(totalDamage>=k.minimumDamage)block('성장 저지');else label='성장';break;
+  case 'F2_GROWTH':if(totalDamage>=patternRequirement(run,'minimumDamage'))block('성장 저지');else label='성장';break;
   case 'F2_SPORE':hit(cards.filter(c=>c.invalidReason==='COLLISION'),'포자 중첩');break;
   case 'F2_LEECH':if(s.targetBlocked)block('흡혈 저지');else label='흡혈 발동';break;
   case 'F2_COPY':penalty();break;
@@ -37,12 +38,12 @@ export function describeMonsterPattern(run,cards,totalDamage,events=[]){
   case 'F2_CORRUPTION':hit(events.filter(e=>e.type==='CORRUPTION_APPLIED'),'오염 중첩');break;
   case 'F2_MOON':if(s.thresholdPassed)block('달 조건 달성');else label='달 조건 실패';break;
   case 'F3_GREED':if(!s.greedActive)wait('탐욕 비활성');else hit(s.pendingHits,'탐욕 반격');break;
-  case 'F3_TAX':if(s.validSum>=k.requiredSum)block('징수 저지');else label='징수 발동';break;
+  case 'F3_TAX':if(s.validSum>=patternRequirement(run,'requiredSum'))block('징수 저지');else label='징수 발동';break;
   case 'F3_DUEL':hit(s.pendingHits,'결투 실패');if(!s.pendingHits.length)label='결투 승리';break;
   case 'F3_CHOIR':if(!s.pendingAoe)block('성가 저지');else label='성가 발동';break;
   case 'F3_SKILL_FEED':if(!events.some(e=>e.type==='SKILL_FEED'))block('기술먹이 억제');else label='기술 흡수';break;
   case 'F3_ARCHIVIST':case 'F3_APPRAISAL':case 'F3_NULL':penalty();break;
-  case 'F3_EXECUTION':if(!s.executionReady)wait('처형 준비');else if(s.progress>=k.requiredHits)block('처형 취소');else label='처형 실패';break;
+  case 'F3_EXECUTION':if(!s.executionReady)wait('처형 준비');else if(s.progress>=patternRequirement(run,'requiredHits'))block('처형 취소');else label='처형 실패';break;
   case 'F3_AUDIT':if(s.pendingHits?.length)label='감사 발동';else wait('감사 진행');break;
   case 'F3_ADAPT':
    if(!s.adaptation)wait('전략 관찰');else if(s.misses)set('PARTIAL','전략 변경 진행');

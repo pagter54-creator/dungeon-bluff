@@ -22,6 +22,14 @@ export const F2_MONSTER_DEFINITIONS=Object.freeze({
   f2_rottenheart_ancient:{id:'f2_rottenheart_ancient',name:'썩은심장 고목',floor:2,tier:'BOSS',baseHp:300,tags:['F2','BOSS','CORRUPTION'],mechanic:{type:'F2_CORRUPTION',threshold:3},ruleSummary:'자신의 직전 유효 최종 숫자를 다시 유효하게 사용하면 오염 +1 · 3중첩 시 피해 1 후 초기화',pattern:bossPattern('오염된 뿌리가 움직인다')},
   f2_moon_eating_witch:{id:'f2_moon_eating_witch',name:'달을 삼킨 마녀',floor:2,tier:'BOSS',baseHp:300,tags:['F2','BOSS','MOON'],mechanic:{type:'F2_MOON',minimumDamage:10,maximumDamage:7},ruleSummary:'만월에는 파티 피해 10 이상 · 신월에는 7 이하 · 실패 시 표적 피해 1',pattern:bossPattern('달의 위상이 바뀐다')}
 });
+// Base content values are preserved; runtime declares its two independent layers.
+for(const monster of Object.values(F2_MONSTER_DEFINITIONS))monster.actionCadenceDelay=1;
+F2_MONSTER_DEFINITIONS.f2_hungry_slime.mechanic.adaptiveRequirement={type:'PARTY_SUM_OR_DAMAGE_REQUIREMENT',field:'minimumDamage',baseContributors:4};
+F2_MONSTER_DEFINITIONS.f2_chaos_goblin.mechanic.adaptiveRequirement={type:'PARTY_SUM_OR_DAMAGE_REQUIREMENT',field:'requiredSum',baseContributors:4};
+F2_MONSTER_DEFINITIONS.f2_rootjaw_hydra.mechanic.adaptiveRequirement={type:'DISTINCT_COUNT_REQUIREMENT',field:'requiredDistinct',baseContributors:4,table:{1:1,2:2,3:3,4:3}};
+F2_MONSTER_DEFINITIONS.f2_moon_eating_witch.mechanic.adaptiveRequirement={type:'PARTY_SUM_OR_DAMAGE_REQUIREMENT',field:'minimumDamage',baseContributors:4};
+F2_MONSTER_DEFINITIONS.f2_chaos_goblin.mechanic.requiredSum=10;
+
 
 export function f2MonsterById(id){return F2_MONSTER_DEFINITIONS[id]||null;}
 export function selectF2Monster(run,roomType){
