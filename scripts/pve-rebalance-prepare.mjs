@@ -32,7 +32,7 @@ for(const condition of conditions){
  await fs.writeFile(path.join(runtime,'package.json'),JSON.stringify({type:'module'}));
  await fs.copyFile(path.join(scripts,'pve-rebalance-measurement.mjs'),path.join(dir,'pve-rebalance-measurement.mjs'));
  await fs.copyFile(path.join(scripts,'pve-rebalance-sim.mjs'),path.join(dir,'policy.mjs'));
- await fs.writeFile(path.join(dir,'simulate.mjs'),`import {fileURLToPath} from 'node:url';\nprocess.env.PVE_SIM_RUNTIME=fileURLToPath(new URL('./runtime/',import.meta.url));\nprocess.env.PVE_SIM_OUTPUT=fileURLToPath(new URL('./',import.meta.url));\nprocess.env.PVE_SIM_CONDITION=${JSON.stringify(condition)};\nprocess.env.PVE_SOURCE_SHA=${JSON.stringify(condition==='CONTROL'?'67fa8e6b0cee1524749151b07c382934bfbe6e04':'CANDIDATE_RUNTIME_HASH:'+sourceRuntimeHash)};\nawait import('./policy.mjs');\n`);
+ await fs.writeFile(path.join(dir,'simulate.mjs'),`import {fileURLToPath} from 'node:url';\nprocess.env.PVE_SIM_RUNTIME=fileURLToPath(new URL('./runtime/',import.meta.url));\nprocess.env.PVE_SIM_OUTPUT=fileURLToPath(new URL('./',import.meta.url));\nprocess.env.PVE_SIM_CONDITION=${JSON.stringify(condition)};\nprocess.env.PVE_SOURCE_SHA=${JSON.stringify(condition==='CONTROL'?'67fa8e6b0cee1524749151b07c382934bfbe6e04':'CANDIDATE_RUNTIME_HASH:'+sourceRuntimeHash)};\nawait import(new URL('./policy.mjs',import.meta.url).href);\n`);
  await fs.writeFile(path.join(dir,'manifest.json'),JSON.stringify({condition,sourceRuntimeHash,baselineSHA:'67fa8e6b0cee1524749151b07c382934bfbe6e04',commonOrderingFix:condition!=='CONTROL',productionModulesInstrumented:false}));
 }
 console.log(JSON.stringify({conditions,output,networkCalls:0}));
