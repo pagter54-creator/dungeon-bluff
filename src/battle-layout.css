@@ -351,7 +351,8 @@ body:has(.game-top) > .site-footer{position:relative;z-index:1}
 .player-skill{display:flex;flex-direction:column;gap:6px;min-width:0}
 .revelation-gauge{display:flex;gap:4px;width:84px;max-width:100%}
 .revelation-gauge.predation-gauge{width:100px;gap:3px}
-.revelation-gauge.seer-gauge{width:26px}
+.revelation-gauge.seer-gauge{width:168px;gap:4px}
+.seer-gauge .revelation-pip{height:9px;min-width:0;border-radius:2px}
 .cycle-pool.continuous-hand.gambler-hand{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));max-width:none;gap:5px}
 .gambler-pile{align-self:stretch;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:1px solid #8d744c;border-radius:4px;background:linear-gradient(145deg,#352b39,#1c1725);color:#dbc18d;padding:4px 1px}
 .gambler-pile>span{font-size:20px}.gambler-pile small{font-size:9px;white-space:nowrap}.gambler-pile b{font-size:17px}.gambler-pile:disabled{opacity:.65}

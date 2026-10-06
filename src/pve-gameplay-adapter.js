@@ -158,14 +158,25 @@ export function adaptPveTurnResult(bundle,beforeRun,afterRun){
   const beforeMonster=structuredClone(beforeRun?.combat?.monster||afterRun.combat?.monster||afterRun?.floorTransitionResult?.monster||null);
   const afterMonster=structuredClone(afterRun?.combat?.monster||afterRun?.floorTransitionResult?.monster||beforeMonster||null);
   const effects=[...mutationEffects(turnResult),...combatEventEffects(turnResult)];
-  for(const packet of turnResult.damagePackets||[]){
+  const packets=turnResult.damagePackets||[],consumedBurstPackets=new Set();
+  for(const packet of packets){
+    if(consumedBurstPackets.has(packet))continue;
     const player=(afterRun.players||[]).find(p=>p.playerId===packet.sourcePlayerId);
     const character=characterForPlayer(bundle,player);
+    const card=(turnResult.cards||[]).find(c=>c.playerId===packet.sourcePlayerId);
+    let amount=Number(packet.amount)||0,hits=1;
+    if(player?.characterId==='gunner'&&card?.skillUsed==='full_burst'&&!packet.followUp&&!packet.extraDamageComponent&&packet.sourceCardId===card.cardInstanceId){
+      const burst=packets.filter(p=>p.sourcePlayerId===packet.sourcePlayerId&&p.followUp&&p.tags?.includes('FOLLOW_UP')&&(!packet.burstChainId||p.burstChainId===packet.burstChainId));
+      for(const extra of burst){consumedBurstPackets.add(extra);amount+=Number(extra.amount)||0;}
+      hits=1+burst.length;
+    }else if(player?.characterId==='martial_artist'&&!packet.followUp&&!packet.extraDamageComponent){
+      hits=1+Math.max(0,Number(card?.comboAfter??runtimeState(player).comboStacks)||0);
+    }
     effects.push({
-      type:'attack',memberId:packet.sourcePlayerId,amount:Number(packet.amount)||0,
+      type:'attack',memberId:packet.sourcePlayerId,amount,
       attackFx:character?.definition?.attackFx||'sword',
       attackSfx:character?.definition?.attackSfx||undefined,
-      hits:1
+      hits
     });
   }
   if(beforeMonster&&afterRun?.combat?.monster){
