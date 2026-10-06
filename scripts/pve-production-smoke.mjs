@@ -1,5 +1,8 @@
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from '../config.js';
 
+// Explicit production-write smoke: creates real anonymous Auth accounts, rooms
+// and game state. Room cleanup does not delete Auth accounts. Never run as part
+// of ordinary deployment or PR checks.
 const modeArg=process.argv.includes('--mode')?process.argv[process.argv.indexOf('--mode')+1]:'competitive';
 if(!['competitive','pve'].includes(modeArg))throw new Error('Use --mode competitive|pve.');
 const base=SUPABASE_URL.replace(/\/$/,'');

@@ -18,18 +18,15 @@ HTML5 / CSS / Vanilla JavaScript ES Modules로 만든 4인 온라인 던전 게�
 
 8종 캐릭터 선택, 카드 인스턴스별 5칸/OFF 표시, 서버 스킬 판정, 점술사 전용 정보, 캐릭터별 공격·스킬 연출을 추가했습니다. 상세 규칙과 효과음 파일은 `docs/CHARACTERS.md`를 참고하세요.
 
-2026-09-21 연결된 Supabase에 `202609210001_character_system.sql`을 적용하고 `game-api`를 배포했습니다. 기존 테이블은 이미 있었지만 초기 두 마이그레이션의 CLI 이력이 없어, 추가 SQL만 트랜잭션으로 적용하고 해당 버전만 적용 이력에 기록했습니다. **이 서버에서 초기 이력을 확인·정리하기 전에는 `db push`를 실행하지 마세요.** 웹 클라이언트 파일은 호스팅에 별도로 반영해야 합니다.
+2026-09-21에는 기존 테이블과 초기 두 마이그레이션의 CLI 이력이 일치하지 않아 추가 SQL만 적용하고 해당 이력을 기록했습니다. 현재 production 변경은 아래 GitHub Actions 자동 배포 경로를 사용합니다. **이력 불일치로 CI dry-run이 실패하면 배포를 중단하고 원인을 확인하세요. `migration repair`, `--include-all` 또는 수동 `db push`로 우회하지 않습니다.** 이 기록은 현재 서버 이력이 정리됐다는 확인을 대신하지 않습니다.
 
 부활 HP 3 / 실패 기준 누적 기절 8회 변경은 `202609210002_knockout_limit.sql` 및 서버 설정에 반영했습니다.
 
 ## 설치 및 업데이트
 
-CLI 이력이 관리되는 서버에서는 추가 마이그레이션을 적용한 뒤 함수를 재배포합니다. SQL Editor로 설치한 서버는 이미 적용된 SQL을 다시 실행하지 마세요.
+Production은 `main` push마다 `.github/workflows/deploy-supabase.yml`이 `npm ci` → 전체 테스트 → JS/TS 참조 검사 → workflow 정적 검사 → DB dry-run/비파괴 검사 → migration 적용 → 전체 Edge Functions 배포를 수행합니다. 성공하면 `deploy-pages.yml`이 같은 커밋의 Pages 공개를 확인합니다. 기존 branch 기반 Pages 자동 게시를 유지하고, Pages Source가 GitHub Actions일 때만 정적 artifact를 배포합니다. 경로 필터와 별도 수동 승인 단계는 없습니다. PR 검증에서는 production을 배포하지 않습니다. 자세한 설정과 실패 시 처리 방법은 [자동 배포 안내](docs/AUTO_DEPLOYMENT.md)를 참고하세요.
 
-```powershell
-npx supabase db push
-npx supabase functions deploy game-api
-```
+`DROP TABLE/SCHEMA/COLUMN`, `TRUNCATE`, migration 실행 중 `DELETE` 등 파괴적 변경은 자동 적용하지 않습니다. 판별할 수 없는 즉시 실행 SQL도 중단하고 먼저 보고합니다. 기존 RPC/트리거 본문의 게스트 정리·방 정리 로직은 정의만 배포하며 기능을 바꾸지 않습니다. SQL Editor로 설치한 서버에 이미 적용된 SQL을 재실행하지 마세요.
 
 SQL Editor를 사용한다면 현재 적용 상태에 따라 `supabase/migrations/202609200002_profiles.sql`, `202609210001_character_system.sql` 중 미적용 파일만 순서대로 실행하세요. 새 설치는 migrations의 모든 SQL을 파일명 순서대로 적용합니다. 웹 클라이언트 파일도 함께 업데이트해야 새로운 닉네임 API와 전투 연출이 연결됩니다.
 
@@ -178,7 +175,9 @@ npm run check
 npm test
 ```
 
-`check`는 JavaScript/TypeScript 구문과 로컬 import/HTML 자산 경로를 검사합니다. TypeScript 전체 타입 검사나 Supabase 연결 테스트를 대신하지 않습니다. `test`는 엔진 테스트 23개(500회 원정 시뮬레이션 포함), 캐릭터 테스트 15개, DB/라우터 통합 테스트 22개, 오디오 테스트 7개, 요청·연출 복구 테스트 4개, 계정·치장 UI 테스트 4개로 총 75개를 실행합니다.
+`check`는 JavaScript/TypeScript 구문과 로컬 import/HTML 자산 경로를 검사합니다. TypeScript 전체 타입 검사나 Supabase 연결 테스트를 대신하지 않습니다. `test`는 게임/PVE 엔진, DB/라우터, UI, migration 보호와 Pages 패키징 검사를 실행합니다. 현재 테스트 수는 실행 결과를 기준으로 확인하세요.
+
+Production smoke는 실제 익명 계정·방·게임 상태를 생성합니다. 일반 배포와 PR 검증에서는 실행하지 않으며, 필요한 경우 GitHub Actions의 **PVE Production Smoke**를 명시적으로 실행합니다. 방을 나가도 익명 계정이 즉시 삭제되지는 않습니다.
 
 DB 테스트는 테스트 전용 의존성 `@electric-sql/pglite`로 실제 PostgreSQL 엔진에 동봉 SQL을 적용합니다. RLS, 비공개 테이블 접근 차단, 동시 제출, CAS 충돌, 좌석 제한, 비밀번호, 호스트 이전을 확인합니다. Supabase Auth와 Realtime 네트워크 전송만 로컬 대체 구현을 사용합니다. 게임 실행에는 이 의존성이 필요 없습니다.
 

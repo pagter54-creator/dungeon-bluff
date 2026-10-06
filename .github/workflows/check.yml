@@ -37,25 +37,15 @@ jobs:
       - name: Run project checks
         run: npm run check
 
+      - name: Validate GitHub Actions workflows
+        run: docker run --rm -v "$GITHUB_WORKSPACE:/repo" -w /repo rhysd/actionlint:1.7.7 -color
+
       - name: Run PVE beta deployment preflight
         env:
           PVE_BETA_PROJECT_REF: aaaaaaaaaaaaaaaaaaaa
           PVE_BETA_SUPABASE_URL: https://aaaaaaaaaaaaaaaaaaaa.supabase.co
           PVE_BETA_PUBLISHABLE_KEY: sb_publishable_ci_preflight_only
         run: npm run pve:beta:preflight
-
-      - name: Set up Supabase CLI for production read-only preflight
-        if: github.event_name == 'pull_request' && github.head_ref == 'feat/pve-core-001-004'
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
-
-      - name: Verify exact production PVE migration release
-        if: github.event_name == 'pull_request' && github.head_ref == 'feat/pve-core-001-004'
-        env:
-          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-        run: npm run pve:production:preflight
 
       - name: Run PVE stress smoke
         run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:smoke
@@ -183,7 +173,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Verify checked-out tree matches exact PR head
-        run: test "$(git rev-parse HEAD^{tree})" = "$(git rev-parse ${{ github.event.pull_request.head.sha }}^{tree})"
+        env:
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: test "$(git rev-parse 'HEAD^{tree}')" = "$(git rev-parse "${PR_HEAD}^{tree}")"
       - name: Run existing PVE 500-seed command
         run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" npm run pve:stress:full -- --scenario "${{ matrix.scenario }}" --output "artifacts/pve-stress-005c-final/${{ matrix.scenario }}"
       - name: Upload 500-seed reports
@@ -193,60 +185,6 @@ jobs:
           name: pve-stress-005c-final-${{ matrix.scenario }}-${{ github.sha }}
           path: artifacts/pve-stress-005c-final/
           if-no-files-found: error
-
-  production_release_backend:
-    name: PVE production backend release
-    if: github.event_name == 'pull_request' && github.event.action == 'ready_for_review' && github.head_ref == 'feat/pve-core-001-004'
-    needs: test
-    runs-on: ubuntu-latest
-    concurrency:
-      group: pve-production-release
-      cancel-in-progress: false
-    env:
-      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
-      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-    steps:
-      - name: Checkout exact PR head
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Set up Supabase CLI
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
-
-      - name: Verify deployment secrets
-        shell: bash
-        run: |
-          test -n "$SUPABASE_ACCESS_TOKEN" || { echo "Missing SUPABASE_ACCESS_TOKEN"; exit 1; }
-          test -n "$SUPABASE_PROJECT_ID" || { echo "Missing SUPABASE_PROJECT_ID"; exit 1; }
-          test -n "$SUPABASE_DB_URL" || { echo "Missing SUPABASE_DB_URL"; exit 1; }
-
-      - name: Exact production release preflight
-        run: npm run pve:production:preflight
-
-      - name: Apply canonical production migrations
-        run: supabase db push --db-url "$SUPABASE_DB_URL"
-
-      - name: Verify production migrations after push
-        run: npm run pve:production:preflight
-
-      - name: Deploy production game-api
-        run: supabase functions deploy game-api --project-ref "$SUPABASE_PROJECT_ID"
-
-      - name: Competitive production remote smoke
-        run: npm run pve:production:smoke -- --mode competitive
 
   martial_005d_verification:
     name: 005D A targeted runtime verification
@@ -422,4 +360,3 @@ jobs:
           name: pve-stress-005d-final-${{ matrix.scenario }}-${{ github.sha }}
           path: artifacts/pve-stress-005d-final/
           if-no-files-found: error
-

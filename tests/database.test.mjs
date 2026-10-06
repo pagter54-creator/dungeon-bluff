@@ -116,6 +116,7 @@ before(async () => {
   await db.exec(await readFile(new URL('../supabase/migrations/202609270002_pve_hardening_telemetry.sql', import.meta.url), 'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/202609280001_game_modes_pve_beta.sql', import.meta.url), 'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/202609280002_pve_beta_reward_canonical.sql', import.meta.url), 'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/202609280003_pve_abandon_rpc_privileges.sql', import.meta.url), 'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/20261006062205_twins_sun_moon_circus_skin.sql', import.meta.url), 'utf8'));
   await db.exec("update public.pve_runtime_flags set enabled=true,updated_at=now() where flag_key='COOP_PVE_ENABLED'");
   globalThis.__testCreateClient = () => admin;
@@ -514,6 +515,7 @@ test('leaderboard exposes nickname and RP only; client writes and internal RPCs 
   for(const table of ['player_stats','player_inventory','player_loadout','game_results','profiles'])await assert.rejects(db.query(`delete from public.${table}`),/permission denied/);
   for(const fn of ['account_data','account_ensure','account_leaderboard'])await assert.rejects(db.query(`select public.${fn}($1)`,[users[accountOther]]),/permission denied/);
   await assert.rejects(db.query('select public.account_cleanup_guests()'),/permission denied/);
+  await assert.rejects(db.query('select public.pve_abandon_closed_room()'),/permission denied/);
   assert.ok((await db.query('select * from public.player_stats')).rows.every(r=>r.user_id===users[accountOwner]));
  }finally{await db.exec('reset role');}
 });

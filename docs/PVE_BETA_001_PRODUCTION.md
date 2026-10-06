@@ -9,7 +9,7 @@ Production PVE BETA-001 requires exactly:
 3. `202609280001_game_modes_pve_beta.sql`
 4. `202609280002_pve_beta_reward_canonical.sql`
 
-The machine-readable source of truth is `deploy/pve-beta-production-release.json`. Future migrations are not implicitly allowed.
+The initial release manifest is `deploy/pve-beta-production-release.json`. It records these four prerequisites and the post-release privilege migration. General main deployments now use the pending-migration safety guard described in [AUTO_DEPLOYMENT.md](AUTO_DEPLOYMENT.md); subsequent non-destructive migrations are not restricted to this historical four-file manifest.
 
 ## Dependency
 
@@ -38,17 +38,13 @@ When OFF, new COOP_PVE create/start is rejected with `COOP_PVE_TEMPORARILY_DISAB
 
 ## Required sequence
 
-1. Full CI success.
-2. Verify production project identity and schema drift CLEAN.
-3. `npm run pve:production:preflight` reports `READY_TO_APPLY` and exactly the four manifest migrations.
-4. Apply those migrations in timestamp order.
-5. Recheck migration history/schema; keep switch OFF.
-6. Deploy current `game-api`.
-7. Competitive remote smoke.
-8. Merge PR #1 and publish frontend using the existing production path.
-9. Verify PVE disabled UI.
-10. Enable switch.
-11. PVE create/list/join/reconnect/start → `pve_runs` → `MAP_VOTE`; then first combat smoke.
-12. Confirm competitive RP unchanged.
+1. Complete work and required local/PR checks; PR validation never deploys production.
+2. Reflect validated changes in main.
+3. Main GitHub Actions reruns tests/static checks, verifies project identity and dry-run safety, applies pending migrations, then deploys all Edge Functions.
+4. The same run publishes the validated frontend to Pages after backend success.
+5. Keep the existing kill-switch value unchanged by deployment. Initial installation still seeds it OFF.
+6. When needed, explicitly run production competitive smoke. **It creates real anonymous accounts, rooms and game state; it is never an ordinary deployment step.**
+7. For initial PVE enablement only, verify disabled UI/backend, then explicitly manage the switch using the existing operational procedure.
+8. Explicit PVE smoke verifies create/list/join/reconnect/start → `pve_runs` → `MAP_VOTE` and unchanged competitive RP. First combat/browser verification remains separate.
 
-Stop before DB apply for schema drift PARTIAL/CONFLICT, project mismatch, pending-set mismatch, destructive table/data operations, incompatible existing rows, or non-green CI. Do not use migration repair or force only the 28-series migrations.
+Stop before DB apply for migration-history/schema conflicts, project mismatch, destructive or unclassified migration operations, incompatible existing rows, or non-green checks. Do not use migration repair or force only the 28-series migrations. The old exact-four production preflight remains an initial-release diagnostic, not a generic auto-deployment command.

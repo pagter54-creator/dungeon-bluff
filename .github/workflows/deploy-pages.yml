@@ -1,0 +1,90 @@
+name: Deploy Pages
+
+# Called after checks/Supabase. Preserve existing branch-based automatic Pages;
+# publish an artifact only when the repository uses the Actions Pages source.
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  settings:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.source.outputs.mode }}
+    steps:
+      - name: Detect existing Pages source without changing it
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pages=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '[.build_type, .source.branch, .source.path] | @tsv')
+          read -r mode branch path <<< "$pages"
+          if [[ "$mode" == legacy ]]; then
+            [[ "$branch" == main && "$path" == / ]] || { echo "Pages must publish main /"; exit 1; }
+          elif [[ "$mode" != workflow ]]; then
+            echo "Unsupported Pages source; no settings were changed"
+            exit 1
+          fi
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+
+  verify-native:
+    needs: settings
+    if: needs.settings.outputs.mode == 'legacy'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify existing automatic Pages build for this main commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for attempt in $(seq 1 60); do
+            build=$(gh api "repos/$GITHUB_REPOSITORY/pages/builds/latest" --jq '.commit + " " + .status')
+            read -r commit status <<< "$build"
+            if [[ "$commit" == "$GITHUB_SHA" && "$status" == built ]]; then
+              echo "Existing automatic Pages deployment succeeded for $commit"
+              exit 0
+            fi
+            if [[ "$commit" == "$GITHUB_SHA" && "$status" == errored ]]; then
+              echo "Existing automatic Pages build failed"
+              exit 1
+            fi
+            echo "Waiting for automatic Pages build ($attempt/60)"
+            sleep 10
+          done
+          echo "Automatic Pages build did not complete for this commit"
+          exit 1
+
+  deploy:
+    needs: settings
+    if: needs.settings.outputs.mode == 'workflow'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout the validated main commit
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Package public frontend assets only
+        run: node scripts/prepare-pages.mjs --out "$RUNNER_TEMP/dungeon-bluff-pages"
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload frontend
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/dungeon-bluff-pages
+
+      - name: Publish GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

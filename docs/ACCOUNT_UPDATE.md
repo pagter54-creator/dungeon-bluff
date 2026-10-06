@@ -1,5 +1,8 @@
 # 계정·랭킹·상점 업데이트 적용 안내
 
+현재 production 배포는 [main 자동 배포 안내](AUTO_DEPLOYMENT.md)를 따릅니다. 아래 수동 설치·업로드 절차는 초기 설치와 과거 적용 기록이며, 일반 main 배포에서는 DB·Edge Functions·Pages가 Actions로 반영됩니다. 기존 Cron은 매 배포마다 재설치하지 않습니다.
+
+
 플레이 주소: https://pagter54-creator.github.io/dungeon-bluff/
 Supabase 프로젝트: lktjmuhbfnahdghidqfa
 

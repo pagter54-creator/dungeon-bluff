@@ -4,13 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "supabase/**"
-      - "tests/**"
-      - "scripts/check.mjs"
-      - "package.json"
-      - "package-lock.json"
-      - ".github/workflows/deploy-supabase.yml"
   workflow_dispatch:
 
 permissions:
@@ -22,6 +15,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     env:
@@ -48,10 +42,13 @@ jobs:
       - name: Run project checks
         run: npm run check
 
+      - name: Validate GitHub Actions workflows
+        run: docker run --rm -v "$GITHUB_WORKSPACE:/repo" -w /repo rhysd/actionlint:1.7.7 -color
+
       - name: Set up Supabase CLI
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.117.0
 
       - name: Verify deployment secrets
         shell: bash
@@ -63,11 +60,22 @@ jobs:
       # Avoid "supabase link" in CI. Scoped PATs can currently fail at link-time
       # even when the token can deploy functions. Database validation uses the
       # explicit Postgres connection string instead.
-      - name: Dry-run database migrations
-        run: supabase db push --dry-run --db-url "$SUPABASE_DB_URL"
+      - name: Dry-run and reject destructive or opaque pending migrations
+        run: node scripts/check-deploy-migrations.mjs
 
       - name: Apply database migrations
         run: supabase db push --db-url "$SUPABASE_DB_URL"
 
       - name: Deploy Edge Functions
         run: supabase functions deploy --project-ref "$SUPABASE_PROJECT_ID"
+
+      # Production smoke creates real Auth users, rooms and game state.
+      # It is intentionally absent here; run PVE Production Smoke explicitly.
+
+  pages:
+    needs: deploy
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-pages.yml
