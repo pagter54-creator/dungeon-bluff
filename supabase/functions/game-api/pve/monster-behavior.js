@@ -1,3 +1,4 @@
+import {patternRequirement,adaptivePresentation,adaptiveRuleSummary} from './adaptive-pattern.js';
 import {trackPlayerNumber,changeMonsterStack,checkPartyDamage,advanceMonsterPhase,tickMonsterCountdown} from './monster-primitives.js';
 import {choose} from './rng.js';
 import {createF2State,f2Presentation,prepareF2Turn,applyF2CardRules,recordF2DamageBatch,prepareF2Action} from './monster-behavior-f2.js';
@@ -26,12 +27,12 @@ export function monsterPresentation(run){
   if(!monster||!mechanic)return null;
   if(mechanic.type.startsWith('F2_'))return f2Presentation(run);
   if(mechanic.type.startsWith('F3_'))return f3Presentation(run);
-  const publicState={ruleSummary:mechanic.ruleSummary||monster.ruleSummary||'',validCount:state.validCount||0,collisionCount:state.collisionCount||0};
+  const publicState={...adaptivePresentation(run),ruleSummary:adaptiveRuleSummary(run),validCount:state.validCount||0,collisionCount:state.collisionCount||0};
   if(Number.isInteger(state.armor))publicState.armor=state.armor;
   if(Number.isInteger(state.countdown))publicState.countdown=state.countdown;
-  if(Number.isInteger(state.progress)){publicState.progress=state.progress;publicState.threshold=mechanic.minimumDamage;}
+  if(Number.isInteger(state.progress)){publicState.progress=state.progress;publicState.threshold=patternRequirement(run,'minimumDamage');}
   if(Number.isInteger(state.forbiddenNumber))publicState.forbiddenNumber=state.forbiddenNumber;
-  if(Number.isInteger(mechanic.requiredValidCount))publicState.requiredValidCount=mechanic.requiredValidCount;
+  if(Number.isInteger(patternRequirement(run,'requiredValidCount')))publicState.requiredValidCount=patternRequirement(run,'requiredValidCount');
   if(Number.isInteger(state.meter))publicState.meter=state.meter;
   if(Number.isInteger(state.stacks?.swarm))publicState.swarm=state.stacks.swarm;
   if(Number.isInteger(state.stacks?.echo))publicState.echo=state.stacks.echo;
@@ -47,7 +48,7 @@ export function monsterPresentation(run){
   if(publicState.countdown!=null)details.push(`남은 턴 ${publicState.countdown}`);
   if(publicState.progress!=null)details.push(`피해 ${publicState.progress}/${publicState.threshold}`);
   if(publicState.forbiddenNumber!=null)details.push(`금지 숫자 ${publicState.forbiddenNumber}`);
-  if(publicState.phase==='ODD'||publicState.phase==='EVEN')details.push(`${publicState.phase==='ODD'?'홀수':'짝수'}의 종`);
+  if(publicState.phase==='ODD'||publicState.phase==='EVEN')details.push(`${publicState.phase==='ODD'?'홀수':'짝수'}의 종 · ${publicState.phase==='ODD'?'짝수':'홀수'} 공격 -1 (종 패널티만 최소 1)`);
   if(publicState.echoNumbers?.length)details.push(`직전 유효 숫자 ${publicState.echoNumbers.join(', ')}`);
   publicState.statusText=details.join(' · ');
   return publicState;
@@ -72,7 +73,7 @@ export function prepareMonsterTurn(run,intent){
   }
   const extra=monsterPresentation(run)?.statusText;
   intent.telegraphText+=extra?` · ${extra}`:'';
-  intent.telegraphText+=monster.ruleSummary?` · ${monster.ruleSummary}`:'';
+  intent.telegraphText+=` · ${adaptiveRuleSummary(run)}`;
   monster.presentation=monsterPresentation(run);
   return intent;
 }
@@ -89,16 +90,16 @@ export function applyMonsterCardRules(run,cards,events=[]){
   if(mechanic.type==='ARMOR_VALID_HITS'){
     for(const card of valid){if(state.armor>0){card.monsterDamagePenalty=(card.monsterDamagePenalty||0)+1;state.armor--;}}
   }else if(mechanic.type==='HUNT'){
-    state.attackBlocked=valid.length>=mechanic.requiredValidCount;
+    state.attackBlocked=valid.length>=patternRequirement(run,'requiredValidCount');
   }else if(mechanic.type==='COUNTDOWN_STRIKE'||mechanic.type==='PARTY_ORDER'){
-    state.attackBlocked=valid.length>=mechanic.requiredValidCount;
+    state.attackBlocked=valid.length>=patternRequirement(run,'requiredValidCount');
   }else if(mechanic.type==='LAST_HIGHEST_TARGET'){
     const ordered=valid.map(card=>({card,player:playerFor(run,card.playerId)})).sort((a,b)=>b.card.finalNumber-a.card.finalNumber||bySeat(a.player,b.player));
     state.lastHighestPlayerId=ordered[0]?.card.playerId||null;
   }else if(mechanic.type==='COLLISION_STACK'){
     changeMonsterStack(state,'swarm',collisionGroups.size?collisionGroups.size:-1,{maximum:3});
   }else if(mechanic.type==='VALID_GUARD'){
-    state.guardPending=valid.length<mechanic.requiredValidCount;
+    state.guardPending=valid.length<patternRequirement(run,'requiredValidCount');
   }else if(mechanic.type==='FORBIDDEN_NUMBER'){
     for(const card of cards.filter(card=>card.finalNumber===state.forbiddenNumber)){
       card.monsterDamagePenalty=(card.monsterDamagePenalty||0)+mechanic.damagePenalty;
@@ -108,14 +109,16 @@ export function applyMonsterCardRules(run,cards,events=[]){
   }else if(mechanic.type==='ECHO'){
     const previous=new Set(state.lastValidNumbers);
     const repeated=valid.filter(card=>previous.has(card.finalNumber));
-    if(repeated.length)changeMonsterStack(state,'echo',repeated.length,{maximum:3});
+    const before=state.stacks.echo||0;
+    changeMonsterStack(state,'echo',repeated.length?1:-1,{maximum:3});
+    events.push({type:'ECHO_CHANGED',before,after:state.stacks.echo,delta:state.stacks.echo-before,repeatedNumbers:[...new Set(repeated.map(c=>c.finalNumber))].sort((a,b)=>a-b),repeatedPlayerIds:repeated.map(c=>c.playerId)});
     for(const card of valid)trackPlayerNumber(state,card.playerId,card.finalNumber);
     state.lastValidNumbers=[...new Set(valid.map(card=>card.finalNumber))].sort((a,b)=>a-b);
   }else if(mechanic.type==='PARITY_BELL'){
     const parity=state.phase==='ODD'?1:0;
-    for(const card of valid)if(Math.abs(card.finalNumber%2)!==parity)card.monsterDamagePenalty=(card.monsterDamagePenalty||0)+mechanic.damagePenalty;
+    for(const card of valid)if(Math.abs(card.finalNumber%2)!==parity){card.monsterDamagePenalty=(card.monsterDamagePenalty||0)+mechanic.damagePenalty;card.parityBellPenalty=mechanic.damagePenalty;card.parityBellMinimumDamage=1;}
   }else if(mechanic.type==='DOMINION'){
-    state.meter=Math.max(0,Math.min(mechanic.maximum,state.meter+(valid.length>=mechanic.requiredValidCount?-1:1)));
+    state.meter=Math.max(0,Math.min(mechanic.maximum,state.meter+(valid.length>=patternRequirement(run,'requiredValidCount')?-1:1)));
   }
   monster.presentation=monsterPresentation(run);
 }
@@ -128,7 +131,7 @@ export function recordMonsterDamageBatch(run,totalDamage){
   state.progress+=totalDamage;
   const tick=tickMonsterCountdown(state);
   if(tick.ready&&state.resolvedCycle!==state.cycle){
-    state.pendingFailure=!checkPartyDamage(state.progress,{minimum:mechanic.minimumDamage}).passed;
+    state.pendingFailure=!checkPartyDamage(state.progress,{minimum:patternRequirement(run,'minimumDamage')}).passed;
     state.resolvedCycle=state.cycle;
   }
   monster.presentation=monsterPresentation(run);

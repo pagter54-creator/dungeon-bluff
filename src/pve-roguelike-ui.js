@@ -81,7 +81,7 @@ export function pveShopMarkup(run,{reservation=null,selectedCardId=null,playerId
   const room=run.roomState||{},products=[...(room.cardStock||[]),...(room.relicStock||[])];
   if(reservation){
     const item=(room.cardStock||[]).find(x=>x.id===reservation);
-    return '<section class="pve-context-panel card-selector-mode"><div class="eyebrow">CARD REPLACEMENT</div><h3>교체할 내 카드를 선택하세요.</h3><p>구매 카드: <b>'+esc(item?.value)+'</b> · '+esc(item?.price)+'G</p><div class="pve-inline-confirm"><span>'+(selectedCardId?'교체 카드 선택 완료':'아래 내 카드에서 하나를 선택하세요.')+'</span><button class="button primary" data-action="pve-shop-confirm-card" data-product-id="'+esc(reservation)+'" '+(selectedCardId?'':'disabled')+'>구매 + 교체 확정 →</button><button class="button secondary" data-action="pve-shop-cancel-card" data-product-id="'+esc(reservation)+'">취소</button></div></section>';
+    return '<section class="pve-context-panel card-selector-mode"><div class="eyebrow">CARD REPLACEMENT</div><h3>교체할 내 카드를 선택하세요.</h3>'+(run.players?.find(p=>p.playerId===playerId)?.characterId==='prophet'?'<p>예언 전용 슬롯 · 교체 불가</p>':'')+'<p>구매 카드: <b>'+esc(item?.value)+'</b> · '+esc(item?.price)+'G</p><div class="pve-inline-confirm"><span>'+(selectedCardId?'교체 카드 선택 완료':'아래 내 카드에서 하나를 선택하세요.')+'</span><button class="button primary" data-action="pve-shop-confirm-card" data-product-id="'+esc(reservation)+'" '+(selectedCardId?'':'disabled')+'>구매 + 교체 확정 →</button><button class="button secondary" data-action="pve-shop-cancel-card" data-product-id="'+esc(reservation)+'">취소</button></div></section>';
   }
   const cards=products.map(item=>{
     const relic=item.kind==='RELIC'?relicUi(item.relicId):null,sold=item.sold;

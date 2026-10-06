@@ -46,7 +46,10 @@ test('Floor 2 roster and runtime selection are complete and deterministic',()=>{
   const selected=[];
   for(let i=0;i<7;i++){const def=selectF2Monster(run,'NORMAL_COMBAT');selected.push(def.id);run.usedMonsterIds.push(def.id);}
   assert.equal(new Set(selected).size,7);
-  assert.throws(()=>selectF2Monster(run,'NORMAL_COMBAT'));
+  // REBALANCE 002 keeps tier and falls back to the previous floor after seven.
+  const fallback=selectF2Monster(run,'NORMAL_COMBAT');
+  assert.equal(fallback.floor,1);assert.equal(fallback.tier,'NORMAL');
+  assert.equal(run.monsterSelection.monsterSelectionSource,'PREVIOUS_FLOOR_UNSEEN');
 });
 test('F2-N01 prophecy warns one turn ahead and uses final numbers',()=>{
   const run=make('f2_cursed_prophet');publishMonsterIntent(run);
@@ -117,10 +120,11 @@ test('F2-B01 corruption compares each player own last valid final number',()=>{
   assert.equal(run.combat.monster.behaviorState.corruptionByPlayer.p0,0);
   assert.ok(run.combat.monster.behaviorState.pendingHits.includes('p0'));
 });
-for(const [phase,values,expected] of [['MIN',[9,10,11],[false,true,true]],['MAX',[6,7,8],[true,true,false]]])test(`F2-B02 ${phase} exact threshold boundaries`,()=>{
+for(const [phase,values,expected] of [['MIN',[9,10,11],[false,true,true]],['MAX',[7,8,9],[true,true,false]]])test(`F2-B02 ${phase} exact threshold boundaries`,()=>{
   for(let i=0;i<values.length;i++){
     const run=make('f2_moon_eating_witch');run.combat.turn=phase==='MIN'?1:2;publishMonsterIntent(run);
-    recordMonsterDamageBatch(run,values[i]);
+    if(phase==='MAX')applyMonsterCardRules(run,cards([1,2,values[i]-3,0]),[]);
+    recordMonsterDamageBatch(run,phase==='MAX'?99:values[i]);
     assert.equal(run.combat.monster.behaviorState.thresholdPassed,expected[i]);
     const before=run.players.map(p=>p.hp);
     resolveF2AfterDamage(run,[],damage);

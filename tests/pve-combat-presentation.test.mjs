@@ -96,7 +96,7 @@ test('real hunter resolution projects suppression metadata without a second coll
  const ps=Array.from({length:4},(_,i)=>newPlayerRunState({id:'p'+i,user_id:'u'+i,seat_index:i,member_type:'human',character_id:'adventurer'}));
  const run={id:'ux-real',seed:'ux',rngCounter:0,version:1,floor:1,depth:1,currentRoomNodeId:'n',phase:'COMBAT',players:ps,flame:5,maxFlame:5};
  run.combat=newCombatState(ps,90,'NORMAL_COMBAT',F1_MONSTER_DEFINITIONS.f1_coward_hunter);
- run.combat.turn=2;beginTurn(run);
+ run.combat.turn=3;beginTurn(run);
  for(let i=0;i<ps.length;i++)submitCard(run,ps[i].playerId,ps[i].cardPool.find(c=>c.baseNumber===i+1).id,false,{});
  const resolved=resolveBasicTurn(run);
  assert.equal(resolved.monsterPattern.outcome,'BLOCKED');

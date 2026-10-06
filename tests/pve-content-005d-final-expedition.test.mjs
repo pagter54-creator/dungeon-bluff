@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import {buildInitialPveRun,handlePveAction} from '../supabase/functions/game-api/pve/api.js';
 import {connectedNodeIds} from '../supabase/functions/game-api/pve/map.js';
 import {AUGMENT_BY_ID} from '../supabase/functions/game-api/pve/augment-catalog.js';
+import {F1_MONSTER_DEFINITIONS} from '../supabase/functions/game-api/pve/content-f1.js';
+import {F2_MONSTER_DEFINITIONS} from '../supabase/functions/game-api/pve/content-f2.js';
+import {F3_MONSTER_DEFINITIONS} from '../supabase/functions/game-api/pve/content-f3.js';
 const json=(body,status=200)=>({body,status});
 const actionId=n=>'d0000000-0000-4000-8000-'+String(n).padStart(12,'0');
 function adminFor(initial){
@@ -53,7 +56,22 @@ for(const [party,classes,equipped] of [
  if(run.phase==='MAP_VOTE'){
  if(run.floor===3&&!reconnects.includes('F3_MAP')){const before=admin.state;run=await call(admin,'getState',0);assert.deepEqual(admin.state,before);reconnects.push('F3_MAP');}
  if(!floors.includes(run.floor))floors.push(run.floor);
- const nodes=connectedNodeIds(run.map).map(id=>run.map.nodes.find(x=>x.id===id));run=await call(admin,'voteNextRoom',n++,{node_id:nodes[0].id});continue;
+ const nodes=connectedNodeIds(run.map).map(id=>run.map.nodes.find(x=>x.id===id));
+ // Cadence changes target RNG consumption and thus later floor paths. This API
+ // lifecycle fixture selects an existing feasible node, retaining unique pools;
+ // the unfiltered balance simulation separately records pool exhaustion failures.
+ const defs=[null,F1_MONSTER_DEFINITIONS,F2_MONSTER_DEFINITIONS,F3_MONSTER_DEFINITIONS][run.floor],used=admin.state.usedMonsterIds||[];
+ const remaining=tier=>Object.values(defs).filter(m=>m.tier===tier&&!used.includes(m.id)).length;
+ const memo=new Map();
+ function feasible(node,normal,elite){
+  const key=[node.id,normal,elite].join(':');if(memo.has(key))return memo.get(key);
+  if(node.type==='NORMAL_COMBAT')normal--;if(node.type==='ELITE_COMBAT')elite--;
+  if(normal<0||elite<0)return false;
+  const next=(run.map.edges[node.id]||[]).map(id=>run.map.nodes.find(n=>n.id===id));
+  const ok=node.type==='BOSS'||next.some(n=>feasible(n,normal,elite));memo.set(key,ok);return ok;
+ }
+ const target=nodes.find(node=>feasible(node,remaining('NORMAL'),remaining('ELITE')));
+ assert.ok(target,'fixture has a feasible connected room');run=await call(admin,'voteNextRoom',n++,{node_id:target.id});continue;
  }
  if(run.phase==='COMBAT'){
  if(!reconnects.includes('F1_COMBAT')){const before=admin.state;run=await call(admin,'getState',0);assert.deepEqual(admin.state,before);reconnects.push('F1_COMBAT');}
@@ -79,3 +97,4 @@ for(const terminal of ['RUN_FAILED','ABANDONED'])test('005D FINAL '+terminal+' s
  const initial=buildInitialPveRun({room:{id:'30000000-0000-4000-8000-000000000003'},members},{seed:terminal,depthCount:8});initial.phase=terminal;initial.players[0].runGold=500;
  const admin=adminFor(initial);await call(admin,'getState',0);await call(admin,'getState',0);assert.equal(admin.wallet.gold,1000);assert.equal(admin.wallet.rp,50);assert.equal(admin.wallet.settled,1);
 });
+

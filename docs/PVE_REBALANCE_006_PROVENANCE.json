@@ -1,0 +1,40 @@
+{
+  "RuntimeHashes": {
+    "target-bounded/results-0.json": "CANDIDATE_RUNTIME_HASH:2dc6f9f98032d9dd1a7cbac10f70a37b729cb6f0291ec5c0b8cd42d3a2b30764",
+    "target-exp-restored/results-0.json": "CANDIDATE_RUNTIME_HASH:2dc6f9f98032d9dd1a7cbac10f70a37b729cb6f0291ec5c0b8cd42d3a2b30764",
+    "target-id-repair/results-0.json": "CANDIDATE_RUNTIME_HASH:2dc6f9f98032d9dd1a7cbac10f70a37b729cb6f0291ec5c0b8cd42d3a2b30764",
+    "full-final/results-0.json": "CANDIDATE_RUNTIME_HASH:2dc6f9f98032d9dd1a7cbac10f70a37b729cb6f0291ec5c0b8cd42d3a2b30764",
+    "f3-only/results-0.json": "CANDIDATE_RUNTIME_HASH:2dc6f9f98032d9dd1a7cbac10f70a37b729cb6f0291ec5c0b8cd42d3a2b30764"
+  },
+  "SHA256": {
+    "target-bounded/results-0.json": "d56b801c5efca56d01bd41b7e371c2e4b14be09eb9183d2a025e93f116297b04",
+    "target-exp-restored/results-0.json": "4d9b470cf118dad3d50024009d928f47ad9c5795d7a4460f8883cf0501f1daf0",
+    "target-id-repair/results-0.json": "fabfc590f441ac609e88a17970e1ffd5b0e19803fa5e6a6b75e1d465cf759926",
+    "full-final/results-0.json": "743b9143f5953da07efc241380adee1fd2f091d4e9e46d39370989f95b04e522",
+    "f3-only/results-0.json": "1ac9829ce02fe865b1765d37fa31151bd253103df3abd99c40e40fa59c859ef1"
+  },
+  "TargetedReuse": {
+    "originalControlledValid": 1300,
+    "originalExpeditionDiscarded": 1300,
+    "restoredExpeditionValid": 1292,
+    "opaqueIdRepairedSeeds": [
+      "f3-target:f3_null_choir_priest:E:11",
+      "f3-target:f3_null_choir_priest:E:18",
+      "f3-target:f3_null_choir_priest:E:36",
+      "f3-target:f3_null_choir_priest:E:43",
+      "f3-target:f3_null_choir_priest:E:61",
+      "f3-target:f3_null_choir_priest:E:68",
+      "f3-target:f3_null_choir_priest:E:86",
+      "f3-target:f3_null_choir_priest:E:93"
+    ],
+    "opaqueIdRepairedCount": 8
+  },
+  "FullRunsReused": 500,
+  "SequencesReused": 250,
+  "Compatibility": "Final harness changes affect only direct targeted EXPEDITION construction. Full/sequence execute actual room API and controlled uses opaque hashed combat ID already. ID replacement changes scope identity only; seed/rng/build/AI/gameplay unchanged. Room/Gambler restoration is mandatory for all expedition targets; original E results excluded. No claim that old files were physically produced by final script. Reused paths are equivalent and runtime-hash matched.",
+  "OldDiagnosticErrorsNotFinalFailures": {
+    "original": 12,
+    "restored": 8
+  },
+  "FinalExceptions": 0
+}

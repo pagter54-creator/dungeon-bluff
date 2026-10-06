@@ -1,3 +1,4 @@
+import {applyParityBellPenalty} from './parity-bell.js';
 import {prepareFragmentCards,captureFragments,beforeCollision,derivedProphetPackets,consumeFragment,resetProphecyCycle,fragmentRandomEligible} from './prophet-vampire-rework.js';
 import {describeMonsterPattern,describeResolvedSkills} from './presentation.js';
 import {twinsResolve,twinsAfterSpend,twinsCycleComplete,twinsAfterHpDamage} from './twins-runtime.js';
@@ -303,7 +304,8 @@ export function resolveBasicTurn(run){
     const armorPenetration=Math.min(defense,knightArmorPenetration+roguePoisonPenetration+gunnerArmorPenetration+martial.penetration);
     if(knightArmorPenetration)modifierIds.push('AUG_052_ARMOR_PENETRATION');
     if(roguePoisonPenetration)modifierIds.push('ROGUE_POISON_DEFENSE');
-    const ordinaryAmount=Math.max(0,baseDamageForCharacter(player,rc)+engraving+martial.bonus+(Number(rc.vampireBonus)||0)+(Number(rc.ghostBonus)||0)-Math.max(0,martial.defense-armorPenetration)-(rc.monsterDamagePenalty||0));
+    const damageBeforeBell=Math.max(0,baseDamageForCharacter(player,rc)+engraving+martial.bonus+(Number(rc.vampireBonus)||0)+(Number(rc.ghostBonus)||0)-Math.max(0,martial.defense-armorPenetration)-Math.max(0,(rc.monsterDamagePenalty||0)-(rc.parityBellPenalty||0)));
+    const ordinaryAmount=rc.parityBellPenalty?applyParityBellPenalty(damageBeforeBell,rc):damageBeforeBell;
     const resolvedAmount=player.characterId==='gambler'?gamblerSetDamage(run,player,c.privateByPlayer[player.playerId],rc,ordinaryAmount):ordinaryAmount;
     let primary=burstPacket({sourcePlayerId:rc.playerId,sourceCardId:rc.cardInstanceId,numberUsed:rc.finalNumber,amount:resolvedAmount,armorPenetration,tags:[...(rc.allIn?['ALL_IN','SET_DAMAGE']:['BASE_CARD'])],followUp:false},
       {resolved:rc,player,baseNumber:rc.finalNumber,baseDamage:rc.finalNumber,classBonus,augmentBonus,modifierIds});
@@ -466,4 +468,3 @@ export function resolveBasicTurn(run){
   c.turn+=1;beginTurn(run);
   return c.publicTurnResult;
 }
-

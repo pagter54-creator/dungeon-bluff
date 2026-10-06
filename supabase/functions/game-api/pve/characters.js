@@ -379,7 +379,11 @@ export function applyPostPlayerAttackCharacter(run,resolved,events=[]){
   if(!resolved?.valid)return 0;
   const player=run.players.find(p=>p.playerId===resolved.playerId);
   if(player?.characterId!=='berserker'||player.status==='DOWNED')return 0;
-  const before=player.hp,after=Math.max(1,before-1),cost=Math.max(0,before-after);
+  if(resolved.berserkerAttackCostApplied)return 0;
+  // CARD_VALIDATED is the canonical cost snapshot, shared with damage bonuses.
+  const before=player.hp,expected=Number.isFinite(resolved.berserkerExpectedHpCost)?resolved.berserkerExpectedHpCost:Math.max(0,Math.min(1,before-1));
+  const after=Math.max(1,before-expected),cost=Math.max(0,before-after);
+  resolved.berserkerAttackCostApplied=true;
   player.hp=after;resolved.berserkerAttackHpCost=cost;
   if(player.augments.includes('aug-121')&&Number(resolved.bloodFrenzyExpectedHpCost)!==cost){
     const error=new Error('피의 광전 피해 보너스와 실제 HP 비용이 불일치합니다.');error.code='BLOOD_FRENZY_COST_MISMATCH';throw error;
@@ -452,4 +456,3 @@ export function grantRunGold(player,amount){
   player.runGold+=total;
   return total;
 }
-

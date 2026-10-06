@@ -1,0 +1,343 @@
+{
+  "sourceHEAD": "c0b3fc93f45cced5b1538349ab341dbf2f01bb42",
+  "baselineTests": 2499,
+  "finalTests": 2514,
+  "iron": [
+    {
+      "Samples": 500,
+      "ClearRate": 0.982,
+      "WipeRate": 0.016,
+      "AvgTurns": 23.226,
+      "AvgPartyDamage": 163.896,
+      "AvgDamageToParty": 5.262,
+      "AvgDowns": 1.574,
+      "AvgFlameSpent": 1.376,
+      "DamageTakenPer10Turns": 2.265564453629553,
+      "DownsPer10Turns": 0.6776887970378025,
+      "AvgPatternDamage": 0.0,
+      "AvgBaseActionDamage": 5.262,
+      "Exceptions": 0,
+      "TurnCaps": 1,
+      "Version": "BEFORE",
+      "WrongParityCards": 11088,
+      "WrongParityZeroDamageBefore": 1011,
+      "WrongParityMinimumDamageAppliedAfter": 0
+    },
+    {
+      "Samples": 500,
+      "ClearRate": 0.982,
+      "WipeRate": 0.016,
+      "AvgTurns": 22.9,
+      "AvgPartyDamage": 164.07,
+      "AvgDamageToParty": 5.182,
+      "AvgDowns": 1.528,
+      "AvgFlameSpent": 1.344,
+      "DamageTakenPer10Turns": 2.262882096069869,
+      "DownsPer10Turns": 0.6672489082969433,
+      "AvgPatternDamage": 0.0,
+      "AvgBaseActionDamage": 5.182,
+      "Exceptions": 0,
+      "TurnCaps": 1,
+      "Version": "AFTER",
+      "WrongParityCards": 10953,
+      "WrongParityZeroDamageBefore": 0,
+      "WrongParityMinimumDamageAppliedAfter": 1175
+    }
+  ],
+  "normals": [
+    {
+      "Monster": "f1_armored_boar",
+      "Samples": 500,
+      "ClearRate": 0.994,
+      "WipeRate": 0.004,
+      "AvgTurns": 14.056
+    },
+    {
+      "Monster": "f1_chain_jailer",
+      "Samples": 500,
+      "ClearRate": 0.994,
+      "WipeRate": 0.004,
+      "AvgTurns": 13.08
+    },
+    {
+      "Monster": "f1_coward_hunter",
+      "Samples": 500,
+      "ClearRate": 1,
+      "WipeRate": 0,
+      "AvgTurns": 12.334
+    },
+    {
+      "Monster": "f1_gate_guard_dog",
+      "Samples": 500,
+      "ClearRate": 0.992,
+      "WipeRate": 0.006,
+      "AvgTurns": 12.286
+    },
+    {
+      "Monster": "f1_graveyard_sentinel",
+      "Samples": 500,
+      "ClearRate": 0.992,
+      "WipeRate": 0.006,
+      "AvgTurns": 15.23
+    },
+    {
+      "Monster": "f1_rusty_ballista",
+      "Samples": 500,
+      "ClearRate": 0.952,
+      "WipeRate": 0.048,
+      "AvgTurns": 11.862
+    },
+    {
+      "Monster": "f1_sewer_rat_swarm",
+      "Samples": 500,
+      "ClearRate": 0.854,
+      "WipeRate": 0.146,
+      "AvgTurns": 11.436
+    }
+  ],
+  "overNerfCandidate": false,
+  "bosses": [
+    {
+      "Samples": 125,
+      "ClearRate": 0.2,
+      "WipeRate": 0.8,
+      "AvgTurns": 27.032,
+      "AvgPartyDamage": 221.232,
+      "AvgDamageToParty": 15.408,
+      "AvgDowns": 7.392,
+      "AvgFlameSpent": 3.936,
+      "DamageTakenPer10Turns": 5.6999112163361945,
+      "DownsPer10Turns": 2.7345368452204792,
+      "AvgPatternDamage": 1.04,
+      "AvgBaseActionDamage": 14.368,
+      "Exceptions": 0,
+      "TurnCaps": 0,
+      "Boss": "f2_rottenheart_ancient",
+      "Cohort": "CONTROLLED_FRESH",
+      "RepeatCount": 881,
+      "ForcedRepeatCount": 112,
+      "ForcedHandOpportunities": 350,
+      "EligiblePlayerTurns": 10822,
+      "ForcedRepeatRate": 0.1271282633371169,
+      "AvoidableRepeatRate": 0.8728717366628831,
+      "CorruptionProcs": 155,
+      "CorruptionProcRate": 0.045871559633027525,
+      "PatternDamageShare": 0.06749740394600208,
+      "NoLegalSolutionRate": 0.03234152652005175,
+      "LegalSolutionMissRate": 0.07105895398262797,
+      "Classification": "HP_ATTRITION / MIXED",
+      "ForcedScope": "Printed selectable physical cards; no skill counterfactual. Forced is not a claim all skills are impossible.",
+      "FailureCauses": {
+        "BASE_ACTION_DAMAGE": 96,
+        "CLEAR": 25,
+        "MIXED": 4
+      }
+    },
+    {
+      "Samples": 125,
+      "ClearRate": 0.728,
+      "WipeRate": 0.272,
+      "AvgTurns": 22.64,
+      "AvgPartyDamage": 278.336,
+      "AvgDamageToParty": 9.832,
+      "AvgDowns": 2.536,
+      "AvgFlameSpent": 0.888,
+      "DamageTakenPer10Turns": 4.342756183745583,
+      "DownsPer10Turns": 1.1201413427561837,
+      "AvgPatternDamage": 0.624,
+      "AvgBaseActionDamage": 9.208,
+      "Exceptions": 0,
+      "TurnCaps": 0,
+      "Boss": "f2_rottenheart_ancient",
+      "Cohort": "EXPEDITION_LIKE",
+      "RepeatCount": 689,
+      "ForcedRepeatCount": 106,
+      "ForcedHandOpportunities": 296,
+      "EligiblePlayerTurns": 9327,
+      "ForcedRepeatRate": 0.15384615384615385,
+      "AvoidableRepeatRate": 0.8461538461538461,
+      "CorruptionProcs": 93,
+      "CorruptionProcRate": 0.03286219081272085,
+      "PatternDamageShare": 0.06346623270951994,
+      "NoLegalSolutionRate": 0.03173582073549909,
+      "LegalSolutionMissRate": 0.06250670097566205,
+      "Classification": "HP_ATTRITION / MIXED",
+      "ForcedScope": "Printed selectable physical cards; no skill counterfactual. Forced is not a claim all skills are impossible.",
+      "FailureCauses": {
+        "CLEAR": 91,
+        "BASE_ACTION_DAMAGE": 33,
+        "MIXED": 1
+      }
+    },
+    {
+      "Samples": 125,
+      "ClearRate": 0.016,
+      "WipeRate": 0.984,
+      "AvgTurns": 17.816,
+      "AvgPartyDamage": 146.768,
+      "AvgDamageToParty": 16.608,
+      "AvgDowns": 7.984,
+      "AvgFlameSpent": 4,
+      "DamageTakenPer10Turns": 9.321957790749888,
+      "DownsPer10Turns": 4.481365065110014,
+      "AvgPatternDamage": 7.456,
+      "AvgBaseActionDamage": 9.152,
+      "Exceptions": 0,
+      "TurnCaps": 0,
+      "Boss": "f2_moon_eating_witch",
+      "Cohort": "CONTROLLED_FRESH",
+      "MinSuccess": 0.48829141370338247,
+      "MaxSuccess": 0.49441340782122906,
+      "MinTurns": 1153,
+      "MaxTurns": 1074,
+      "ImpossibleHandRate": 0.1037269869779973,
+      "NoLegalSolutionRate": 0.20123565754633715,
+      "LegalSolutionMissRate": 0.7987643424536628,
+      "MissPerAllTurns": 0.40637629097440503,
+      "CollisionFailureRate": 0.6981465136804943,
+      "PatternFailTurns": 1133,
+      "PatternFailedMinDamage": 487,
+      "PatternFailedMaxDamage": 445,
+      "ImpossiblePlayerCount": 0,
+      "Classification": "AI_POLICY_ARTIFACT / HAND_STATE_PRESSURE / HP_ATTRITION / MIXED",
+      "OracleScope": "Current public physical cards + validated submission skills; immediate activation/draw-choice alternatives are outside search; no future RNG/hand information.",
+      "Contributors": {
+        "1": {
+          "Turns": 299,
+          "SuccessRate": 0.8260869565217391,
+          "MIN": 0.7352941176470589,
+          "MAX": 0.9457364341085271
+        },
+        "2": {
+          "Turns": 163,
+          "SuccessRate": 0.5828220858895705,
+          "MIN": 0.7088607594936709,
+          "MAX": 0.4642857142857143
+        },
+        "3": {
+          "Turns": 148,
+          "SuccessRate": 0.42567567567567566,
+          "MIN": 0.4675324675324675,
+          "MAX": 0.38028169014084506
+        },
+        "4": {
+          "Turns": 1617,
+          "SuccessRate": 0.4260977118119975,
+          "MIN": 0.4183796856106409,
+          "MAX": 0.4341772151898734
+        }
+      },
+      "FailureCauses": {
+        "MIXED": 99,
+        "PATTERN_DAMAGE": 24,
+        "CLEAR": 2
+      }
+    },
+    {
+      "Samples": 125,
+      "ClearRate": 0.168,
+      "WipeRate": 0.832,
+      "AvgTurns": 18.736,
+      "AvgPartyDamage": 212.648,
+      "AvgDamageToParty": 13.88,
+      "AvgDowns": 4.888,
+      "AvgFlameSpent": 1.32,
+      "DamageTakenPer10Turns": 7.408198121263877,
+      "DownsPer10Turns": 2.608881298035867,
+      "AvgPatternDamage": 6.072,
+      "AvgBaseActionDamage": 7.808,
+      "Exceptions": 0,
+      "TurnCaps": 0,
+      "Boss": "f2_moon_eating_witch",
+      "Cohort": "EXPEDITION_LIKE",
+      "MinSuccess": 0.7193708609271523,
+      "MaxSuccess": 0.3527336860670194,
+      "MinTurns": 1208,
+      "MaxTurns": 1134,
+      "ImpossibleHandRate": 0.07386848847139198,
+      "NoLegalSolutionRate": 0.157502329916123,
+      "LegalSolutionMissRate": 0.842497670083877,
+      "MissPerAllTurns": 0.3859948761742101,
+      "CollisionFailureRate": 0.5023299161230196,
+      "PatternFailTurns": 1073,
+      "PatternFailedMinDamage": 232,
+      "PatternFailedMaxDamage": 527,
+      "ImpossiblePlayerCount": 0,
+      "Classification": "AI_POLICY_ARTIFACT / HAND_STATE_PRESSURE / HP_ATTRITION / MIXED",
+      "OracleScope": "Current public physical cards + validated submission skills; immediate activation/draw-choice alternatives are outside search; no future RNG/hand information.",
+      "Contributors": {
+        "1": {
+          "Turns": 417,
+          "SuccessRate": 0.8657074340527577,
+          "MIN": 0.8369098712446352,
+          "MAX": 0.9021739130434783
+        },
+        "2": {
+          "Turns": 347,
+          "SuccessRate": 0.6512968299711815,
+          "MIN": 0.8953488372093024,
+          "MAX": 0.4114285714285714
+        },
+        "3": {
+          "Turns": 326,
+          "SuccessRate": 0.5030674846625767,
+          "MIN": 0.7452229299363057,
+          "MAX": 0.2781065088757396
+        },
+        "4": {
+          "Turns": 1252,
+          "SuccessRate": 0.41373801916932906,
+          "MIN": 0.6238390092879257,
+          "MAX": 0.18976897689768976
+        }
+      },
+      "FailureCauses": {
+        "MIXED": 94,
+        "CLEAR": 21,
+        "PATTERN_DAMAGE": 10
+      }
+    }
+  ],
+  "funnelBefore": {
+    "Runs": 250,
+    "F1Early": 165,
+    "F1Clear": 70,
+    "F2Enter": 70,
+    "F2BossReach": 24,
+    "F2Clear": 9,
+    "F3Enter": 9,
+    "RUN_CLEAR": 3,
+    "Exceptions": 0,
+    "TurnCaps": 0,
+    "PoolExhaustion": 0
+  },
+  "funnelAfter": {
+    "Runs": 250,
+    "F1Early": 165,
+    "F1Clear": 70,
+    "F2Enter": 70,
+    "F2BossReach": 24,
+    "F2Clear": 9,
+    "F3Enter": 9,
+    "RUN_CLEAR": 3,
+    "Exceptions": 0,
+    "TurnCaps": 0,
+    "PoolExhaustion": 0
+  },
+  "bossEntrySnapshots": 47,
+  "flags": {
+    "IRON_BELL_IDENTITY_PRESERVED": true,
+    "IRON_BELL_PARITY_ROTATION_UNCHANGED": true,
+    "IRON_BELL_WRONG_PARITY_MINUS_ONE": true,
+    "IRON_BELL_PENALTY_ALONE_CANNOT_ZERO_DAMAGE": true,
+    "OTHER_MONSTERS_UNCHANGED": true,
+    "ROTTENHEART_AUDIT_RUNS": 250,
+    "MOON_WITCH_AUDIT_RUNS": 250,
+    "F2_BOSS_VALUES_CHANGED": false,
+    "FULL_EXPEDITION_SMOKE_RUNS": 250,
+    "FULL_TEST_SUITE_PASS": true,
+    "SUPABASE_CALLS": 0,
+    "PRODUCTION_MUTATION": 0,
+    "READY_FOR_PRODUCTION": false
+  }
+}

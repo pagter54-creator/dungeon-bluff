@@ -1,3 +1,4 @@
+import {selectFloorMonster} from './monster-selection.js';
 import {choose} from './rng.js';
 
 export const F1_MONSTER_DEFINITIONS=Object.freeze({
@@ -59,7 +60,7 @@ export const F1_MONSTER_DEFINITIONS=Object.freeze({
   },
   f1_echo_bat:{
     id:'f1_echo_bat',name:'메아리 박쥐',floor:1,tier:'ELITE',baseHp:160,tags:['F1','ELITE','ECHO'],
-    mechanic:{type:'ECHO',threshold:2},ruleSummary:'직전 턴의 유효 숫자를 반복하면 메아리 +1 · 2 이상이면 광역 공격 강화',
+    mechanic:{type:'ECHO',threshold:2},ruleSummary:'직전 유효 숫자 반복 시 턴당 메아리 +1 · 반복 없으면 -1(최소 0) · 2 이상이면 광역 공격 강화',
     pattern:[
       {type:'CHARGE',telegraphText:'동굴을 울리는 초음파를 모은다',payload:{}},
       {type:'DIRECT_DAMAGE',telegraphText:'메아리를 따라 한 명에게 급강하한다',payload:{target:'RANDOM_LIVING',amount:1}},
@@ -79,7 +80,7 @@ export const F1_MONSTER_DEFINITIONS=Object.freeze({
   },
   f1_iron_bell_keeper:{
     id:'f1_iron_bell_keeper',name:'철종지기',floor:1,tier:'ELITE',baseHp:160,tags:['F1','ELITE','PARITY'],
-    mechanic:{type:'PARITY_BELL',damagePenalty:1},ruleSummary:'매 턴 홀수/짝수 종 교대 · 종과 다른 유효 숫자의 피해 -1',
+    mechanic:{type:'PARITY_BELL',damagePenalty:1},ruleSummary:'매 턴 홀수/짝수 종 교대 · 종과 다른 유효 숫자의 피해 -1 · 종 패널티만으로 피해 0 방지',
     pattern:[
       {type:'CHARGE',telegraphText:'철종이 울린다',payload:{}},
       {type:'DIRECT_DAMAGE',telegraphText:'종지기가 한 명을 공격한다',payload:{target:'RANDOM_LIVING',amount:1}}
@@ -109,6 +110,15 @@ export const F1_MONSTER_DEFINITIONS=Object.freeze({
     pattern:[{type:'CHARGE',telegraphText:'성문 파쇄를 준비한다',payload:{}}]
   }
 });
+// Base content values are preserved; runtime declares its two independent layers.
+for(const monster of Object.values(F1_MONSTER_DEFINITIONS))monster.actionCadenceDelay=1;
+F1_MONSTER_DEFINITIONS.f1_coward_hunter.mechanic.adaptiveRequirement={type:'PLAYER_COUNT_REQUIREMENT',field:'requiredValidCount',baseContributors:4,table:{1:1,2:2,3:3,4:3}};
+F1_MONSTER_DEFINITIONS.f1_rusty_ballista.mechanic.adaptiveRequirement={type:'PLAYER_COUNT_REQUIREMENT',field:'requiredValidCount',baseContributors:4,table:{1:1,2:2,3:3,4:3}};
+F1_MONSTER_DEFINITIONS.f1_siege_captain.mechanic.adaptiveRequirement={type:'PLAYER_COUNT_REQUIREMENT',field:'requiredValidCount',baseContributors:4,table:{1:1,2:2,3:3,4:3}};
+F1_MONSTER_DEFINITIONS.f1_graveyard_sentinel.mechanic.adaptiveRequirement={type:'PLAYER_COUNT_REQUIREMENT',field:'requiredValidCount',baseContributors:4,table:{1:1,2:2,3:3,4:3}};
+F1_MONSTER_DEFINITIONS.f1_fallen_lord.mechanic.adaptiveRequirement={type:'PLAYER_COUNT_REQUIREMENT',field:'requiredValidCount',baseContributors:4,table:{1:1,2:2,3:3,4:3}};
+F1_MONSTER_DEFINITIONS.f1_gatebreaker_colossus.mechanic.adaptiveRequirement={type:'PARTY_SUM_OR_DAMAGE_REQUIREMENT',field:'minimumDamage',baseContributors:4};
+
 
 export const F1_EVENT_DEFINITIONS=Object.freeze([
   {
@@ -189,17 +199,8 @@ export const F1_MAP_LAYOUT=Object.freeze([
 
 export function f1MonsterById(id){return F1_MONSTER_DEFINITIONS[id]||null;}
 export function selectF1Monster(run,roomType){
-  if(roomType==='BOSS')return F1_MONSTER_DEFINITIONS[run.chosenBossIds?.[1]]||F1_MONSTER_DEFINITIONS.f1_fallen_lord;
-  if(roomType==='ELITE_COMBAT'){
-    const pool=Object.values(F1_MONSTER_DEFINITIONS).filter(x=>x.tier==='ELITE');
-    const unseen=pool.filter(x=>!(run.usedMonsterIds||[]).includes(x.id));
-    return choose(run,unseen.length?unseen:pool,`f1-elite:${run.floor}:${run.depth}:${run.currentRoomNodeId||'unknown'}`);
-  }
-  if(roomType!=='NORMAL_COMBAT')throw new Error('전투방 타입이 아닙니다.');
-  const pool=Object.values(F1_MONSTER_DEFINITIONS).filter(x=>x.tier==='NORMAL');
-  const unseen=pool.filter(x=>!(run.usedMonsterIds||[]).includes(x.id));
-  const source=unseen.length?unseen:pool;
-  return choose(run,source,`f1-monster:${run.floor}:${run.depth}:${run.currentRoomNodeId||'unknown'}`);
+ const key=roomType==='ELITE_COMBAT'?'f1-elite':'f1-monster';
+ return selectFloorMonster(run,1,roomType,key+':'+run.floor+':'+run.depth+':'+(run.currentRoomNodeId||'unknown'));
 }
 export function markF1MonsterUsed(run,monster){
   run.usedMonsterIds||=[];

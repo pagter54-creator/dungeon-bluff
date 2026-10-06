@@ -21,7 +21,8 @@ function turn(run,nums,{flags,skills=[],damage=10}={}){
 function hits(run){const applied=[];resolveF3AfterDamage(run,[],(_run,p,amount,type)=>{applied.push({id:p?.playerId,amount,type});return [];});return applied;}
 test('Floor 3 roster has 7 Normal, 3 Elite, 2 Boss at canonical HP',()=>{
  const defs=Object.values(F3_MONSTER_DEFINITIONS);assert.equal(defs.length,12);
- for(const [tier,n,hp] of [['NORMAL',7,160],['ELITE',3,280],['BOSS',2,420]]){const group=defs.filter(d=>d.tier===tier);assert.equal(group.length,n);for(const d of group){assert.equal(d.baseHp,hp);assert.ok(d.ruleSummary&&d.pattern.length);}}
+ // REBALANCE 002 canonical F3 curve; roster and pattern assertions retained.
+ for(const [tier,n,hp] of [['NORMAL',7,145],['ELITE',3,230],['BOSS',2,340]]){const group=defs.filter(d=>d.tier===tier);assert.equal(group.length,n);for(const d of group){assert.equal(d.baseHp,hp);assert.ok(d.ruleSummary&&d.pattern.length);}}
  const run=setup('f3_greed_mimic');run.usedMonsterIds=[];const one=selectF3Monster(run,'NORMAL_COMBAT');run.usedMonsterIds.push(one.id);assert.notEqual(selectF3Monster(run,'NORMAL_COMBAT').id,one.id);
 });
 test('seven Normal mechanics honor public final numbers and skill intent',()=>{
@@ -52,7 +53,7 @@ test('Masked Queen publishes one mask, rotates, and accelerates below half HP',(
  for(let n=1;n<=7;n++){r.combat.turn=n;prepareF3Turn(r,{type:'CHARGE',telegraphText:'예고',payload:{}});seen.push(s.mask);}
  assert.deepEqual(seen,['SILENCE','SILENCE','GREED','GREED','HUMILITY','HUMILITY','DISCORD']);
  r.combat.turnSubmissions={p0:{playerId:'p0',skillIntent:true}};applyF3CardRules(r,cards([1,1,3,4],[false,false,true,true]),[]);assert.equal(r.combat.monster.defense,1);assert.equal(s.pendingHits.length,0);
- r.combat.monster.hp=200;r.combat.turn=8;prepareF3Turn(r,{type:'CHARGE',telegraphText:'예고',payload:{}});assert.equal(s.mask,'SILENCE');assert.equal(s.untilChange,1);
+ r.combat.monster.hp=169;r.combat.turn=8;prepareF3Turn(r,{type:'CHARGE',telegraphText:'예고',payload:{}});assert.equal(s.mask,'SILENCE');assert.equal(s.untilChange,1);
  r.combat.turn=9;prepareF3Turn(r,{type:'CHARGE',telegraphText:'예고',payload:{}});assert.equal(s.mask,'GREED');assert.equal(structuredClone(r).combat.monster.behaviorState.mask,'GREED');
 });
 test('final Boss victory clears combat, while simultaneous full wipe fails',()=>{
