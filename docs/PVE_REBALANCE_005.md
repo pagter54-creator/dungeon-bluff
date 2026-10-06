@@ -66,7 +66,7 @@ Conditional bosses: [{"Arm": "CONTROL", "Boss": "f2_moon_eating_witch", "BossRea
 
 ## Recommendation
 
-Review MOON_ONLY and BOTH as diagnostic candidates: expedition-like clears12.8% ->24.0% /28.8%; AI_ONLY9.6% remains below CONTROL. BOTH has longer battles; full RUN_CLEAR stays4/250. No automatic production adoption or retuning.. Final preserved-skill AI results supersede preliminary suppressed-skill diagnostics. Review full-run funnel and correlated targeted cohort together; no strong superiority or production readiness claim.
+C — BOTH is the strongest diagnostic candidate for further review (28.8% expedition-like clear vs12.8% CONTROL); still VERY_HARD, longer encounters and no full RUN_CLEAR improvement. Do not deploy automatically. Final preserved-skill AI results supersede preliminary suppressed-skill diagnostics. Review full-run funnel and correlated targeted cohort together; no strong superiority or production readiness claim.
 
 ## Verification / limitations
 
@@ -75,8 +75,13 @@ Baseline full suite2514/2514. Candidate full suite2910/2910; DB dependency conne
 All36 monster content definitions, HP/mechanics/pattern/cadence are byte-identical to PR36; changed F2 behavior branches only Moon MAX/presentation. Rottenheart and35other definitions untouched. Class changes are the explicitly requested core integration. No browser or Supabase calls.
 
 Report: https://docs.google.com/spreadsheets/d/1XfdZxEvaTOBqTqG1Kblm-HpyQMk-zbgWgkUVevNMoFA/edit
-Seven REWORK_005 report tables prepared for Sheets; publication verification is recorded in PR/Sheets. Raw19740 pattern turns and1500 final run rows. No hidden-info access, simulation network attempts0. The class core currently permits a Fragment availability path even if physical zero was shop-replaced; this diagnostic avoids it and records it as a separate class availability audit item rather than inventing new gameplay.
+Seven REWORK_005 tabs uploaded and bounded readback passed; previous46tabs preserved. Raw19740 pattern turns and1500 final run rows. No hidden-info access, simulation network attempts0. The class core currently permits a Fragment availability path even if physical zero was shop-replaced; this diagnostic avoids it and records it as a separate class availability audit item rather than inventing new gameplay.
 
-Reproduce offline: `node scripts/pve-rebalance-005-prepare.mjs <checkout> <outside-output>`; `PVE_ARM=CONTROL|AI_ONLY|MOON_ONLY|BOTH`. For old-rule arms replace isolated copy's monster-behavior-f2/adaptive-pattern from exact PR36, keeping new classes. Target `PVE_BOSS_SNAPSHOTS=<PR35 harvest> node simulate.mjs1251boss-only` (separate arguments:125,1,boss-only); full `PVE_EXPEDITION_COUNT=250 node simulate.mjs 0 1 full-only`. Optional PVE_TARGET_INDICES replays exact deterministic indices without altering generated cohort. Instrumentation changes only isolated copies. The runtime hash is b4b869f26ed0d816ec7d193a88d5169293e8dd5ed7b0e1651f2702bd382bbbcd.
+Reproduce offline: `node scripts/pve-rebalance-005-prepare.mjs <checkout> <outside-output>`; `PVE_ARM=CONTROL|AI_ONLY|MOON_ONLY|BOTH`. For old-rule arms replace isolated copy's monster-behavior-f2/adaptive-pattern from exact PR36, keeping new classes. Target `PVE_BOSS_SNAPSHOTS=<PR35 harvest> node simulate.mjs1251boss-only` (separate arguments:125,1,boss-only); full `PVE_EXPEDITION_COUNT=250 node simulate.mjs 0 1 full-only`. Optional PVE_TARGET_INDICES replays exact deterministic indices without altering generated cohort. Instrumentation changes only isolated copies. The runtime hash is 6d1a6a90749d3dbcc81a80b62de4a545f82e6b6b3bb1415ad685fd7497f81a61.
 
 Final exact candidate commit and CI status are recorded in PR/Sheets after commit creation.
+
+## Publication evidence
+
+Draft PR37: https://github.com/pagter54-creator/dungeon-bluff/pull/37
+Measured candidate commit: `fa6f6d3665567398c20732409e953d15d0b95c91`. Documentation closeout adds no runtime changes.

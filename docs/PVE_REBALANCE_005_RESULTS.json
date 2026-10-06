@@ -26,7 +26,8 @@
       "ClassifiedFailedTurns": 1127,
       "FailedPredicateTurnsWithoutKill": 1142,
       "Exceptions": 0,
-      "TurnCaps": 0
+      "TurnCaps": 0,
+      "GrowthPunishmentFlag": false
     },
     {
       "Arm": "CONTROL",
@@ -51,7 +52,8 @@
       "ClassifiedFailedTurns": 1000,
       "FailedPredicateTurnsWithoutKill": 1014,
       "Exceptions": 0,
-      "TurnCaps": 0
+      "TurnCaps": 0,
+      "GrowthPunishmentFlag": false
     },
     {
       "Arm": "AI_ONLY",
@@ -76,7 +78,8 @@
       "ClassifiedFailedTurns": 944,
       "FailedPredicateTurnsWithoutKill": 965,
       "Exceptions": 0,
-      "TurnCaps": 0
+      "TurnCaps": 0,
+      "GrowthPunishmentFlag": false
     },
     {
       "Arm": "AI_ONLY",
@@ -101,7 +104,8 @@
       "ClassifiedFailedTurns": 813,
       "FailedPredicateTurnsWithoutKill": 833,
       "Exceptions": 0,
-      "TurnCaps": 0
+      "TurnCaps": 0,
+      "GrowthPunishmentFlag": false
     },
     {
       "Arm": "MOON_ONLY",
@@ -126,7 +130,8 @@
       "ClassifiedFailedTurns": 1016,
       "FailedPredicateTurnsWithoutKill": 1034,
       "Exceptions": 0,
-      "TurnCaps": 0
+      "TurnCaps": 0,
+      "GrowthPunishmentFlag": true
     },
     {
       "Arm": "MOON_ONLY",
@@ -151,7 +156,8 @@
       "ClassifiedFailedTurns": 846,
       "FailedPredicateTurnsWithoutKill": 854,
       "Exceptions": 0,
-      "TurnCaps": 0
+      "TurnCaps": 0,
+      "GrowthPunishmentFlag": true
     },
     {
       "Arm": "BOTH",
@@ -176,7 +182,8 @@
       "ClassifiedFailedTurns": 832,
       "FailedPredicateTurnsWithoutKill": 851,
       "Exceptions": 0,
-      "TurnCaps": 0
+      "TurnCaps": 0,
+      "GrowthPunishmentFlag": true
     },
     {
       "Arm": "BOTH",
@@ -201,7 +208,8 @@
       "ClassifiedFailedTurns": 542,
       "FailedPredicateTurnsWithoutKill": 555,
       "Exceptions": 0,
-      "TurnCaps": 0
+      "TurnCaps": 0,
+      "GrowthPunishmentFlag": true
     }
   ],
   "phaseMetrics": [
@@ -454,12 +462,15 @@
       "ChoiceChanged": 0,
       "ChoiceHelped": "NOT_CAUSALLY_EVALUATED",
       "ChoiceHurt": "NOT_CAUSALLY_EVALUATED",
-      "ChosenCardRankForPattern": 0,
+      "ChosenCardRankForPattern": "NOT_APPLICABLE",
       "LegalSolutionExistsOnFailedTurns": 903,
       "LegalSolutionMissRate": 0.8012422360248447,
       "NoLegalSolutionRate": 0.19875776397515527,
       "OracleUnknownFailedTurns": 15,
-      "HiddenInfoAccessViolations": 0
+      "HiddenInfoAccessViolations": 0,
+      "MINDecisionQualityMeanRank": "NOT_APPLICABLE",
+      "MAXDecisionQualityMeanRank": "NOT_APPLICABLE",
+      "PreservedUnknownVampireSwap": 0
     },
     {
       "Arm": "CONTROL",
@@ -468,12 +479,15 @@
       "ChoiceChanged": 0,
       "ChoiceHelped": "NOT_CAUSALLY_EVALUATED",
       "ChoiceHurt": "NOT_CAUSALLY_EVALUATED",
-      "ChosenCardRankForPattern": 0,
+      "ChosenCardRankForPattern": "NOT_APPLICABLE",
       "LegalSolutionExistsOnFailedTurns": 827,
       "LegalSolutionMissRate": 0.827,
       "NoLegalSolutionRate": 0.173,
       "OracleUnknownFailedTurns": 14,
-      "HiddenInfoAccessViolations": 0
+      "HiddenInfoAccessViolations": 0,
+      "MINDecisionQualityMeanRank": "NOT_APPLICABLE",
+      "MAXDecisionQualityMeanRank": "NOT_APPLICABLE",
+      "PreservedUnknownVampireSwap": 0
     },
     {
       "Arm": "AI_ONLY",
@@ -487,7 +501,10 @@
       "LegalSolutionMissRate": 0.722457627118644,
       "NoLegalSolutionRate": 0.2775423728813559,
       "OracleUnknownFailedTurns": 21,
-      "HiddenInfoAccessViolations": 0
+      "HiddenInfoAccessViolations": 0,
+      "MINDecisionQualityMeanRank": 1,
+      "MAXDecisionQualityMeanRank": 1,
+      "PreservedUnknownVampireSwap": 81
     },
     {
       "Arm": "AI_ONLY",
@@ -501,7 +518,10 @@
       "LegalSolutionMissRate": 0.8154981549815498,
       "NoLegalSolutionRate": 0.18450184501845018,
       "OracleUnknownFailedTurns": 20,
-      "HiddenInfoAccessViolations": 0
+      "HiddenInfoAccessViolations": 0,
+      "MINDecisionQualityMeanRank": 1,
+      "MAXDecisionQualityMeanRank": 1,
+      "PreservedUnknownVampireSwap": 101
     },
     {
       "Arm": "MOON_ONLY",
@@ -510,12 +530,15 @@
       "ChoiceChanged": 0,
       "ChoiceHelped": "NOT_CAUSALLY_EVALUATED",
       "ChoiceHurt": "NOT_CAUSALLY_EVALUATED",
-      "ChosenCardRankForPattern": 0,
+      "ChosenCardRankForPattern": "NOT_APPLICABLE",
       "LegalSolutionExistsOnFailedTurns": 785,
       "LegalSolutionMissRate": 0.7726377952755905,
       "NoLegalSolutionRate": 0.22736220472440946,
       "OracleUnknownFailedTurns": 18,
-      "HiddenInfoAccessViolations": 0
+      "HiddenInfoAccessViolations": 0,
+      "MINDecisionQualityMeanRank": "NOT_APPLICABLE",
+      "MAXDecisionQualityMeanRank": "NOT_APPLICABLE",
+      "PreservedUnknownVampireSwap": 0
     },
     {
       "Arm": "MOON_ONLY",
@@ -524,12 +547,15 @@
       "ChoiceChanged": 0,
       "ChoiceHelped": "NOT_CAUSALLY_EVALUATED",
       "ChoiceHurt": "NOT_CAUSALLY_EVALUATED",
-      "ChosenCardRankForPattern": 0,
+      "ChosenCardRankForPattern": "NOT_APPLICABLE",
       "LegalSolutionExistsOnFailedTurns": 753,
       "LegalSolutionMissRate": 0.8900709219858156,
       "NoLegalSolutionRate": 0.1099290780141844,
       "OracleUnknownFailedTurns": 8,
-      "HiddenInfoAccessViolations": 0
+      "HiddenInfoAccessViolations": 0,
+      "MINDecisionQualityMeanRank": "NOT_APPLICABLE",
+      "MAXDecisionQualityMeanRank": "NOT_APPLICABLE",
+      "PreservedUnknownVampireSwap": 0
     },
     {
       "Arm": "BOTH",
@@ -543,7 +569,10 @@
       "LegalSolutionMissRate": 0.6862980769230769,
       "NoLegalSolutionRate": 0.3137019230769231,
       "OracleUnknownFailedTurns": 19,
-      "HiddenInfoAccessViolations": 0
+      "HiddenInfoAccessViolations": 0,
+      "MINDecisionQualityMeanRank": 1,
+      "MAXDecisionQualityMeanRank": 1,
+      "PreservedUnknownVampireSwap": 77
     },
     {
       "Arm": "BOTH",
@@ -557,7 +586,10 @@
       "LegalSolutionMissRate": 0.8579335793357934,
       "NoLegalSolutionRate": 0.14206642066420663,
       "OracleUnknownFailedTurns": 13,
-      "HiddenInfoAccessViolations": 0
+      "HiddenInfoAccessViolations": 0,
+      "MINDecisionQualityMeanRank": 1,
+      "MAXDecisionQualityMeanRank": 1,
+      "PreservedUnknownVampireSwap": 110
     }
   ],
   "fullExpedition": [
@@ -706,7 +738,7 @@
   "baselineTests": 2514,
   "finalTests": 2910,
   "staticFiles": 272,
-  "recommendation": "Review MOON_ONLY and BOTH as diagnostic candidates: expedition-like clears12.8% ->24.0% /28.8%; AI_ONLY9.6% remains below CONTROL. BOTH has longer battles; full RUN_CLEAR stays4/250. No automatic production adoption or retuning.",
+  "recommendation": "C — BOTH is the strongest diagnostic candidate for further review (28.8% expedition-like clear vs12.8% CONTROL); still VERY_HARD, longer encounters and no full RUN_CLEAR improvement. Do not deploy automatically.",
   "difficultyBands": {
     "CONTROL": "STILL_EXTREME",
     "AI_ONLY": "STILL_EXTREME",
@@ -769,5 +801,8 @@
       }
     }
   },
-  "discardedDiagnosticAttempts": "Incomplete diagnostics discarded. CONTROL/MOON_ONLY repaired the same three deterministic seeds; final AI_ONLY/BOTH reran all250 with legal baseline non-number skills retained. No numerical tuning."
+  "discardedDiagnosticAttempts": "Incomplete diagnostics discarded. CONTROL/MOON_ONLY repaired the same three deterministic seeds; final AI_ONLY/BOTH reran all250 with legal baseline non-number skills retained. No numerical tuning.",
+  "draftPR": "https://github.com/pagter54-creator/dungeon-bluff/pull/37",
+  "measuredCandidateCommit": "fa6f6d3665567398c20732409e953d15d0b95c91",
+  "sheetsPublication": "Seven added tabs; all19740pattern turns and1500run rows uploaded; previous46tabs preserved; bounded sentinel readback PASS."
 }
