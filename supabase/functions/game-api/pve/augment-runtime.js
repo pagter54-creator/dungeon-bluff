@@ -247,7 +247,7 @@ export const EXECUTABLE_AUGMENT_RUNTIME=Object.freeze({
   ...Object.fromEntries(Object.entries(SEER_CONTRACTS).map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['PROPHET_CORE_REWORK']}])) ,
   ...Object.fromEntries(Object.entries(IMP_CONTRACTS).map(([id,contract])=>[id,{...contract,effects:[],specialHandlers:['IMP_V02']}])) ,
   ...Object.fromEntries(Object.entries(GUNNER_CONTRACTS).map(([id,contract])=>[id,{...contract,executable:true,config:id==='aug-241'?{expandedDeck:[1,2,2,3]}:{},effects:[],specialHandlers:['GUNNER_V02']}])) ,
-  ...Object.fromEntries(Object.entries(GAMBLER_CONTRACTS).map(([id,contract])=>[id,{...contract,...(id==='aug-237'?{tooltipBetaV02:'올인 성공 공격의 실제 피해가 8 이상이면 다음 드로우 페널티를 1턴 줄입니다(최소 0턴). 전투당 1회.'}:{}),executable:true,effects:[],specialHandlers:['GAMBLER_V02']}])) ,
+  ...Object.fromEntries(Object.entries(GAMBLER_CONTRACTS).map(([id,contract])=>[id,{...contract,...(id==='aug-231'?{tooltipBetaV02:'전투 1·4·7·10턴마다 현재 손패 2장 중 1장을 판정 숫자로 지정. 중복으로 실패해도 다음 발동 턴은 바뀌지 않음. 유효하면 피해는 두 카드 숫자 합으로 처리하고 두 장 모두 소비. 다음 턴 드로우 1장. 중복이면 피해 0, 두 장 모두 소비.'}:{}),...(id==='aug-237'?{tooltipBetaV02:'올인 성공 공격의 실제 피해가 8 이상이면 다음 드로우 페널티를 1턴 줄입니다(최소 0턴). 전투당 1회.'}:{}),executable:true,effects:[],specialHandlers:['GAMBLER_V02']}])) ,
   ...MARTIAL_CONTRACTS,
   ...VAMPIRE_CONTRACTS,
   ...GHOST_CONTRACTS,

@@ -1,3 +1,4 @@
+import {pveMageLimits,pveResourceBadges} from './pve-resource-ui.js';
 import {skillCues,monsterCue} from './pve-combat-presentation.js';
 import {PVE_CHARACTER_TO_LOBBY} from './game-mode.js';
 
@@ -13,8 +14,9 @@ const characterForPlayer=(bundle,player)=>bundle?.characters?.find(c=>c.id===lob
 function publicCycle(run,player,scope='combat'){
   const state=scope==='room'||scope==='event'?run.roomState:run.combat;
   const publicState=state?.publicCardCycles?.[player.playerId]||run.publicCardCycles?.[player.playerId];
-  if(publicState)return publicState;
   const own=scope==='room'||scope==='event'?run.privateRoomState:run.privateCombat;
+  if(player.characterId==='gambler'&&own?.playerId===player.playerId)return {cycleIndex:0,cards:(own.remainingCardIds||[]).map(id=>player.cardPool.find(c=>c.id===id)).filter(Boolean).map(c=>({id:c.id,baseNumber:c.baseNumber,used:false}))};
+  if(publicState)return publicState;
   if(own?.playerId!==player.playerId){
     if(player.characterId==='gambler')return {cycleIndex:0,cards:Array.from({length:player.gamblerDeck?.handCount??2},()=>({baseNumber:null,used:false}))};
     return {cycleIndex:1,cards:(player.cardPool||[]).map(c=>({baseNumber:c.baseNumber,used:false}))};
@@ -37,14 +39,14 @@ function activeSkillAvailable(player){
 function runtimeState(player){
   const r=player.publicResources||{};
   const reverseMath=(player.augments||[]).includes('aug-111');
-  const manaMax=(player.augments||[]).includes('aug-091')?6:4;
+  const {manaMax,amplifyMax}=pveMageLimits(player);
   return {
     ...r,
     ghostTransformation:player.augments?.includes('aug-351')||false,
     sun:r.sun,moon:r.moon,eclipse:r.eclipse,acrobaticsRechargeNeed:player.augments?.includes('aug-381')?(player.augments?.includes('aug-385')?2:3):null,
     ghostThreshold:player.augments?.includes('aug-348')?4:player.augments?.includes('aug-342')?5:player.augments?.includes('aug-341')?6:8,
     mana:r.mana||0,
-    manaMax,
+    manaMax,amplifyMax,pveAmplify:true,
     reverseMath,
     toughnessCharges:r.toughnessCharges||0,
     revelationStacks:r.revelationStacks??r.revelation??0,
@@ -65,6 +67,7 @@ export function pveGameplayPlayers(bundle,run,{scope='combat'}={}){
     const rewardSkillSupported=scope==='event'?['warrior','mage','vampire'].includes(p.characterId):scope!=='room'||['warrior','mage','gunner','twins'].includes(p.characterId);
     players[p.playerId]={
       memberId:p.playerId,
+      pveResourceBadges:pveResourceBadges(p),
       characterId:lobbyId(p),
       character,
       loadout:member?.loadout,

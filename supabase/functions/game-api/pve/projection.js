@@ -1,3 +1,4 @@
+import {gamblerAllInTiming} from './gambler.js';
 import {isProphecySlot} from '../prophet-vampire-core.js';
 import {coreState} from './prophet-vampire-rework.js';
 import {revelationVisible} from '../prophet-vampire-core.js';
@@ -51,7 +52,24 @@ export function projectRun(run,viewerPlayerId){
     const state=run.augmentFramework?.cardState?.[player.playerId+':gunner'];if(!state)continue;
     if(player.augments?.includes('aug-261'))player.publicResources.overheat=state.overheat;
     if(player.augments?.includes('aug-266'))player.publicResources.burstOutput=state.output;
+    if(player.augments?.includes('aug-256'))player.publicResources.gunnerWeakness=Number(state.weakness)||0;
+    if(player.augments?.includes('aug-259'))player.publicResources.gunnerAccuracy=Number(state.accuracy)||0;
     if(player.augments?.includes('aug-253'))player.publicResources.precisionShotPreserved=state.aug253.preservedForCycleId!==null;
+  }
+  for(const player of out.players||[]){
+    const mage=run.augmentFramework?.mage?.[player.playerId];
+    if(run.phase==='COMBAT'&&player.characterId==='mage'&&mage){if(player.augments?.includes('aug-117'))player.publicResources.mageSymmetry117=Number(mage.symmetry117)||0;if(player.augments?.includes('aug-120'))player.publicResources.mageSymmetry120=Number(mage.symmetry120)||0;}
+    if(player.characterId==='gambler'&&player.augments?.includes('aug-231')&&run.phase==='COMBAT'){const timing=gamblerAllInTiming(run.combat?.turn);player.publicResources.allInReady=timing.ready;player.publicResources.allInTurnsUntil=timing.turnsUntil;}
+  }
+  // Only named, resolved numeric counters are public. Never project histories,
+  // card identities, activation plans or arbitrary private framework fields.
+  if(run.phase==='COMBAT')for(const p of out.players||[]){
+    const counters={
+      warrior:[['knight','advance','aug-060','knightAdvance']],
+      rogue:[['rogue','criticalStacks','aug-065','rogueCritical'],['rogue','soloLowestStreak','aug-070','rogueLowestStreak'],['rogue','leapStreak','aug-085','rogueLeapStack'],['rogue','leapChain','aug-086','rogueLeapChain'],['roguePoison','stacks','aug-071','roguePoison']],
+      berserker:[['berserker','vigor','aug-129','berserkerVigor'],['berserker','woundMemory','aug-136','berserkerWound'],['berserker','brawl','aug-139','berserkerBrawl']]
+    };
+    for(const [family,key,augment,publicKey] of counters[p.characterId]||[])if(p.augments?.includes(augment))p.publicResources[publicKey]=Number(run.augmentFramework?.[family]?.[p.playerId]?.[key])||0;
   }
   // Gambler aggregate pile counts/composition may be public; exact order, identities and history stay owner-only.
   for(const player of out.players||[]){

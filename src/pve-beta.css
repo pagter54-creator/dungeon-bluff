@@ -87,7 +87,7 @@
 .pve-map-edges{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.pve-map-edges line{stroke:#50445a;stroke-width:5;vector-effect:non-scaling-stroke}.pve-map-edges line.reachable{stroke:#b59a62;filter:drop-shadow(0 0 5px #c6a66a55)}
 .pve-map-node{position:absolute;left:var(--map-x);top:var(--map-y);width:108px;min-height:74px;transform:translate(-50%,-50%);display:grid;place-items:center;gap:2px;padding:8px;border:1px solid #574a60;border-radius:50% 50% 44% 44%;background:#221b2a;color:#c8bacd;box-shadow:0 8px 18px #0007}
 .pve-map-node i{font-size:20px;font-style:normal}.pve-map-node b{font-size:10px}.pve-map-node small{font-size:8px}
-.pve-map-node.current{border-color:#e3c476;color:#ffe6a2;box-shadow:0 0 24px #dcb45b55}.pve-map-node.visited{border-color:#668978;color:#a8d7be}.pve-map-node.reachable{border-color:#a789b9;color:#ead9f1;cursor:pointer}.pve-map-node.reachable:not(:disabled):hover{scale:1.05}.pve-map-node.mine{outline:2px solid #f0cb73;outline-offset:3px}.pve-map-node.locked,.pve-map-node.past{opacity:.38}
+.pve-map-node.current{border-color:#e3c476;color:#ffe6a2;box-shadow:0 0 24px #dcb45b55}.pve-map-node.visited{border-color:#668978;color:#a8d7be}.pve-map-node.reachable{border-color:#a789b9;color:#ead9f1;cursor:pointer}.pve-map-node.reachable:not(:disabled):hover{scale:1}.pve-map-node.mine{outline:2px solid #f0cb73;outline-offset:3px}.pve-map-node.locked,.pve-map-node.past{opacity:.38}
 .pve-map-legend{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;padding:10px 16px;border-top:1px solid #493d52;background:#151119}.pve-map-legend span{display:flex;gap:4px;align-items:center;font-size:9px;color:#aa9cb0}.pve-map-legend i{font-style:normal;color:#d9be7e}
 @media(max-width:760px){
  .pve-shared-top{grid-template-columns:auto 1fr auto auto}.pve-shared-top .knockout-meter{display:none}.pve-map-button{padding:6px 8px}
@@ -111,3 +111,8 @@
 .pve-shared-top .stage-node:not(:last-child):after{left:100%;width:clamp(2px,.6vw,8px)}
 
 .pve-map-node .pve-map-voters{max-width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.4;color:#f0cb73}
+
+.pve-map-node:not(:disabled):active{transform:translate(-50%,-50%);scale:1}
+.pve-resource-badges{display:flex;gap:5px;flex-wrap:wrap}.pve-resource-badges>span{position:relative;display:flex;gap:5px;align-items:center;overflow:hidden;background:#231e2d;border:1px solid #675674;border-radius:3px;padding:4px 6px}.pve-resource-badges small{font-size:9px;color:#c9b8d5}.pve-resource-badges b{font-size:11px;color:#f0cd87}.pve-resource-fill{position:absolute;bottom:0;left:0;height:2px;width:var(--resource-fill);background:#ef956e}
+.pve-shared-top~.arena .enemy-art.monster-action-turn .monster-illustration{filter:drop-shadow(2px 0 1px #ff334f) drop-shadow(-2px 0 1px #ff334f) drop-shadow(0 2px 1px #ff334f) drop-shadow(0 -2px 1px #ff334f) drop-shadow(0 0 12px #ff334f99)}
+.pve-shared-top~.arena .enemy-art.monster-action-turn{outline:2px solid #ff334f;outline-offset:4px;border-radius:12px}

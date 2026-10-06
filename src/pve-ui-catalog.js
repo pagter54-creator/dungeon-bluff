@@ -660,7 +660,7 @@ export const PVE_EXECUTABLE_AUGMENT_UI=Object.freeze({
   "aug-228": {"build":"카드 카운터","description":"셔플 직후 첫 드로우에 1~3 또는 3~5 중 선택한 범위 카드가 최소 1장 포함되도록 보정. 셔플당 1회."},
   "aug-229": {"build":"카드 카운터","description":"Owner completes a recognized counting combination different from immediately previous combination.일 때 추가 피해 +3 효과를 적용합니다. 제한: ONCE_PER_TURN."},
   "aug-230": {"build":"카드 카운터","description":"조건 충족 시 다음 드로우에 지정한 3개 숫자 범위 중 최소 1장 보장. 셔플당 1회."},
-  "aug-231": {"build":"올인","description":"현재 드로우 2장 중 1장을 판정 숫자로 지정. 유효하면 피해는 두 카드 숫자 합으로 처리하고 두 장 모두 소비. 다음 턴 드로우 1장. 중복이면 피해 0, 두 장 모두 소비."},
+  "aug-231": {"build":"올인","description":"전투 1·4·7·10턴마다 현재 손패 2장 중 1장을 판정 숫자로 지정. 중복으로 실패해도 다음 발동 턴은 바뀌지 않음. 유효하면 피해는 두 카드 숫자 합으로 처리하고 두 장 모두 소비. 다음 턴 드로우 1장. 중복이면 피해 0, 두 장 모두 소비."},
   "aug-232": {"build":"올인","description":"올인 두 카드 합이 8 이상이면 추가 피해 +2, 10 이상이면 +4. 단계 중복 안 됨."},
   "aug-233": {"build":"올인","description":"올인 실패 시 다음 턴 드로우 패널티 제거. 전투당 1회."},
   "aug-234": {"build":"올인","description":"All-In succeeds using two cards both <=3.일 때 추가 피해 +1 효과를 적용합니다. 제한: ONCE_PER_TURN."},

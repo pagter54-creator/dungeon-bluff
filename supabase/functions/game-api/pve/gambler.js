@@ -1,6 +1,11 @@
 import {drawIndex} from './rng.js';
 import {GAMBLER_CONTRACTS} from './gambler-contracts.js';
 
+export function gamblerAllInTiming(turn){
+  const offset=(Math.max(1,Number(turn)||1)-1)%3;
+  return {ready:offset===0,turnsUntil:offset===0?0:3-offset};
+}
+
 export const GAMBLER_BASE_DECK=Object.freeze([1,1,2,2,3,3,4,4,5,5,6]);
 export const GAMBLER_ZONES=Object.freeze(['DECK','HAND','DISCARD','VANISHED']);
 
@@ -290,6 +295,7 @@ export function settleGamblerHand(run,player,state,selectedId,finalNumber,{rootA
 export function prepareGamblerAllIn(run,player,state,submission,resolved){
   normalizeGamblerState(run,player,state);
   if(!hasGamblerAugment(run,player,'aug-231'))return null;
+  if(run.phase==='COMBAT'&&!gamblerAllInTiming(run.combat?.turn).ready)return null;
   const ids=[...(state.remainingCardIds||[])];
   if(ids.length<2)return null;
   const judgmentId=submission?.cardInstanceId||resolved?.cardInstanceId;

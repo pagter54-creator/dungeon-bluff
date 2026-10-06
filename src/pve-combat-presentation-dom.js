@@ -53,6 +53,7 @@ export function createPveCuePlayer(root=globalThis.document?.querySelector('#app
   if(!cue||!alive())return;
   const panel=root.querySelector('.pve-pattern-panel'),enemy=root.querySelector('#enemy-art');
   if(!panel)return;
+  enemy?.classList.toggle('monster-action-turn',['ACTIVE','PARTIAL'].includes(cue.outcome));
   const result=panel.querySelector('[data-pattern-result]'),progress=panel.querySelector('[data-pattern-progress]');
   panel.dataset.outcome='JUDGING';if(result)result.textContent='판정';
   if(!motionPreference.matches)await wait(220);if(!alive())return;

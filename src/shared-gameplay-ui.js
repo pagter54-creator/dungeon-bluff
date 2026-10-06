@@ -23,7 +23,7 @@ export function sharedEncounterMarkup({
   return `<section class="arena shared-gameplay-encounter ${hasMonster&&monster?.boss?'boss-arena':''}" style="--stage-color:${esc(color)}">
     <div class="arena-grid"></div>
     <div class="encounter-heading"><div class="eyebrow">${esc(categoryLabel)}</div><h1>${esc(name)}</h1><p>${esc(subtitle||'당신의 카드가 다음 운명을 결정합니다')}</p></div>
-    <div id="enemy-art" class="enemy-art">${enemyArt}</div>
+    <div id="enemy-art" class="enemy-art ${monster?.imminent?'monster-action-turn':''}" ${monster?.imminent?'aria-label="몬스터 행동 턴"':''}>${enemyArt}</div>
     <div class="arena-side left"><span>TURN</span><b>${esc(String(turnIndex).padStart(2,'0'))}</b><small>${revealing?'REVEALING':'SELECTING'}</small></div>
     <div class="arena-side right"><span>${esc(threatLabel|| (hasMonster?'THREAT':'ENCOUNTER'))}</span><b>${esc(threatValue)}</b><small>${esc(threatDetail)}</small></div>
     ${hasMonster?`<div class="enemy-health"><div><span>${monster.boss?'BOSS':'MONSTER'} HP</span><b>${hp} <small>/ ${maxHp}</small></b></div><div class="health-track"><i style="width:${maxHp?Math.max(0,Math.min(100,hp/maxHp*100)):0}%"></i></div></div>`:''}

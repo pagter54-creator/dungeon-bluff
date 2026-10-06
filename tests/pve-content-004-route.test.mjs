@@ -16,10 +16,11 @@ function adminFor(initial){
       if(name==='pve_try_commit'){
         if(args.p_expected!==version)return {data:{conflict:true,version,state:structuredClone(state)},error:null};
         version++;state=structuredClone(args.p_state);state.version=version;
-        if(state.phase==='COMBAT'){
-          state.combat.monster.hp=1;
+        if(state.phase==='COMBAT')state.combat.monster.hp=1;
+        // Heal before the next node starts, so AI readiness uses the healed roster.
+        if(['COMBAT','MAP_VOTE'].includes(state.phase)){
           for(const p of state.players){p.hp=p.maxHp;p.status='ACTIVE';}
-          state.flame=state.maxFlame;state.combat.pendingDownPlayerIds=[];
+          state.flame=state.maxFlame;if(state.combat)state.combat.pendingDownPlayerIds=[];
         }
         return {data:{version,state:structuredClone(state)},error:null};
       }

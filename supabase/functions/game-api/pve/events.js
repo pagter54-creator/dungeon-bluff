@@ -2,8 +2,8 @@ import {prepareFragmentCards,captureFragments,beforeCollision} from './prophet-v
 import {choose} from './rng.js';
 import {selectF1Event,F1_EVENT_DEFINITIONS} from './content-f1.js';
 import {restoreCardCycle,persistCardCycles} from './card-cycle.js';
-import {drawGamblerHand,settleGamblerHand,prepareGamblerAllIn,finalizeGamblerAllIn} from './gambler.js';
-import {selfModifyCard,collisionImmunity,resolveGuardianWallCollisions,isCardSelectableForCharacter,validateCharacterSkillIntent,onTurnStartCharacter,onTurnEndCharacter,onCycleStartCharacter} from './characters.js';
+import {drawGamblerHand,settleGamblerHand,prepareGamblerAllIn,finalizeGamblerAllIn,initializeGamblerCombat} from './gambler.js';
+import {selfModifyCard,collisionImmunity,resolveGuardianWallCollisions,isCardSelectableForCharacter,validateCharacterSkillIntent,onTurnStartCharacter,onTurnEndCharacter,onCycleStartCharacter,initializeCombatCharacter,onCombatEndCharacter} from './characters.js';
 import {initializeNumberHistories,recordSelfModification,applyPreCollisionSwap,applyPreCollisionSteal,finalizeNumbers,attachCollisionGroups,attachValidity,assignVampireThralls,validateNumberMutationState} from './number-mutation.js';
 import {resolveEventDefinition} from './event-resolution.js';
 import {queueTelemetry} from './telemetry.js';
@@ -32,13 +32,30 @@ function availableCards(run,player){
   }
   return state.remainingCardIds.map(id=>player.cardPool.find(card=>card.id===id)).filter(card=>card&&isCardSelectableForCharacter(player,card));
 }
+function freshEventCycle(run,player){
+  if(player.characterId!=='gambler')return {playerId:player.playerId,cycleIndex:1,spentCardIds:[],remainingCardIds:player.cardPool.map(card=>card.id)};
+  const state=restoreCardCycle(run,player);
+  state.discardPileIds.push(...state.remainingCardIds);state.remainingCardIds=[];
+  delete state.selectedCardId;delete state.skillIntent;
+  initializeGamblerCombat(run,player,state);drawGamblerHand(run,player,state);
+  return state;
+}
 export function enterEventRoom(run){
   const def=selectF1Event(run);
+  cleanupAugmentScope(run,'COMBAT');
+  if(run.augmentFramework?.mage)for(const player of run.players)delete run.augmentFramework.mage[player.playerId];
+  for(const player of run.players){
+    const devour=player.publicResources.devour,level=player.publicResources.ghostSlashLevel;
+    onCombatEndCharacter(player,run);initializeCombatCharacter(player);
+    if(player.characterId==='demon_swordsman'){if(devour!=null)player.publicResources.devour=devour;if(level!=null)player.publicResources.ghostSlashLevel=level;}
+    if(player.characterId==='mage')player.publicResources.manaMax=player.augments.includes('aug-092')||player.augments.includes('aug-099')?7:player.augments.includes('aug-091')?6:4;
+  }
+  delete run.combat;
   run.phase='EVENT';
   run.roomState={
     type:'EVENT',eventId:def.id,name:def.name,illustration:def.illustration,
     description:def.description,ruleSummary:def.ruleSummary,resolutionType:def.resolutionType,
-    turn:1,privateByPlayer:Object.fromEntries(run.players.map(player=>[player.playerId,restoreCardCycle(run,player)])),
+    turn:1,privateByPlayer:Object.fromEntries(run.players.map(player=>[player.playerId,freshEventCycle(run,player)])),
     turnSubmissions:{},publicTurnResult:null
   };
   for(const player of run.players){onTurnStartCharacter(player,run);applyOwnedEffects(run,'TURN_START',{player,privateState:run.roomState.privateByPlayer[player.playerId]});applyOwnedEffects(run,'PRE_SELECT',{player,privateState:run.roomState.privateByPlayer[player.playerId]});}

@@ -1,3 +1,4 @@
+import {pveResourceBadgesMarkup,pveAmplifyCost} from './pve-resource-ui.js';
 import { skinPortrait,skinIllustration } from './skins.js';
 import { isShuffleTurn,selectionInfo } from './battle-rules.js';
 import { cardComponent } from './card-component.js';
@@ -41,15 +42,15 @@ export function skillBadge(character,memberId='') {
 export function revelationGauge(player) {
   if(player.skillId==='acrobatics')return `<div class="twins-parity"><b>${player.characterRuntimeState?.parity===1?'홀 · 소년':'짝 · 소녀'}</b><span>${player.characterRuntimeState?.parity===1?'1 · 3 선택':'2 · 4 선택'} · 다음 턴 교대${player.characterRuntimeState?.sun!=null?' · 태양 '+player.characterRuntimeState.sun+' / 달 '+player.characterRuntimeState.moon:''}</span></div>`;
   if (player.skillId === 'random_hand') return gamblerCharges(player);
-  if(player.skillId==='amplify')return resourceGauge('마나',player.characterRuntimeState?.mana||0,4,'mana-gauge');
-  if(player.skillId==='toughness')return resourceGauge('강인함 충전',player.characterRuntimeState?.toughnessCharges||0,2,'toughness-gauge');
+  if(player.skillId==='amplify')return resourceGauge('마나',player.characterRuntimeState?.mana||0,player.characterRuntimeState?.manaMax||4,'mana-gauge');
+  if(player.skillId==='toughness')return resourceGauge('강인함 충전',player.characterRuntimeState?.toughnessCharges||0,player.characterRuntimeState?.toughnessChargesMax||2,'toughness-gauge');
   if(player.skillId==='soul_slash'){
     const stacks=player.characterRuntimeState?.predation||0;
     const level=player.characterRuntimeState?.ghostSlashLevel??Math.floor(stacks/8),threshold=player.characterRuntimeState?.ghostThreshold||8;
     if(player.characterRuntimeState?.ghostTransformation)return `<small class="predation-count">포식 ${stacks} · ${player.characterRuntimeState?.transformationActive?'귀화 중':'귀화에 포식 6 필요'}</small>`;
     return `<small class="predation-count">포식 ${stacks} · 귀참 Lv.${level} +${level+1}</small>${resourceGauge('다음 귀참 레벨 진행도',player.characterRuntimeState?.ghostSlashLevel==null?stacks%threshold:stacks,threshold,'predation-gauge')}`;
   }
-  if (player.skillId === 'combo') return `<div class="revelation-gauge" role="meter" aria-label="연격 중첩" aria-valuemin="0" aria-valuemax="3" aria-valuenow="${player.characterRuntimeState?.comboStacks||0}">${[0,1,2].map(i=>`<i class="revelation-pip ${i<(player.characterRuntimeState?.comboStacks||0)?'filled':''}" aria-hidden="true"></i>`).join('')}</div><small class="combo-previous">직전 카드: ${html(player.characterRuntimeState?.comboPrevious ?? '-')}</small>`;
+  if (player.skillId === 'combo') return resourceGauge('연격 중첩',player.characterRuntimeState?.comboStacks||0,player.characterRuntimeState?.comboMax||3)+`<small class="combo-previous">직전 카드: ${html(player.characterRuntimeState?.comboPrevious ?? '-')}</small>`;
   if (player.skillId !== 'revelation') return '';
   const r=player.characterRuntimeState||{},max=r.revelationMax||6,stacks=Math.max(0,Math.min(max,r.revelationStacks||0));
   return resourceGauge('계시',stacks,max,'seer-gauge')+`<small>계시 ${stacks}/${max} · 자동 공개 ${r.prophetCore?.threshold||3} 이상</small>`;
@@ -77,7 +78,7 @@ export function activeButton(player, useSkill, blocked, members=[], players={}, 
   if(player.skillId==='amplify'){
     const mana=player.characterRuntimeState?.mana||0,level=Number(useSkill)||0;
     const reverse=Boolean(player.characterRuntimeState?.reverseMath),manaMax=player.characterRuntimeState?.manaMax||4;
-    const cost=Math.abs(level)*2,delta=level>0?('+'+level):String(level);
+    const cost=player.characterRuntimeState?.pveAmplify?pveAmplifyCost(level):Math.abs(level)*2,delta=level>0?('+'+level):String(level);
     return `<button type="button" class="active-skill ${level?'armed':''}" data-action="toggle-skill" aria-pressed="${Boolean(level)}" ${blocked||mana<2?'disabled':''}>✺ ${reverse?'역산술':'증폭'} <b>마나 ${Math.max(0,mana-cost)}/${manaMax} · ${level?'숫자 '+delta:'2마나 필요'}${level?' · 다시 눌러 변경/취소':''}</b></button>`;
   }
   if(player.skillId==='revelation'){
@@ -111,7 +112,7 @@ export function partyPanels(bundle, players, { me, result, selected, useSkill, s
         <div class="player-heading"><div class="player-identity player-identity-bar ${thrall?'is-thrall':''}" title="${html(m.display_name)}"><h3>${html(m.display_name)} ${own ? '<em>나</em>' : ''}</h3><small>${html(c.display_name)}${m.ai_type ? ' · AI' : ''}${p.knockedOut ? ' · 기절' : ''}</small></div><div class="hearts" aria-label="HP ${p.hp}/${p.maxHp}">${Array.from({length:p.maxHp},(_,i)=>`<span class="heart ${i<p.hp?'filled':''}">♥</span>`).join('')}</div></div>
         <div class="player-content"><div class="player-stats"><span>${html(statLabel)} <b>${p.score}</b></span><span>RUN GOLD <b>${p.gold}</b></span><small>${c.definition?.deckType==='continuous'?'운명의 패':`CYCLE ${p.cycleIndex || 1}`} · ${cycleCards(p).filter(card=>!card.used).length}장 남음</small></div>${cardComponent(null,{loadout:p.loadout,blocked:ready,revealId:m.id})}</div>
         ${cardPool(p,{own,blocked:ready || p.knockedOut,selected,useSkill})}
-        <div class="player-bottom"><div class="player-skill">${skillBadge(c,m.id)}${p.skillId==='soul_slash'&&own?'':revelationGauge(p)}${p.skillId==='blood_command'?thrallStatus(p,bundle,players):''}</div><span class="lock-state ${ready?'ready':''}">${result ? '공개 중' : seen ? `선택: ${seen.value}` : p.knockedOut ? '자동 제출' : ready ? '✓ 선택 완료' : '선택 중'}</span></div>
+        <div class="player-bottom"><div class="player-skill">${skillBadge(c,m.id)}${pveResourceBadgesMarkup(p.pveResourceBadges)}${p.skillId==='soul_slash'&&own?'':revelationGauge(p)}${p.skillId==='blood_command'?thrallStatus(p,bundle,players):''}</div><span class="lock-state ${ready?'ready':''}">${result ? '공개 중' : seen ? `선택: ${seen.value}` : p.knockedOut ? '자동 제출' : ready ? '✓ 선택 완료' : '선택 중'}</span></div>
         ${greed?'<div class="boss-player-mark">탐욕 표식 · 다음 기본 공격 대상</div>':''}${marked ? `<div class="seer-vision">✧ ${publicMark?'표적 지정 · 전체 공개':own&&p.skillId==='blood_command'?'권속 관찰':'계시 대상'} · ${seen ? `선택: <b>${seen.value}</b>` : '제출을 기다리는 중'}</div>` : ''}${own ? activeButton(p,useSkill,ready || p.knockedOut,bundle.members,players,selected!==null&&selected!==undefined&&(!Array.isArray(selected)||selected.length>0)) : ''}${own ? panelControls(p,{result,locked:ready,selected,useSkill,twoCards:isShuffleTurn(bundle.session)}) : ''}
       </div>
     </article>`;
