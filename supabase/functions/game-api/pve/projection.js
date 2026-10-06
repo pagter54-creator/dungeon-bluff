@@ -76,8 +76,10 @@ export function projectRun(run,viewerPlayerId){
     const state=states?.[player.playerId]||run.cardCycles?.[player.playerId];
     if(!state)return [player.playerId,{cycleIndex:1,cards:(player.cardPool||[]).map(card=>({baseNumber:card.baseNumber,used:false}))}];
     if(player.characterId==='gambler'){
-      // Random current hands stay concealed, just as in competitive play.
-      return [player.playerId,{cycleIndex:state.cycleIndex||1,cards:(state.remainingCardIds||[]).map(()=>({baseNumber:null,used:false}))}];
+      // Share the dealt hand, as in competitive play, while keeping pending
+      // selections, physical card IDs and the ordered draw pile private.
+      const cards=(state.remainingCardIds||[]).map(id=>player.cardPool.find(card=>card.id===id)).filter(Boolean);
+      return [player.playerId,{cycleIndex:state.cycleIndex||1,cards:cards.map(card=>({baseNumber:card.baseNumber,used:false}))}];
     }
     const remaining=new Set(state.remainingCardIds||[]);
     return [player.playerId,{cycleIndex:state.cycleIndex||1,cards:(player.cardPool||[]).map(card=>({baseNumber:card.baseNumber,...(isProphecySlot(player,card.id)&&run.augmentFramework?.cardState?.[player.playerId+':pvCore']?.fragment?{displayNumber:run.augmentFramework.cardState[player.playerId+':pvCore'].fragment.value}:{}),used:!remaining.has(card.id)}))}];
