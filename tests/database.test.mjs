@@ -116,6 +116,7 @@ before(async () => {
   await db.exec(await readFile(new URL('../supabase/migrations/202609270002_pve_hardening_telemetry.sql', import.meta.url), 'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/202609280001_game_modes_pve_beta.sql', import.meta.url), 'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/202609280002_pve_beta_reward_canonical.sql', import.meta.url), 'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/20261006062205_twins_sun_moon_circus_skin.sql', import.meta.url), 'utf8'));
   await db.exec("update public.pve_runtime_flags set enabled=true,updated_at=now() where flag_key='COOP_PVE_ENABLED'");
   globalThis.__testCreateClient = () => admin;
   globalThis.Deno = { env: { get: key => key==='COOP_PVE_ENABLED'?'true':'test-value' }, serve: fn => { handler = fn; } };
@@ -552,15 +553,17 @@ test('registration during a run cannot retroactively become a reward recipient, 
  await game.close();
 });
 
-test('skin gacha catalog matches 32 illustrations and forbids unowned equips, guest draws and direct purchase',async()=>{
+test('skin gacha catalog matches 44 skins and forbids unowned equips, guest draws and direct purchase',async()=>{
  const {items}=await accountApi(accountOwner,'get_shop');const skins=items.filter(i=>i.item_type==='character_skin');
- assert.equal(skins.length,43);assert.equal(skins.filter(i=>i.is_default).length,13);assert.equal(skins.filter(i=>i.gacha_enabled).length,30);
+ assert.equal(skins.length,44);assert.equal(skins.filter(i=>i.is_default).length,13);assert.equal(skins.filter(i=>i.gacha_enabled).length,31);
+ const circus=skins.find(i=>i.id==='twins1');assert.equal(circus.asset_key,'twins1');assert.equal(circus.price,10);assert.equal(circus.gacha_enabled,true);
  const {SKINS}=await import('../src/skins.js');for(const skin of skins){assert.equal(skin.display_name,SKINS[skin.id].name);assert.equal(skin.target_character_id,SKINS[skin.id].character);}
  const guest=await newAccount('SkinGuest',false);
  assert.equal((await accountApi(guest,'draw_skin',{request_id:crypto.randomUUID()})).status,400);
  assert.equal((await accountApi(accountOwner,'draw_skin',{request_id:'bad'})).status,400);
  assert.equal((await accountApi(accountOwner,'purchase_item',{item_id:'mage1',price:0})).status,400);
  assert.equal((await accountApi(accountOwner,'equip_item',{item_id:'mage1'})).status,400);
+ assert.equal((await accountApi(accountOwner,'equip_item',{item_id:'twins1'})).status,400);
  assert.equal((await accountApi(accountOwner,'equip_item',{item_id:'mage0'})).status,200);
  await db.exec('set role authenticated');try{
   await assert.rejects(db.query('select public.account_draw_skin($1,$2)',[users[accountOwner],crypto.randomUUID()]),/permission denied/);
@@ -569,17 +572,17 @@ test('skin gacha catalog matches 32 illustrations and forbids unowned equips, gu
  }finally{await db.exec('reset role');}
 });
 
-test('gacha is atomic, charges once for concurrent retries and never duplicates across all twenty-eight draws',async()=>{
+test('gacha is atomic, charges once for concurrent retries and never duplicates across all thirty-one draws',async()=>{
  const u=await newAccount('SkinCollector');const empty=await accountApi(u,'draw_skin',{request_id:crypto.randomUUID()});assert.equal(empty.status,400);
  assert.deepEqual((await accountApi(u,'get_account')).inventory,[]);
- await db.query('update public.player_stats set account_gold=310 where user_id=$1',[users[u]]);
+ await db.query('update public.player_stats set account_gold=320 where user_id=$1',[users[u]]);
  const request_id=crypto.randomUUID();const results=await Promise.all([accountApi(u,'draw_skin',{request_id,price:0,item_id:'mage1'}),accountApi(u,'draw_skin',{request_id})]);
  results.forEach(r=>assert.equal(r.status,200,r.error));assert.equal(results[0].item.id,results[1].item.id);
- assert.equal((await accountApi(u,'get_account')).stats.account_gold,300);
+ assert.equal((await accountApi(u,'get_account')).stats.account_gold,310);
  const all=[results[0].item.id];
- for(let i=0;i<29;i++){const r=await accountApi(u,'draw_skin',{request_id:crypto.randomUUID()});assert.equal(r.status,200,r.error);all.push(r.item.id);}
- assert.equal(new Set(all).size,30);assert.ok(all.every(id=>!id.endsWith('0')));
- let state=await accountApi(u,'get_account');assert.equal(state.stats.account_gold,10);assert.equal(state.inventory.length,30);
+ for(let i=0;i<30;i++){const r=await accountApi(u,'draw_skin',{request_id:crypto.randomUUID()});assert.equal(r.status,200,r.error);all.push(r.item.id);}
+ assert.equal(new Set(all).size,31);assert.ok(all.every(id=>!id.endsWith('0')));assert.ok(all.includes('twins1'));
+ let state=await accountApi(u,'get_account');assert.equal(state.stats.account_gold,10);assert.equal(state.inventory.length,31);
  assert.equal((await accountApi(u,'draw_skin',{request_id:crypto.randomUUID()})).status,400);
  const retry=await accountApi(u,'draw_skin',{request_id});assert.equal(retry.item.id,results[0].item.id);assert.equal(retry.remaining,0);
  assert.equal((await accountApi(u,'get_account')).stats.account_gold,10);
@@ -592,6 +595,8 @@ test('gacha is atomic, charges once for concurrent retries and never duplicates 
   const live=await api(u,'get_room_state',{room_id:start.room.id});assert.equal(live.status,200,live.error);assert.equal(live.session.state.players[member.id].loadout.equipped_character_skins.mage,'mage1');
  });
  await fixture.close();state=await accountApi(u,'get_account');assert.equal(state.loadout.equipped_character_skins.mage,'mage0');assert.equal(state.loadout.equipped_character_skins.rogue,'thief2');
+ const equip=await accountApi(u,'equip_item',{item_id:'twins1'});assert.equal(equip.status,200,equip.error);
+ assert.equal(equip.loadout.equipped_character_skins.twins,'twins1');
 });
 
 test('concurrent distinct draw requests cannot overspend the last 10 gold',async()=>{

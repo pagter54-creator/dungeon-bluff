@@ -5,9 +5,32 @@ import { SKINS,DEFAULT_SKINS,SKIN_ART_LAYOUT,SKIN_POSE_LIFT,AVAILABLE_POSES,skin
 import { poseUrl } from '../src/player-pose-fx.js';
 import { createSkinDrawClient } from '../src/skin-draw.js';
 import { partyPanels } from '../src/character-ui.js';
+import { entryAssetPlan,pveEntryAssetPlan } from '../src/battle-loading.js';
 
-test('all available skins map to supplied full/cropped PNG pairs, with eight free defaults',async()=>{
- assert.equal(Object.keys(SKINS).length,43);assert.equal(Object.keys(DEFAULT_SKINS).length,13);
+test('Sun and Moon Circus uses all seven supplied twins images for equipped art and both loading modes',async()=>{
+ const skin=SKINS.twins1,loadout={equipped_character_skins:{twins:'twins1'}};
+ assert.equal(skin.name,'태양과 달의 서커스');assert.equal(skin.isDefault,false);
+ assert.equal(skinFor('twins',loadout),skin);assert.equal(DEFAULT_SKINS.twins,'twins0');
+ assert.match(skinPortrait('twins',loadout),/twins1\.png/);
+ for(const url of [skin.preview,...skin.partners.flatMap(p=>[p.preview,p.attack,p.damage])]){
+  const file=await readFile(new URL(url));assert.equal(file.subarray(1,4).toString(),'PNG',url);
+ }
+ for(const parity of [0,1]){
+  const markup=skinIllustration('twins',loadout,false,{parity});
+  assert.match(markup,new RegExp(`twin-${parity?'B':'G'} twin-active`));
+  for(const suffix of ['B','G','B_A','B_D','G_A','G_D'])assert.ok(markup.includes(`twins1_${suffix}.png`));
+  assert.doesNotMatch(markup,/twins0/);
+ }
+ const plans=[entryAssetPlan({state:{players:{p:{characterId:'twins',loadout}},stageOrder:[]}}),
+  pveEntryAssetPlan({},[{member_type:'human',character_id:'twins',loadout}])];
+ for(const plan of plans){
+  for(const url of [skin.preview,...skin.partners.map(p=>p.preview)])assert.ok(plan.required.includes(url));
+  for(const url of skin.partners.flatMap(p=>[p.attack,p.damage]))assert.ok(plan.poses.includes(url));
+ }
+});
+
+test('all available skins map to supplied full/cropped PNG pairs, with thirteen free defaults',async()=>{
+ assert.equal(Object.keys(SKINS).length,44);assert.equal(Object.keys(DEFAULT_SKINS).length,13);
  for(const skin of Object.values(SKINS))for(const field of ['preview','portrait']){
   if(['gunner0','fighter0','twins0'].includes(skin.id)){assert.match(skin[field],new RegExp(skin.id));continue;}
   const file=await readFile(new URL(skin[field]));assert.equal(file.subarray(1,4).toString(),'PNG',skin.id+field);
@@ -119,13 +142,14 @@ test('gacha and inventory UI show full art, block duplicate clicks and equip the
   assert.equal(groups.find(group=>group.dataset.characterGroup==='seer').hidden,true);
   assert.equal(filters.find(filter=>filter.dataset.character==='mage')['aria-pressed'],'true');
   assert.equal(requests.filter(r=>r.action==='get_shop').length,shopCalls);
-  await ui.openAccountPage('gacha');assert.match(markup,/mage1\.png/);assert.doesNotMatch(markup,/_crop\.png/);assert.match(markup,/3\.33%/);
+  await ui.openAccountPage('gacha');assert.match(markup,/mage1\.png/);assert.doesNotMatch(markup,/_crop\.png/);assert.match(markup,/3\.23%/);
+  assert.match(markup,/태양과 달의 서커스/);assert.match(markup,/twins1\.png/);
   assert.ok(markup.indexOf('data-character-group="gambler"')<markup.indexOf('data-character-group="mage"'));
   assert.match(markup,/data-character-group="seer"[^>]*><h3/);
   const drawing=click('draw');await click('draw');assert.equal(requests.filter(r=>r.action==='draw_skin').length,1);
   releaseDraw();await drawing;assert.equal(markup,'REVEALED mage1');
   await click('equip',{item:'mage1'});assert.match(markup,/mage0\.png/);assert.match(markup,/mage1\.png/);assert.doesNotMatch(markup,/mage2\.png/);assert.match(markup,/data-item="mage1" disabled/);
-  await ui.openAccountPage('gacha');assert.match(markup,/3\.45%/);assert.match(markup,/보유 중 · 뽑기 제외/);
+  await ui.openAccountPage('gacha');assert.match(markup,/3\.33%/);assert.match(markup,/보유 중 · 뽑기 제외/);
   account.stats.account_gold=0;await ui.openAccountPage('gacha');assert.match(markup,/data-meta="draw" disabled/);
  }finally{for(const k of keys){if(originals[k])Object.defineProperty(globalThis,k,originals[k]);else delete globalThis[k];}}
 });
