@@ -1,7 +1,7 @@
 import {assetLoader} from './asset-loader.js';
 // File stems intentionally match the supplied artwork (travler, warrior).
 const groups=[
-['twins','twins','쌍둥이',['쌍둥이 기본 스킨']],
+['twins','twins','쌍둥이',['쌍둥이 기본 스킨','태양과 달의 서커스']],
 ['vampire','vampire','흡혈귀',['흡혈귀 기본 스킨','가면 무도회']],
 ['demonsword','demonsword','귀검사',['귀검사 기본 스킨','천명 집행자']],
 ['gunner','gunner','총잡이',['총잡이 기본 스킨','황야의 무법자','유령선의 포격수']],
