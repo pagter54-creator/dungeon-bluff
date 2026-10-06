@@ -441,7 +441,7 @@ export function resolveBasicTurn(run){
     c.publicTurnResult=buildTurnResult([...phaseTrace,'COMBAT_END']);
     recordCombatTurnTelemetry(run,c.publicTurnResult);finalizeCombatTelemetry(run,'VICTORY');
     if(c.roomType==='BOSS'&&run.floor<3&&run.phase==='FLOOR_CLEAR'&&Number.isInteger(run.map?.depthCount)){
-      run.floorTransitionResult={publicTurnResult:structuredClone(c.publicTurnResult),monster:{id:c.monster.id,name:c.monster.name,hp:c.monster.hp,maxHp:c.monster.maxHp}};
+      run.floorTransitionResult={floor:run.floor,roomNodeId:run.currentRoomNodeId,publicTurnResult:structuredClone(c.publicTurnResult),monster:{id:c.monster.id,name:c.monster.name,hp:c.monster.hp,maxHp:c.monster.maxHp}};
       advanceCompletedFloor(run);
     }
     if(c.roomType==='BOSS'&&run.floor===3)finalizeExpeditionClear(run);

@@ -233,7 +233,7 @@ test('PVE-010 reward private cycle state is viewer-only and roomReady returns co
   // Complete a room-result flow and require all humans to acknowledge.
   run.phase='ROOM_RESULT';run.roomResult={roomNodeId:'reward',readyPlayerIds:[]};
   roomReady(run,'p0',1000);roomReady(run,'p1',1000);roomReady(run,'p2',1000);assert.equal(run.phase,'ROOM_RESULT');
-  roomReady(run,'p3',1000);assert.equal(run.phase,'MAP_VOTE');assert.equal(run.map.voteDeadline,new Date(16_000).toISOString());
+  roomReady(run,'p3',1000);assert.equal(run.phase,'MAP_VOTE');assert.equal(run.map.voteDeadline,null);
 });
 
 test('PVE-010 missing production relic content never fabricates relics and does not deadlock reward resolution',()=>{

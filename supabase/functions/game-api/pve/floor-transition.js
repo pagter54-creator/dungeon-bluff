@@ -11,7 +11,7 @@ export function advanceCompletedFloor(run){
   const runId=run.id;
   if(!run.floorTransitionResult&&run.combat?.publicTurnResult){
     const monster=run.combat.monster;
-    run.floorTransitionResult={publicTurnResult:structuredClone(run.combat.publicTurnResult),monster:{id:monster.id,name:monster.name,hp:monster.hp,maxHp:monster.maxHp}};
+    run.floorTransitionResult={floor:run.floor,roomNodeId:run.currentRoomNodeId,publicTurnResult:structuredClone(run.combat.publicTurnResult),monster:{id:monster.id,name:monster.name,hp:monster.hp,maxHp:monster.maxHp}};
   }
   cleanupAugmentScope(run,'FLOOR');
   clearCombatResourcesForPlayers(run.players);

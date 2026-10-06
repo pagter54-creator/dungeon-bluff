@@ -109,3 +109,5 @@
 .pve-shared-top .stage-track{min-width:0;gap:clamp(2px,.6vw,8px)}
 .pve-shared-top .stage-node{margin:0;flex:0 1 30px;min-width:16px;height:auto;aspect-ratio:1}
 .pve-shared-top .stage-node:not(:last-child):after{left:100%;width:clamp(2px,.6vw,8px)}
+
+.pve-map-node .pve-map-voters{max-width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.4;color:#f0cb73}

@@ -130,7 +130,7 @@ test('PVE-014 internal API playtest: four humans can traverse every F1 room fami
     }
     if(run.phase==='MAP_VOTE'){
       const nodeId=chooseRouteNode(run);
-      for(const userId of users.slice(0,3)){
+      for(const userId of users){
         run=await call(admin,{action:'pve.voteNextRoom',run_id:run.id,action_id:actionId(seq++),expected_version:version(),node_id:nodeId},userId);
         if(run.phase!=='MAP_VOTE')break;
       }

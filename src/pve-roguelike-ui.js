@@ -39,7 +39,7 @@ export function pveMapGeometry(run){
   for(const [from,targets] of Object.entries(map.edges||{}))for(const to of targets||[])if(points[from]&&points[to])edges.push({from,to,a:points[from],b:points[to]});
   return {height:Math.max(250,(map.depthCount||1)*150+90),nodes:(map.nodes||[]).map(node=>Object.assign({},node,points[node.id])),edges};
 }
-export function pveMapOverlayMarkup(run,userId,{visitedNodes=[]}={}){
+export function pveMapOverlayMarkup(run,userId,{visitedNodes=[],members=[]}={}){
   const map=run?.map;if(!map)return '';
   const geo=pveMapGeometry(run),reachable=new Set(pveConnectedNodes(run).map(n=>n.id)),visited=new Set([...(map.visitedNodeIds||[]),...visitedNodes]);
   const canVote=run.phase==='MAP_VOTE',votes=map.votes||{},me=(run.players||[]).find(p=>p.userId===userId);
@@ -47,12 +47,12 @@ export function pveMapOverlayMarkup(run,userId,{visitedNodes=[]}={}){
   const nodes=geo.nodes.map(node=>{
     const current=node.id===map.currentNodeId,isReachable=reachable.has(node.id),isVisited=visited.has(node.id);
     const state=current?'current':isVisited?'visited':isReachable?'reachable':node.depth<(run.depth||0)?'past':'locked';
-    const voteCount=Object.values(votes).filter(id=>id===node.id).length,mine=votes[me?.playerId]===node.id;
+    const voters=(run.players||[]).filter(p=>p.memberType==='human'&&votes[p.playerId]===node.id),voteCount=voters.length,voterNames=voters.map(p=>esc(members.find(m=>m.id===p.playerId)?.display_name||p.displayName||('플레이어 '+(Number(p.seat)+1)))).join(' · '),mine=votes[me?.playerId]===node.id;
     const action=canVote&&isReachable?'pve-vote':'pve-map-node-info';
-    return '<button type="button" class="pve-map-node '+state+' '+(mine?'mine':'')+'" style="--map-x:'+(node.x/10)+'%;--map-y:'+node.y+'px" data-action="'+action+'" data-node-id="'+esc(node.id)+'" '+(canVote&&isReachable?'':'disabled')+'><i>'+(ROOM_ICONS[node.type]||'◇')+'</i><b>'+esc(PVE_ROOM_LABELS[node.type]||node.type)+'</b><small>D'+node.depth+(voteCount?' · '+voteCount+'표':'')+'</small></button>';
+    return '<button type="button" class="pve-map-node '+state+' '+(mine?'mine':'')+'" style="--map-x:'+(node.x/10)+'%;--map-y:'+node.y+'px" data-action="'+action+'" data-node-id="'+esc(node.id)+'" '+(canVote&&isReachable?'':'disabled')+'><i>'+(ROOM_ICONS[node.type]||'◇')+'</i><b>'+esc(PVE_ROOM_LABELS[node.type]||node.type)+'</b><small>D'+node.depth+(voteCount?' · '+voteCount+'표':'')+'</small>'+(voterNames?'<small class="pve-map-voters">'+voterNames+'</small>':'')+'</button>';
   }).join('');
   const legend=Object.entries(ROOM_ICONS).map(([type,icon])=>'<span><i>'+icon+'</i>'+esc(PVE_ROOM_LABELS[type])+'</span>').join('');
-  return '<div class="pve-map-layer"><button type="button" class="pve-map-backdrop" data-action="pve-map-close" aria-label="지도 닫기"></button><section class="pve-map-overlay" role="dialog" aria-modal="true" aria-label="협력 탐험 지도"><div class="pve-map-toolbar"><div><div class="eyebrow">EXPEDITION MAP · FLOOR '+esc(run.floor)+'</div><h2>경로 지도</h2><p>'+'지도는 언제든 확인할 수 있습니다. 이동은 방 종료 후에만 투표합니다.'+'</p></div><button class="icon-button" data-action="pve-map-close" aria-label="지도 닫기">×</button></div><div class="pve-map-scroll"><div class="pve-map-canvas'+(map.gridWidth?' procedural':'')+'" style="height:'+geo.height+'px"><svg class="pve-map-edges" viewBox="0 0 1000 '+geo.height+'" preserveAspectRatio="none" aria-hidden="true">'+lines+'</svg>'+nodes+'</div></div><div class="pve-map-legend">'+legend+'</div></section></div>';
+  return '<div class="pve-map-layer"><button type="button" class="pve-map-backdrop" data-action="pve-map-close" aria-label="지도 닫기"></button><section class="pve-map-overlay" role="dialog" aria-modal="true" aria-label="협력 탐험 지도"><div class="pve-map-toolbar"><div><div class="eyebrow">EXPEDITION MAP · FLOOR '+esc(run.floor)+'</div><h2>경로 지도</h2><p>'+'지도는 언제든 확인할 수 있습니다. 이동은 방 종료 후 AI를 제외한 모든 플레이어가 투표하면 즉시 진행합니다.'+'</p></div><button class="icon-button" data-action="pve-map-close" aria-label="지도 닫기">×</button></div><div class="pve-map-scroll"><div class="pve-map-canvas'+(map.gridWidth?' procedural':'')+'" style="height:'+geo.height+'px"><svg class="pve-map-edges" viewBox="0 0 1000 '+geo.height+'" preserveAspectRatio="none" aria-hidden="true">'+lines+'</svg>'+nodes+'</div></div><div class="pve-map-legend">'+legend+'</div></section></div>';
 }
 export function pveRelicStripMarkup(bundle,run){
   const rows=(run.players||[]).filter(p=>(p.relics||[]).length);if(!rows.length)return '';
@@ -132,4 +132,9 @@ export function pveTerminalMarkup(bundle,run,me){
   const clear=run.phase==='RUN_CLEAR',mineGold=Number(me?.runGold)||0,settlement=bundle.pveSettlement;
   const text=!clear?'실패 또는 중도 종료된 협력 탐험의 Run Gold는 영구 지급되지 않습니다.':bundle.pveRewardsCommitted||settlement?.settled?'계정 Gold 정산 완료':'계정 Gold를 서버에서 정산 중입니다.';
   return '<section class="end-screen '+(clear?'victory':'failure')+'"><div class="end-emblem">'+(clear?'♛':'♠')+'</div><div class="eyebrow">CO-OP EXPEDITION · BETA</div><h1>'+(clear?'협력 탐험 완료':'협력 탐험 종료')+'</h1><p>'+(clear?'PVE 런을 완료했습니다.':'이번 협력 탐험은 여기까지입니다.')+'</p><div class="account-notice"><b>RP 변동 없음</b><br>협력 탐험은 경쟁 RP와 랭킹에 영향을 주지 않습니다.</div><div class="end-stats"><span>내 Run Gold <b>'+mineGold+'G</b></span><span>FLOOR <b>'+run.floor+'</b></span><span>불씨 <b>'+run.flame+'</b></span>'+(clear&&run.finalSummary?'<span>공략 <b>'+esc(run.finalSummary.clearedFloors)+' / 3층</b></span><span>파티 Run Gold <b>'+esc(run.finalSummary.totalRunGold)+'G</b></span>':'')+'</div><p class="muted">'+text+'</p><button class="button primary" data-action="leave" data-network>원정대 나가기 →</button></section>';
+}
+
+export function pvePlayerAugmentsMarkup(player){
+  if(!player)return '';
+  return '<h3>선택한 증강</h3>'+((player.augments||[]).map(id=>{const item=augmentUi(id);return '<p><b>'+esc(item.name)+'</b><br>'+esc(item.description)+'</p>';}).join('')||'<p>아직 선택한 증강이 없습니다.</p>');
 }

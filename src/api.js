@@ -45,7 +45,7 @@ export async function request(action, params = {}, endpoint = 'game-api') {
       body: JSON.stringify({ action, ...params }),
     });
     const data = await response.json();
-    if (!response.ok || data?.error) throw new Error(data?.error || '서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    if (!response.ok || data?.error) { const error=new Error(data?.error || '서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.');error.code=data?.error;error.data=data;error.status=response.status;throw error; }
     return data;
   });
 }

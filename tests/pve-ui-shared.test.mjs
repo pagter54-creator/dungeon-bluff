@@ -91,7 +91,7 @@ test('PVE map popup stays above the result sheet and remains dismissible',async(
  assert.ok(mapZ>resultZ);
  const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
  assert.ok(app.includes("button.closest('.pve-map-layer')?.remove()"));
- assert.ok(app.includes("if(pveAnimating){updateBusy();return;}"));
+ assert.ok(app.includes("if(pveAnimating){if(previousPve)pvePendingPresentations.push"));
 });
 test('PVE-UI-07 human asset preload reuses battle loading module',async()=>{
  const source=await readFile(new URL('../src/battle-loading.js',import.meta.url),'utf8');

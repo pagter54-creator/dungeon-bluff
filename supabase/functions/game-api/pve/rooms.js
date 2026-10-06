@@ -352,6 +352,6 @@ export function roomReady(run,playerId,nowMs=Date.now()){
   if(!run.roomResult.readyPlayerIds.includes(playerId))run.roomResult.readyPlayerIds.push(playerId);
   if(allIds(run).every(id=>run.roomResult.readyPlayerIds.includes(id))){
     delete run.roomState;delete run.roomResult;delete run.combat;
-    run.phase='MAP_VOTE';run.map.votes={};run.map.voteDeadline=new Date(nowMs+15_000).toISOString();
+    run.phase='MAP_VOTE';run.map.votes={};run.map.voteDeadline=null;
   }
 }

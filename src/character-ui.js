@@ -32,11 +32,11 @@ export function cardPool(player, { own=false, blocked=false, selected=null, useS
   const gambler=player.skillId==='random_hand';
   return `<div class="cycle-pool ${player.characterId==='gunner'?'gunner-hand':player.characterId==='twins'?'twins-hand':''} ${gambler?'continuous-hand gambler-hand':''}" data-cycle-pool="${html(player.memberId)}" aria-label="현재 손패 ${cycleCards(player).length}장">${gambler?pileButton(player,'draw',own):''}${cycleCards(player).map(c=>cardComponent(own&&player.skillId==='amplify'&&useSkill&&[selected].flat().includes(c.id)?{...c,value:c.value+Number(useSkill)}:c,{loadout:player.loadout,own,blocked,restricted:!cardAllowed(player,c),selected})).join('')}${gambler?pileButton(player,'discard',own):''}</div>`;
 }
-export function skillBadge(character) {
+export function skillBadge(character,memberId='') {
   const skill = character.definition?.skill;
   if (!skill) return '';
   const type = skill.type === 'hybrid' ? 'PASSIVE & ACTIVE' : skill.type.toUpperCase();
-  return `<span class="skill-tooltip"><button type="button" class="skill-badge" data-action="skill-info" data-character="${html(character.id)}" aria-label="${html(skill.name)} 스킬 설명">${html(character.definition.icon)} ${type} · ${html(skill.name)}</button><span class="skill-description" role="tooltip"><b>${html(skill.name)} · ${type}</b>${html(skill.description)}</span></span>`;
+  return `<span class="skill-tooltip"><button type="button" class="skill-badge" data-action="skill-info" data-character="${html(character.id)}" data-member="${html(memberId)}" aria-label="${html(skill.name)} 스킬 설명">${html(character.definition.icon)} ${type} · ${html(skill.name)}</button><span class="skill-description" role="tooltip"><b>${html(skill.name)} · ${type}</b>${html(skill.description)}</span></span>`;
 }
 export function revelationGauge(player) {
   if(player.skillId==='acrobatics')return `<div class="twins-parity"><b>${player.characterRuntimeState?.parity===1?'홀 · 소년':'짝 · 소녀'}</b><span>${player.characterRuntimeState?.parity===1?'1 · 3 선택':'2 · 4 선택'} · 다음 턴 교대${player.characterRuntimeState?.sun!=null?' · 태양 '+player.characterRuntimeState.sun+' / 달 '+player.characterRuntimeState.moon:''}</span></div>`;
@@ -111,7 +111,7 @@ export function partyPanels(bundle, players, { me, result, selected, useSkill, s
         <div class="player-heading"><div class="player-identity player-identity-bar ${thrall?'is-thrall':''}" title="${html(m.display_name)}"><h3>${html(m.display_name)} ${own ? '<em>나</em>' : ''}</h3><small>${html(c.display_name)}${m.ai_type ? ' · AI' : ''}${p.knockedOut ? ' · 기절' : ''}</small></div><div class="hearts" aria-label="HP ${p.hp}/${p.maxHp}">${Array.from({length:p.maxHp},(_,i)=>`<span class="heart ${i<p.hp?'filled':''}">♥</span>`).join('')}</div></div>
         <div class="player-content"><div class="player-stats"><span>${html(statLabel)} <b>${p.score}</b></span><span>RUN GOLD <b>${p.gold}</b></span><small>${c.definition?.deckType==='continuous'?'운명의 패':`CYCLE ${p.cycleIndex || 1}`} · ${cycleCards(p).filter(card=>!card.used).length}장 남음</small></div>${cardComponent(null,{loadout:p.loadout,blocked:ready,revealId:m.id})}</div>
         ${cardPool(p,{own,blocked:ready || p.knockedOut,selected,useSkill})}
-        <div class="player-bottom"><div class="player-skill">${skillBadge(c)}${p.skillId==='soul_slash'&&own?'':revelationGauge(p)}${p.skillId==='blood_command'?thrallStatus(p,bundle,players):''}</div><span class="lock-state ${ready?'ready':''}">${result ? '공개 중' : seen ? `선택: ${seen.value}` : p.knockedOut ? '자동 제출' : ready ? '✓ 선택 완료' : '선택 중'}</span></div>
+        <div class="player-bottom"><div class="player-skill">${skillBadge(c,m.id)}${p.skillId==='soul_slash'&&own?'':revelationGauge(p)}${p.skillId==='blood_command'?thrallStatus(p,bundle,players):''}</div><span class="lock-state ${ready?'ready':''}">${result ? '공개 중' : seen ? `선택: ${seen.value}` : p.knockedOut ? '자동 제출' : ready ? '✓ 선택 완료' : '선택 중'}</span></div>
         ${greed?'<div class="boss-player-mark">탐욕 표식 · 다음 기본 공격 대상</div>':''}${marked ? `<div class="seer-vision">✧ ${publicMark?'표적 지정 · 전체 공개':own&&p.skillId==='blood_command'?'권속 관찰':'계시 대상'} · ${seen ? `선택: <b>${seen.value}</b>` : '제출을 기다리는 중'}</div>` : ''}${own ? activeButton(p,useSkill,ready || p.knockedOut,bundle.members,players,selected!==null&&selected!==undefined&&(!Array.isArray(selected)||selected.length>0)) : ''}${own ? panelControls(p,{result,locked:ready,selected,useSkill,twoCards:isShuffleTurn(bundle.session)}) : ''}
       </div>
     </article>`;

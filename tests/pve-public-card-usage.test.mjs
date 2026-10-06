@@ -66,6 +66,6 @@ for(const scope of ['combat','event'])test(`PVE ${scope} shows a peer gambler ha
 });
 test('event selection retains desktop submit controls instead of hiding them as custom selectors',()=>{
  const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
- assert.ok(app.includes("(selector&&!eventSelecting?'pve-selector-shell':'')"));
+ assert.ok(app.includes("(selector&&!eventSelecting&&!rewardSelecting?'pve-selector-shell':'')"));
  assert.ok(app.includes("bundle.run.phase==='EVENT'?'pve.submitEventCard'"));
 });

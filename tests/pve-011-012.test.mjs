@@ -114,18 +114,19 @@ test('PVE-011 concurrent shared relic purchase commits exactly one buyer and con
     api(admin,'u1',{action:'pve.shopBuyRelic',run_id:RUN_ID,action_id:actionId(6),expected_version:0,product_id:product.id})
   ]);
   const statuses=[a.status,b.status].sort((x,y)=>x-y);assert.deepEqual(statuses,[200,409]);
+  assert.equal([a,b].find(result=>result.status===409).body.run.version,admin.version);
   const buyers=admin.state.players.filter(p=>p.relics.includes(product.relicId));
   assert.equal(buyers.length,1);assert.equal(admin.state.roomState.relicStock.find(x=>x.id===product.id).sold,true);
   assert.equal(admin.version,1);
 });
 
-test('PVE-011 getState server-maintenance resolves an expired map vote without a client mutation',async()=>{
+test('PVE-011 getState waits for human votes even on an expired single-path map',async()=>{
   const run=baseRun();run.map={depthCount:1,nodes:[{id:'rest-1',depth:1,type:'REST'}],edges:{},currentNodeId:null,votes:{},voteRound:0,voteDeadline:new Date(0).toISOString()};
   const admin=memoryAdmin(run),oldNow=Date.now;Date.now=()=>10_000;
   try{
     const res=await api(admin,'u0',{action:'pve.getState',run_id:RUN_ID});
-    assert.equal(res.status,200);assert.equal(res.body.run.phase,'REST');assert.equal(res.body.run.currentRoomNodeId,'rest-1');assert.equal(res.body.run.version,1);
-    assert.equal(admin.version,1);
+    assert.equal(res.status,200);assert.equal(res.body.run.phase,'MAP_VOTE');assert.equal(res.body.run.map.currentNodeId,null);assert.equal(res.body.run.version,0);
+    assert.equal(admin.version,0);
   }finally{Date.now=oldNow;}
 });
 
@@ -194,4 +195,26 @@ test('PVE-011~012 migration stores exact idempotent result snapshots and flushes
   assert.match(sql,/jsonb_array_elements\(coalesce\(p_state->'_telemetryPending'/);
   assert.match(sql,/insert into public\.pve_telemetry/);
   assert.match(sql,/revoke all on public\.pve_telemetry from anon,authenticated/);
+});
+
+test('map movement waits past a majority until every human votes, then resolves immediately',async()=>{
+  const run=baseRun();run.map={depthCount:1,nodes:[{id:'a',depth:1,type:'REST'},{id:'b',depth:1,type:'REST'}],edges:{},currentNodeId:null,votes:{},voteRound:0,voteDeadline:new Date(0).toISOString()};
+  const admin=memoryAdmin(run);
+  for(let i=0;i<3;i++){
+    const result=await api(admin,`u${i}`,{action:'pve.voteNextRoom',run_id:RUN_ID,expected_version:admin.version,action_id:actionId(500+i),node_id:'a'});
+    assert.equal(result.status,200);assert.equal(result.body.run.phase,'MAP_VOTE');
+    assert.equal(result.body.run.map.votes[`p${i}`],'a');
+  }
+  const final=await api(admin,'u3',{action:'pve.voteNextRoom',run_id:RUN_ID,expected_version:admin.version,action_id:actionId(503),node_id:'b'});
+  assert.equal(final.status,200);assert.equal(final.body.run.phase,'REST');assert.equal(final.body.run.currentRoomNodeId,'a');
+});
+
+test('single-path map still needs every human vote and excludes AI',async()=>{
+  const run=baseRun();run.players[2].memberType='ai';run.players[3].memberType='ai';
+  run.map={depthCount:1,nodes:[{id:'a',depth:1,type:'REST'}],edges:{},currentNodeId:null,votes:{},voteRound:0};
+  const admin=memoryAdmin(run);
+  const first=await api(admin,'u0',{action:'pve.voteNextRoom',run_id:RUN_ID,expected_version:0,action_id:actionId(600),node_id:'a'});
+  assert.equal(first.body.run.phase,'MAP_VOTE');
+  const final=await api(admin,'u1',{action:'pve.voteNextRoom',run_id:RUN_ID,expected_version:1,action_id:actionId(601),node_id:'a'});
+  assert.equal(final.body.run.phase,'REST');
 });

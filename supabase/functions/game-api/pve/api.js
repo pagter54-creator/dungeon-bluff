@@ -48,7 +48,7 @@ export function buildInitialPveRun(bundle,{seed=null,depthCount=floorRoomCount(1
   run.chosenBossIds[1]=choose(run,Object.values(F1_MONSTER_DEFINITIONS).filter(def=>def.tier==='BOSS'),`f1-boss:${run.seed}`).id;
   installRelicCatalog(run,F1_RELIC_DEFINITIONS);
   run.map=generateFloorMap(run,Number.isInteger(depthCount)&&depthCount>=2&&depthCount<=12?depthCount:floorRoomCount(1));
-  run.map.voteDeadline=new Date(now+15000).toISOString();
+  run.map.voteDeadline=null;
   return run;
 }
 export function projectPveRunForUser(run,userId){
@@ -80,6 +80,7 @@ function captureRoomPresentationBaseline(run,id,type){
   };
 }
 function enterNode(run,id){
+  delete run.floorTransitionResult;
   const type=nodeType(run,id);
   captureRoomPresentationBaseline(run,id,type);run.currentRoomNodeId=id;run.phase='ROOM_ENTER';
   if(type==='NORMAL_COMBAT'||type==='ELITE_COMBAT'||type==='BOSS'){
@@ -93,11 +94,6 @@ function enterNode(run,id){
   else if(type==='REWARD_ROOM')enterRewardRoom(run);
   else if(type==='EVENT')enterEventRoom(run);
 }
-function enterForcedNode(run){
-  if(run.phase!=='MAP_VOTE'||connectedNodeIds(run.map).length!==1)return false;
-  enterNode(run,resolveVote(run,[]));
-  return true;
-}
 async function readRun(admin,runId,actionId=null){
   const {data,error}=await admin.rpc('pve_read',{p_run:runId,p_action_id:actionId});
   if(error)throw new Error('PVE 원정 상태를 읽지 못했습니다.');
@@ -110,14 +106,8 @@ async function commitRun(admin,run,expectedVersion,actionId){
 }
 async function maintainForRead(admin,run){
   if(run.entryLoading)return run;
-  let changed=enterForcedNode(run);
+  let changed=false;
   if(run.phase==='SHOP')changed=expireShopReservations(run)||changed;
-  if(run.phase==='MAP_VOTE'&&run.map?.voteDeadline&&Date.now()>=Date.parse(run.map.voteDeadline)){
-    const humans=run.players.filter(p=>p.memberType==='human').map(p=>p.playerId);
-    const chosen=resolveVote(run,humans);
-    enterNode(run,chosen);
-    changed=true;
-  }
   if(!changed)return run;
   run.updatedAt=new Date().toISOString();
   const saved=await commitRun(admin,run,run.version,crypto.randomUUID());
@@ -204,13 +194,10 @@ export async function handlePveAction({admin,user,body,json}){
     if(run.phase!=='MAP_VOTE')return fail(json,'현재는 다음 방 투표 단계가 아닙니다.');
     if(me.memberType!=='human')return fail(json,'AI는 맵 투표를 하지 않습니다.',403);
     const candidates=connectedNodeIds(run.map);
-    const timedOut=run.map.voteDeadline&&Date.now()>=Date.parse(run.map.voteDeadline);
     if(body.node_id!=null&&!candidates.includes(body.node_id))return fail(json,'연결된 다음 방만 투표할 수 있습니다.');
     if(body.node_id!=null)run.map.votes[me.playerId]=body.node_id;
     const humans=run.players.filter(p=>p.memberType==='human').map(p=>p.playerId);
-    const counts=Object.values(run.map.votes).reduce((m,id)=>(m[id]=(m[id]||0)+1,m),{});
-    const majority=Object.values(counts).some(n=>n>humans.length/2);
-    if(!enterForcedNode(run)&&(majority||timedOut)){const chosen=resolveVote(run,humans);enterNode(run,chosen);}
+    if(humans.length&&humans.every(id=>candidates.includes(run.map.votes[id]))){const chosen=resolveVote(run,humans);enterNode(run,chosen);}
   } else if(action==='pve.continueFloor'){
     if(run.phase!=='FLOOR_CLEAR'||![1,2].includes(run.floor))return fail(json,'지금은 다음 층으로 이동할 수 없습니다.');
     advanceCompletedFloor(run);
@@ -271,12 +258,11 @@ export async function handlePveAction({admin,user,body,json}){
     chooseRewardRelic(run,me.playerId,body.relic_id);
   } else if(action==='pve.roomReady'){
     roomReady(run,me.playerId);
-    enterForcedNode(run);
   } else return fail(json,'지원하지 않는 PVE action입니다.',400);
 
   run.updatedAt=new Date().toISOString();
   const saved=await commitRun(admin,run,body.expected_version,actionId);
-  if(saved.conflict)return json({error:'STATE_CONFLICT',run:projectRun(saved.state,me.playerId)},409);
+  if(saved.conflict){saved.state.version=saved.version;return json({error:'STATE_CONFLICT',run:projectRun(saved.state,me.playerId)},409);}
   const latest=saved.state;latest.version=saved.version;
   const settlement=await settleIfTerminal(admin,latest);
   return json({run:projectRun(latest,me.playerId),settlement,idempotent:Boolean(saved.duplicate)});

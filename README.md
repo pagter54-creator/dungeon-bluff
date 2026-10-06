@@ -198,6 +198,8 @@ DB 테스트는 테스트 전용 의존성 `@electric-sql/pglite`로 실제 Post
 
 이번 클라이언트 배포는 `src/` 전체를 교체하세요. 새 파일 `request-timeout.js`, `animation-wait.js`도 필요합니다. 서버와 방 만료 SQL은 연결된 Supabase에 적용했습니다. 브라우저 플레이 테스트는 수행하지 않았습니다.
 
+PVE 지도 투표·증강 팝업·전투 연출·제출 충돌 수정 내용은 [PVE 상호작용 안내](docs/PVE_INTERACTION_FIXES.md)를 참고하세요.
+
 ## 캐릭터 스킨 뽑기
 
 상점의 스킨 뽑기를 활성화했습니다. 10 Account Gold로 기본 스킨을 제외한 16종을 중복 없이 획득하고, 캐릭터별로 장착합니다. 뽑기·인벤토리는 전신 일러스트, 전투는 얼굴 크롭을 표시합니다. **src/ 전체와 skin image/ 전체**를 Pages에 업로드하세요. 서버 적용 상태와 상세 목록은 [스킨 업데이트 안내](docs/SKIN_UPDATE.md)에 있습니다.
