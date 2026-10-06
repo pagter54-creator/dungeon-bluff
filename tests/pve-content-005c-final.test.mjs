@@ -1,3 +1,4 @@
+import * as PV from '../supabase/functions/game-api/pve/prophet-vampire-rework.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -50,13 +51,8 @@ function turns(run,count){
   assert.equal(run.phase,'COMBAT');
   for(const p of run.players){
    const st=run.combat.privateByPlayer[p.playerId];
-   if(p.characterId==='prophet'&&!run.combat.turnSubmissions[p.playerId]&&p.publicResources.revelation>0){
-    if(p.augments.includes('aug-171'))activateImmediateCharacterSkill(run,p,{prediction:{type:'NO_COLLISION'}});
-    else if(p.augments.includes('aug-161')){
-     const target=run.players.find(q=>q.playerId!==p.playerId&&q.characterId!=='gambler'&&run.combat.privateByPlayer[q.playerId].spentCardIds.length);
-     if(target)activateImmediateCharacterSkill(run,p,{target_player_id:target.playerId,ally_number_delta:1});
-    }else if(st.spentCardIds.length)activateImmediateCharacterSkill(run,p);
-   }
+   const core=run.augmentFramework?.cardState?.[p.playerId+':pvCore'];
+   if(p.characterId==='prophet'&&!run.combat.turnSubmissions[p.playerId]&&p.publicResources.revelation>=(core?.discount?5:6)&&!core?.fragment&&!core?.fragmentPending)activateImmediateCharacterSkill(run,p);
    while(st.drawChoicePending)setGamblerDrawPreference(run,p,st,st.drawChoicePending==='AUG_230'?[1,3,5]:'LOW');
    if(!run.combat.turnSubmissions[p.playerId]){
     const selected=t===0&&p.characterId==='gunner'?st.remainingCardIds.at(-1):st.remainingCardIds[0];
@@ -178,18 +174,12 @@ test('005C FINAL Seer completed combat claims expire per owner before serial reu
  cleanupSeerCombat(run,run.players[0]);
  assert.equal(run.augmentFramework.seer.applied['p0:aug-169:revelation:1:valid-bonus'],undefined);
  assert.equal(run.augmentFramework.seer.applied['p1:aug-169:revelation:1:valid-bonus'],true);
- assert.equal(scopedSeerState(run,run.players[0]).activationSerial,0);
+ assert.deepEqual(scopedSeerState(run,run.players[0]).claims,{});
 });
 
-test('005C FINAL stale prediction cancels on origin combat/room change and cannot resolve in Event',()=>{
- for(const mode of ['COMBAT','ROOM','EVENT']){
-  const run=make(['prophet','imp','gambler','gunner']),p=run.players[0],s=scopedSeerState(run,p);
-  p.augments=['aug-171'];s.prediction={id:'stale',status:'ARMED',type:'NUMBER_VALID',number:1,targetTurn:run.combat.turn,originCombatId:run.combat.id,originRoomId:run.currentRoomNodeId};
-  if(mode==='COMBAT')run.combat.id='new';if(mode==='ROOM')run.currentRoomNodeId='new';if(mode==='EVENT')run.phase='EVENT';
-  const before=p.growthExp;
-  applySeerRuntime(run,'CARD_VALIDATED',{player:p,resolved:{valid:true,finalNumber:1},cards:[{playerId:p.playerId,valid:true,finalNumber:1}]});
-  assert.equal(s.prediction.status,'CANCELLED');assert.equal(s.foresight,0);assert.equal(p.growthExp,before);
- }
+test('005C FINAL Fragment and visibility receipts never enter a different combat',()=>{
+ const run=make(['prophet','imp','gambler','gunner']),p=run.players[0],s=scopedSeerState(run,p);s.fragment={value:7,createdTurn:1};s.visibilityHeldTurn=1;
+ run.combat.id='new-combat';const next=scopedSeerState(run,p);assert.equal(next.fragment,undefined);assert.equal(next.visibilityHeldTurn,undefined);assert.deepEqual(next.claims,{});
 });
 test('005C FINAL repeated 80 combats clear transient ledgers and retain only bounded diagnostics',()=>{
  const run=make(['prophet','imp','gambler','gunner']);
@@ -238,38 +228,15 @@ test('005C FINAL old partial Gunner snapshot fills missing fields and preserves 
  assert.deepEqual(projectRun(restored,'p0').privateGunnerState,s);
 });
 
-test('005C FINAL old partial Seer/Imp state fills prediction fields and arrays while preserving stacks',()=>{
- const run=make(['prophet','imp','gambler','gunner']);
- run.augmentFramework.cardState['p0:seer']={ownerId:'p0',foresight:2};
- run.augmentFramework.imp.state.p1={greed:3,excitement:2};
- const restored=structuredClone(run),s=scopedSeerState(restored,restored.players[0]),i=scopedImpState(restored,restored.players[1]);
- assert.equal(s.foresight,2);assert.equal(s.prediction,null);assert.deepEqual(s.predictionSuccessTypes,[]);assert.deepEqual(s.repeatedRecoveredNumbers,{});
- assert.equal(i.greed,3);assert.equal(i.excitement,2);assert.deepEqual(i.markedThisTurn,[]);assert.deepEqual(i.mischiefValidTurn,[]);
- assert.doesNotThrow(()=>applySeerRuntime(restored,'CARD_VALIDATED',{player:restored.players[0],resolved:{valid:true},cards:[]}));
+test('005C FINAL partial legacy Prophet state retires old recovery while Imp state survives',()=>{
+ const run=make(['prophet','imp','gambler','gunner']),p=run.players[0];run.augmentFramework.cardState['p0:seer']={foresight:2};const imp=scopedImpState(run,run.players[1]);imp.storedNumber=2;
+ cleanupSeerCombat(run,p);assert.equal(run.augmentFramework.cardState['p0:seer'],undefined);assert.equal(scopedImpState(run,run.players[1]).storedNumber,2);assert.deepEqual(scopedSeerState(run,p).claims,{});
 });
 
-test('005C FINAL user-confirmed Seer initial resource, activation outcomes, reconnect and next combat',()=>{
- for(const valid of [true,false]){
-  const run=make(['prophet','imp','gambler','gunner']),p=run.players[0];p.augments=[];
-  assert.equal(p.publicResources.revelation,1);assert.equal(p.publicResources.revelationMax,3);
-  activateImmediateCharacterSkill(run,p);assert.equal(p.publicResources.revelation,0);
-  const restored=structuredClone(run);beginTurn(restored);
-  assert.equal(restored.players[0].publicResources.revelation,0,'reconnect/beginTurn does not initialize again');
-  resolveSeerBaseValidity(run,p,{valid,invalidReason:valid?null:'COLLISION'});
-  assert.equal(p.publicResources.revelation,valid?1:0);
-  resolveSeerBaseValidity(run,p,{valid});assert.equal(p.publicResources.revelation,valid?1:0,'resolve retry is idempotent');
- }
- const run=make(['prophet','imp','gambler','gunner']),p=run.players[0];p.augments=[];
- resolveSeerBaseValidity(run,p,{valid:true});assert.equal(p.publicResources.revelation,1,'ordinary valid attack adds nothing');
- for(const previous of [0,1,2,3]){
-  p.publicResources.revelation=previous;cleanupSeerCombat(run,p);
-  run.combat=newCombatState(run.players,99999);beginTurn(run);
-  assert.equal(p.publicResources.revelation,1,'next combat replaces previous resource');
-  for(let retry=0;retry<3;retry++){beginTurn(run);applyOwnedEffects(run,'COMBAT_START',{player:p,events:[]});}
-  assert.equal(p.publicResources.revelation,1,'COMBAT_START retry never grants again');
- }
- for(const value of [0,2,3]){
-  p.publicResources.revelation=value;const restored=structuredClone(run);beginTurn(restored);
-  assert.equal(restored.players[0].publicResources.revelation,value,'authoritative reconnect value preserved');
- }
+test('005C FINAL replacement initial resource, collision gains, reconnect and fresh combat',()=>{
+ const run=make(['prophet','imp','gambler','gunner']),p=run.players[0];p.augments=[];assert.equal(p.publicResources.revelation,0);
+ const cards=[{playerId:'p0',finalNumber:0},{playerId:'p1',finalNumber:2},{playerId:'p2',finalNumber:2},{playerId:'p3',finalNumber:4}];PV.beforeCollision(run,cards);assert.equal(p.publicResources.revelation,2);PV.beforeCollision(run,cards);assert.equal(p.publicResources.revelation,2);
+ const restored=structuredClone(run);assert.deepEqual(projectRun(restored,'p0'),projectRun(run,'p0'));
+ p.publicResources.revelation=6;activateImmediateCharacterSkill(run,p);assert.equal(p.publicResources.revelation,0);PV.captureFragments(run,cards);assert.equal(scopedSeerState(run,p).fragment.value,4);
+ run.combat=newCombatState(run.players,999);assert.equal(p.publicResources.revelation,0);assert.equal(scopedSeerState(run,p).fragment,undefined);
 });

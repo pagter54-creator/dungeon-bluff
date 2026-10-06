@@ -1,3 +1,4 @@
+import {coreState as prophecyCoreState} from '../supabase/functions/game-api/pve/prophet-vampire-rework.js';
 import crypto from 'node:crypto';
 import {PVE_CHARACTER_DEFS,isCardSelectableForCharacter,activateImmediateCharacterSkill,PveSkillError,resolvePostCollisionEffects} from '../supabase/functions/game-api/pve/characters.js';
 import {AUGMENT_DEFINITIONS,AUGMENT_BY_ID} from '../supabase/functions/game-api/pve/augment-catalog.js';
@@ -659,7 +660,7 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
   const run=makeCombatRun(seed,{caseId,characterIds,augmentIdsByPlayer,flame,monsterDef});
   if(['resource_starvation','recovery','steady_recovery'].includes(policy)){
     const prophet=run.players.find(p=>p.characterId==='prophet');
-    if(prophet)prophet.publicResources.revelation=Math.min(resourceMax(prophet,'revelation',3),1);
+    if(prophet)prophet.publicResources.revelation=0;
   }
   let actions=0,resolves=0;
   const referenceTurns=[],numberMutationTurns=[],resourceTimeline=[],collisionTurns=[],sustainTurns=[],burstTurns=[],recoveryTurns=[];
@@ -733,11 +734,12 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
         const rec=records.get(p.playerId);
         if(decision.requestRevelation){
           const evt=activateImmediateCharacterSkill(run,p);actions++;
-          rec.skillRequested++;rec.skillAccepted++;rec.resourceSpent++;
+          rec.skillRequested++;rec.skillAccepted++;rec.resourceSpent+=6;
           rec.recoveredCardId=evt.recoveredCardId||null;
           view=projectRun(run,p.playerId);assertNoHiddenInfo(view,p.playerId);
-          const repeat=attemptT09InvalidProbe(run,p.playerId,{kind:'IMMEDIATE_SKILL',expectedCode:'INSUFFICIENT_RESOURCE'},turn);
-          actions++;rec.skillRequested++;rec.skillRejected++;rec.rejectReasons.push(repeat.rejectReason);
+          const resourceBeforeRetry=p.publicResources.revelation;
+          if(activateImmediateCharacterSkill(run,p)!==false||p.publicResources.revelation!==resourceBeforeRetry)fail('DUPLICATE_FRAGMENT_SPEND','same activation retry consumed resource',{playerId:p.playerId,turn});
+          actions++;rec.skillRequested++;
           decision=buildResourceStarvationDecision(view,p.playerId,{seed,contextKey});
         }
         submitCard(run,p.playerId,decision.cardInstanceId,false,null);actions++;
@@ -759,7 +761,7 @@ export function simulateCombat({seed,characterIds,augmentIdsByPlayer=[],monsterD
         const p=run.players.find(x=>x.playerId===action.playerId);
         if(!p||p.status==='DOWNED')continue;
         try{
-          if(action.kind==='FATE_MANIPULATOR')activateImmediateCharacterSkill(run,p,{target_player_id:action.targetPlayerId});
+          if(action.kind==='PAST_FRAGMENT')activateImmediateCharacterSkill(run,p);
           else if(action.kind==='ACROBATICS')activateImmediateCharacterSkill(run,p);
           actions++;assertRunInvariants(run);
         }catch(error){
@@ -1469,44 +1471,44 @@ export function runT09Fixtures(seed){
     cases.push({id:'F3_KNIGHT_TOUGHNESS_0',reject,toughnessAfterReject:0,turnAdvanced:run.combat.turn===2});
   }
   {
-    const run=t09Run(seed,'F4_SEER_ACTIVATION_VALID_GAIN'),seer=run.players[2];seer.publicResources.revelation=1;
+    const run=t09Run(seed,'F4_SEER_ACTIVATION_VALID_GAIN'),seer=run.players[2];seer.publicResources.revelation=6;
     submitT09(run,'p0',5);activateImmediateCharacterSkill(run,seer);
     submitT09(run,'p1',1);submitT09(run,'p2',4);submitT09(run,'p3',2);
     const result=resolveT09(run),seerCard=result.cards.find(x=>x.playerId==='p2');
-    cases.push({id:'F4_SEER_ACTIVATION_VALID_GAIN',gain:seerCard.revelationGained||0,revelation:seer.publicResources.revelation,valid:seerCard.valid});
+    cases.push({id:'F4_SEER_ACTIVATION_VALID_GAIN',gain:(result.events||[]).filter(e=>e.type==='PROPHET_REVELATION_GAINED'&&e.playerId==='p2').reduce((n,e)=>n+e.amount,0),revelation:seer.publicResources.revelation,valid:seerCard.valid});
   }
   {
-    const run=t09Run(seed,'F5_SEER_ACTIVATION_COLLISION_NO_GAIN'),seer=run.players[2];seer.publicResources.revelation=1;
+    const run=t09Run(seed,'F5_SEER_ACTIVATION_COLLISION_NO_GAIN'),seer=run.players[2];seer.publicResources.revelation=6;
     submitT09(run,'p1',1);activateImmediateCharacterSkill(run,seer);
     submitT09(run,'p0',5);submitT09(run,'p2',1);submitT09(run,'p3',2);
     const result=resolveT09(run),seerCard=result.cards.find(x=>x.playerId==='p2');
-    cases.push({id:'F5_SEER_ACTIVATION_COLLISION_NO_GAIN',gain:seerCard.revelationGained||0,revelation:seer.publicResources.revelation,valid:seerCard.valid});
+    cases.push({id:'F5_SEER_ACTIVATION_COLLISION_NO_GAIN',gain:(result.events||[]).filter(e=>e.type==='PROPHET_REVELATION_GAINED'&&e.playerId==='p2').reduce((n,e)=>n+e.amount,0),revelation:seer.publicResources.revelation,valid:seerCard.valid});
   }
   {
     const run=t09Run(seed,'F6_SEER_USE_RECOVERY'),seer=run.players[2],priv=run.combat.privateByPlayer.p2;
-    const recoverId=seer.cardPool.find(x=>x.baseNumber===5).id;
-    priv.remainingCardIds=priv.remainingCardIds.filter(id=>id!==recoverId);priv.spentCardIds=[recoverId];seer.publicResources.revelation=1;
+    const recoverId=seer.cardPool.find(x=>x.baseNumber===0).id;
+    priv.remainingCardIds=priv.remainingCardIds.filter(id=>id!==recoverId);priv.spentCardIds=[recoverId];seer.publicResources.revelation=6;
     submitT09(run,'p0',2);
     const evt=activateImmediateCharacterSkill(run,seer);
     const peek=structuredClone(priv.revelationPeek);
     submitT09(run,'p1',1);submitT09(run,'p2',4);submitT09(run,'p3',3);resolveT09(run);
-    cases.push({id:'F6_SEER_USE_RECOVERY',recoveredCardId:evt.recoveredCardId,expectedCardId:recoverId,revelationAfterUse:0,peek,ownershipStable:seer.cardPool.some(x=>x.id===recoverId)});
+    cases.push({id:'F6_SEER_USE_RECOVERY',fragmentCardId:recoverId,copiedValue:prophecyCoreState(run,seer).fragment.value,expectedCardId:recoverId,revelationAfterUse:0,peek,ownershipStable:seer.cardPool.some(x=>x.id===recoverId)});
   }
   {
     const run=t09Run(seed,'F7_SEER_USE_VALID_REGAIN'),seer=run.players[2],priv=run.combat.privateByPlayer.p2;
-    const recoverId=seer.cardPool.find(x=>x.baseNumber===5).id;
-    priv.remainingCardIds=priv.remainingCardIds.filter(id=>id!==recoverId);priv.spentCardIds=[recoverId];seer.publicResources.revelation=1;
+    const recoverId=seer.cardPool.find(x=>x.baseNumber===0).id;
+    priv.remainingCardIds=priv.remainingCardIds.filter(id=>id!==recoverId);priv.spentCardIds=[recoverId];seer.publicResources.revelation=6;
     submitT09(run,'p1',1);const evt=activateImmediateCharacterSkill(run,seer);
     submitT09(run,'p0',5);submitT09(run,'p2',4);submitT09(run,'p3',2);
     const result=resolveT09(run),seerCard=result.cards.find(x=>x.playerId==='p2');
-    cases.push({id:'F7_SEER_USE_VALID_REGAIN',recoveredCardId:evt.recoveredCardId,spent:1,gained:seerCard.revelationGained||0,revelation:seer.publicResources.revelation});
+    cases.push({id:'F7_SEER_USE_VALID_REGAIN',fragmentCardId:recoverId,spent:6,gained:seerCard.revelationGained||0,revelation:seer.publicResources.revelation});
   }
   {
     const run=t09Run(seed,'F8_SEER_NO_RECOVERY_TARGET'),seer=run.players[2],priv=run.combat.privateByPlayer.p2;
-    seer.publicResources.revelation=1;
+    seer.publicResources.revelation=6;
     submitT09(run,'p0',2);const evt=activateImmediateCharacterSkill(run,seer);
     submitT09(run,'p1',1);submitT09(run,'p2',4);submitT09(run,'p3',3);resolveT09(run);
-    cases.push({id:'F8_SEER_NO_RECOVERY_TARGET',recoveredCardId:evt.recoveredCardId,revelationAfterUse:0,spentCountBefore:0,peekTarget:evt.targetPlayerId});
+    cases.push({id:'F8_SEER_NO_RECOVERY_TARGET',fragmentCardId:seer.cardPool.find(c=>c.baseNumber===0).id,copiedValue:prophecyCoreState(run,seer).fragment.value,revelationAfterUse:0,spentCountBefore:0});
   }
   {
     const run=t09Run(seed,'F9_GUNNER_FINAL_CARD_CYCLE'),gunner=run.players[3],priv=run.combat.privateByPlayer.p3;

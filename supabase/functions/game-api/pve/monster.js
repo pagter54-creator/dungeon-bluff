@@ -1,4 +1,5 @@
 import {cadenceTemplate} from './monster-cadence.js';
+import {incomingCoreDamage,afterIncomingCoreDamage} from './prophet-vampire-rework.js';
 import {twinsIncomingProtection} from './twins-runtime.js';
 import {vampireIncomingProtection} from './vampire-runtime.js';
 import {choose} from './rng.js';
@@ -81,7 +82,7 @@ export function applyMonsterDamage(run,originalPlayer,amount,damageType,{damageE
   const incomingDamage={amount:rawDamage};
   const beforeEffects=incomingDamage.amount;
   if(damageType==='DIRECT')consumeDirectDamageReduction(run,player,incomingDamage);
-  vampireIncomingProtection(player,incomingDamage,damageType);
+  incomingCoreDamage(run,player,incomingDamage,damageType);
   twinsIncomingProtection(player,incomingDamage,damageType);
   modifyImpIncomingDamage(run,player,incomingDamage,damageType,id);
   applyOwnedEffects(run,'BEFORE_PLAYER_DAMAGE',{player,incomingDamage,damageType,damageEventId:id,events,redirectedFrom:redirect.redirected?originalPlayer.playerId:null,redirectSource:redirect.redirectSource||null,sourceAugmentId:redirect.redirected?(redirect.redirectSource===player.playerId?'GUARDIAN_REDIRECT':null):null});
@@ -104,6 +105,7 @@ export function applyMonsterDamage(run,originalPlayer,amount,damageType,{damageE
       ...(blocked>0?[{type:'ARMOR',amount:blocked}]:[])
     ]
   });
+  afterIncomingCoreDamage(run,player,events.at(-1),events);
   applyOwnedEffects(run,'PLAYER_DAMAGED',{player,damage:{amount:actual},damageType,damageEventId:id,events,hpBefore,hpAfter:player.hp,redirectedFrom:redirect.redirected?originalPlayer.playerId:null,redirectSource:redirect.redirectSource||null});
   onMonsterPlayerDamagedCharacter(player,{damageType,actualDamage:actual,events});
   if(player.hp>=1)c.pendingDownPlayerIds=c.pendingDownPlayerIds.filter(pid=>pid!==player.playerId);

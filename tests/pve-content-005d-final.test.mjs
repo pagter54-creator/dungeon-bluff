@@ -1,3 +1,4 @@
+import * as PV from '../supabase/functions/game-api/pve/prophet-vampire-rework.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/pve/model.js';
@@ -75,7 +76,7 @@ test('005D FINAL retry and reconnect never duplicate Devour transform pool Reser
  const run=fixture(['demon_swordsman','vampire','twins','adventurer'],[ids(351),ids(301),ids(381),[]]),p=run.players[0];
  ghostGain(run,p,7,[],{rootActionId:'same',reason:'fixture'});ghostGain(run,p,7,[],{rootActionId:'same',reason:'fixture'});assert.equal(p.publicResources.devour,7);
  activateImmediateCharacterSkill(run,p);const pool=p.cardPool.map(c=>c.id),fuel=p.publicResources.devour;assert.throws(()=>activateImmediateCharacterSkill(run,p),/이미/);assert.deepEqual(p.cardPool.map(c=>c.id),pool);assert.equal(p.publicResources.devour,fuel);
- const s=vampireState(run,run.players[1]);s.reserve={source:'fixture'};const own=projectRun(run,'p1'),other=projectRun(run,'p2');assert.equal(own.privateVampireState.commandReserve,true);assert.equal(other.privateVampireState,undefined);
+ const s=vampireState(run,run.players[1]);s.echo={targetId:'p2',expiresTurn:run.combat.turn+1};const own=projectRun(run,'p1'),other=projectRun(run,'p2');assert.equal(own.privateVampireState.echo.targetId,'p2');assert.equal(other.privateVampireState,undefined);
  const clone=structuredClone(run);assert.deepEqual(projectRun(run,'p0'),projectRun(clone,'p0'));assert.equal(clone.players[2].publicResources.parity,run.players[2].publicResources.parity);
 });
 for(const killed of [false,true])test('005D FINAL new-class Flame0 full wipe '+(killed?'boss-kill failure priority':'normal failure'),()=>{
@@ -108,10 +109,10 @@ test('005D FINAL D01 aug287 owner collision reservation is consumed once',()=>{
 });
 test('005D FINAL D02 two Vampires independently mark the same ally and consume only their own',()=>{
  const run=fixture(['vampire','vampire','adventurer','adventurer']);run.players[2].score=9;
- const cards=run.players.map((p,i)=>({playerId:p.playerId,cardInstanceId:p.cardPool[0].id,workingNumber:i+1,valid:false,invalidReason:'COLLISION'}));
+ const cards=run.players.map((p,i)=>({playerId:p.playerId,cardInstanceId:p.cardPool[0].id,workingNumber:[4,5,1,3][i],finalNumber:[4,5,1,3][i],valid:true}));
  assignVampireMarks(run,cards,new Map([[1,cards]]));const a=vampireState(run,run.players[0]),b=vampireState(run,run.players[1]);
  assert.equal(a.mark.ownerVampireId,'p0');assert.equal(b.mark.ownerVampireId,'p1');assert.equal(a.mark.thrallPlayerId,'p2');assert.equal(b.mark.thrallPlayerId,'p2');
- const other=structuredClone(b.mark);performVampireSwap(run,run.players[0],cards[0],cards[2],cards);assert.equal(a.mark,null);assert.deepEqual(b.mark,other);
+ const other=structuredClone(b.mark);performVampireSwap(run,run.players[0],cards[0],cards[2],cards);assert.equal(a.mark,undefined);assert.deepEqual(b.mark,other);
 });
 test('005D FINAL D03 Devour overflow carry and same root retry preserve independent Slash level',()=>{
  const run=fixture(['demon_swordsman','adventurer','adventurer','adventurer']),p=run.players[0];p.publicResources.devour=7;const level=p.publicResources.ghostSlashLevel;
@@ -124,20 +125,17 @@ test('005D FINAL D04 printed parity accepts subsequent Vampire FINAL parity chan
  for(const [i,q] of run.players.entries())submitCard(run,q.playerId,q.cardPool.find(c=>c.baseNumber===i+1).id,i===1);
  const rc=resolveBasicTurn(run).cards.find(c=>c.playerId==='p0');assert.equal(rc.baseNumber,1);assert.equal(rc.finalNumber,2);assert.equal(rc.valid,true);
 });
-test('005D FINAL D05 Command Reserve retains fresh mark once and Dominance caps4 once',()=>{
- const run=fixture(['vampire','adventurer','adventurer','adventurer'],[['aug-303','aug-308'],[],[],[]]),p=run.players[0],s=vampireState(run,p);
- s.reserve={source:'aug-303',earnedSequence:0};p.publicResources.thrallPlayerId='p1';
- const cards=run.players.map((q,i)=>({playerId:q.playerId,cardInstanceId:q.cardPool[0].id,workingNumber:i+1,valid:true}));
- performVampireSwap(run,p,cards[0],cards[1],cards);assert.equal(s.mark.retentionUsed,true);assert.equal(s.reserve,null);
- for(let t=2;t<=4;t++){run.combat.turn=t;cards[0].cardInstanceId=p.cardPool[(t-1)%p.cardPool.length].id;p.publicResources.thrallPlayerId='p1';performVampireSwap(run,p,cards[0],cards[1],cards);}
- assert.equal(p.publicResources.dominance,4);assert.equal(s.dominanceFour,true);assert.equal(s.reserve?.source,'aug-308');
- run.combat.turn=5;cards[0].cardInstanceId=p.cardPool[4%p.cardPool.length].id;p.publicResources.thrallPlayerId='p1';performVampireSwap(run,p,cards[0],cards[1],cards);assert.equal(s.reserve,null);assert.equal(s.mark.retentionUsed,true);assert.equal(p.publicResources.dominance,4);
+test('005D FINAL replacement Dominance consumes prior stacks before same-turn fresh gain',()=>{
+ const run=fixture(['vampire','adventurer','adventurer','adventurer'],[['aug-301','aug-302','aug-308'],[],[],[]]),p=run.players[0];
+ const cards=run.players.map((q,i)=>({playerId:q.playerId,cardInstanceId:q.cardPool[0].id,workingNumber:i+1,finalNumber:i+1,valid:true}));
+ p.publicResources.thrallPlayerId='p1';p.publicResources.dominance=3;performVampireSwap(run,p,cards[0],cards[1],cards);cards.forEach(c=>c.finalNumber=c.workingNumber);PV.afterValidity(run,cards);
+ assert.equal(cards[0].vampireBonus,3);assert.equal(p.publicResources.dominance,2);assert.equal(p.publicResources.thrallPlayerId,'p1');const before=structuredClone(p.publicResources);PV.afterValidity(run,cards);assert.deepEqual(p.publicResources,before);
 });
-test('005D FINAL D06 aug307 protects command owner only and only once per Combat',()=>{
- const run=fixture(['vampire','adventurer','adventurer','adventurer'],[['aug-307'],[],[],[]]);
- const a={playerId:'p0',cardInstanceId:'p0:base:1',bloodCommandUsed:true,valid:false,invalidReason:'COLLISION'},b={playerId:'p1',valid:false,invalidReason:'COLLISION'};
- protectVampireCollision(run,[a,b]);assert.equal(a.valid,true);assert.equal(b.valid,false);
- run.combat.turn++;a.valid=false;a.invalidReason='COLLISION';protectVampireCollision(run,[a,b]);assert.equal(a.valid,false);
+test('005D FINAL replacement aug307 buffs next command instead of collision immunity',()=>{
+ const run=fixture(['vampire','adventurer','adventurer','adventurer'],[['aug-307'],[],[],[]]),p=run.players[0];
+ const cards=run.players.map((q,i)=>({playerId:q.playerId,cardInstanceId:q.cardPool[0].id,workingNumber:i+1,finalNumber:i+1,valid:true}));
+ PV.afterValidity(run,cards);assert.equal(PV.coreState(run,p).swapBonus,1);
+ run.combat.turn++;performVampireSwap(run,p,cards[0],cards[1],cards);cards[0].valid=false;cards[0].invalidReason='COLLISION';protectVampireCollision(run,cards);assert.equal(cards[0].valid,false);assert.equal(PV.coreState(run,p).swapBonus,0);
 });
 test('005D FINAL D07 transformation requires manual selection activation and new physical pool',()=>{
  const run=fixture(['demon_swordsman','adventurer','adventurer','adventurer'],[['aug-351'],[],[],[]]),p=run.players[0],old=p.cardPool.map(c=>c.id);

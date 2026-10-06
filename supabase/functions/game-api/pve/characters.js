@@ -1,3 +1,5 @@
+import {PROPHET_CARD_POOL} from '../prophet-vampire-core.js';
+import {chooseThrall} from './prophet-vampire-rework.js';
 import {twinsTurnStart,twinsTurnEnd,activateTwins,cleanupTwins} from './twins-runtime.js';
 import {ghostGain,ghostTurnEnd,activateGhostTransformation,ghostCycleExit,cleanupGhost} from './ghost-runtime.js';
 import {cleanupVampire} from './vampire-runtime.js';
@@ -23,7 +25,7 @@ export const PVE_CHARACTER_DEFS={
   berserker:{deck:[1,2,4,4,5],skillId:null},
   vampire:{deck:[1,2,3,4,5],skillId:'blood_command'},
   imp:{deck:[1,2,3,4,5],skillId:'steal'},
-  prophet:{deck:[1,2,3,4,5],skillId:'revelation'},
+  prophet:{deck:[...PROPHET_CARD_POOL],skillId:'revelation'},
   gunner:{deck:[1,2,3],skillId:'full_burst'},
   gambler:{deck:[...GAMBLER_BASE_DECK],skillId:'random_hand'},
   martial_artist:{deck:[1,2,3,4,5],skillId:'one_hit_kill'},
@@ -162,8 +164,8 @@ export function activateImmediateCharacterSkill(run,player,skillData=null){
   if(player.status==='DOWNED')rejectSkill('INVALID_PHASE','쓰러진 플레이어는 스킬을 사용할 수 없습니다.');
   if(c.turnSubmissions[player.playerId])rejectSkill('ALREADY_USED','카드 확정 제출 이후에는 이번 턴 즉시 스킬을 사용할 수 없습니다.');
   const priv=c.privateByPlayer[player.playerId];
-  if(player.characterId==='vampire')rejectSkill('INVALID_PHASE','피의 명령은 카드 제출 시 사용하며 수혈은 자동 처리됩니다.');
-  if(player.characterId==='prophet')return activateSeerImmediateSkill(run,player,skillData);
+  if(player.characterId==='vampire'){if(skillData?.thrallTargetId)return chooseThrall(run,player,skillData.thrallTargetId);rejectSkill('INVALID_PHASE','피의 명령은 카드 제출 시 사용하며 수혈은 자동 처리됩니다.');}
+  if(player.characterId==='prophet'){try{return activateSeerImmediateSkill(run,player,skillData);}catch(error){if(error.message==='계시가 부족합니다.')rejectSkill('INSUFFICIENT_RESOURCE',error.message);if(error.message==='이미 과거의 편린을 보유하고 있습니다.')rejectSkill('ALREADY_USED',error.message);throw error;}}
   if(player.characterId==='demon_swordsman'&&player.augments.includes('aug-351'))return activateGhostTransformation(run,player);
   if(player.characterId!=='twins')rejectSkill('SKILL_NOT_READY','즉시 발동할 수 있는 PVE 스킬이 아닙니다.');
   return activateTwins(run,player);

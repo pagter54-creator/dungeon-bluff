@@ -31,7 +31,7 @@ function activeSkillAvailable(player){
   if(player.characterId==='vampire')return Boolean(r.thrallPlayerId);
   if(player.characterId==='demon_swordsman')return player.augments?.includes('aug-351')?Boolean(r.transformationPending)&&!r.transformationActive:r.ghostSlashReady!==false;
   if(player.characterId==='twins')return Boolean(r.acrobaticsReady);
-  if(player.characterId==='prophet')return (r.revelationStacks||r.revelation||0)>0;
+  if(player.characterId==='prophet')return (r.revelation||0)>=6;
   return false;
 }
 function runtimeState(player){
@@ -75,11 +75,11 @@ export function pveGameplayPlayers(bundle,run,{scope='combat'}={}){
       cycleIndex:cycle.cycleIndex||1,
       cycleCards:(cycle.cards||[]).map((card,index)=>({
         id:card.id||physical[index]?.id||`pve-public:${p.playerId}:${cycle.cycleIndex||1}:${index}`,
-        slot:index,value:card.baseNumber,used:Boolean(card.used)
+        slot:index,value:card.displayNumber??card.baseNumber,used:Boolean(card.used),fragment:p.characterId==='prophet'&&card.baseNumber===0&&(card.displayNumber??0)!==0
       })),
       skillId:rewardSkillSupported?rawSkillId:'',
       skillType:rewardSkillSupported?(character?.definition?.skill?.type||'passive'):'passive',
-      characterRuntimeState:runtimeState(p),
+      characterRuntimeState:{...runtimeState(p),...(p.playerId===run.privateCombat?.playerId&&p.characterId==='prophet'?{prophetCore:run.privateProphetState,fragmentCost:run.privateProphetState?.cost||6}:{}),...(p.playerId===run.privateCombat?.playerId&&p.characterId==='vampire'?{thrallChoice:run.privateVampireState?.thrallChoice,echo:run.privateVampireState?.echo}:{})},
       ...(p.characterId==='gambler'&&p.gamblerDeck?{gamblerDeck:p.gamblerDeck}:{}),
       activeSkillState:{available:rewardSkillSupported&&activeSkillAvailable(p)}
     };
@@ -93,7 +93,7 @@ export function pveGameplayBundle(bundle,run,{scope='combat'}={}){
   const category=roomType==='BOSS'?'boss':roomType.includes('COMBAT')?'monster':'event';
   return {
     ...bundle,
-    privateState:{},
+    privateState:{revealedCards:run.privateRevelation?.revealedCards||[]},
     session:{
       id:run.id,turn_index:run.combat?.turn||1,
       state:{

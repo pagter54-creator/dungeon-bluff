@@ -64,41 +64,42 @@ test('T09 F3 Knight Toughness 0 is rejected and normal submission still advances
   assert.equal(f.turnAdvanced,true);
 });
 
-test('T09 F4 Prophet activation-turn valid refunds Revelation 0 to 1',()=>{
+test('T09 F4 Prophet activation-turn valid does not refund Revelation',()=>{
   const f=byId(cases(),'F4_SEER_ACTIVATION_VALID_GAIN');
-  assert.equal(f.gain,1);
-  assert.equal(f.revelation,1);
+  assert.equal(f.gain,0);
+  assert.equal(f.revelation,0);
   assert.equal(f.valid,true);
 });
 
-test('T09 F5 Prophet activation-turn collision gains no Revelation',()=>{
+test('T09 F5 Prophet collision gains Revelation from participating players',()=>{
   const f=byId(cases(),'F5_SEER_ACTIVATION_COLLISION_NO_GAIN');
-  assert.equal(f.gain,0);
-  assert.equal(f.revelation,0);
+  assert.equal(f.gain,2);
+  assert.equal(f.revelation,2);
   assert.equal(f.valid,false);
 });
 
-test('T09 F6 Revelation consumes one and deterministically recovers an existing physical card',()=>{
+test('T09 F6 Fragment consumes six and reactivates physical zero with highest other final number',()=>{
   const f=byId(cases(),'F6_SEER_USE_RECOVERY');
-  assert.equal(f.recoveredCardId,f.expectedCardId);
+  assert.equal(f.fragmentCardId,f.expectedCardId);
+  assert.equal(f.copiedValue,3);
   assert.equal(f.revelationAfterUse,0);
   assert.equal(f.ownershipStable,true);
   assert.equal(f.peek,undefined);
 });
 
-test('T09 F7 Revelation use regains one only from same-turn valid result',()=>{
+test('T09 F7 Fragment activation has no valid-only resource refund',()=>{
   const f=byId(cases(),'F7_SEER_USE_VALID_REGAIN');
-  assert.equal(f.spent,1);
-  assert.equal(f.gained,1);
-  assert.equal(f.revelation,1);
+  assert.equal(f.spent,6);
+  assert.equal(f.gained,0);
+  assert.equal(f.revelation,0);
 });
 
-test('T09 F8 Revelation with no spent card still succeeds and recovery is a no-op',()=>{
+test('T09 F8 Fragment with unused zero still copies the other final value',()=>{
   const f=byId(cases(),'F8_SEER_NO_RECOVERY_TARGET');
-  assert.equal(f.recoveredCardId,null);
+  assert.ok(f.fragmentCardId);
+  assert.equal(f.copiedValue,3);
   assert.equal(f.revelationAfterUse,0);
   assert.equal(f.spentCountBefore,0);
-  assert.equal(f.peekTarget,null);
 });
 
 test('T09 F9 Gunner final card consumption starts exactly one new 1/2/3 cycle',()=>{
@@ -142,7 +143,7 @@ test('T09 fixtures are deterministic for the same seed',()=>{
 });
 
 test('T09 semantic golden locks fixtures and the full compact resource timeline',()=>{
-  const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/pve-stress-t09-golden.json',import.meta.url),'utf8'));
+  const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/pve-stress-t09-core-rework-golden.json',import.meta.url),'utf8'));
   const result=replayScenario('T09','smoke:T09:0000');
   const canonical=value=>{
     const copy=structuredClone(value);
@@ -169,13 +170,13 @@ test('T09 stress metrics exercise rejection, cycle reset, Revelation, and Full B
   const validGain=r.fixtures.find(x=>x.id==='F4_SEER_ACTIVATION_VALID_GAIN');
   const collisionNoGain=r.fixtures.find(x=>x.id==='F5_SEER_ACTIVATION_COLLISION_NO_GAIN');
   const validRegain=r.fixtures.find(x=>x.id==='F7_SEER_USE_VALID_REGAIN');
-  assert.equal(validGain?.gain,1);
-  assert.equal(validGain?.revelation,1);
-  assert.equal(collisionNoGain?.gain,0);
-  assert.equal(collisionNoGain?.revelation,0);
-  assert.equal(validRegain?.spent,1);
-  assert.equal(validRegain?.gained,1);
-  assert.equal(validRegain?.revelation,1);
+  assert.equal(validGain?.gain,0);
+  assert.equal(validGain?.revelation,0);
+  assert.equal(collisionNoGain?.gain,2);
+  assert.equal(collisionNoGain?.revelation,2);
+  assert.equal(validRegain?.spent,6);
+  assert.equal(validRegain?.gained,0);
+  assert.equal(validRegain?.revelation,0);
   assert.ok(r.resourceMetrics.fullBurstSuccess+r.resourceMetrics.fullBurstFailure>0);
   assert.equal(r.resourceMetrics.negativeResourceOccurrence,0);
   assert.equal(r.resourceMetrics.resourceOverCapOccurrence,0);
@@ -190,7 +191,7 @@ function makePeekRun(){
   const monster={id:'peek-dummy',name:'Peek Dummy',tier:'NORMAL',baseHp:999,pattern:[{type:'CHARGE',telegraphText:'fixture',payload:{}}]};
   const run={id:'peek-run',roomId:'r',seed:'peek-seed',rngCounter:0,version:0,phase:'COMBAT',floor:1,depth:1,flame:4,maxFlame:5,currentRoomNodeId:'peek-node',players,map:{nodes:[],edges:{}},usedMonsterIds:[],chosenBossIds:{}};
   run.combat=newCombatState(players,999,'NORMAL_COMBAT',monster);beginTurn(run);
-  players[2].publicResources.revelation=1;
+  players[2].publicResources.revelation=6;
   const warriorCard=players[0].cardPool.find(card=>card.baseNumber===2);
   submitCard(run,'p0',warriorCard.id,false);
   return run;

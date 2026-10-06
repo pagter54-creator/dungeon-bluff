@@ -120,10 +120,11 @@ test('F2-B01 corruption compares each player own last valid final number',()=>{
   assert.equal(run.combat.monster.behaviorState.corruptionByPlayer.p0,0);
   assert.ok(run.combat.monster.behaviorState.pendingHits.includes('p0'));
 });
-for(const [phase,values,expected] of [['MIN',[9,10,11],[false,true,true]],['MAX',[6,7,8],[true,true,false]]])test(`F2-B02 ${phase} exact threshold boundaries`,()=>{
+for(const [phase,values,expected] of [['MIN',[9,10,11],[false,true,true]],['MAX',[7,8,9],[true,true,false]]])test(`F2-B02 ${phase} exact threshold boundaries`,()=>{
   for(let i=0;i<values.length;i++){
     const run=make('f2_moon_eating_witch');run.combat.turn=phase==='MIN'?1:2;publishMonsterIntent(run);
-    recordMonsterDamageBatch(run,values[i]);
+    if(phase==='MAX')applyMonsterCardRules(run,cards([1,2,values[i]-3,0]),[]);
+    recordMonsterDamageBatch(run,phase==='MAX'?99:values[i]);
     assert.equal(run.combat.monster.behaviorState.thresholdPassed,expected[i]);
     const before=run.players.map(p=>p.hp);
     resolveF2AfterDamage(run,[],damage);

@@ -20,11 +20,11 @@ test('T06 is ACTIVE and the full eight-scenario suite has no SKIP',()=>{
 });
 
 test('T06 locks canonical Tier-I recovery-loop character decks and BETA configs',()=>{
-  assert.deepEqual(PVE_CHARACTER_DEFS.prophet.deck,[1,2,3,4,5]);
+  assert.deepEqual(PVE_CHARACTER_DEFS.prophet.deck,[0,1,2,3,4]);
   assert.deepEqual(PVE_CHARACTER_DEFS.gunner.deck,[1,2,3]);
   assert.deepEqual(PVE_CHARACTER_DEFS.twins.deck,[1,2,3,4]);
   assert.deepEqual(PVE_CHARACTER_DEFS.demon_swordsman.deck,[1,2,3,4,4]);
-  assert.deepEqual(AUGMENT_BY_ID['aug-161'].config,{recoverCount:1,targetMode:'EXPLICIT_ALLY',recoverableSources:['BASE'],excludeTemporary:true});
+  assert.equal(AUGMENT_BY_ID['aug-161'].executable,true);
   assert.deepEqual(AUGMENT_BY_ID['aug-241'].config,{expandedDeck:[1,2,2,3]});
   assert.deepEqual(AUGMENT_BY_ID['aug-381'].config,{rechargeValidAttacks:3,postAcrobaticsFirstValidBonusDamage:2});
   assert.deepEqual(AUGMENT_BY_ID['aug-331'].config,{extraDevourOnValidGhostSlash:1,levelThreshold:8});
@@ -37,7 +37,7 @@ test('T06 F1-F26 cover recovery, cycle reset, Full Burst, Acrobatics, Ghost Slas
   const r=run();
   assert.equal(r.fixtures.length,26);
   assert.deepEqual(r.fixtures.map(x=>x.id),[
-    'F1_SEER_ALLY_RECOVERY','F2_NO_CARD_DUPLICATION','F3_RECOVERY_NO_AUTO_USE','F4_RECOVERED_CARD_NORMAL_REUSE',
+    'F1_FRAMEWORK_ALLY_RECOVERY','F2_NO_CARD_DUPLICATION','F3_RECOVERY_NO_AUTO_USE','F4_RECOVERED_CARD_NORMAL_REUSE',
     'F5_SAME_CARD_SECOND_RECOVERY','F6_FULL_BURST_RESET','F7_FULL_BURST_THEN_RECOVERY_BOUNDARY','F8_RECOVERY_FULL_BURST_BOUNDARY',
     'F9_NEW_CYCLE_EXCLUDED_FROM_OLD_BURST','F10_TWINS_BASE_PARITY','F11_TWINS_ACROBATICS_RESET','F12_ACROBATICS_NO_DUPLICATION',
     'F13_ACROBATICS_RECHARGE_REJECTION','F14_RECOVERY_BEFORE_ACROBATICS','F15_ACROBATICS_BEFORE_RECOVERY','F16_GHOST_SLASH_REACTIVATION',
@@ -45,7 +45,7 @@ test('T06 F1-F26 cover recovery, cycle reset, Full Burst, Acrobatics, Ghost Slas
     'F21_RECOVERY_RESET_RECOVERY','F22_SAME_ROOT_ACTION_CHAIN_BOUND','F23_CARD_OWNERSHIP_INVARIANT','F24_COMBAT_END_CLEANUP',
     'F25_DETERMINISTIC_RECOVERED_CARD','F26_ACTION_CEILING_TRAP'
   ]);
-  const f1=fixture(r,'F1_SEER_ALLY_RECOVERY');assert.equal(f1.recovery.fromZone,'SPENT');assert.equal(f1.recovery.toZone,'REMAINING');assert.equal(f1.recovery.cardInstanceId,f1.cardId);assert.equal(f1.recovery.actorId,'p0');assert.equal(f1.recovery.targetPlayerId,'p1');
+  const f1=fixture(r,'F1_FRAMEWORK_ALLY_RECOVERY');assert.equal(f1.recovery.fromZone,'SPENT');assert.equal(f1.recovery.toZone,'REMAINING');assert.equal(f1.recovery.cardInstanceId,f1.cardId);assert.equal(f1.recovery.actorId,'p0');assert.equal(f1.recovery.targetPlayerId,'p1');
   assert.equal(fixture(r,'F2_NO_CARD_DUPLICATION').zoneCardCount,4);
   const f3=fixture(r,'F3_RECOVERY_NO_AUTO_USE');assert.equal(f3.monsterHpBefore,f3.monsterHpAfter);
   const f4=fixture(r,'F4_RECOVERED_CARD_NORMAL_REUSE');assert.ok(f4.zones.p1.spent.includes(f4.cardId));
@@ -63,7 +63,7 @@ test('T06 F1-F26 cover recovery, cycle reset, Full Burst, Acrobatics, Ghost Slas
   const f17=fixture(r,'F17_NO_AUTO_GHOST_SLASH');assert.equal(f17.result.events.filter(e=>e.type==='GHOST_SLASH_USED').length,0);assert.equal(f17.result.packets.filter(p=>p.sourcePlayerId==='p3').length,1);
   assert.equal(fixture(r,'F18_GHOST_SLASH_NEXT_ACTION_REUSE').result.events.filter(e=>e.type==='GHOST_SLASH_USED').length,1);
   const f19=fixture(r,'F19_NO_REACTIVATION_RECURSION');assert.equal(f19.result.events.filter(e=>e.type==='GHOST_SLASH_USED').length,1);assert.equal(f19.result.events.filter(e=>e.type==='GHOST_SLASH_REACTIVATED').length,1);assert.equal(f19.result.packets.filter(p=>p.sourcePlayerId==='p3').length,1);
-  const f20=fixture(r,'F20_FULL_MIXED_RECOVERY_CHAIN');for(const type of ['FATE_MANIPULATOR_USED','CARD_RECOVERED','ACROBATICS_USED','GHOST_SLASH_LEVEL_UP','GHOST_SLASH_REACTIVATED'])assert.ok(f20.orderedTypes.includes(type),type);
+  const f20=fixture(r,'F20_FULL_MIXED_RECOVERY_CHAIN');assert.equal(f20.orderedTypes.includes('FATE_MANIPULATOR_USED'),false);for(const type of ['CARD_RECOVERED','ACROBATICS_USED','GHOST_SLASH_LEVEL_UP','GHOST_SLASH_REACTIVATED'])assert.ok(f20.orderedTypes.includes(type),type);
   const f21=fixture(r,'F21_RECOVERY_RESET_RECOVERY');assert.notEqual(f21.firstRoot,f21.secondRoot);
   const f22=fixture(r,'F22_SAME_ROOT_ACTION_CHAIN_BOUND');assert.ok(f22.maxDepth<=4);assert.ok(f22.maxDerived<=24);
   const f23=fixture(r,'F23_CARD_OWNERSHIP_INVARIANT');assert.equal(f23.ownerId,'p1');
@@ -73,28 +73,11 @@ test('T06 F1-F26 cover recovery, cycle reset, Full Burst, Acrobatics, Ghost Slas
 });
 
 test('T06 fixed semantic golden fingerprint is deterministic',()=>{
-  const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/pve-stress-t06-golden.json',import.meta.url),'utf8'));
+  const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/pve-stress-t06-core-rework-golden.json',import.meta.url),'utf8'));
   const r=replayScenario('T06',golden.seed);
   const current=t06GoldenComparable(r);
-  // USER_CONFIRMED_005C_FINAL_PATCH / SEER_COMBAT_START_REVELATION_1.
-  // Preserve the immutable historical golden and prove that ONLY these five
-  // untouched-Seer initial-resource observations changed from0 to1.
-  const bootstrapOnly=new Set([
-    'F6_FULL_BURST_RESET','F11_TWINS_ACROBATICS_RESET','F16_GHOST_SLASH_REACTIVATION',
-    'F18_GHOST_SLASH_NEXT_ACTION_REUSE','F19_NO_REACTIVATION_RECURSION'
-  ]);
-  const historical=structuredClone(current);
-  assert.equal(historical.fixtures.filter(f=>bootstrapOnly.has(f.id)).length,5);
-  for(const f of historical.fixtures)if(bootstrapOnly.has(f.id)){
-    assert.equal(f.resources.p0.revelation,1,f.id+' confirmed initial resource');
-    f.resources.p0.revelation=0;
-  }
-  const modern=JSON.parse(fs.readFileSync(new URL('./fixtures/pve-stress-t06-005d-golden.json',import.meta.url),'utf8'));
- const restore=(rows,observations,ownerField,owner)=>{const plain=rows.filter(r=>r[ownerField]!==owner),stored=new Map(observations.map(x=>[x.i,x.p]));return Array.from({length:plain.length+stored.size},(_,i)=>stored.has(i)?stored.get(i):plain.shift());};
-  for(const row of historical.fixtures){const prior=modern.historicalGhostObservations[row.id];if(prior){row.resources.p3=prior.resources;row.events=restore(row.events,prior.events,'playerId','p3');}}
-  assert.equal(semanticFingerprint(historical),golden.fingerprint,'all non-Ghost/non-bootstrap semantics equal immutable historical golden');
-  assert.equal(semanticFingerprint(current),modern.fingerprint,'DESIGN-D remainder and user confirmed bootstrap');
-
+  assert.deepEqual(current,golden.comparable);
+  assert.equal(semanticFingerprint(current),golden.fingerprint);
   const b=replayScenario('T06',golden.seed);
   assert.equal(r.replayFingerprint,b.replayFingerprint);
   assert.deepEqual(t06GoldenComparable(r),t06GoldenComparable(b));
@@ -104,7 +87,7 @@ test('T06 stress metrics keep recovery chains finite and compare Recovery vs Ste
   const r=run(),m=r.recoveryMetrics,c=r.comparison;
   assert.equal(r.status,'PASS');assert.equal(r.combats.length,3);assert.deepEqual(r.combats.map(x=>x.roomType),['NORMAL_COMBAT','ELITE_COMBAT','BOSS']);
   for(const k of ['duplicatePhysicalCardViolations','invalidZoneTransitions','actionCeilingHits','recursiveRecoveryAttempts','recursiveCycleResetAttempts','recursiveSkillReactivationAttempts','deterministicReplayMismatch'])assert.equal(m[k],0,k);
-  assert.ok(m.maxRecoveryChainDepth<=4);assert.ok(m.maxDerivedEventsPerRootAction<=24);assert.ok(m.totalCardRecoveries>0);assert.ok(m.allyCardRecoveries>0);assert.ok(m.cycleResets>0);assert.ok(m.fullBurstCycleResets>0);assert.ok(m.acrobaticsCycleResets>0);assert.ok(m.ghostSlashReactivations>0);
+  assert.ok(m.maxRecoveryChainDepth<=4);assert.ok(m.maxDerivedEventsPerRootAction<=24);assert.equal(m.allyCardRecoveries,0,'Prophet no longer recovers ally cards');assert.ok(r.fixtures.some(f=>f.recovery?.applied),'generic RECOVER_CARD remains verified');assert.ok(m.cycleResets>0);assert.ok(m.fullBurstCycleResets>0);assert.ok(m.acrobaticsCycleResets>0);assert.ok(m.ghostSlashReactivations>0);
   for(const k of ['recoveryDpt','steadyDpt','dptRatio','recoveryTurns','steadyTurns','recoveryCardReuseRatio','steadyCardReuseRatio'])assert.ok(Number.isFinite(c[k]),k);
 });
 

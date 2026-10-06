@@ -53,7 +53,7 @@ for(const [partyName,classes,equipped] of [
     }
     if(run.phase==='COMBAT'){
       if(run.floor===1&&!reconnects.includes('F1_COMBAT')){run=await call(admin,'getState',0);reconnects.push('F1_COMBAT');}
-      if(run.privateCombat.spentCardIds.length&&run.players[0].publicResources.revelation>0){
+      if(run.players[0].publicResources.revelation>=(run.privateProphetState?.cost||6)&&!run.privateProphetState?.fragment&&!run.privateProphetState?.fragmentPending){
         run=await call(admin,'activateSkill',n++);revelationActivations++;
       }
       run=await call(admin,'submitCard',n++,{card_instance_id:legal(run)});continue;
@@ -67,7 +67,7 @@ for(const [partyName,classes,equipped] of [
     if(run.phase==='FLOOR_CLEAR'){run=await call(admin,'continueFloor',n++);continue;}
     assert.fail('unhandled phase '+run.phase);
   }
-  assert.equal(run.phase,'RUN_CLEAR');assert.deepEqual(floors,[1,2,3]);assert.deepEqual(reconnects,['F1_COMBAT','F3_MAP_ENTRY']);assert.ok(revelationActivations>0,'actual Seer recovery activated during expedition');
+  assert.equal(run.phase,'RUN_CLEAR');assert.deepEqual(floors,[1,2,3]);assert.deepEqual(reconnects,['F1_COMBAT','F3_MAP_ENTRY']);assert.ok(revelationActivations>0,'actual Past Fragment activated during expedition');
   assert.ok(admin.state.augmentFramework.telemetry.some(row=>row.augmentId==='aug-151'&&row.successCount>0),'real recovered-card augment fired during expedition');
   for(const [i,ids] of equipped.entries())for(const id of ids)assert.ok(admin.state.players[i].augments.includes(id),id);
 });

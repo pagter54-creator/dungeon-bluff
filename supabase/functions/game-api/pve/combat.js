@@ -1,4 +1,5 @@
 import {applyParityBellPenalty} from './parity-bell.js';
+import {prepareFragmentCards,captureFragments,beforeCollision,derivedProphetPackets,consumeFragment,resetProphecyCycle,fragmentRandomEligible} from './prophet-vampire-rework.js';
 import {describeMonsterPattern,describeResolvedSkills} from './presentation.js';
 import {twinsResolve,twinsAfterSpend,twinsCycleComplete,twinsAfterHpDamage} from './twins-runtime.js';
 import {ghostResolve,ghostPostDamage} from './ghost-runtime.js';
@@ -43,6 +44,14 @@ function selectableIds(run,player){
 }
 function resetCycleIfNeeded(run,player,events=[],meta={}){
   const priv=run.combat.privateByPlayer[player.playerId];
+  if(player.characterId==='prophet'){
+    const previousCycleId=priv.cycleIndex||1,remainingBefore=[...priv.remainingCardIds],spentBefore=[...priv.spentCardIds];
+    if(resetProphecyCycle(run,player,priv,()=>{applyOwnedEffects(run,'CYCLE_END',{player,privateState:priv,events});cleanupAugmentScope(run,'CYCLE',{playerId:player.playerId});})){
+      onCycleStartCharacter(player,priv);
+      events.push({type:'CYCLE_RESET',playerId:player.playerId,classId:player.characterId,turn:run.combat.turn,previousCycleId,nextCycleId:priv.cycleIndex,remainingBefore,spentBefore,remainingAfter:[...priv.remainingCardIds],spentAfter:[],resetReason:player.augments?.includes('aug-169')?'PROPHET_NORMAL_POOL_EXHAUSTION':'NATURAL_EXHAUSTION',rootActionId:meta.rootActionId||null});
+      return true;
+    }
+  }
   if(priv.remainingCardIds.length)return false;
   if(player.characterId==='gambler'){drawGamblerHand(run,player,priv);return true;}
   if(handleCycleExhaustedCharacter(player,priv,run,events))return true;
@@ -72,11 +81,13 @@ function spendResolvedCards(run,cards,events=[]){
       continue;
     }
     if(player.characterId==='gunner'&&rc.skillUsed==='full_burst'&&gunnerState(run,player).burstActions?.['action:'+run.combat.id+':'+run.combat.turn+':'+player.playerId+':'+rc.cardInstanceId]?.completed)continue;
+    consumeFragment(run,player,rc);
     const consume=[rc.cardInstanceId,...(rc.followUpCardIds||[])];
     for(const id of consume){
       priv.remainingCardIds=priv.remainingCardIds.filter(x=>x!==id);
       if(!priv.spentCardIds.includes(id))priv.spentCardIds.push(id);
     }
+    if(player.characterId==='prophet'&&!rc.isPastFragment){const st=run.augmentFramework?.cardState?.[player.playerId+':pvCore'];if(st?.fragment?.createdTurn===run.combat.turn&&rc.cardInstanceId===st.zeroCardId){priv.spentCardIds=priv.spentCardIds.filter(id=>id!==st.zeroCardId);if(!priv.remainingCardIds.includes(st.zeroCardId))priv.remainingCardIds.push(st.zeroCardId);}}
     delete priv.selectedCardId;delete priv.skillIntent;
     if(run.combat.turnSubmissions[rc.playerId]?.autoSubmitted&&player.status==='STUNNED_NEXT_TURN')player.status='ACTIVE';
     const rootActionId=`action:${run.combat.id}:${run.combat.turn}:${rc.playerId}:${rc.cardInstanceId}`;
@@ -125,7 +136,10 @@ function autoSubmitStunned(run){
     if(c.turnSubmissions[p.playerId])continue;
     const priv=c.privateByPlayer[p.playerId];
     if(!priv.remainingCardIds.length)resetCycleIfNeeded(run,p);
-    const choices=selectableIds(run,p);
+    const selectable=selectableIds(run,p);
+    const protectedChoices=selectable.filter(id=>fragmentRandomEligible(run,p,id));
+    // USER_CONFIRMED: if no other card exists, stun must submit the protected Fragment.
+    const choices=protectedChoices.length?protectedChoices:selectable;
     if(!choices.length)throw new Error('기절 자동 제출에 사용할 카드가 없습니다.');
     const cardId=choose(run,choices,`stunned-auto:${run.floor}:${run.depth}:${run.currentRoomNodeId||c.monster.id}:${c.turn}:${p.playerId}`);
     c.turnSubmissions[p.playerId]={playerId:p.playerId,cardInstanceId:cardId,skillIntent:false,submittedAt:new Date().toISOString(),autoSubmitted:true};
@@ -167,7 +181,7 @@ function autoSubmitAi(run){
     if(c.turnSubmissions[p.playerId])continue;
     const priv=c.privateByPlayer[p.playerId];
     if(!priv.remainingCardIds.length)resetCycleIfNeeded(run,p);
-    const choices=selectableIds(run,p);
+    const choices=selectableIds(run,p).filter(id=>fragmentRandomEligible(run,p,id));
     if(!choices.length)throw new Error('AI가 제출할 수 있는 합법 카드가 없습니다.');
     const plans=choices.map(id=>aiPlan(run,p,priv,id));
     let pool=plans.filter(plan=>!usedAiNumbers.has(plan.finalNumber));
@@ -223,6 +237,7 @@ export function resolveBasicTurn(run){
     return {playerId:pid,cardInstanceId:card.id,baseNumber:card.baseNumber,workingNumber:card.baseNumber,finalNumber:card.baseNumber,collisionImmune:false,valid:true};
   });
   const mutationEvents=[],events=[...(c.pendingSkillEvents||[])];c.pendingSkillEvents=[];
+  prepareFragmentCards(run,cards);
   initializeNumberHistories(cards);
   for(const rc of cards){const p=playerFor(run,rc.playerId);if(p?.characterId==='gambler')prepareGamblerAllIn(run,p,c.privateByPlayer[p.playerId],c.turnSubmissions[p.playerId],rc);}
   c.phase='PRE_COLLISION_SELF_MODIFY';phaseTrace.push(c.phase);
@@ -230,19 +245,19 @@ export function resolveBasicTurn(run){
   recordSelfModification(cards,mutationEvents);
   c.phase='PRE_COLLISION_SWAP';phaseTrace.push(c.phase);for(const rc of cards)applyOwnedEffects(run,'PRE_COLLISION',{player:playerFor(run,rc.playerId),resolved:rc,events});applyPreCollisionSwap(run,cards,mutationEvents);
   c.phase='PRE_COLLISION_STEAL';phaseTrace.push(c.phase);applyPreCollisionSteal(run,cards,mutationEvents);
-  c.phase='FINAL_NUMBER_REVEAL';phaseTrace.push(c.phase);finalizeNumbers(cards);for(const rc of cards)applyOwnedEffects(run,'POST_REVEAL',{player:playerFor(run,rc.playerId),resolved:rc,events});
+  c.phase='FINAL_NUMBER_REVEAL';phaseTrace.push(c.phase);finalizeNumbers(cards);captureFragments(run,cards,events);for(const rc of cards)applyOwnedEffects(run,'POST_REVEAL',{player:playerFor(run,rc.playerId),resolved:rc,events});
   c.phase='COLLISION_RESOLVE';phaseTrace.push(c.phase);
   for(const rc of cards)rc.collisionImmune=collisionImmunity(playerFor(run,rc.playerId),c.turnSubmissions[rc.playerId]);
   let groups=new Map();for(const rc of cards){const a=groups.get(rc.finalNumber)||[];a.push(rc);groups.set(rc.finalNumber,a);}
   groups=applyMageCollisionCorrection(run,cards,groups,events);
-  attachCollisionGroups(run,cards,groups);
+  attachCollisionGroups(run,cards,groups);beforeCollision(run,cards,events,groups);
   for(const group of groups.values()){
     if(group.length>1)for(const rc of group)if(!rc.collisionImmune){rc.valid=false;rc.invalidReason='COLLISION';}
   }
   prepareMartialCollision(run,cards,events);
   protectVampireCollision(run,cards,events);
   resolveGuardianWallCollisions(run,cards,groups,events);
-  assignVampireThralls(run,cards,groups,events);
+
   c.phase='POST_COLLISION_EFFECTS';phaseTrace.push(c.phase);
   const processedCollisionEventIds=new Set();
   const collisionGroups=resolvePostCollisionEffects(run,cards,groups,events,mutationEvents,processedCollisionEventIds);for(const rc of cards)applyOwnedEffects(run,'POST_COLLISION',{player:playerFor(run,rc.playerId),resolved:rc,submission:c.turnSubmissions[rc.playerId],privateState:c.privateByPlayer[rc.playerId],events});
@@ -251,7 +266,7 @@ export function resolveBasicTurn(run){
   const lowestCards=validCards.filter(x=>x.finalNumber===lowestNumber);
   for(const rc of cards)rc.soloLowest=Boolean(rc.valid&&lowestCards.length===1&&lowestCards[0]===rc);
   for(const rc of cards){const p=playerFor(run,rc.playerId);applyOwnedEffects(run,'CARD_VALIDATED',{player:p,resolved:rc,cards,events});applyImpCardValidated(run,{player:p,resolved:rc,cards,events});if(p.characterId==='gambler')applyGamblerValidated(run,p,c.privateByPlayer[p.playerId],rc);resolvePostCollisionCharacter(run,rc,c.turnSubmissions[rc.playerId],events);}
-  attachValidity(cards);
+  attachValidity(cards);c._pvCards=cards;
   for(const rc of cards){const p=playerFor(run,rc.playerId);if(p?.characterId==='gambler')finalizeGamblerAllIn(run,p,c.privateByPlayer[p.playerId],rc);}
   applyMonsterCardRules(run,cards,events);
   resolveVampireValidity(run,cards,events);
@@ -323,6 +338,7 @@ export function resolveBasicTurn(run){
     }
   }
   for(const rc of cards){const p=playerFor(run,rc.playerId);if(p.characterId==='gunner'&&rc.skillUsed==='full_burst'){markGunnerBurstPhase(run,p,rc,'REMAINING_CARD_USE');markGunnerBurstPhase(run,p,rc,'DAMAGE_RESOLUTION');}}
+  packets.push(...derivedProphetPackets(run,cards));
   c.monster.defense=0;
   c.phase='DAMAGE_BATCH_APPLY';phaseTrace.push(c.phase);
   const totalDamage=packets.reduce((s,p)=>s+p.amount,0);
@@ -343,7 +359,7 @@ export function resolveBasicTurn(run){
     const validOwners=new Set(cards.filter(card=>card.valid).map(card=>card.playerId));
     const expByPlayer=new Map();
     for(const packet of packets){
-      if(!validOwners.has(packet.sourcePlayerId))continue;
+      if(packet.derived||!validOwners.has(packet.sourcePlayerId))continue;
       const amount=Math.max(0,Number(packet.amount)||0);
       if(!Number.isSafeInteger(amount))throw new Error('INVALID_ATTACK_EXP_AMOUNT');
       expByPlayer.set(packet.sourcePlayerId,(expByPlayer.get(packet.sourcePlayerId)||0)+amount);

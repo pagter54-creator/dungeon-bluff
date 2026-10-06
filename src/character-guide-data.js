@@ -47,8 +47,9 @@ export const CHARACTER_CATALOG = {
         "id": "blood_command",
         "name": "흡혈의 낙인 · 피의 명령",
         "type": "hybrid",
-        "description": "카드가 겹치면 최고 점수의 상대 한 명에게 권속 표식. 권속의 선택을 보고, 피의 명령으로 중복 판정 전에 두 카드의 최종 숫자를 교환합니다."
-      }
+        "description": "본인의 카드가 유효 통과하고 권속이 없으면 다른 생존 플레이어 중 가장 낮은 최종 숫자로 유효 통과한 한 명을 권속으로 만듭니다(동점 무작위). 피의 명령으로 중복 판정 전에 카드 숫자를 교환하고 표식을 소비합니다. 교환 턴에도 유효 통과하면 새 권속을 얻을 수 있습니다."
+      },
+      "balanceRevision": 6
     }
   },
   "demonsword": {
@@ -269,11 +270,11 @@ export const CHARACTER_CATALOG = {
     "id": "seer",
     "display_name": "예언가",
     "deck": [
+      0,
       1,
       2,
       3,
-      4,
-      5
+      4
     ],
     "enabled": true,
     "definition": {
@@ -287,9 +288,9 @@ export const CHARACTER_CATALOG = {
         "id": "revelation",
         "name": "계시",
         "type": "hybrid",
-        "description": "계시는 최대 3입니다. 확정 제출 전까지(카드를 골랐더라도) 계시 1을 소비해 현재 사이클의 사용 카드 1장을 같은 physical card로 복구합니다. 계시를 사용한 턴에 정상 통과하면 계시 1을 얻고, 충돌하면 얻지 않습니다. READY 아군의 선택 정보를 확인하는 효과는 예언가 본인에게만 공개됩니다."
+        "description": "계시는 0에서 시작하며 최종 숫자 충돌에 참여한 인원 수만큼 획득합니다(최대 6). 계시 3 이상이면 다른 생존 플레이어 전원의 제출 완료된 원래 숫자를 본인만 봅니다. 확정 제출 전 계시 6을 소비해 과거의 편린을 생성합니다. 이번 턴 다른 플레이어의 가장 높은 최종 숫자를 0 카드에 저장하고 다음 행동부터 사용하며, 사용 후 다음 사이클에는 0으로 복원됩니다."
       },
-      "balanceRevision": 5
+      "balanceRevision": 6
     }
   },
   "imp": {

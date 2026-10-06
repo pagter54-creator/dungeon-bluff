@@ -1,3 +1,4 @@
+import {armPastFragment,revelationVisible} from './prophet-vampire-core.js';
 import {syncCardViews} from './characters.js';
 import { bossPublicTargets } from './boss-patterns.js';
 // Hooks are keyed by skill, not character. New definitions can reuse any handler.
@@ -89,18 +90,7 @@ export function resolveClashSkills({ players, cards, effects, turnIndex, stageSc
     }
   }
 }
-export function resolveRevelationValidity(player,card,effects,turnIndex){
-  if(player?.skillId!=='revelation'||player.knockedOut||player.characterRuntimeState.revelationUsedTurn!==turnIndex)return 0;
-  const runtime=player.characterRuntimeState;
-  if(runtime.revelationResolvedTurn===turnIndex)return 0;
-  runtime.revelationResolvedTurn=turnIndex;
-  if(!card?.valid)return 0;
-  const before=runtime.revelationStacks||0;
-  runtime.revelationStacks=Math.min(3,before+1);
-  const gained=runtime.revelationStacks-before;
-  if(gained)effects.push({type:'skill',skillId:'revelation',phase:'valid',memberId:player.memberId,stacks:runtime.revelationStacks,label:'계시 · 정상 통과 +1'});
-  return gained;
-}
+export function resolveRevelationValidity(){return 0;}
 
 export function resolveTurnEndSkills(players, turnIndex) {
   for (const p of Object.values(players)) {
@@ -110,23 +100,16 @@ export function resolveTurnEndSkills(players, turnIndex) {
     }
     if (p.skillId === 'revelation') {
       if (p.characterRuntimeState.revelationUsedTurn <= turnIndex) delete p.characterRuntimeState.revelationUsedTurn;
-      p.activeSkillState.available = (p.characterRuntimeState.revelationStacks || 0) >= 1;
+      p.activeSkillState.available = (p.characterRuntimeState.revelationStacks || 0) >= 6 && !p.characterRuntimeState.prophetCore?.fragment && !p.characterRuntimeState.prophetCore?.fragmentPending;
     }
   }
 }
-export function activateRevelation(session, player, rng=Math.random) {
-  if (player.skillId !== 'revelation' || player.knockedOut) throw new Error('계시를 사용할 수 없습니다.');
-  const runtime = player.characterRuntimeState;
-  if (runtime.revelationUsedTurn === session.turn_index) return false;
-  if ((runtime.revelationStacks || 0) < 1) throw new Error('계시 1칸이 필요합니다.');
-  runtime.revelationStacks = Math.max(0,(runtime.revelationStacks||0)-1);
-  const used=player.cycleCards.filter(c=>c.used);
-  delete runtime.restoredCardId;
-  if(used.length){const restored=used[Math.floor(rng()*used.length)];restored.used=false;runtime.restoredCardId=restored.id;syncCardViews(player);}
-  runtime.revelationUsedTurn = session.turn_index;
-  delete runtime.revealTargets;delete runtime.revealExpiresTurn;
-  player.activeSkillState.available = false;
-  return true;
+export function activateRevelation(session,player){
+ if(player.skillId!=='revelation'||player.knockedOut)throw new Error('과거의 편린을 사용할 수 없습니다.');
+ const r=player.characterRuntimeState,state=r.prophetCore;
+ state.revelation=r.revelationStacks||0;
+ const applied=armPastFragment(state,{actionId:`fragment:${session.id}:${session.turn_index}:${player.memberId}`});
+ r.revelationStacks=state.revelation;player.activeSkillState.available=false;return applied;
 }
 export function privateKnowledge(session, memberId, submissions) {
   const player = session?.state.players[memberId];
@@ -134,8 +117,10 @@ export function privateKnowledge(session, memberId, submissions) {
   const publicTargets=bossPublicTargets(session);
   const thrall=player?.skillId==='blood_command'?player.characterRuntimeState.thrallId:null;
   const vampireTargets=thrall&&!session.state.players[thrall]?.knockedOut?[thrall]:[];
-  const targets=[...new Set([...publicTargets,...vampireTargets])];
-  return { revealTargets:targets, ...(publicTargets.length?{publicRevealTargets:publicTargets}:{}), revealedCards: submissions.filter(s => s.turn_index === session.turn_index && targets.includes(s.member_id)).map(s => ({ memberId: s.member_id, value: s.card_value })) };
+  const prophetTargets=player?.skillId==='revelation'&&revelationVisible({revelation:player.characterRuntimeState.revelationStacks})
+    ?Object.keys(session.state.players).filter(id=>id!==memberId&&!session.state.players[id].knockedOut):[];
+  const targets=[...new Set([...publicTargets,...vampireTargets,...prophetTargets])];
+  return { revealTargets:targets, ...(publicTargets.length?{publicRevealTargets:publicTargets}:{}), revealedCards: submissions.filter(s => s.turn_index === session.turn_index && targets.includes(s.member_id)).map(s => ({ memberId: s.member_id, value: prophetTargets.includes(s.member_id)?session.state.players[s.member_id].cycleCards.find(c=>c.id===s.card_id)?.value??s.card_value:s.card_value })) };
 }
 
 // A reservation is local until submission. The server validates and charges once during resolution.

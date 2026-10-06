@@ -50,9 +50,10 @@ test('T05 F2 Vampire swaps post-self-modify numbers without transferring physica
   );
 });
 
-test('T05 Vampire base marks highest-growth collision target with seat order tie-break',()=>{
-  const f=byId(fixtureSet(),'F3_IMP_MULTI_STEAL');
-  const mark=f.combatEvents.find(x=>x.type==='THRALL_MARKED');
+test('T05 Vampire marks lowest other VALID final number and never collision-invalid players',()=>{
+  const rows=fixtureSet();assert.equal(byId(rows,'F3_IMP_MULTI_STEAL').combatEvents.some(x=>x.type==='VAMPIRE_THRALL_CREATED'),false);
+  const f=byId(rows,'F7_STEAL_REMOVES_COLLISION');
+  const mark=f.combatEvents.find(x=>x.type==='VAMPIRE_THRALL_CREATED');
   assert.ok(mark);
   assert.equal(mark.playerId,'p1');
   assert.equal(mark.targetId,'p0');

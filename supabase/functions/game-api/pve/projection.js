@@ -1,6 +1,18 @@
+import {coreState} from './prophet-vampire-rework.js';
+import {revelationVisible} from '../prophet-vampire-core.js';
 import {projectAugmentFramework} from './augment-framework.js';
 export function projectRun(run,viewerPlayerId){
   const out=structuredClone(run);
+  const owner=run.players.find(p=>p.playerId===viewerPlayerId),state=run.phase==='COMBAT'?run.combat:run.roomState;
+  const core=run.augmentFramework?.cardState?.[viewerPlayerId+':pvCore'];
+  if(owner?.characterId==='prophet'){
+    const threshold=owner.augments?.includes('aug-158')?2:3;
+    out.privateProphetState={fragment:core?.fragment?structuredClone(core.fragment):null,fragmentPending:Boolean(core?.fragmentPending),zeroState:core?.zeroState||'ZERO',cost:core?.discount?5:6,threshold};
+    const visible=owner.status!=='DOWNED'&&revelationVisible({revelation:owner.publicResources.revelation,visibilityHeldTurn:core?.visibilityHeldTurn},{threshold,turn:state?.turn});
+    out.privateRevelation={active:visible,revealedCards:visible?Object.entries(state?.turnSubmissions||{}).filter(([id])=>id!==viewerPlayerId&&run.players.some(p=>p.playerId===id&&p.status!=='DOWNED')).map(([id,sub])=>({memberId:id,value:run.players.find(p=>p.playerId===id).cardPool.find(c=>c.id===sub.cardInstanceId)?.baseNumber})):[]};
+  }
+  if(owner?.characterId==='vampire'&&core){out.privateVampireState={thrallChoice:core.thrallChoice?structuredClone(core.thrallChoice):null,echo:core.echo&&core.echo.expiresTurn>=(state?.turn||0)?structuredClone(core.echo):null};}
+
   const publicFramework=projectAugmentFramework(run,viewerPlayerId);
   const opportunity=Object.entries(run.augmentFramework?.relicOpportunities||{}).find(([,x])=>x.playerId===viewerPlayerId&&x.status==='PENDING');
   if(opportunity)out.privateRelicOpportunity={id:opportunity[0],candidateIds:[...opportunity[1].candidateIds]};
@@ -17,7 +29,7 @@ export function projectRun(run,viewerPlayerId){
   const ghost=run.augmentFramework?.cardState?.[viewerPlayerId+':ghost'];
   if(ghost&&run.players.find(p=>p.playerId===viewerPlayerId)?.characterId==='demon_swordsman')out.privateGhostState={transformationReady:Boolean(run.players.find(p=>p.playerId===viewerPlayerId)?.publicResources.transformationPending)};
   const vampire=run.augmentFramework?.cardState?.[viewerPlayerId+':vampire'];
-  if(vampire&&run.players.find(p=>p.playerId===viewerPlayerId)?.characterId==='vampire')out.privateVampireState={commandReserve:Boolean(vampire.reserve)};
+  
   const twins=run.augmentFramework?.cardState?.[viewerPlayerId+':twins'];
   if(twins&&run.players.find(p=>p.playerId===viewerPlayerId)?.characterId==='twins')out.privateTwinsState={validStreak:twins.streak,postAcrobaticsAttempts:twins.postAttempts,postAcrobaticsAllValid:twins.postAll};
   delete out.augmentFramework;
@@ -67,7 +79,7 @@ export function projectRun(run,viewerPlayerId){
       return [player.playerId,{cycleIndex:state.cycleIndex||1,cards:(state.remainingCardIds||[]).map(()=>({baseNumber:null,used:false}))}];
     }
     const remaining=new Set(state.remainingCardIds||[]);
-    return [player.playerId,{cycleIndex:state.cycleIndex||1,cards:(player.cardPool||[]).map(card=>({baseNumber:card.baseNumber,used:!remaining.has(card.id)}))}];
+    return [player.playerId,{cycleIndex:state.cycleIndex||1,cards:(player.cardPool||[]).map(card=>({baseNumber:card.baseNumber,...(player.characterId==='prophet'&&card.baseNumber===0&&run.augmentFramework?.cardState?.[player.playerId+':pvCore']?.fragment?{displayNumber:run.augmentFramework.cardState[player.playerId+':pvCore'].fragment.value}:{}),used:!remaining.has(card.id)}))}];
   }));
   out.publicCardCycles=publicCycles(run.cardCycles);
   if(out.combat)out.combat.publicCardCycles=publicCycles(run.combat?.privateByPlayer);
@@ -103,6 +115,7 @@ export function projectRun(run,viewerPlayerId){
       delete card.dominanceBonus;
     }
   }
+  if(out.combat)delete out.combat._pvCards;
   if(out.combat?.privateByPlayer){
     const own=out.combat.privateByPlayer[viewerPlayerId]||null;
     delete out.combat.privateByPlayer;

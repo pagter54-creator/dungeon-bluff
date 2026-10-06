@@ -33,7 +33,7 @@ export function adaptiveRuleSummary(run){
  case 'F2_GROWTH':return `파티 피해 ${x} 미만이면 성장 +1 · 성장 2 이상이면 단일 공격 피해 +1 후 초기화`;
  case 'F2_HYDRA':return `서로 다른 유효 숫자 ${x}종 이상이면 머리 1개 제거 · 머리 2개 이상이면 단일 공격 피해 +1`;
  case 'F2_CHAOS':return `혼돈: 홀수/낮은 숫자 또는 유효 숫자 합 ${x} 이상 · 실패 시 기존 약화/반격`;
- case 'F2_MOON':return `만월 파티 피해 ${x} 이상 · 신월 ${k.maximumDamage} 이하 · 실패 시 표적 피해 1`;
+ case 'F2_MOON':return `만월 이번 턴 총 피해 ${x} 이상 · 신월 유효 카드 숫자 합 ${({0:3,1:3,2:5,3:7,4:8})[Math.min(4,getPatternContributors(run).length)]} 이하 · 실패 시 표적 피해 1`;
  case 'F3_TAX':return `유효 숫자 합 ${x} 미만이면 공개 표적 Run Gold 최대 1 징수`;
  case 'F3_CHOIR':return `서로 다른 유효 숫자 ${x}종 미만이면 전원 피해 1`;
  case 'F3_EXECUTION':return `${k.length}턴 유효 공격 ${x}회면 처형 취소 · 실패 시 공개 표적 피해 2`;

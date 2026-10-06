@@ -31,7 +31,7 @@ export function buildRecoveryIntent(view,playerId){
     remainingCount:remainingIds.size,spentCount:(view.privateCombat?.spentCardIds||[]).length,
     cycleIndex:view.privateCombat?.cycleIndex||1,
     publicResources:structuredClone(p.publicResources||{}),
-    fateCandidates:p.characterId==='prophet'?publicSpentCandidates(view,playerId):[]
+    fragmentOccupied:Boolean(view.privateProphetState?.fragment||view.privateProphetState?.fragmentPending),fateCandidates:[]
   };
 }
 function effectiveNumbers(intent,requestAcrobatics){
@@ -45,13 +45,8 @@ export function planRecoveryTurn(intents,{seed='t06',contextKey='turn',turn=1,op
   const prophet=byClass('prophet'),gunner=byClass('gunner'),twins=byClass('twins'),demon=byClass('demon_swordsman');
   const requestAcrobatics=Boolean(twins?.publicResources?.acrobaticsReady&&(optimized?twins.spentCount>=1:twins.spentCount>=3));
   const acroFirst=Boolean(optimized&&requestAcrobatics&&turn%2===0);
-  let fateTargetPlayerId=null;
-  if(prophet&&(Number(prophet.publicResources?.revelation)||0)>0){
-    const candidates=(prophet.fateCandidates||[]).filter(x=>!(acroFirst&&x.characterId==='twins'));
-    fateTargetPlayerId=candidates[0]?.playerId||null;
-  }
   const immediateActions=[];
-  const fateAction=fateTargetPlayerId?{kind:'FATE_MANIPULATOR',playerId:prophet.playerId,targetPlayerId:fateTargetPlayerId}:null;
+  const fateAction=prophet&&(Number(prophet.publicResources?.revelation)||0)>=6&&!prophet.fragmentOccupied?{kind:'PAST_FRAGMENT',playerId:prophet.playerId}:null;
   const acroAction=requestAcrobatics?{kind:'ACROBATICS',playerId:twins.playerId}:null;
   if(acroFirst){if(acroAction)immediateActions.push(acroAction);if(fateAction)immediateActions.push(fateAction);}
   else{if(fateAction)immediateActions.push(fateAction);if(acroAction)immediateActions.push(acroAction);}
@@ -69,7 +64,7 @@ export function planRecoveryTurn(intents,{seed='t06',contextKey='turn',turn=1,op
   }
 
   let revelationCollisionTargetId=null;
-  if(optimized&&prophet&&(Number(prophet.publicResources?.revelation)||0)<1){
+  if(optimized&&prophet&&(Number(prophet.publicResources?.revelation)||0)<6){
     const candidates=[demon,twins,gunner].filter(Boolean);
     for(const target of candidates){
       const pNums=effectiveNumbers(prophet,false),tNums=effectiveNumbers(target,requestAcrobatics&&target===twins);

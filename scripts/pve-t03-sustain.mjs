@@ -1,7 +1,7 @@
 
 import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/pve/model.js';
 import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-api/pve/combat.js';
-import {vampirePreDown} from '../supabase/functions/game-api/pve/vampire-runtime.js';
+import {afterIncomingCoreDamage} from '../supabase/functions/game-api/pve/prophet-vampire-rework.js';
 import {applyMonsterDamage} from '../supabase/functions/game-api/pve/monster.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 import {F1_RELIC_DEFINITIONS} from '../supabase/functions/game-api/pve/content-f1.js';
@@ -35,7 +35,7 @@ function viewCard(run,pid,number,fail){
 }
 function submit(run,pid,number,fail,skillIntent=false,skillData=null){const card=viewCard(run,pid,number,fail);submitCard(run,pid,card.id,skillIntent,skillData);return card.id;}
 function resolve(run,fail){const result=resolveBasicTurn(run);if(!result)hard(fail,'SOFTLOCK','T03 fixture did not resolve');return result;}
-function autoTransfuse(run,damageEvents=[]){const events=[...damageEvents];vampirePreDown(run,[],events);return events;}
+function autoTransfuse(run,damageEvents=[]){const events=[];for(const e of damageEvents){const p=run.players.find(p=>p.playerId===e.playerId);if(p&&e.type==='PLAYER_DAMAGED')afterIncomingCoreDamage(run,p,e,events);}return events;}
 const transfusion=events=>events.find(e=>e.type==='TRANSFUSION_USED')||null;
 const cardsById=result=>Object.fromEntries((result.cards||[]).map(c=>[c.playerId,c]));
 const eventsOf=(result,type)=>(result?.events||[]).filter(e=>e.type===type);
@@ -76,15 +76,15 @@ export function runT03Fixtures(seed,fail){
     if(before!==after||transfusion(directEvents))hard(fail,'TRANSFUSION_INSUFFICIENT','automatic transfusion spent insufficient Blood',{directEvents});fixtures.push(snapshot('F7_TRANSFUSION_INSUFFICIENT',run,null,{directEvents,stateUnchanged:before===after}));
   }
   {
-    const run=makeFixtureRun(seed,'F8');run.players[0].hp=2;run.players[1].publicResources.blood=4;const healEvents=autoTransfuse(run),skillEvent=transfusion(healEvents);
-    if(run.players[0].hp!==3||run.players[1].publicResources.blood!==0||skillEvent?.amount!==1)hard(fail,'TRANSFUSION_FAILED','blood4 transfusion did not heal one and spend four',{skillEvent});fixtures.push(snapshot('F8_TRANSFUSION_SUCCESS',run,null,{skillEvent}));
+    const run=makeFixtureRun(seed,'F8');run.players[0].hp=2;run.players[1].publicResources.blood=4;const healEvents=applyMonsterDamage(run,run.players[0],1,'DIRECT',{damageEventId:'t03:F8'}),skillEvent=transfusion(healEvents);
+    if(run.players[0].hp!==2||run.players[1].publicResources.blood!==0||skillEvent?.amount!==1)hard(fail,'TRANSFUSION_FAILED','blood4 transfusion did not heal one and spend four',{skillEvent});fixtures.push(snapshot('F8_TRANSFUSION_SUCCESS',run,null,{skillEvent}));
   }
   {
-    const run=makeFixtureRun(seed,'F9');run.players[0].hp=2;run.players[2].hp=2;run.players[1].publicResources.blood=4;const healEvents=autoTransfuse(run),skillEvent=transfusion(healEvents);
-    if(skillEvent?.targetId!=='p0'||run.players[0].hp!==3||run.players[2].hp!==2)hard(fail,'TRANSFUSION_TIE_PRIORITY','Transfusion tie priority changed',{skillEvent});fixtures.push(snapshot('F9_TRANSFUSION_TIE',run,null,{skillEvent}));
+    const run=makeFixtureRun(seed,'F9');run.players[0].hp=2;run.players[2].hp=2;run.players[1].publicResources.blood=4;const healEvents=applyMonsterDamage(run,run.players[0],1,'DIRECT',{damageEventId:'t03:F9'}),skillEvent=transfusion(healEvents);
+    if(skillEvent?.targetId!=='p0'||run.players[0].hp!==2||run.players[2].hp!==2)hard(fail,'TRANSFUSION_TIE_PRIORITY','Transfusion tie priority changed',{skillEvent});fixtures.push(snapshot('F9_TRANSFUSION_TIE',run,null,{skillEvent}));
   }
   {
-    const run=makeFixtureRun(seed,'F10');run.players[0].hp=0;run.players[0].status='DOWNED';run.players[2].hp=1;run.players[1].publicResources.blood=4;const healEvents=autoTransfuse(run),skillEvent=transfusion(healEvents);
+    const run=makeFixtureRun(seed,'F10');run.players[0].hp=0;run.players[0].status='DOWNED';run.players[2].hp=1;run.players[1].publicResources.blood=4;run.players[2].hp=2;const healEvents=applyMonsterDamage(run,run.players[2],1,'DIRECT',{damageEventId:'t03:F10'}),skillEvent=transfusion(healEvents);
     if(skillEvent?.targetId!=='p2'||run.players[0].hp!==0||run.players[0].status!=='DOWNED')hard(fail,'TRANSFUSION_RESURRECTED','basic Transfusion revived DOWNED ally',{skillEvent});fixtures.push(snapshot('F10_NO_RESURRECTION',run,null,{skillEvent}));
   }
   {
@@ -111,7 +111,7 @@ export function runT03Fixtures(seed,fail){
     if(run.players[2].hp!==3||run.players[2].publicResources.revenge!==0)hard(fail,'ZERO_DAMAGE_REVENGE','fully prevented DIRECT granted Revenge',{directEvents});fixtures.push(snapshot('F16_ZERO_DAMAGE_NO_REVENGE',run,null,{directEvents}));
   }
   {
-    const run=makeFixtureRun(seed,'F17');run.players[0].hp=2;run.players[0].publicResources.guardianTargetPlayerId='p2';run.players[1].publicResources.blood=4;const directEvents=applyMonsterDamage(run,run.players[2],1,'DIRECT',{damageEventId:'t03:F17'});const healEvents=autoTransfuse(run),skillEvent=transfusion(healEvents);
+    const run=makeFixtureRun(seed,'F17');run.players[0].hp=2;run.players[0].publicResources.guardianTargetPlayerId='p2';run.players[1].publicResources.blood=4;const directEvents=applyMonsterDamage(run,run.players[2],1,'DIRECT',{damageEventId:'t03:F17'});const healEvents=directEvents,skillEvent=transfusion(healEvents);
     if(run.players[0].hp!==2||skillEvent?.targetId!=='p0'||directEvents.filter(e=>e.type==='DAMAGE_REDIRECTED').length!==1)hard(fail,'GUARD_TRANSFUSION_CHAIN','Guard then Transfusion chain diverged',{directEvents,skillEvent});fixtures.push(snapshot('F17_GUARD_TRANSFUSION',run,null,{directEvents,skillEvent}));
   }
   {
@@ -120,14 +120,14 @@ export function runT03Fixtures(seed,fail){
   }
   {
     const run=makeFixtureRun(seed,'F19');run.players[0].hp=2;run.players[1].publicResources.blood=3;run.players[3].publicResources.mana=2;submit(run,'p0',5,fail,true);submit(run,'p1',5,fail);submit(run,'p2',2,fail);submit(run,'p3',4,fail,true,{manaSpend:2});const result=resolve(run,fail);
-    const redirectEvents=applyMonsterDamage(run,run.players[1],1,'DIRECT',{damageEventId:'t03:F19:guard'}),revengeEvents=applyMonsterDamage(run,run.players[2],1,'DIRECT',{damageEventId:'t03:F19:berserker'}),healEvents=autoTransfuse(run),skillEvent=transfusion(result.events)||transfusion(healEvents);
-    const all=[...(result.events||[]),...redirectEvents,...revengeEvents,skillEvent];for(const type of ['GUARDIAN_WALL_RESCUE','WHITE_MAGIC_HEAL','VAMPIRE_BLOOD_GAINED'])if(!all.some(e=>e.type===type))hard(fail,'FULL_SUSTAIN_CHAIN_MISSING','full chain missed '+type,{all});
+    run.players[0].hp=2;run.players[1].publicResources.blood=4;const redirectEvents=applyMonsterDamage(run,run.players[1],1,'DIRECT',{damageEventId:'t03:F19:guard'}),revengeEvents=applyMonsterDamage(run,run.players[2],1,'DIRECT',{damageEventId:'t03:F19:berserker'}),healEvents=redirectEvents,skillEvent=transfusion(result.events)||transfusion(healEvents);
+    const all=[...(result.events||[]),...redirectEvents,...revengeEvents,skillEvent];for(const type of ['GUARDIAN_WALL_RESCUE','WHITE_MAGIC_HEAL'])if(!all.some(e=>e.type===type))hard(fail,'FULL_SUSTAIN_CHAIN_MISSING','full chain missed '+type,{all});
     if(!redirectEvents.some(e=>e.type==='DAMAGE_REDIRECTED')||!revengeEvents.some(e=>e.type==='BERSERKER_REVENGE_GAINED')||!skillEvent?.automatic)hard(fail,'FULL_SUSTAIN_CHAIN_MISSING','full chain missed redirect revenge or transfusion',{all});
     fixtures.push(snapshot('F19_FULL_SUSTAIN_CHAIN',run,result,{directEvents:[...redirectEvents,...revengeEvents],skillEvent}));
   }
   {
-    const run=makeFixtureRun(seed,'F20');run.players[0].hp=2;run.players[0].publicResources.guardianTargetPlayerId='p2';run.players[1].publicResources.blood=4;const directEvents=applyMonsterDamage(run,run.players[2],1,'DIRECT',{damageEventId:'t03:F20'});const healEvents=autoTransfuse(run),skillEvent=transfusion(healEvents);
-    const redirectCount=directEvents.filter(e=>e.type==='DAMAGE_REDIRECTED').length,healCount=healEvents.filter(e=>e.type==='PLAYER_HEALED').length;
+    const run=makeFixtureRun(seed,'F20');run.players[0].hp=2;run.players[0].publicResources.guardianTargetPlayerId='p2';run.players[1].publicResources.blood=4;const directEvents=applyMonsterDamage(run,run.players[2],1,'DIRECT',{damageEventId:'t03:F20'});const healEvents=directEvents,skillEvent=transfusion(healEvents);
+    const redirectCount=directEvents.filter(e=>e.type==='DAMAGE_REDIRECTED').length,healCount=healEvents.filter(e=>e.type==='TRANSFUSION_USED').length;
     if(redirectCount!==1||healCount!==1)hard(fail,'SUSTAIN_RECURSION','sustain trigger recursively re-entered',{redirectCount,healCount,directEvents});fixtures.push(snapshot('F20_NO_SUSTAIN_RECURSION',run,null,{directEvents,skillEvent,redirectCount,healCount}));
   }
   {
@@ -135,9 +135,9 @@ export function runT03Fixtures(seed,fail){
     if(run.players[1].publicResources.blood!==4||transfusion(directEvents))hard(fail,'TRANSFUSION_FULL_HP_SPEND','full HP spent Blood');fixtures.push(snapshot('F21_FULL_HP_NO_SPEND',run,null,{directEvents}));
   }
   {
-    const run=makeFixtureRun(seed,'F22');run.players[0].hp=1;run.players[1].publicResources.blood=6;const directEvents=autoTransfuse(run),before=JSON.stringify({hp:run.players.map(p=>p.hp),blood:run.players[1].publicResources.blood}),retryEvents=autoTransfuse(run);
-    const restored=structuredClone(run),reconnectEvents=autoTransfuse(restored),after=JSON.stringify({hp:restored.players.map(p=>p.hp),blood:restored.players[1].publicResources.blood});
-    if(before!==after||transfusion(retryEvents)||transfusion(reconnectEvents)||directEvents.filter(e=>e.source==='TRANSFUSION').length!==1)hard(fail,'TRANSFUSION_REENTRY','retry/reconnect healed or spent again');
+    const run=makeFixtureRun(seed,'F22');run.players[0].hp=2;run.players[1].publicResources.blood=6;const directEvents=applyMonsterDamage(run,run.players[0],1,'DIRECT',{damageEventId:'t03:F22'}),before=JSON.stringify({hp:run.players.map(p=>p.hp),blood:run.players[1].publicResources.blood}),retryEvents=autoTransfuse(run,directEvents);
+    const restored=structuredClone(run),reconnectEvents=autoTransfuse(restored,directEvents),after=JSON.stringify({hp:restored.players.map(p=>p.hp),blood:restored.players[1].publicResources.blood});
+    if(before!==after||transfusion(retryEvents)||transfusion(reconnectEvents)||directEvents.filter(e=>e.type==='TRANSFUSION_USED').length!==1)hard(fail,'TRANSFUSION_REENTRY','retry/reconnect healed or spent again');
     fixtures.push(snapshot('F22_RETRY_RECONNECT_ONCE',restored,null,{directEvents,retryEvents,reconnectEvents,stateUnchanged:before===after}));
   }
   {

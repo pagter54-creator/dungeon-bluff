@@ -7,7 +7,7 @@ import {AUGMENT_BY_ID,augmentCandidates} from '../supabase/functions/game-api/pv
 import {beginAugmentChoices,chooseAugment,AUGMENT_THRESHOLDS} from '../supabase/functions/game-api/pve/augments.js';
 import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-api/pve/combat.js';
 import {activateImmediateCharacterSkill,isCardSelectableForCharacter,onTurnStartCharacter} from '../supabase/functions/game-api/pve/characters.js';
-import {recoverSeerPhysicalCard} from '../supabase/functions/game-api/pve/seer-runtime.js';
+import {recoverPhysicalCard} from '../supabase/functions/game-api/pve/augment-framework.js';
 import {projectRun} from '../supabase/functions/game-api/pve/projection.js';
 function fixture(ids=[]){
  const players=['twins','adventurer','adventurer','adventurer'].map((character_id,i)=>newPlayerRunState({id:'p'+i,user_id:'u'+i,character_id,member_type:'human',seat_index:i}));
@@ -117,8 +117,8 @@ test('Twins 390 most recent eligibility excludes current and never reruns root',
  const f=fixture([381,390]);acro(f);const a=spent(f),b=f.p.cardPool[2].id;f.priv.remainingCardIds=f.priv.remainingCardIds.filter(x=>x!==b);f.priv.spentCardIds.push(b);f.s.spentById[a]=4;f.s.spentById[b]=5;f.s.spentSequence=5;f.s.postAttempts=2;valid(f);
  f.priv.remainingCardIds=f.priv.remainingCardIds.filter(x=>x!==f.rc.cardInstanceId);f.priv.spentCardIds.push(f.rc.cardInstanceId);twinsAfterSpend(f.run,f.p,f.rc);assert.ok(f.priv.remainingCardIds.includes(b));assert.ok(f.priv.spentCardIds.includes(f.rc.cardInstanceId));const before=JSON.stringify(f.priv);twinsAfterSpend(f.run,f.p,f.rc);assert.equal(JSON.stringify(f.priv),before);
 });
-test('Twins Seer recovery ignores current parity and preserves instance',()=>{
- const f=fixture();f.run.players[1].characterId='prophet';const id=spent(f);const r=recoverSeerPhysicalCard(f.run,f.run.players[1],f.p,id,{rootActionId:'real-seer',recoveryMode:'ALLY'});assert.equal(r.applied,true);assert.equal(isCardSelectableForCharacter(f.p,f.p.cardPool.find(c=>c.id===id)),false);assert.equal(f.p.publicResources.acrobaticsReady,true);
+test('Twins generic physical recovery ignores current parity and preserves instance',()=>{
+ const f=fixture();f.run.players[1].characterId='prophet';const id=spent(f);const r=recoverPhysicalCard(f.run,f.p,id,{rootActionId:'real-seer',recoveryMode:'ALLY'});assert.equal(r.applied,true);assert.equal(isCardSelectableForCharacter(f.p,f.p.cardPool.find(c=>c.id===id)),false);assert.equal(f.p.publicResources.acrobaticsReady,true);
 });
 test('Twins direct protection handles DIRECT only and cleanup removes Combat state',()=>{
  const f=fixture();f.p.publicResources.twinsProtection=1;const a={amount:2};assert.equal(twinsIncomingProtection(f.p,a,'AOE'),0);assert.equal(twinsIncomingProtection(f.p,a,'DIRECT'),1);assert.equal(a.amount,1);cleanupTwins(f.run,f.p);assert.equal(f.run.augmentFramework.cardState['p0:twins'],undefined);

@@ -1,3 +1,4 @@
+import {recoverPhysicalCard} from '../supabase/functions/game-api/pve/augment-framework.js';
 import {activateImmediateCharacterSkill} from '../supabase/functions/game-api/pve/characters.js';
 import {beginAugmentChoices,chooseAugment,AUGMENT_THRESHOLDS} from '../supabase/functions/game-api/pve/augments.js';
 import test from 'node:test';
@@ -183,14 +184,14 @@ test('Martial telemetry is once per effect root and private guards stay hidden',
  const view=projectRun(f.run,'p1');assert.equal(view._telemetryPending,undefined);
 });
 
-test('Seer recovers the same Martial physical card without changing Combo or comparison',()=>{
+test('Generic recovery preserves Martial physical card, Combo and comparison',()=>{
  const f=fixture([273]);const seer=newPlayerRunState({id:'p1',user_id:'u1',character_id:'prophet',member_type:'human',seat_index:1});seer.augments=['aug-161'];f.run.players[1]=seer;
  f.run.combat=newCombatState(f.run.players,999,'NORMAL_COMBAT');f.run.combat.id='martial-seer-recovery';beginTurn(f.run);
  f.p.publicResources.combo=2;f.p.publicResources.lastSubmittedNumber=4;
  const st=f.run.combat.privateByPlayer.p0,id=f.p.cardPool.find(c=>c.baseNumber===3).id;
  st.remainingCardIds=st.remainingCardIds.filter(x=>x!==id);st.spentCardIds=[id];
- const event=activateImmediateCharacterSkill(f.run,seer,{target_player_id:'p0'});
- assert.equal(event.recoveredCardId,id);assert.ok(st.remainingCardIds.includes(id));assert.equal(st.spentCardIds.includes(id),false);
+ const event=recoverPhysicalCard(f.run,f.p,id,{rootActionId:'generic-recovery'});
+ assert.equal(event.cardInstanceId,id);assert.ok(st.remainingCardIds.includes(id));assert.equal(st.spentCardIds.includes(id),false);
  assert.equal(f.p.publicResources.combo,2);assert.equal(f.p.publicResources.lastSubmittedNumber,4);
  for(let i=0;i<4;i++){const p=f.run.players[i],number=[3,1,2,5][i];submitCard(f.run,p.playerId,p.cardPool.find(c=>c.baseNumber===number).id);}
  f.run.combat.monster.intent={type:'CHARGE',payload:{}};const result=resolveBasicTurn(f.run),rc=result.cards.find(c=>c.playerId==='p0');

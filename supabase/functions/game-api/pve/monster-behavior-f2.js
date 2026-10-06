@@ -1,4 +1,5 @@
 import {patternRequirement,adaptivePresentation,adaptiveRuleSummary} from './adaptive-pattern.js';
+import {moonMaxThreshold,moonValidNumberSum} from './moon-pattern.js';
 import {wispFlameRule,selectWispFlameTarget} from './wisp-flame.js';
 import {choose} from './rng.js';
 import {trackPlayerNumber,changeMonsterStack,checkPartyDamage} from './monster-primitives.js';
@@ -27,7 +28,7 @@ export function f2Presentation(run){
   const m=run.combat?.monster,s=stateOf(run),k=mechOf(run);
   if(!m||!k||!k.type.startsWith('F2_'))return null;
   const p={...adaptivePresentation(run),ruleSummary:adaptiveRuleSummary(run),validCount:s.validCount||0,collisionCount:s.collisionCount||0};
-  for(const field of ['currentDangerNumber','nextDangerNumber','copiedNumber','flameMode','thornsActive','chaosRule','heads','targetPlayerId','linkedPlayerIds','phase','threshold','partyDamage','minimumDamage','maximumDamage','growth'])if(s[field]!=null)p[field]=structuredClone(s[field]);
+  for(const field of ['currentDangerNumber','nextDangerNumber','copiedNumber','flameMode','thornsActive','chaosRule','heads','targetPlayerId','linkedPlayerIds','phase','threshold','partyDamage','minimumDamage','maximumDamage','validNumberSum','quantity','maximumValidNumberSum','growth'])if(s[field]!=null)p[field]=structuredClone(s[field]);
   if(s.stacks?.growth!=null)p.growth=s.stacks.growth;
   if(s.curseByPlayer)p.curseByPlayer={...s.curseByPlayer};
   if(s.sporeByPlayer)p.sporeByPlayer={...s.sporeByPlayer};
@@ -44,7 +45,7 @@ export function f2Presentation(run){
   if(p.growth!=null)parts.push(`성장 ${p.growth} · 피해 ${patternRequirement(run,'minimumDamage')} 이상이면 방지`);
   if(p.targetPlayerId){const target=run.players.find(player=>player.playerId===p.targetPlayerId);parts.push(`표적 ${target?`${target.seat+1}번 자리`:p.targetPlayerId}`);}
   if(p.linkedPlayerIds)parts.push(`실타래 ${p.linkedPlayerIds.map(id=>{const player=run.players.find(p=>p.playerId===id);return player?`${player.seat+1}번 자리`:id}).join(' / ')} · ${s.linkReady?'이번 턴 서로 다른 숫자로 끊기':'다음 턴 서로 다른 숫자로 끊기'}`);
-  if(p.phase)parts.push(`${p.phase==='MIN'?'만월 · 최소':'신월 · 최대'} ${p.threshold} · 현재 ${p.partyDamage||0}`);
+  if(p.phase)parts.push(p.phase==='MIN'?`만월 · 이번 턴 총 피해 ${p.threshold} 이상 · 현재 ${p.partyDamage||0}`:`신월 · 유효 카드 숫자 합 ${p.threshold} 이하 · 현재 ${p.validNumberSum||0}`);
   for(const player of run.players){const n=player.seat+1;
     if(p.corruptionByPlayer||p.lastValidNumberByPlayer)parts.push(`${n}번 직전 ${p.lastValidNumberByPlayer?.[player.playerId]??'없음'} · 오염 ${p.corruptionByPlayer?.[player.playerId]||0}/3`);
     if(p.sporeByPlayer)parts.push(`${n}번 포자 ${p.sporeByPlayer[player.playerId]||0}/2`);
@@ -73,7 +74,7 @@ export function prepareF2Turn(run,intent){
   if(type==='F2_FLAME')s.flameMode=run.combat.turn%2?'LOW':'HIGH';
   if(type==='F2_THORNS')s.thornsActive=run.combat.turn%2===1;
   if(type==='F2_CHAOS')s.chaosRule=pick(run,['ODD','LOW','VALID_SUM'],'chaos-rule');
-  if(type==='F2_MOON'){s.phase=run.combat.turn%2?'MIN':'MAX';s.threshold=s.phase==='MIN'?patternRequirement(run,'minimumDamage'):k.maximumDamage;s.partyDamage=0;s.minimumDamage=patternRequirement(run,'minimumDamage');s.maximumDamage=k.maximumDamage;}
+  if(type==='F2_MOON'){s.phase=run.combat.turn%2?'MIN':'MAX';s.threshold=s.phase==='MIN'?patternRequirement(run,'minimumDamage'):moonMaxThreshold(run);s.partyDamage=0;s.validNumberSum=0;s.maximumValidNumberSum=moonMaxThreshold(run);s.quantity=s.phase==='MIN'?'TOTAL_DAMAGE':'VALID_FINAL_NUMBER_SUM';s.minimumDamage=patternRequirement(run,'minimumDamage');s.maximumDamage=k.maximumDamage;}
   if(type==='F2_HYDRA')s.requiredDistinct=patternRequirement(run,'requiredDistinct');
   const p=f2Presentation(run);m.presentation=p;
   intent.telegraphText+=p?.statusText?` · ${p.statusText}`:'';
@@ -85,6 +86,7 @@ export function applyF2CardRules(run,cards,events){
   if(!type?.startsWith('F2_'))return;
   const valid=cards.filter(c=>c.valid);
   s.validCount=valid.length;
+  if(type==='F2_MOON')s.validNumberSum=moonValidNumberSum(cards);
   s.collisionCount=new Set(cards.filter(c=>c.invalidReason==='COLLISION').map(c=>c.finalNumber)).size;
   if(type==='F2_PROPHECY'&&s.currentDangerNumber!=null)for(const c of cards.filter(c=>c.finalNumber===s.currentDangerNumber))addCounter(s,'curseByPlayer',c.playerId,k.threshold,events,'CURSE_APPLIED');
   if(type==='F2_SPORE')for(const c of cards.filter(c=>c.invalidReason==='COLLISION'))addCounter(s,'sporeByPlayer',c.playerId,k.threshold,events,'SPORE_APPLIED');
@@ -128,7 +130,7 @@ export function recordF2DamageBatch(run,totalDamage){
   }
   if(type==='F2_MOON'){
     s.partyDamage=totalDamage;
-    s.thresholdPassed=checkPartyDamage(totalDamage,s.phase==='MIN'?{minimum:patternRequirement(run,'minimumDamage')}:{maximum:k.maximumDamage}).passed;
+    s.thresholdPassed=s.phase==='MIN'?checkPartyDamage(totalDamage,{minimum:patternRequirement(run,'minimumDamage')}).passed:s.validNumberSum<=moonMaxThreshold(run);
   }
   run.combat.monster.presentation=f2Presentation(run);
 }
@@ -151,7 +153,7 @@ export function resolveF2AfterDamage(run,events,applyDamage){
   if(type==='F2_MOON'&&!s.thresholdPassed){
     const target=pick(run,living(run),'moon-penalty');
     if(target)events.push(...applyDamage(run,target,1,'DIRECT'));
-    events.push({type:'MOON_THRESHOLD_FAILED',phase:s.phase,threshold:s.threshold,partyDamage:s.partyDamage});
+    events.push({type:'MOON_THRESHOLD_FAILED',phase:s.phase,threshold:s.threshold,partyDamage:s.partyDamage,validNumberSum:s.validNumberSum,quantity:s.quantity});
   }
   if(type==='F2_CHAOS'&&s.chaosFailure){
     const target=pick(run,living(run),'chaos-penalty');

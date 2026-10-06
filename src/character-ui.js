@@ -51,8 +51,8 @@ export function revelationGauge(player) {
   }
   if (player.skillId === 'combo') return `<div class="revelation-gauge" role="meter" aria-label="연격 중첩" aria-valuemin="0" aria-valuemax="3" aria-valuenow="${player.characterRuntimeState?.comboStacks||0}">${[0,1,2].map(i=>`<i class="revelation-pip ${i<(player.characterRuntimeState?.comboStacks||0)?'filled':''}" aria-hidden="true"></i>`).join('')}</div><small class="combo-previous">직전 카드: ${html(player.characterRuntimeState?.comboPrevious ?? '-')}</small>`;
   if (player.skillId !== 'revelation') return '';
-  const stacks = Math.max(0, Math.min(3, player.characterRuntimeState?.revelationStacks || 0));
-  return resourceGauge('계시',stacks,3,'seer-gauge');
+  const r=player.characterRuntimeState||{},max=r.revelationMax||6,stacks=Math.max(0,Math.min(max,r.revelationStacks||0));
+  return resourceGauge('계시',stacks,max,'seer-gauge')+`<small>계시 ${stacks}/${max} · 자동 공개 ${r.prophetCore?.threshold||3} 이상</small>`;
 }
 export function resourceGauge(label,value,max,extra='') {
   return `<div class="revelation-gauge ${extra}" role="meter" aria-label="${label}" aria-valuemin="0" aria-valuemax="${max}" aria-valuenow="${value}">${Array.from({length:max},(_,i)=>`<i class="revelation-pip ${i<value?'filled':''}" aria-hidden="true"></i>`).join('')}</div>`;
@@ -63,7 +63,10 @@ export function activeButton(player, useSkill, blocked, members=[], players={}, 
   if(player.skillId==='blood_command'){
     const thrallId=player.characterRuntimeState?.thrallId,target=members.find(m=>m.id===thrallId);
     const ready=!!target&&!players[thrallId]?.knockedOut&&!blocked;
-    return `<button type="button" class="active-skill ${useSkill&&ready?'armed':''}" data-action="toggle-skill" aria-pressed="${Boolean(useSkill&&ready)}" ${!ready?'disabled':''}>♜ 피의 명령 <b>${ready?(useSkill?'교환 예약':'READY'):'권속 필요'}</b></button>`;
+    const state=player.characterRuntimeState||{},choice=state.thrallChoice,echo=state.echo;
+    const choices=choice&&!blocked?`<div class="thrall-choice" aria-label="권속 선택">${choice.candidates.map(id=>`<button type="button" data-action="pve-thrall-choice" data-player-id="${html(id)}" data-network>${html(members.find(m=>m.id===id)?.display_name||id)} · 권속</button>`).join('')}</div>`:'';
+    const echoChoice=echo&&!blocked?`<div class="thrall-choice" aria-label="피의 명령 대상"><button type="button" data-action="pve-command-target" data-player-id="${html(thrallId)}">현재 권속</button><button type="button" data-action="pve-command-target" data-player-id="${html(echo.targetId)}">잔향 · ${html(members.find(m=>m.id===echo.targetId)?.display_name||echo.targetId)}</button></div>`:'';
+    return choices+echoChoice+`<button type="button" class="active-skill ${useSkill&&ready?'armed':''}" data-action="toggle-skill" aria-pressed="${Boolean(useSkill&&ready)}" ${!ready?'disabled':''}>♜ 피의 명령 <b>${ready?(useSkill?'교환 예약':'READY'):'권속 필요'}</b></button>`;
   }
   if(player.skillId==='soul_slash'){
     const ready=!!player.activeSkillState?.available&&!blocked;
@@ -77,10 +80,11 @@ export function activeButton(player, useSkill, blocked, members=[], players={}, 
     const cost=Math.abs(level)*2,delta=level>0?('+'+level):String(level);
     return `<button type="button" class="active-skill ${level?'armed':''}" data-action="toggle-skill" aria-pressed="${Boolean(level)}" ${blocked||mana<2?'disabled':''}>✺ ${reverse?'역산술':'증폭'} <b>마나 ${Math.max(0,mana-cost)}/${manaMax} · ${level?'숫자 '+delta:'2마나 필요'}${level?' · 다시 눌러 변경/취소':''}</b></button>`;
   }
-  if (player.skillId === 'revelation') {
-    const active = Boolean(player.characterRuntimeState?.revealExpiresTurn);
-    const ready = (player.characterRuntimeState?.revelationStacks || 0) >= 1 && !active;
-    return `<button type="button" class="active-skill ${active?'armed':''}" data-action="activate-revelation" data-network data-unavailable="${blocked||!ready}" ${blocked||!ready?'disabled':''}>✧ 계시 <b>${active?'이번 턴 공개 중':ready?'1칸 소모 · 발동':'1칸 필요'}</b></button>`;
+  if(player.skillId==='revelation'){
+    const r=player.characterRuntimeState||{},core=r.prophetCore||{},cost=r.fragmentCost||core.cost||6;
+    const occupied=Boolean(core.fragment||core.fragmentPending),ready=(r.revelationStacks||0)>=cost&&!occupied;
+    const reason=occupied?'이미 과거의 편린을 보유하고 있습니다.':ready?`${cost} 소모 · 발동`:'계시가 부족합니다.';
+    return `<button type="button" class="active-skill" data-action="activate-revelation" data-network ${blocked||!ready?'disabled':''}>✧ 과거의 편린 <b>${html(reason)}</b></button>`;
   }
   if (player.skillType !== 'active' && player.skillId !== 'full_burst') return '';
   const ready = player.activeSkillState?.available;

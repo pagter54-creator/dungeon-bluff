@@ -18,13 +18,13 @@ function submit(game,values,skills=[]){return values.map((value,i)=>{
  return {member_id:`p${i}`,card_id:card.id,card_value:value+level,turn_index:game.turn_index,use_skill:skills.includes(i),amplify_level:level};
 });}
 
-test('vampire marks highest scoring collision and privately sees only their submitted card',()=>{
+test('vampire marks lowest other final VALID independent of score and observes only its submitted card',()=>{
  const {game}=fixture(['vampire','adventurer','adventurer','adventurer']);
  game.state.players.p1.score=3;game.state.players.p2.score=9;
- resolveTurn(game,submit(game,[2,2,2,4]));
- assert.equal(game.state.players.p0.characterRuntimeState.thrallId,'p2');
- const pending=[{member_id:'p2',card_value:4,turn_index:game.turn_index}];
- assert.deepEqual(privateKnowledge(game,'p0',pending).revealedCards,[{memberId:'p2',value:4}]);
+ resolveTurn(game,submit(game,[5,1,2,3]));
+ assert.equal(game.state.players.p0.characterRuntimeState.thrallId,'p1');
+ const pending=[{member_id:'p1',card_value:4,turn_index:game.turn_index}];
+ assert.deepEqual(privateKnowledge(game,'p0',pending).revealedCards,[{memberId:'p1',value:4}]);
  assert.deepEqual(privateKnowledge(game,'p1',pending).revealedCards,[]);
 });
 
@@ -36,7 +36,7 @@ test('blood command exchanges amplified effective numbers before collision while
  const result=resolveTurn(game,inputs);
  assert.equal(result.cards[0].value,6);assert.equal(result.cards[1].value,2);
  assert.equal(result.cards[0].exchangeFrom,2);assert.equal(result.cards[1].exchangeFrom,6);
- assert.equal(result.cards[0].valid,true);assert.equal(vampire.characterRuntimeState.thrallId,undefined);
+ assert.equal(result.cards[0].valid,true);assert.equal(vampire.characterRuntimeState.thrallId,'p1');
  assert.equal(mage.cycleCards.find(c=>c.id===inputs[1].card_id).used,true);
  assert.equal(result.effects.filter(e=>e.type==='vampire_swap').length,1);
 });
@@ -48,8 +48,8 @@ test('two blood commands resolve in seat order and equal-number exchange still s
  const result=resolveTurn(game,submit(game,[1,2,3,4],[0,1]));
  assert.deepEqual(result.cards.map(c=>c.value),[2,3,1,4]);
  assert.deepEqual(result.effects.filter(e=>e.type==='vampire_swap').map(e=>[e.sourceId,e.targetId]),[['p0','p1'],['p1','p2']]);
- assert.equal(game.state.players.p0.characterRuntimeState.thrallId,undefined);
- assert.equal(game.state.players.p1.characterRuntimeState.thrallId,undefined);
+ assert.equal(game.state.players.p0.characterRuntimeState.thrallId,'p2');
+ assert.equal(game.state.players.p1.characterRuntimeState.thrallId,'p2');
  const equal=fixture(['vampire','adventurer','adventurer','adventurer']).game;
  equal.state.players.p0.characterRuntimeState.thrallId='p1';
  const same=resolveTurn(equal,submit(equal,[2,2,3,4],[0]));

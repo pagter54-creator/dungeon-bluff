@@ -372,6 +372,7 @@ export const MONSTER_THEMES=Object.freeze({
 });
 const SKILLS={toughness:['강인함','protect'],amplify:['증폭','number'],reverse_math:['역산','number'],revelation:['계시','recover'],precision_shot:['정밀 사격','burst'],full_burst:['전탄발사','burst'],blood_command:['피의 명령','swap'],ghost_slash:['귀참','slash'],soul_slash:['귀참','slash'],number_steal:['슬쩍','steal'],acrobatics:['곡예','parity']};
 const EVENT_SKILLS={
+ PROPHET_REVELATION_GAINED:['계시 획득','predict'],PROPHET_PAST_FRAGMENT_CREATED:['과거의 편린','number'],VAMPIRE_THRALL_CREATED:['권속 생성','mark'],VAMPIRE_THRALL_CONSUMED:['권속 소비','mark'],
  CARD_RECOVERED:['카드 복구','recover'],THRALL_MARKED:['권속','mark'],DEMON_TRANSFORMED:['귀화','transform'],
  DEMON_TRANSFORMATION_ENDED:['귀화 종료','transform'],REVELATION_USED:['계시','predict'],FATE_MANIPULATOR_USED:['운명 조작','recover'],
  ACROBATICS_USED:['곡예','parity'],TRANSFUSION_USED:['수혈','heal'],PLAYER_HEALED:['회복','heal'],
@@ -405,7 +406,7 @@ export function skillCues(result,players=[]){
   const s=EVENT_SKILLS[e.type];if(!s)continue;
   const actor=e.ownerVampireId||e.redirectSource||e.actorId||e.ownerId||e.sourcePlayerId||e.playerId;
   add(actor,e.targetPlayerId||e.targetId||e.thrallPlayerId||e.originalTarget||e.playerId,s[0],s[1],
-   ['protect'].includes(s[1])?'protection':'aftermath',e.amount>0?'+'+e.amount:e.type==='CARD_RECOVERED'?'복구 완료':'완료');
+   ['protect'].includes(s[1])?'protection':'aftermath',e.type==='PROPHET_PAST_FRAGMENT_CREATED'?'편린 '+e.value:e.amount>0?'+'+e.amount:e.type==='CARD_RECOVERED'?'복구 완료':'완료');
  }
  for(const e of result.skillInterventions||[]){
   if(['PREDICTION_RESULT','PRECISION_PRESERVED'].includes(e.kind))add(e.actorId,e.actorId,e.kind==='PREDICTION_RESULT'?'예측':'정밀 보호',e.kind==='PREDICTION_RESULT'?'predict':'protect',e.kind==='PREDICTION_RESULT'?'aftermath':'protection',e.success?'성공':'실패',Boolean(e.success));

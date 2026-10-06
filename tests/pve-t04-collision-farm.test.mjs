@@ -179,7 +179,7 @@ test('T04 collision farm and safe policies are deterministic and share only volu
 });
 
 test('T04 semantic golden locks mutation, collision, Revenge, damage and HP timelines',()=>{
-  const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/pve-stress-t04-golden.json',import.meta.url),'utf8'));
+  const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/pve-stress-t04-core-rework-golden.json',import.meta.url),'utf8'));
   const result=replayScenario('T04','smoke:T04:0000');
   assert.deepEqual(t04GoldenComparable(result),golden);
 });
