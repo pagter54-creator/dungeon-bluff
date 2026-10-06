@@ -1,3 +1,4 @@
+import {cardComponent} from '../src/card-component.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as R from '../supabase/functions/game-api/pve/prophet-vampire-rework.js';
@@ -41,3 +42,8 @@ for(const [key,c] of Object.entries(cases)){
   const f=fixture(n);c.setup?.(f);c.act(f);const snapshot=structuredClone(f);c.act(f);assert.deepEqual(f,snapshot);
  });
 }
+
+test('Fragment card tooltip explains normal collision without leaking hidden values',()=>{
+ const card={id:'zero',value:7,fragment:true};const visible=cardComponent(card,{own:true});assert.match(visible,/title="제출 시 일반 카드처럼 판정되며, 중복되면 무효될 수 있습니다."/);
+ const hidden=cardComponent(card,{faceDown:true});assert.doesNotMatch(hidden,/편린 7|title=/);assert.match(hidden,/비공개 카드/);
+});
