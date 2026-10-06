@@ -60,7 +60,7 @@ export function applyPreCollisionSwap(run,cards,events,state=run.combat){
  const owners=run.players.filter(p=>p.characterId==='vampire'&&p.status!=='DOWNED').sort((a,b)=>a.seat-b.seat||a.playerId.localeCompare(b.playerId));
  for(const p of owners){
  if(!state.turnSubmissions[p.playerId]?.skillIntent)continue;
- const actor=cardByPlayer(cards,p.playerId),target=cardByPlayer(cards,p.publicResources.thrallPlayerId);
+ const actor=cardByPlayer(cards,p.playerId),target=cardByPlayer(cards,state.turnSubmissions[p.playerId]?.skillData?.thrallTargetId||p.publicResources.thrallPlayerId);
  if(!actor||!target)throw new Error('피의 명령 대상이 이번 턴 판정에 없습니다.');
  performVampireSwap(run,p,actor,target,cards,events,state);
  }

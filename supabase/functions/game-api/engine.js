@@ -1,3 +1,4 @@
+import {collisionParticipants,revelationGain,capturePastFragment,consumePastFragment,lowestValidThrall} from './prophet-vampire-core.js';
 import {EVENT_RULES,rhythmOrder,beginEchoStage,echoList,activeEcho,removeEcho,echoCardRules,echoCountdown,echoFirstTurn,finishEchoStage,eventResult,summaryDeltas,chooseRoomReward} from './room-remake.js';
 import { CONFIG } from './config.js';
 import {settleGamblerHand} from './gambler-deck.js';
@@ -91,7 +92,7 @@ export function fillAutomaticSubmissions(session, members, submissions, rng = Ma
     const p = session.state.players[m.id];
     ensureCharacterState(p, session.state.characterDefinitions[p.characterId]);
     if(!p.knockedOut&&p.skillId==='acrobatics'&&p.activeSkillState.available&&p.discardedCards.length>=2&&rng()<.25)changed=activateAcrobatics(session,p,rng)||changed;
-    if (!p.knockedOut && p.skillId === 'revelation' && (p.characterRuntimeState.revelationStacks || 0) >= 1) changed = activateRevelation(session, p, rng) || changed;
+    if (!p.knockedOut && p.skillId === 'revelation' && (p.characterRuntimeState.revelationStacks || 0) >= 6 && !p.characterRuntimeState.prophetCore?.fragment && !p.characterRuntimeState.prophetCore?.fragmentPending) changed = activateRevelation(session, p, rng) || changed;
     const knowledge = privateKnowledge(session, m.id, submissions);
     // Only an entitled seer waits for revealed human choices. Ordinary AI is
     // still committed at turn opening before any human private selection.
@@ -180,6 +181,7 @@ export function resolveTurn(session, submissions, rng = Math.random) {
     if (!card || submissionValue(s.players[sub.member_id],card,sub) !== sub.card_value) throw new Error('보유하지 않은 카드 인스턴스입니다.');
   }
   const cards = current.map(c => ({ memberId: c.member_id, cardId: selectedCard(s.players[c.member_id], c).id, value: c.card_value, valid: true, clashed: false }));
+  for(const c of cards){const p=s.players[c.memberId];c.isPastFragment=Boolean(p.skillId==='revelation'&&p.characterRuntimeState.prophetCore?.fragment&&p.cycleCards.find(x=>x.id===c.cardId)?.slot===0);}
   const beforePlayers = structuredClone(s.players);
   const recovering = ids.filter(id => s.players[id].knockedOut);
   const effects = [];
@@ -198,24 +200,25 @@ export function resolveTurn(session, submissions, rng = Math.random) {
     effects.push({type:'vampire_swap',sourceId:id,targetId,sourceValue,targetValue});
   }
   stealCardNumbers(cards,s.players,effects,ids);
+  const participants=collisionParticipants(cards).length;
+  for(const id of ids){const p=s.players[id];if(p.skillId!=='revelation')continue;
+    const r=p.characterRuntimeState,core=r.prophetCore;core.revelation=r.revelationStacks||0;
+    const fragment=capturePastFragment(core,id,cards,{turn:session.turn_index});
+    if(fragment){const zero=p.cycleCards.find(c=>c.slot===0);zero.value=fragment.value;zero.used=false;syncCardViews(p);effects.push({type:'PROPHET_PAST_FRAGMENT_CREATED',memberId:id,value:fragment.value});}
+    if(participants){const gain=revelationGain(core,participants,{eventId:`collision:${session.id}:${session.turn_index}:${id}`});r.revelationStacks=core.revelation;effects.push({type:'PROPHET_REVELATION_GAINED',memberId:id,...gain});}
+  }
   const counts=cards.reduce((a,c)=>(a[c.value]=(a[c.value]||0)+1,a),{});
   for(const card of cards){card.valid=counts[card.value]===1;card.clashed=!card.valid;}
   const result = { type: 'turn_result', turnIndex: session.turn_index, stageIndex: session.stage_index, stage: structuredClone(s.currentStage), monsterBefore: structuredClone(s.monster), beforePlayers, cards, effects, totalDamage: 0, success: false, stageCleared: false };
   const context = { players: s.players, cards, effects, category: s.currentStage.category, turnIndex: session.turn_index, stageScore: s.stageScore, rng };
   context.grantGold = (id, amount, reason) => grantGold(context, id, amount, reason);
   echoCardRules(session,cards);
-  for(const card of cards){
-    const player=s.players[card.memberId];
-    if(player.skillId!=='blood_command'||player.knockedOut||card.didBloodCommand||player.characterRuntimeState.thrallId||!card.clashed)continue;
-    const peers=cards.filter(c=>c.memberId!==card.memberId&&c.value===card.value&&!s.players[c.memberId].knockedOut);
-    if(!peers.length)continue;
-    const highest=Math.max(...peers.map(c=>s.players[c.memberId].score));
-    const ties=peers.filter(c=>s.players[c.memberId].score===highest);
-    const thrall=pick(ties,rng).memberId;
-    player.characterRuntimeState.thrallId=thrall;
-    effects.push({type:'skill',skillId:'blood_command',phase:'clash',memberId:card.memberId,targetId:thrall,label:'흡혈의 낙인 · 권속 표식'});
-  }
   resolveClashSkills(context);
+  for(const card of cards){const p=s.players[card.memberId];
+    if(p.skillId!=='blood_command'||p.knockedOut||p.characterRuntimeState.thrallId)continue;
+    const target=lowestValidThrall(card.memberId,cards,{eligible:id=>!s.players[id].knockedOut,choose:ids=>pick(ids,rng)});
+    if(target.targetId){p.characterRuntimeState.thrallId=target.targetId;effects.push({type:'VAMPIRE_THRALL_CREATED',memberId:card.memberId,targetId:target.targetId});}
+  }
   for(const card of cards)resolveRevelationValidity(s.players[card.memberId],card,effects,session.turn_index);
   for (const card of cards) resolveCardEffectModifiers(s.players[card.memberId], card, current.find(c => c.member_id === card.memberId), !!s.monster);
   // A recovering player's card still participates in collisions, but cannot
@@ -387,7 +390,13 @@ export function resolveTurn(session, submissions, rng = Math.random) {
   if (result.stageCleared) for (const p of Object.values(s.players)) if(p.skillId==='combo') {p.characterRuntimeState.comboStacks=0;delete p.characterRuntimeState.comboPrevious;}
   for (const c of cards) {
     const p = s.players[c.memberId];
-    p.cycleCards.find(card => card.id === c.cardId).used = true;
+    const consumed=p.cycleCards.find(card=>card.id===c.cardId);
+    consumed.used=true;
+    if(p.skillId==='revelation'&&c.isPastFragment){
+      consumePastFragment(p.characterRuntimeState.prophetCore);consumed.value=0;
+      effects.push({type:'PROPHET_PAST_FRAGMENT_SUBMITTED',memberId:c.memberId});
+    }
+    if(p.skillId==='revelation'&&!c.isPastFragment&&consumed.slot===0&&p.characterRuntimeState.prophetCore?.fragment?.createdTurn===session.turn_index)consumed.used=false;
     if (c.burstCards) for (const card of p.cycleCards) card.used=true;
     syncCardViews(p);
     if (p.character.definition?.deckType === 'continuous') {

@@ -1,3 +1,4 @@
+import {recoverPhysicalCard} from '../supabase/functions/game-api/pve/augment-framework.js';
 import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/pve/model.js';
 import {beginTurn,submitCard,resolveBasicTurn} from '../supabase/functions/game-api/pve/combat.js';
 import {activateImmediateCharacterSkill,PveSkillError} from '../supabase/functions/game-api/pve/characters.js';
@@ -24,6 +25,15 @@ function makeRun(seed,id,{monsterDef=DUMMY}={}){
   run.combat.monster.intent={type:'CHARGE',telegraphText:'fixture',payload:{}};
   run.players[2].publicResources.parity=1;
   return run;
+}
+// Generic RECOVER_CARD boundary fixture, not a Prophet ability.
+function recoverFixtureCard(run,pid){
+ const p=run.players.find(p=>p.playerId===pid),priv=run.combat.privateByPlayer[pid],id=priv.spentCardIds.at(-1);
+ if(!id)throw new PveSkillError('SKILL_NOT_READY','No recoverable physical card');
+ const result=recoverPhysicalCard(run,p,id,{rootActionId:`fixture-recovery:${run.combat.id}:${run.combat.turn}:${pid}`});
+ if(!result.applied)throw new PveSkillError('SKILL_NOT_READY',result.reason);
+ const event={type:'CARD_RECOVERED',...result,actorId:'p0',targetPlayerId:pid,fromZone:'SPENT',toZone:'REMAINING',source:'FRAMEWORK_FIXTURE'};
+ (run.combat.pendingSkillEvents||=[]).push(event);return result;
 }
 function partition(run,pid){
   const p=run.players.find(x=>x.playerId===pid),priv=run.combat?.privateByPlayer?.[pid];
@@ -110,30 +120,30 @@ export function runT06Fixtures(seed,fail){
   const rows=[];
   {
     const run=makeRun(seed,'F1'),cardId=run.players[1].cardPool[0].id;moveToSpent(run,'p1',cardId);run.players[0].publicResources.revelation=1;
-    const used=activateImmediateCharacterSkill(run,run.players[0],{target_player_id:'p1'}),recovery=eventOf(pendingEvents(run),'CARD_RECOVERED')[0];
+    const used=recoverFixtureCard(run,'p1'),recovery=eventOf(pendingEvents(run),'CARD_RECOVERED')[0];
     if(recovery?.cardInstanceId!==cardId||partition(run,'p1').spent.includes(cardId)||!partition(run,'p1').remaining.includes(cardId))hard(fail,'FATE_RECOVERY_FAILED','ally card did not move spent -> remaining',{used,recovery});
-    rows.push(snapshot('F1_SEER_ALLY_RECOVERY',run,null,{used,recovery,cardId}));
+    rows.push(snapshot('F1_FRAMEWORK_ALLY_RECOVERY',run,null,{used,recovery,cardId}));
   }
   {
-    const run=makeRun(seed,'F2'),cardId=run.players[1].cardPool[0].id;moveToSpent(run,'p1',cardId);run.players[0].publicResources.revelation=1;activateImmediateCharacterSkill(run,run.players[0],{target_player_id:'p1'});
+    const run=makeRun(seed,'F2'),cardId=run.players[1].cardPool[0].id;moveToSpent(run,'p1',cardId);run.players[0].publicResources.revelation=1;recoverFixtureCard(run,'p1');
     const z=assertPartition(run,'p1',fail);rows.push(snapshot('F2_NO_CARD_DUPLICATION',run,null,{zoneCardCount:z.remaining.length+z.spent.length}));
   }
   {
     const run=makeRun(seed,'F3'),cardId=run.players[1].cardPool[0].id;moveToSpent(run,'p1',cardId);run.players[0].publicResources.revelation=1;const hp=run.combat.monster.hp;
-    activateImmediateCharacterSkill(run,run.players[0],{target_player_id:'p1'});
+    recoverFixtureCard(run,'p1');
     if(Object.keys(run.combat.turnSubmissions).length||run.combat.monster.hp!==hp)hard(fail,'RECOVERY_AUTO_USE','recovery created submission or damage');
     rows.push(snapshot('F3_RECOVERY_NO_AUTO_USE',run,null,{monsterHpBefore:hp,monsterHpAfter:run.combat.monster.hp}));
   }
   {
-    const run=makeRun(seed,'F4'),cardId=run.players[1].cardPool[0].id;moveToSpent(run,'p1',cardId);run.players[0].publicResources.revelation=1;activateImmediateCharacterSkill(run,run.players[0],{target_player_id:'p1'});
+    const run=makeRun(seed,'F4'),cardId=run.players[1].cardPool[0].id;moveToSpent(run,'p1',cardId);run.players[0].publicResources.revelation=1;recoverFixtureCard(run,'p1');
     const result=uniqueTurn(run,fail,{p0:2,p1:1,p2:3,p3:4});
     if(!partition(run,'p1').spent.includes(cardId))hard(fail,'RECOVERED_CARD_NOT_SPENT','recovered card did not return to spent after normal use',{cardId});
     rows.push(snapshot('F4_RECOVERED_CARD_NORMAL_REUSE',run,result,{cardId}));
   }
   {
-    const run=makeRun(seed,'F5'),cardId=run.players[1].cardPool[0].id;moveToSpent(run,'p1',cardId);run.players[0].publicResources.revelation=1;activateImmediateCharacterSkill(run,run.players[0],{target_player_id:'p1'});
+    const run=makeRun(seed,'F5'),cardId=run.players[1].cardPool[0].id;moveToSpent(run,'p1',cardId);run.players[0].publicResources.revelation=1;recoverFixtureCard(run,'p1');
     uniqueTurn(run,fail,{p0:2,p1:1,p2:3,p3:4});run.players[0].publicResources.revelation=1;
-    const second=activateImmediateCharacterSkill(run,run.players[0],{target_player_id:'p1'}),recovery=eventOf(pendingEvents(run),'CARD_RECOVERED').at(-1);
+    const second=recoverFixtureCard(run,'p1'),recovery=eventOf(pendingEvents(run),'CARD_RECOVERED').at(-1);
     if(recovery?.cardInstanceId!==cardId)hard(fail,'SAME_CARD_SECOND_RECOVERY_FAILED','same physical card was not recoverable on a later action',{second,recovery,cardId});
     rows.push(snapshot('F5_SAME_CARD_SECOND_RECOVERY',run,null,{cardId,second,recovery}));
   }
@@ -145,13 +155,13 @@ export function runT06Fixtures(seed,fail){
   }
   {
     const run=makeRun(seed,'F7');uniqueTurn(run,fail,{p0:4,p1:1,p2:3,p3:2,skills:{p1:true}});run.players[0].publicResources.revelation=1;
-    const before=JSON.stringify(partition(run,'p1')),code=expectCode(()=>activateImmediateCharacterSkill(run,run.players[0],{target_player_id:'p1'}),'SKILL_NOT_READY',fail),after=JSON.stringify(partition(run,'p1'));
+    const before=JSON.stringify(partition(run,'p1')),code=expectCode(()=>recoverFixtureCard(run,'p1'),'SKILL_NOT_READY',fail),after=JSON.stringify(partition(run,'p1'));
     if(before!==after)hard(fail,'PREVIOUS_CYCLE_RECOVERY_MUTATED','rejected previous-cycle recovery changed new magazine',{before,after});
     rows.push(snapshot('F7_FULL_BURST_THEN_RECOVERY_BOUNDARY',run,null,{code,stateUnchanged:before===after}));
   }
   {
-    const run=makeRun(seed,'F8'),cardId=run.players[1].cardPool[0].id;moveToSpent(run,'p1',cardId);run.players[0].publicResources.revelation=1;activateImmediateCharacterSkill(run,run.players[0],{target_player_id:'p1'});
-    const result=uniqueTurn(run,fail,{p0:5,p1:2,p2:3,p3:1,skills:{p1:true}}),gunPackets=result.damagePackets.filter(p=>p.sourcePlayerId==='p1');
+    const run=makeRun(seed,'F8'),cardId=run.players[1].cardPool[0].id;moveToSpent(run,'p1',cardId);run.players[0].publicResources.revelation=1;recoverFixtureCard(run,'p1');
+    const result=uniqueTurn(run,fail,{p0:0,p1:2,p2:3,p3:1,skills:{p1:true}}),gunPackets=result.damagePackets.filter(p=>p.sourcePlayerId==='p1');
     if(gunPackets.filter(p=>p.sourceCardId===cardId).length!==1||gunPackets.length!==4)hard(fail,'RECOVERY_FULL_BURST_DUPLICATE','recovered gunner card inserted incorrectly into Full Burst',{gunPackets,cardId});
     rows.push(snapshot('F8_RECOVERY_FULL_BURST_BOUNDARY',run,result,{cardId}));
   }
@@ -182,13 +192,13 @@ export function runT06Fixtures(seed,fail){
     rows.push(snapshot('F13_ACROBATICS_RECHARGE_REJECTION',run,null,{code}));
   }
   {
-    const run=makeRun(seed,'F14'),id=run.players[2].cardPool[0].id;moveToSpent(run,'p2',id);run.players[0].publicResources.revelation=1;activateImmediateCharacterSkill(run,run.players[0],{target_player_id:'p2'});activateImmediateCharacterSkill(run,run.players[2]);
+    const run=makeRun(seed,'F14'),id=run.players[2].cardPool[0].id;moveToSpent(run,'p2',id);run.players[0].publicResources.revelation=1;recoverFixtureCard(run,'p2');activateImmediateCharacterSkill(run,run.players[2]);
     const z=assertPartition(run,'p2',fail);if(z.remaining.length!==4||z.spent.length)hard(fail,'RECOVERY_BEFORE_ACROBATICS_BAD_ZONE','recovery then reset produced bad zone',{z});
     rows.push(snapshot('F14_RECOVERY_BEFORE_ACROBATICS',run));
   }
   {
     const run=makeRun(seed,'F15'),id=run.players[2].cardPool[0].id;moveToSpent(run,'p2',id);activateImmediateCharacterSkill(run,run.players[2]);run.players[0].publicResources.revelation=1;
-    const code=expectCode(()=>activateImmediateCharacterSkill(run,run.players[0],{target_player_id:'p2'}),'SKILL_NOT_READY',fail);assertPartition(run,'p2',fail);
+    const code=expectCode(()=>recoverFixtureCard(run,'p2'),'SKILL_NOT_READY',fail);assertPartition(run,'p2',fail);
     rows.push(snapshot('F15_ACROBATICS_BEFORE_RECOVERY',run,null,{code}));
   }
   {
@@ -204,7 +214,7 @@ export function runT06Fixtures(seed,fail){
   }
   {
     const run=makeRun(seed,'F18');run.players[3].publicResources.devour=7;run.players[3].publicResources.ghostSlashLevel=0;run.players[3].publicResources.ghostSlashReady=false;uniqueTurn(run,fail);
-    run.players[2].publicResources.parity=0;const result=uniqueTurn(run,fail,{p0:5,p1:1,p2:2,p3:4,skills:{p3:true}});
+    run.players[2].publicResources.parity=0;const result=uniqueTurn(run,fail,{p0:0,p1:1,p2:2,p3:4,skills:{p3:true}});
     if(eventOf(result.events,'GHOST_SLASH_USED').length!==1)hard(fail,'GHOST_NEXT_ACTION_REUSE_FAILED','reactivated Ghost Slash was not usable on next action',{events:result.events});
     rows.push(snapshot('F18_GHOST_SLASH_NEXT_ACTION_REUSE',run,result));
   }
@@ -217,25 +227,25 @@ export function runT06Fixtures(seed,fail){
   {
     const run=makeRun(seed,'F20'),gunId=run.players[1].cardPool[0].id,twinId=run.players[2].cardPool[0].id;moveToSpent(run,'p1',gunId);moveToSpent(run,'p2',twinId);
     run.players[0].publicResources.revelation=1;run.players[3].publicResources.devour=7;run.players[3].publicResources.ghostSlashLevel=0;run.players[3].publicResources.ghostSlashReady=false;
-    activateImmediateCharacterSkill(run,run.players[0],{target_player_id:'p1'});activateImmediateCharacterSkill(run,run.players[2]);
-    const result=uniqueTurn(run,fail,{p0:5,p1:2,p2:4,p3:3,skills:{p1:true}});
+    recoverFixtureCard(run,'p1');activateImmediateCharacterSkill(run,run.players[2]);
+    const result=uniqueTurn(run,fail,{p0:0,p1:2,p2:4,p3:3,skills:{p1:true}});
     const types=result.events.map(e=>e.type);
     for(const type of ['CARD_RECOVERED','ACROBATICS_USED','GHOST_SLASH_REACTIVATED'])if(!types.includes(type))hard(fail,'MIXED_RECOVERY_CHAIN_MISSING','full mixed chain missed event',{type,types});
     if(!result.events.some(e=>e.type==='CYCLE_RESET'&&e.playerId==='p1'&&e.resetReason==='FULL_BURST'))hard(fail,'MIXED_RECOVERY_CHAIN_MISSING','mixed chain missed Full Burst reset',{types});
     rows.push(snapshot('F20_FULL_MIXED_RECOVERY_CHAIN',run,result,{orderedTypes:types.filter(x=>['FATE_MANIPULATOR_USED','CARD_RECOVERED','ACROBATICS_USED','CYCLE_RESET','GHOST_SLASH_LEVEL_UP','GHOST_SLASH_REACTIVATED'].includes(x))}));
   }
   {
-    const run=makeRun(seed,'F21'),id=run.players[2].cardPool[0].id;moveToSpent(run,'p2',id);run.players[0].publicResources.revelation=1;const first=activateImmediateCharacterSkill(run,run.players[0],{target_player_id:'p2'});activateImmediateCharacterSkill(run,run.players[2]);
-    run.players[2].publicResources.parity=0;uniqueTurn(run,fail,{p0:1,p1:3,p2:2,p3:4});run.players[0].publicResources.revelation=1;const second=activateImmediateCharacterSkill(run,run.players[0],{target_player_id:'p2'});
+    const run=makeRun(seed,'F21'),id=run.players[2].cardPool[0].id;moveToSpent(run,'p2',id);run.players[0].publicResources.revelation=1;const first=recoverFixtureCard(run,'p2');activateImmediateCharacterSkill(run,run.players[2]);
+    run.players[2].publicResources.parity=0;uniqueTurn(run,fail,{p0:1,p1:3,p2:2,p3:4});run.players[0].publicResources.revelation=1;const second=recoverFixtureCard(run,'p2');
     if(first.rootActionId===second.rootActionId)hard(fail,'RECOVERY_ROOT_REUSED','recovery after reset reused prior root action',{first,second});
     rows.push(snapshot('F21_RECOVERY_RESET_RECOVERY',run,null,{firstRoot:first.rootActionId,secondRoot:second.rootActionId}));
   }
   {
-    const run=makeRun(seed,'F22'),id=run.players[1].cardPool[0].id;moveToSpent(run,'p1',id);run.players[0].publicResources.revelation=1;activateImmediateCharacterSkill(run,run.players[0],{target_player_id:'p1'});const derived=pendingEvents(run);
+    const run=makeRun(seed,'F22'),id=run.players[1].cardPool[0].id;moveToSpent(run,'p1',id);run.players[0].publicResources.revelation=1;recoverFixtureCard(run,'p1');const derived=pendingEvents(run);
     const chain=enforceChain(derived);rows.push(snapshot('F22_SAME_ROOT_ACTION_CHAIN_BOUND',run,null,{maxDepth:chain.maxDepth,maxDerived:chain.maxDerived}));
   }
   {
-    const run=makeRun(seed,'F23'),id=run.players[1].cardPool[0].id;moveToSpent(run,'p1',id);run.players[0].publicResources.revelation=1;activateImmediateCharacterSkill(run,run.players[0],{target_player_id:'p1'});
+    const run=makeRun(seed,'F23'),id=run.players[1].cardPool[0].id;moveToSpent(run,'p1',id);run.players[0].publicResources.revelation=1;recoverFixtureCard(run,'p1');
     if(!run.players[1].cardPool.some(c=>c.id===id)||run.players[0].cardPool.some(c=>c.id===id))hard(fail,'CARD_OWNERSHIP_CHANGED','ally recovery changed ownership',{id});
     rows.push(snapshot('F23_CARD_OWNERSHIP_INVARIANT',run,null,{cardId:id,ownerId:'p1'}));
   }
@@ -246,7 +256,7 @@ export function runT06Fixtures(seed,fail){
     rows.push(snapshot('F24_COMBAT_END_CLEANUP',run,result));
   }
   {
-    const one=()=>{const run=makeRun(seed,'F25');const ids=run.players[1].cardPool.slice(0,2).map(c=>c.id);for(const id of ids)moveToSpent(run,'p1',id);run.players[0].publicResources.revelation=1;activateImmediateCharacterSkill(run,run.players[0],{target_player_id:'p1'});return eventOf(pendingEvents(run),'CARD_RECOVERED')[0]?.cardInstanceId;};
+    const one=()=>{const run=makeRun(seed,'F25');const ids=run.players[1].cardPool.slice(0,2).map(c=>c.id);for(const id of ids)moveToSpent(run,'p1',id);run.players[0].publicResources.revelation=1;recoverFixtureCard(run,'p1');return eventOf(pendingEvents(run),'CARD_RECOVERED')[0]?.cardInstanceId;};
     const a=one(),b=one();if(a!==b)hard(fail,'NON_DETERMINISTIC_RECOVERY','same seed recovered different physical card IDs',{a,b});rows.push({id:'F25_DETERMINISTIC_RECOVERED_CARD',recoveredCardId:a});
   }
   {
@@ -291,6 +301,6 @@ export function runT06Scenario(seed,{simulateCombat,fail}){
   return {scenarioId:'T06',seed,status:'PASS',outcome:recovery.some(r=>r.outcome==='RUN_FAILED')?'RUN_FAILED':'COMPLETED',actionCount:[...recovery,...steady].reduce((n,r)=>n+r.actions,0),fixtures,combats:recovery.flatMap(r=>r.combats||[]),steadyCombats:steady.flatMap(r=>r.combats||[]),recoveryTurns:recovery.flatMap(r=>r.recoveryTurns||[]),steadyRecoveryTurns:steady.flatMap(r=>r.recoveryTurns||[]),recoveryMetrics,steadyRecoveryMetrics,comparison:compare(recovery,steady,recoveryMetrics,steadyRecoveryMetrics),finalFlame:recovery.at(-1)?.finalFlame??null};
 }
 export function t06GoldenComparable(result){
-  const keep=new Set(['F1_SEER_ALLY_RECOVERY','F4_RECOVERED_CARD_NORMAL_REUSE','F5_SAME_CARD_SECOND_RECOVERY','F6_FULL_BURST_RESET','F7_FULL_BURST_THEN_RECOVERY_BOUNDARY','F11_TWINS_ACROBATICS_RESET','F14_RECOVERY_BEFORE_ACROBATICS','F15_ACROBATICS_BEFORE_RECOVERY','F16_GHOST_SLASH_REACTIVATION','F18_GHOST_SLASH_NEXT_ACTION_REUSE','F19_NO_REACTIVATION_RECURSION','F20_FULL_MIXED_RECOVERY_CHAIN','F21_RECOVERY_RESET_RECOVERY','F24_COMBAT_END_CLEANUP','F25_DETERMINISTIC_RECOVERED_CARD','F26_ACTION_CEILING_TRAP']);
+  const keep=new Set(['F1_FRAMEWORK_ALLY_RECOVERY','F4_RECOVERED_CARD_NORMAL_REUSE','F5_SAME_CARD_SECOND_RECOVERY','F6_FULL_BURST_RESET','F7_FULL_BURST_THEN_RECOVERY_BOUNDARY','F11_TWINS_ACROBATICS_RESET','F14_RECOVERY_BEFORE_ACROBATICS','F15_ACROBATICS_BEFORE_RECOVERY','F16_GHOST_SLASH_REACTIVATION','F18_GHOST_SLASH_NEXT_ACTION_REUSE','F19_NO_REACTIVATION_RECURSION','F20_FULL_MIXED_RECOVERY_CHAIN','F21_RECOVERY_RESET_RECOVERY','F24_COMBAT_END_CLEANUP','F25_DETERMINISTIC_RECOVERED_CARD','F26_ACTION_CEILING_TRAP']);
   return {scenarioId:result.scenarioId,status:result.status,fixtures:(result.fixtures||[]).filter(f=>keep.has(f.id)).map(f=>({id:f.id,phase:f.phase??null,resources:f.resources??null,zones:f.zones?Object.fromEntries(Object.entries(f.zones).map(([pid,z])=>[pid,{cycle:z.cycle,remaining:z.remaining,spent:z.spent}])):null,events:(f.result?.events||[]).filter(e=>['FATE_MANIPULATOR_USED','CARD_RECOVERED','ACROBATICS_USED','CYCLE_RESET','GHOST_SLASH_USED','GHOST_SLASH_LEVEL_UP','GHOST_SLASH_REACTIVATED'].includes(e.type)).map(e=>({type:e.type,eventId:e.eventId??null,playerId:e.playerId??null,actorId:e.actorId??null,targetPlayerId:e.targetPlayerId??null,cardInstanceId:e.cardInstanceId??null,previousCycleId:e.previousCycleId??null,nextCycleId:e.nextCycleId??null,resetReason:e.resetReason??null,rootActionId:e.rootActionId??null,recoveryChainId:e.recoveryChainId??null,parentEventId:e.parentEventId??null,chainDepth:e.chainDepth??null,before:e.before??null,after:e.after??null})),cardId:f.cardId??null,recoveredCardId:f.recoveredCardId??null,code:f.code??null,orderedTypes:f.orderedTypes??null,firstRoot:f.firstRoot??null,secondRoot:f.secondRoot??null,maxDepth:f.maxDepth??null,maxDerived:f.maxDerived??null,guardCode:f.guardCode??null,ceiling:f.ceiling??null}))};
 }

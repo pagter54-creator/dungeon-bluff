@@ -1,3 +1,4 @@
+import {prepareFragmentCards,captureFragments,beforeCollision} from './prophet-vampire-rework.js';
 import {adventurerShopPrice} from './adventurer-runtime.js';
 import {choose,drawIndex} from './rng.js';
 import {selfModifyCard,collisionImmunity,resolveGuardianWallCollisions,isCardSelectableForCharacter,validateCharacterSkillIntent,onCycleStartCharacter,onTurnStartCharacter,onTurnEndCharacter,initializeCombatCharacter,baseDamageForCharacter} from './characters.js';
@@ -265,22 +266,22 @@ export function resolveRewardAttempt(run){
   const room=run.roomState,active=run.players.filter(p=>p.status!=='DOWNED');if(active.some(p=>!room.turnSubmissions[p.playerId]))return null;
   const cards=active.map(p=>{const sub=room.turnSubmissions[p.playerId],card=cardFor(p,sub.cardInstanceId);return {playerId:p.playerId,seat:p.seat,cardInstanceId:card.id,baseNumber:card.baseNumber,workingNumber:card.baseNumber,finalNumber:card.baseNumber,collisionImmune:false,valid:true};});
   const mutationEvents=[];
-  initializeNumberHistories(cards);
+  prepareFragmentCards(run,cards);initializeNumberHistories(cards);
   for(const rc of cards){const p=playerFor(run,rc.playerId);if(p?.characterId==='gambler')prepareGamblerAllIn(run,p,room.privateByPlayer[p.playerId],room.turnSubmissions[p.playerId],rc);}
   for(const rc of cards){const p=playerFor(run,rc.playerId),sub=room.turnSubmissions[rc.playerId];if(sub.skillIntent)applyOwnedEffects(run,'ON_SKILL_USE',{player:p,resolved:rc,submission:sub,privateState:room.privateByPlayer[rc.playerId]});selfModifyCard(p,rc,sub);applyOwnedEffects(run,'PRE_COLLISION_SELF_MODIFY',{player:p,resolved:rc,privateState:room.privateByPlayer[rc.playerId],events:[]});}
   recordSelfModification(cards,mutationEvents);
   for(const rc of cards)applyOwnedEffects(run,'PRE_COLLISION',{player:playerFor(run,rc.playerId),resolved:rc,privateState:room.privateByPlayer[rc.playerId]});
   applyPreCollisionSwap(run,cards,mutationEvents,room);
   applyPreCollisionSteal(run,cards,mutationEvents);
-  finalizeNumbers(cards);for(const rc of cards)applyOwnedEffects(run,'POST_REVEAL',{player:playerFor(run,rc.playerId),resolved:rc,privateState:room.privateByPlayer[rc.playerId]});
+  finalizeNumbers(cards);captureFragments(run,cards);for(const rc of cards)applyOwnedEffects(run,'POST_REVEAL',{player:playerFor(run,rc.playerId),resolved:rc,privateState:room.privateByPlayer[rc.playerId]});
   for(const rc of cards)rc.collisionImmune=collisionImmunity(playerFor(run,rc.playerId),room.turnSubmissions[rc.playerId]);
   const groups=new Map();for(const card of cards){const group=groups.get(card.finalNumber)||[];group.push(card);groups.set(card.finalNumber,group);}
-  attachCollisionGroups(run,cards,groups);
+  attachCollisionGroups(run,cards,groups);beforeCollision(run,cards,[],groups);
   for(const group of groups.values())if(group.length>1)for(const card of group)if(!card.collisionImmune){card.valid=false;card.invalidReason='COLLISION';}
   resolveGuardianWallCollisions(run,cards,groups,[]);
-  assignVampireThralls(run,cards,groups,[]);
+
   for(const rc of cards)applyOwnedEffects(run,'POST_COLLISION',{player:playerFor(run,rc.playerId),resolved:rc,submission:room.turnSubmissions[rc.playerId],privateState:room.privateByPlayer[rc.playerId]});
-  attachValidity(cards);
+  attachValidity(cards);assignVampireThralls(run,cards,groups,[]);
   for(const rc of cards){const p=playerFor(run,rc.playerId);if(p?.characterId==='gambler')finalizeGamblerAllIn(run,p,room.privateByPlayer[p.playerId],rc);}
   for(const card of cards)if(card.invalidReason==='COLLISION'){
     const player=playerFor(run,card.playerId);

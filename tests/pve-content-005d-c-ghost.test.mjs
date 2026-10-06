@@ -1,5 +1,5 @@
 import {augmentUi} from '../src/pve-ui-catalog.js';
-import {recoverSeerPhysicalCard} from '../supabase/functions/game-api/pve/seer-runtime.js';
+import {recoverPhysicalCard} from '../supabase/functions/game-api/pve/augment-framework.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {newPlayerRunState,newCombatState} from '../supabase/functions/game-api/pve/model.js';
@@ -154,11 +154,11 @@ for(const start of [331,341,351])test('Ghost actual EXP stage progression and qu
  }
  assert.equal(p.augments.length,4);
 });
-test('Ghost actual Seer recovery preserves transformed ID and rejects deleted pools',()=>{
+test('Ghost generic physical recovery preserves transformed ID and rejects deleted pools',()=>{
  const f=fixture([351]);f.run.players[1].characterId='prophet';fuel(f);const id=f.priv.remainingCardIds.shift();f.priv.spentCardIds.push(id);
- const r=recoverSeerPhysicalCard(f.run,f.run.players[1],f.p,id,{rootActionId:'seer-real',recoveryMode:'ALLY'});assert.equal(r.applied,true);assert.ok(f.priv.remainingCardIds.includes(id));assert.equal(ghostCycleExit(f.run,f.p,f.priv),false);
- assert.equal(recoverSeerPhysicalCard(f.run,f.run.players[1],f.p,id,{rootActionId:'seer-real',recoveryMode:'ALLY'}).applied,false);
- f.priv.remainingCardIds=[];ghostCycleExit(f.run,f.p,f.priv);assert.equal(recoverSeerPhysicalCard(f.run,f.run.players[1],f.p,id).applied,false);
+ const r=recoverPhysicalCard(f.run,f.p,id,{rootActionId:'seer-real',recoveryMode:'ALLY'});assert.equal(r.applied,true);assert.ok(f.priv.remainingCardIds.includes(id));assert.equal(ghostCycleExit(f.run,f.p,f.priv),false);
+ assert.equal(recoverPhysicalCard(f.run,f.p,id,{rootActionId:'seer-real',recoveryMode:'ALLY'}).applied,false);
+ f.priv.remainingCardIds=[];ghostCycleExit(f.run,f.p,f.priv);assert.equal(recoverPhysicalCard(f.run,f.p,id).applied,false);
 });
 test('Ghost two owners keep Devour thresholds hunger and physical pools independent',()=>{
  const f=fixture([351]);const q=f.run.players[1];q.characterId='demon_swordsman';q.augments=['aug-341'];q.publicResources.devour=0;q.publicResources.ghostSlashLevel=0;

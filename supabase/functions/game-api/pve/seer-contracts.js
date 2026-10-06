@@ -1,5 +1,3 @@
-// Generated runtime contract overlay from docs/PVE_CONTENT_005Q_DESIGN_C.json.
-// DESIGN-C remains the immutable source of truth; this file is the executable mapping for 005C-A.
 export const SEER_CONTRACTS=Object.freeze({
   "aug-151": {
     "augmentId": "aug-151",
@@ -7,25 +5,13 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "완전한 계시",
     "stage": 1,
-    "trigger": [
-      "ON_VALID"
-    ],
-    "condition": "A physical card recovered by Revelation is used valid in Combat and refund unused this combat.",
-    "effectType": "GAIN_RESOURCE",
-    "effectValue": {
-      "resource": "revelation",
-      "amount": 1
-    },
-    "targetRule": "OWNER_OR_CURRENT_ACTION",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "aug_151_refund_used",
-    "stateType": "BOOLEAN",
-    "stackRule": "Apply on declared trigger; clamp to declared cap; derived effects do not recursively retrigger.",
-    "stackCap": "NOT_APPLICABLE",
-    "consumeRule": "NONE",
-    "onceScope": "ONCE_PER_COMBAT",
-    "resetScope": "COMBAT_END",
-    "persistenceScope": "RUN",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "Whenever Revelation is gained from an authoritative\nRevelation gain event:\n\ngain +1 additional Revelation.\n\n한 획득 사건당 추가 +1.\n\n예:\n\ncollision participants 2\nbase +2\naug151 +1\n= +3\n\nparticipants 4\nbase +4\naug151 +1\n= +5\n\ncap 적용.",
+    "canonicalDescription": "Whenever Revelation is gained from an authoritative\nRevelation gain event:\n\ngain +1 additional Revelation.\n\n한 획득 사건당 추가 +1.\n\n예:\n\ncollision participants 2\nbase +2\naug151 +1\n= +3\n\nparticipants 4\nbase +4\naug151 +1\n= +5\n\ncap 적용.",
+    "tooltip": "Whenever Revelation is gained from an authoritative\nRevelation gain event:\n\ngain +1 additional Revelation.\n\n한 획득 사건당 추가 +1.\n\n예:\n\ncollision participants 2\nbase +2\naug151 +1\n= +3\n\nparticipants 4\nbase +4\naug151 +1\n= +5\n\ncap 적용.",
+    "tooltipBetaV02": "Whenever Revelation is gained from an authoritative\nRevelation gain event:\n\ngain +1 additional Revelation.\n\n한 획득 사건당 추가 +1.\n\n예:\n\ncollision participants 2\nbase +2\naug151 +1\n= +3\n\nparticipants 4\nbase +4\naug151 +1\n= +5\n\ncap 적용.",
     "roomApplicability": {
       "COMBAT": true,
       "EVENT": false,
@@ -33,35 +19,16 @@ export const SEER_CONTRACTS=Object.freeze({
       "SHOP": false,
       "REST": false
     },
-    "visibility": "PUBLIC",
-    "reconnectRule": "Persist aug_151_gain_resource and physical IDs/counters through RUN scope; reconstruct identical projection.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "계시로 복구한 카드를 유효하게 사용하면 전투당 1회 계시 1을 즉시 다시 획득. 즉시 재획득은 전투당 1회.",
-    "runtimePrimitivesRequired": [
-      "GAIN_RESOURCE",
-      "RECOVERED_CARD_PROVENANCE",
-      "BASE_RULE_OVERRIDE"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-151",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-151: satisfy 'Valid use of a card recovered by Revelation' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-151: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": [
-        "same rootActionId retry idempotent",
-        "reconnect before/after trigger preserves state",
-        "room/collision ordering",
-        "no recursive derived trigger"
-      ]
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "완전한 계시",
-      "stage": 1
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-152": {
     "augmentId": "aug-152",
@@ -69,57 +36,30 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "완전한 계시",
     "stage": 2,
-    "trigger": [
-      "ON_RECOVER_CARD"
-    ],
-    "condition": "계시 복구 시 무작위 사용 카드 2장을 후보로 제시하고 1장 선택",
-    "effectType": "RECOVER_CARD_SELECTOR",
-    "effectValue": {
-      "text": "계시 복구 시 무작위 사용 카드 2장을 후보로 제시하고 1장 선택.",
-      "numericHints": [
-        2,
-        1
-      ]
-    },
-    "targetRule": "OWNER_OR_CURRENT_ACTION",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "aug_152_recover_card_selector",
-    "stateType": "CARD_ZONE_STATE",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": "NOT_APPLICABLE",
-    "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
-    "onceScope": "NONE",
-    "resetScope": "NEVER_WITHIN_RUN",
-    "persistenceScope": "RUN",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "전투당 1회.\n\nRevelation >= 3인 상태에서\nowner가 VALID attack으로 통과하면:\n\n그 공격 damage +1.\n\n첫 성공 후 소모.",
+    "canonicalDescription": "전투당 1회.\n\nRevelation >= 3인 상태에서\nowner가 VALID attack으로 통과하면:\n\n그 공격 damage +1.\n\n첫 성공 후 소모.",
+    "tooltip": "전투당 1회.\n\nRevelation >= 3인 상태에서\nowner가 VALID attack으로 통과하면:\n\n그 공격 damage +1.\n\n첫 성공 후 소모.",
+    "tooltipBetaV02": "전투당 1회.\n\nRevelation >= 3인 상태에서\nowner가 VALID attack으로 통과하면:\n\n그 공격 damage +1.\n\n첫 성공 후 소모.",
     "roomApplicability": {
       "COMBAT": true,
-      "EVENT": true,
-      "REWARD": true,
+      "EVENT": false,
+      "REWARD": false,
       "SHOP": false,
       "REST": false
     },
-    "visibility": "PUBLIC",
-    "reconnectRule": "Persist aug_152_recover_card_selector and physical IDs/counters through RUN scope; reconstruct identical projection.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "계시 복구 시 무작위 사용 카드 2장을 후보로 제시하고 1장 선택. 후보가 1장이면 그대로 복구.",
-    "runtimePrimitivesRequired": [
-      "RECOVER_CARD_SELECTOR"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-152",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-152: satisfy '계시 복구 시 무작위 사용 카드 2장을 후보로 제시하고 1장 선택' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-152: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "완전한 계시",
-      "stage": 2
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-153": {
     "augmentId": "aug-153",
@@ -127,56 +67,30 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "완전한 계시",
     "stage": 2,
-    "trigger": [
-      "ON_VALID",
-      "ON_RECOVER_CARD"
-    ],
-    "condition": "A card recovered by Revelation is later used successfully and no recovery has been granted by this augment in the current cycle.",
-    "effectType": "RECOVER_CARD",
-    "effectValue": {
-      "count": 1,
-      "zoneFrom": "SPENT",
-      "zoneTo": "REMAINING"
-    },
-    "targetRule": "OWNER_OR_CURRENT_ACTION",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "aug_153_recover_card",
-    "stateType": "CARD_ZONE_STATE",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": "NOT_APPLICABLE",
-    "consumeRule": "Recover most-recent eligible own BASE card except the just-resolved card; preserve cardInstanceId.",
-    "onceScope": "ONCE_PER_CYCLE",
-    "resetScope": "CYCLE_END",
-    "persistenceScope": "RUN",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "Revelation maximum:\n\n6 → 8\n\nPast Fragment 비용은 그대로:\n\n6\n\n즉 Revelation 8에서 사용 시:\n\n8 → 2.",
+    "canonicalDescription": "Revelation maximum:\n\n6 → 8\n\nPast Fragment 비용은 그대로:\n\n6\n\n즉 Revelation 8에서 사용 시:\n\n8 → 2.",
+    "tooltip": "Revelation maximum:\n\n6 → 8\n\nPast Fragment 비용은 그대로:\n\n6\n\n즉 Revelation 8에서 사용 시:\n\n8 → 2.",
+    "tooltipBetaV02": "Revelation maximum:\n\n6 → 8\n\nPast Fragment 비용은 그대로:\n\n6\n\n즉 Revelation 8에서 사용 시:\n\n8 → 2.",
     "roomApplicability": {
       "COMBAT": true,
-      "EVENT": true,
-      "REWARD": true,
+      "EVENT": false,
+      "REWARD": false,
       "SHOP": false,
       "REST": false
     },
-    "visibility": "PUBLIC",
-    "reconnectRule": "Persist aug_153_recover_card and physical IDs/counters through RUN scope; reconstruct identical projection.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "사용 카드 1장 복구. 기본 사이클당 1회; 특수/임시 카드는 복구 불가.",
-    "runtimePrimitivesRequired": [
-      "RECOVER_CARD"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-153",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-153: satisfy 'A card recovered by Revelation is later used successfully and no recovery has been granted by this augment in the current cycle.' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-153: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "완전한 계시",
-      "stage": 2
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-154": {
     "augmentId": "aug-154",
@@ -184,24 +98,13 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "완전한 계시",
     "stage": 2,
-    "trigger": [
-      "ON_VALID"
-    ],
-    "condition": "계시로 복구된 자신의 physical card가 전투에서 유효하게 사용된다.",
-    "effectType": "MODIFY_EXP",
-    "effectValue": {
-      "exp": 1
-    },
-    "targetRule": "OWNER_OR_CURRENT_ACTION",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "NONE",
-    "stateType": "NONE",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": "NOT_APPLICABLE",
-    "consumeRule": "NONE",
-    "onceScope": "ONCE_PER_TURN",
-    "resetScope": "TURN_END",
-    "persistenceScope": "RUN",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "Revelation >= 3 상태에서\n\nowner 자신은 collision participant가 아니고\n다른 플레이어들만 collision group에 들어갔다면:\n\nRevelation +1.\n\n턴당 1회.",
+    "canonicalDescription": "Revelation >= 3 상태에서\n\nowner 자신은 collision participant가 아니고\n다른 플레이어들만 collision group에 들어갔다면:\n\nRevelation +1.\n\n턴당 1회.",
+    "tooltip": "Revelation >= 3 상태에서\n\nowner 자신은 collision participant가 아니고\n다른 플레이어들만 collision group에 들어갔다면:\n\nRevelation +1.\n\n턴당 1회.",
+    "tooltipBetaV02": "Revelation >= 3 상태에서\n\nowner 자신은 collision participant가 아니고\n다른 플레이어들만 collision group에 들어갔다면:\n\nRevelation +1.\n\n턴당 1회.",
     "roomApplicability": {
       "COMBAT": true,
       "EVENT": false,
@@ -209,28 +112,16 @@ export const SEER_CONTRACTS=Object.freeze({
       "SHOP": false,
       "REST": false
     },
-    "visibility": "SERVER_ONLY",
-    "reconnectRule": "No mutable state beyond ownership; replay/reconnect cannot duplicate source action.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "계시로 복구한 자신의 카드를 전투에서 유효하게 사용하면 EXP를 1 얻습니다. 턴당 1회.",
-    "runtimePrimitivesRequired": [
-      "MODIFY_EXP"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-154",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-154: satisfy '복구한 카드의 유효 공격에 작은 추가 피해 또는 성장 보너스.' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-154: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "완전한 계시",
-      "stage": 2
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-155": {
     "augmentId": "aug-155",
@@ -238,58 +129,30 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "완전한 계시",
     "stage": 3,
-    "trigger": [
-      "ON_VALID",
-      "ON_RECOVER_CARD"
-    ],
-    "condition": "계시 사용 후 복구한 카드를 2턴 이내 유효하게 사용하면 계시 1 재획득",
-    "effectType": "GAIN_RESOURCE",
-    "effectValue": {
-      "text": "계시 사용 후 복구한 카드를 2턴 이내 유효하게 사용하면 계시 1 재획득.",
-      "numericHints": [
-        2,
-        1
-      ]
-    },
-    "targetRule": "OWNER_OR_CURRENT_ACTION",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "aug_155_gain_resource",
-    "stateType": "INTEGER",
-    "stackRule": "Apply on declared trigger; clamp to declared cap; derived effects do not recursively retrigger.",
-    "stackCap": "NOT_APPLICABLE",
-    "consumeRule": "NONE",
-    "onceScope": "ONCE_PER_COMBAT",
-    "resetScope": "COMBAT_END",
-    "persistenceScope": "COMBAT",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "Past Fragment 사용 시:\n\nRevelation 비용 6은 지불하지만\n사용 직후 Revelation +1.\n\n즉 기본 max6:\n\n6 → 1.\n\naug153과 함께일 경우:\n\n8 → 3.\n\n정확히 “1 refund”로 구현.",
+    "canonicalDescription": "Past Fragment 사용 시:\n\nRevelation 비용 6은 지불하지만\n사용 직후 Revelation +1.\n\n즉 기본 max6:\n\n6 → 1.\n\naug153과 함께일 경우:\n\n8 → 3.\n\n정확히 “1 refund”로 구현.",
+    "tooltip": "Past Fragment 사용 시:\n\nRevelation 비용 6은 지불하지만\n사용 직후 Revelation +1.\n\n즉 기본 max6:\n\n6 → 1.\n\naug153과 함께일 경우:\n\n8 → 3.\n\n정확히 “1 refund”로 구현.",
+    "tooltipBetaV02": "Past Fragment 사용 시:\n\nRevelation 비용 6은 지불하지만\n사용 직후 Revelation +1.\n\n즉 기본 max6:\n\n6 → 1.\n\naug153과 함께일 경우:\n\n8 → 3.\n\n정확히 “1 refund”로 구현.",
     "roomApplicability": {
       "COMBAT": true,
-      "EVENT": true,
-      "REWARD": true,
+      "EVENT": false,
+      "REWARD": false,
       "SHOP": false,
       "REST": false
     },
-    "visibility": "PUBLIC",
-    "reconnectRule": "Persist aug_155_gain_resource and physical IDs/counters through COMBAT scope; reconstruct identical projection.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "계시 사용 후 복구한 카드를 2턴 이내 유효하게 사용하면 계시 1 재획득. 전투당 1회.",
-    "runtimePrimitivesRequired": [
-      "GAIN_RESOURCE"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-155",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-155: satisfy '계시 사용 후 복구한 카드를 2턴 이내 유효하게 사용하면 계시 1 재획득' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-155: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "완전한 계시",
-      "stage": 3
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-156": {
     "augmentId": "aug-156",
@@ -297,32 +160,13 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "완전한 계시",
     "stage": 3,
-    "trigger": [
-      "ON_VALID",
-      "ON_RECOVER_CARD",
-      "PRE_DAMAGE"
-    ],
-    "condition": "복구한 카드가 유효 성공하면 다음 턴 첫 유효 공격 추가 피해 +1",
-    "effectType": "ADD_DAMAGE",
-    "effectValue": {
-      "text": "복구한 카드가 유효 성공하면 다음 턴 첫 유효 공격 추가 피해 +1.",
-      "numericHints": [
-        1
-      ]
-    },
-    "targetRule": "OWNER_OR_CURRENT_ACTION",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "NONE",
-    "stateType": "NONE",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": {
-      "text": "NONE",
-      "source": "GLOBAL_POLICY"
-    },
-    "consumeRule": "NONE",
-    "onceScope": "NONE",
-    "resetScope": "NEVER_WITHIN_RUN",
-    "persistenceScope": "RUN",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "Revelation >=3 상태에서\nowner가 2턴 연속 VALID 통과하면:\n\n두 번째 성공 턴 종료 시\nRevelation +1.\n\n연속 실패 / collision / invalid 시 streak reset.",
+    "canonicalDescription": "Revelation >=3 상태에서\nowner가 2턴 연속 VALID 통과하면:\n\n두 번째 성공 턴 종료 시\nRevelation +1.\n\n연속 실패 / collision / invalid 시 streak reset.",
+    "tooltip": "Revelation >=3 상태에서\nowner가 2턴 연속 VALID 통과하면:\n\n두 번째 성공 턴 종료 시\nRevelation +1.\n\n연속 실패 / collision / invalid 시 streak reset.",
+    "tooltipBetaV02": "Revelation >=3 상태에서\nowner가 2턴 연속 VALID 통과하면:\n\n두 번째 성공 턴 종료 시\nRevelation +1.\n\n연속 실패 / collision / invalid 시 streak reset.",
     "roomApplicability": {
       "COMBAT": true,
       "EVENT": false,
@@ -330,29 +174,16 @@ export const SEER_CONTRACTS=Object.freeze({
       "SHOP": false,
       "REST": false
     },
-    "visibility": "SERVER_ONLY",
-    "reconnectRule": "No mutable state beyond ownership; replay/reconnect cannot duplicate source action.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "복구한 카드가 유효 성공하면 다음 턴 첫 유효 공격 추가 피해 +1. 1회 후 소멸.",
-    "runtimePrimitivesRequired": [
-      "ADD_DAMAGE",
-      "DELAY_EFFECT"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-156",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-156: satisfy '복구한 카드가 유효 성공하면 다음 턴 첫 유효 공격 추가 피해 +1' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-156: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "완전한 계시",
-      "stage": 3
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-157": {
     "augmentId": "aug-157",
@@ -360,28 +191,13 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "완전한 계시",
     "stage": 3,
-    "trigger": [
-      "ON_VALID",
-      "PRE_DAMAGE"
-    ],
-    "condition": "The same printed number has been recovered by Revelation and used valid at least twice this combat.",
-    "effectType": "ADD_DAMAGE",
-    "effectValue": {
-      "bonusDamage": 2
-    },
-    "targetRule": "OWNER_OR_CURRENT_ACTION",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "NONE",
-    "stateType": "NONE",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": {
-      "text": "최대 3스택",
-      "source": "BETA_VALUE_OR_LIMIT"
-    },
-    "consumeRule": "NONE",
-    "onceScope": "ONCE_PER_TURN",
-    "resetScope": "COMBAT_END",
-    "persistenceScope": "RUN",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "직전 턴 collision participant count와\n이번 턴 collision participant count가 같고\n\n그 숫자가 >=2라면:\n\nRevelation +1.\n\n턴당 1.",
+    "canonicalDescription": "직전 턴 collision participant count와\n이번 턴 collision participant count가 같고\n\n그 숫자가 >=2라면:\n\nRevelation +1.\n\n턴당 1.",
+    "tooltip": "직전 턴 collision participant count와\n이번 턴 collision participant count가 같고\n\n그 숫자가 >=2라면:\n\nRevelation +1.\n\n턴당 1.",
+    "tooltipBetaV02": "직전 턴 collision participant count와\n이번 턴 collision participant count가 같고\n\n그 숫자가 >=2라면:\n\nRevelation +1.\n\n턴당 1.",
     "roomApplicability": {
       "COMBAT": true,
       "EVENT": false,
@@ -389,28 +205,16 @@ export const SEER_CONTRACTS=Object.freeze({
       "SHOP": false,
       "REST": false
     },
-    "visibility": "SERVER_ONLY",
-    "reconnectRule": "No mutable state beyond ownership; replay/reconnect cannot duplicate source action.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "The same printed number has been recovered by Revelation and used valid at least twice this combat.일 때 추가 피해 +2 효과를 적용합니다. 제한: ONCE_PER_TURN.",
-    "runtimePrimitivesRequired": [
-      "ADD_DAMAGE"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-157",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-157: satisfy 'The same printed number has been recovered by Revelation and used valid at least twice this combat.' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-157: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "완전한 계시",
-      "stage": 3
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-158": {
     "augmentId": "aug-158",
@@ -418,56 +222,30 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "완전한 계시",
     "stage": 4,
-    "trigger": [
-      "ON_SKILL_USE"
-    ],
-    "condition": "계시 사용 시 자신의 사용 카드 중 1장을 직접 지정해 복구",
-    "effectType": "RECOVER_CARD_SELECTOR",
-    "effectValue": {
-      "text": "계시 사용 시 자신의 사용 카드 중 1장을 직접 지정해 복구.",
-      "numericHints": [
-        1
-      ]
-    },
-    "targetRule": "OWNER_OR_CURRENT_ACTION",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "aug_158_recover_card_selector",
-    "stateType": "CARD_ZONE_STATE",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": "NOT_APPLICABLE",
-    "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
-    "onceScope": "ONCE_PER_REVELATION_USE",
-    "resetScope": "NEVER_WITHIN_RUN",
-    "persistenceScope": "RUN",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "Auto Revelation visibility threshold:\n\n3 → 2.",
+    "canonicalDescription": "Auto Revelation visibility threshold:\n\n3 → 2.",
+    "tooltip": "Auto Revelation visibility threshold:\n\n3 → 2.",
+    "tooltipBetaV02": "Auto Revelation visibility threshold:\n\n3 → 2.",
     "roomApplicability": {
       "COMBAT": true,
-      "EVENT": true,
-      "REWARD": true,
+      "EVENT": false,
+      "REWARD": false,
       "SHOP": false,
       "REST": false
     },
-    "visibility": "PUBLIC",
-    "reconnectRule": "Persist aug_158_recover_card_selector and physical IDs/counters through RUN scope; reconstruct identical projection.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "계시 사용 시 자신의 사용 카드 중 1장을 직접 지정해 복구. 계시 1회당 1장.",
-    "runtimePrimitivesRequired": [
-      "RECOVER_CARD_SELECTOR"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-158",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-158: satisfy '계시 사용 시 자신의 사용 카드 중 1장을 직접 지정해 복구' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-158: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "완전한 계시",
-      "stage": 4
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-159": {
     "augmentId": "aug-159",
@@ -475,28 +253,13 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "완전한 계시",
     "stage": 4,
-    "trigger": [
-      "ON_VALID",
-      "PRE_DAMAGE"
-    ],
-    "condition": "A Revelation-recovered own card is used valid and this turn began with at least 1 Revelation.",
-    "effectType": "ADD_DAMAGE",
-    "effectValue": {
-      "bonusDamage": 4
-    },
-    "targetRule": "OWNER_OR_CURRENT_ACTION",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "NONE",
-    "stateType": "NONE",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": {
-      "text": "최대 3스택",
-      "source": "BETA_VALUE_OR_LIMIT"
-    },
-    "consumeRule": "NONE",
-    "onceScope": "ONCE_PER_TURN",
-    "resetScope": "TURN_END",
-    "persistenceScope": "COMBAT",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "Revelation >=3인 상태에서\nowner의 공격이 VALID로 확정되면:\n\nRevelation 1 자동 소모\n해당 공격 damage +1.\n\nIMPORTANT:\n\ncost를 지불한 뒤 Revelation이 2가 되어도\n이미 해당 공격의 bonus는 유지.\n\nRevelation <3이면 발동하지 않음.\n\n한 primary attack당 1회.",
+    "canonicalDescription": "Revelation >=3인 상태에서\nowner의 공격이 VALID로 확정되면:\n\nRevelation 1 자동 소모\n해당 공격 damage +1.\n\nIMPORTANT:\n\ncost를 지불한 뒤 Revelation이 2가 되어도\n이미 해당 공격의 bonus는 유지.\n\nRevelation <3이면 발동하지 않음.\n\n한 primary attack당 1회.",
+    "tooltip": "Revelation >=3인 상태에서\nowner의 공격이 VALID로 확정되면:\n\nRevelation 1 자동 소모\n해당 공격 damage +1.\n\nIMPORTANT:\n\ncost를 지불한 뒤 Revelation이 2가 되어도\n이미 해당 공격의 bonus는 유지.\n\nRevelation <3이면 발동하지 않음.\n\n한 primary attack당 1회.",
+    "tooltipBetaV02": "Revelation >=3인 상태에서\nowner의 공격이 VALID로 확정되면:\n\nRevelation 1 자동 소모\n해당 공격 damage +1.\n\nIMPORTANT:\n\ncost를 지불한 뒤 Revelation이 2가 되어도\n이미 해당 공격의 bonus는 유지.\n\nRevelation <3이면 발동하지 않음.\n\n한 primary attack당 1회.",
     "roomApplicability": {
       "COMBAT": true,
       "EVENT": false,
@@ -504,28 +267,16 @@ export const SEER_CONTRACTS=Object.freeze({
       "SHOP": false,
       "REST": false
     },
-    "visibility": "PUBLIC",
-    "reconnectRule": "No mutable state beyond ownership; replay/reconnect cannot duplicate source action.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "A Revelation-recovered own card is used valid and this turn began with at least 1 Revelation.일 때 추가 피해 +4 효과를 적용합니다. 제한: ONCE_PER_TURN.",
-    "runtimePrimitivesRequired": [
-      "ADD_DAMAGE"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-159",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-159: satisfy 'A Revelation-recovered own card is used valid and this turn began with at least 1 Revelation.' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-159: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "완전한 계시",
-      "stage": 4
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-160": {
     "augmentId": "aug-160",
@@ -533,24 +284,13 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "완전한 계시",
     "stage": 4,
-    "trigger": [
-      "ON_VALID"
-    ],
-    "condition": "During a turn in which Revelation was activated, the selected/recovered own card resolves valid.",
-    "effectType": "ADD_DAMAGE",
-    "effectValue": {
-      "amount": 3
-    },
-    "targetRule": "OWNER_OR_CURRENT_ACTION",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "NONE",
-    "stateType": "NONE",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": "NOT_APPLICABLE",
-    "consumeRule": "NONE",
-    "onceScope": "ONCE_PER_TURN",
-    "resetScope": "TURN_END",
-    "persistenceScope": "RUN",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "Past Fragment 사용으로\nRevelation이 visibility threshold 아래로 떨어져도\n\n현재 turn 종료까지는\nAuto Revelation visibility 유지.\n\n다음 turn부터 정상 threshold 재적용.",
+    "canonicalDescription": "Past Fragment 사용으로\nRevelation이 visibility threshold 아래로 떨어져도\n\n현재 turn 종료까지는\nAuto Revelation visibility 유지.\n\n다음 turn부터 정상 threshold 재적용.",
+    "tooltip": "Past Fragment 사용으로\nRevelation이 visibility threshold 아래로 떨어져도\n\n현재 turn 종료까지는\nAuto Revelation visibility 유지.\n\n다음 turn부터 정상 threshold 재적용.",
+    "tooltipBetaV02": "Past Fragment 사용으로\nRevelation이 visibility threshold 아래로 떨어져도\n\n현재 turn 종료까지는\nAuto Revelation visibility 유지.\n\n다음 turn부터 정상 threshold 재적용.",
     "roomApplicability": {
       "COMBAT": true,
       "EVENT": false,
@@ -558,28 +298,16 @@ export const SEER_CONTRACTS=Object.freeze({
       "SHOP": false,
       "REST": false
     },
-    "visibility": "PUBLIC",
-    "reconnectRule": "No mutable state beyond ownership; replay/reconnect cannot duplicate source action.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "사용 카드 2장 복구. 기본 사이클당 1회; 특수/임시 카드는 복구 불가.",
-    "runtimePrimitivesRequired": [
-      "RECOVER_CARD"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-160",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-160: satisfy 'During a turn in which Revelation was activated, the selected/recovered own card resolves valid.' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-160: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "완전한 계시",
-      "stage": 4
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-161": {
     "augmentId": "aug-161",
@@ -587,31 +315,13 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "운명 조작자",
     "stage": 1,
-    "trigger": [
-      "ON_SKILL_USE",
-      "ON_RECOVER_CARD"
-    ],
-    "condition": "Spend 1 Revelation in SELECTION_OPEN and choose living ally with eligible BASE SPENT card; exclude TEMPORARY/TRANSFORMED/SPECIAL and selected/submitted.",
-    "effectType": "RECOVER_CARD",
-    "effectValue": {
-      "count": 1,
-      "zoneFrom": "SPENT",
-      "zoneTo": "REMAINING",
-      "selection": "MOST_RECENT_SPENT_THEN_LOWEST_CARD_ID"
-    },
-    "targetRule": "OWNER_SELECTS_ONE_LIVING_ALLY_BEFORE_CONFIRMED_SUBMIT",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "aug_161_recover_card",
-    "stateType": "CARD_ZONE_STATE",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": "NOT_APPLICABLE",
-    "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
-    "onceScope": {
-      "perRevelation": "ONCE_PER_REVELATION_USE",
-      "genericRecovery": "ONCE_PER_CYCLE"
-    },
-    "resetScope": "CYCLE_END",
-    "persistenceScope": "RUN",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "Past Fragment card가 VALID attack이면:\n\ndamage +1.",
+    "canonicalDescription": "Past Fragment card가 VALID attack이면:\n\ndamage +1.",
+    "tooltip": "Past Fragment card가 VALID attack이면:\n\ndamage +1.",
+    "tooltipBetaV02": "Past Fragment card가 VALID attack이면:\n\ndamage +1.",
     "roomApplicability": {
       "COMBAT": true,
       "EVENT": false,
@@ -619,35 +329,16 @@ export const SEER_CONTRACTS=Object.freeze({
       "SHOP": false,
       "REST": false
     },
-    "visibility": "PUBLIC",
-    "reconnectRule": "Persist aug_161_recover_card and physical IDs/counters through RUN scope; reconstruct identical projection.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "계시 사용 시 아군 1명을 지정해 그 아군의 사용 카드 중 무작위 1장을 복구할 수 있음. 계시 1회당 카드 1장; 특수/임시 카드는 복구 불가.",
-    "runtimePrimitivesRequired": [
-      "RECOVER_CARD",
-      "ALLY_RECOVERY_SELECTOR",
-      "PHYSICAL_CARD_IDENTITY"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-161",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-161: satisfy 'Revelation spent with explicit ally target; random eligible spent base card of that ally' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-161: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": [
-        "same rootActionId retry idempotent",
-        "reconnect before/after trigger preserves state",
-        "room/collision ordering",
-        "no recursive derived trigger"
-      ]
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "운명 조작자",
-      "stage": 1
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-162": {
     "augmentId": "aug-162",
@@ -655,54 +346,30 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "운명 조작자",
     "stage": 2,
-    "trigger": [
-      "ON_RECOVER_CARD"
-    ],
-    "condition": "When Fate Manipulator would recover an ally card and at least 2 eligible BASE SPENT cards exist.",
-    "effectType": "RECOVER_CARD_SELECTOR",
-    "effectValue": {
-      "candidateCount": 2,
-      "selectCount": 1
-    },
-    "targetRule": "EXPLICIT_ALLY",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "aug_162_recover_card_selector",
-    "stateType": "CARD_ZONE_STATE",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": "NOT_APPLICABLE",
-    "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
-    "onceScope": "ONCE_PER_CYCLE",
-    "resetScope": "CYCLE_END",
-    "persistenceScope": "RUN",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "Past Fragment 생성 직후부터\n다음 turn 종료 시점까지:\n\n해당 Fragment는\nSTUN_RANDOM_SUBMIT candidate에서 제외된다.\n\n그 이후 계속 들고 있으면\n다시 random-submit 대상.",
+    "canonicalDescription": "Past Fragment 생성 직후부터\n다음 turn 종료 시점까지:\n\n해당 Fragment는\nSTUN_RANDOM_SUBMIT candidate에서 제외된다.\n\n그 이후 계속 들고 있으면\n다시 random-submit 대상.",
+    "tooltip": "Past Fragment 생성 직후부터\n다음 turn 종료 시점까지:\n\n해당 Fragment는\nSTUN_RANDOM_SUBMIT candidate에서 제외된다.\n\n그 이후 계속 들고 있으면\n다시 random-submit 대상.",
+    "tooltipBetaV02": "Past Fragment 생성 직후부터\n다음 turn 종료 시점까지:\n\n해당 Fragment는\nSTUN_RANDOM_SUBMIT candidate에서 제외된다.\n\n그 이후 계속 들고 있으면\n다시 random-submit 대상.",
     "roomApplicability": {
       "COMBAT": true,
-      "EVENT": true,
-      "REWARD": true,
+      "EVENT": false,
+      "REWARD": false,
       "SHOP": false,
       "REST": false
     },
-    "visibility": "OWNER_ONLY",
-    "reconnectRule": "Persist aug_162_recover_card_selector and physical IDs/counters through RUN scope; reconstruct identical projection.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "사용 카드 1장 복구. 기본 사이클당 1회; 특수/임시 카드는 복구 불가.",
-    "runtimePrimitivesRequired": [
-      "RECOVER_CARD"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-162",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-162: satisfy 'When Fate Manipulator would recover an ally card and at least 2 eligible BASE SPENT cards exist.' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-162: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "운명 조작자",
-      "stage": 2
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-163": {
     "augmentId": "aug-163",
@@ -710,55 +377,30 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "운명 조작자",
     "stage": 2,
-    "trigger": [
-      "ON_RECOVER_CARD"
-    ],
-    "condition": "After Seer recovers an ally card, Seer has at least 1 eligible own BASE SPENT card.",
-    "effectType": "RECOVER_CARD",
-    "effectValue": {
-      "count": 1,
-      "zoneFrom": "SPENT",
-      "zoneTo": "REMAINING"
-    },
-    "targetRule": "SOURCE_SPECIFIED_ALLY_OR_EARLIEST_SEAT_TIE",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "aug_163_recover_card",
-    "stateType": "CARD_ZONE_STATE",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": "NOT_APPLICABLE",
-    "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
-    "onceScope": "ONCE_PER_CYCLE",
-    "resetScope": "CYCLE_END",
-    "persistenceScope": "RUN",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "Past Fragment 생성 숫자가 >=5이면:\n\n생성 직후 Revelation +1.",
+    "canonicalDescription": "Past Fragment 생성 숫자가 >=5이면:\n\n생성 직후 Revelation +1.",
+    "tooltip": "Past Fragment 생성 숫자가 >=5이면:\n\n생성 직후 Revelation +1.",
+    "tooltipBetaV02": "Past Fragment 생성 숫자가 >=5이면:\n\n생성 직후 Revelation +1.",
     "roomApplicability": {
       "COMBAT": true,
-      "EVENT": true,
-      "REWARD": true,
+      "EVENT": false,
+      "REWARD": false,
       "SHOP": false,
       "REST": false
     },
-    "visibility": "SERVER_ONLY",
-    "reconnectRule": "Persist aug_163_recover_card and physical IDs/counters through RUN scope; reconstruct identical projection.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "사용 카드 1장 복구. 기본 사이클당 1회; 특수/임시 카드는 복구 불가.",
-    "runtimePrimitivesRequired": [
-      "RECOVER_CARD"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-163",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-163: satisfy 'After Seer recovers an ally card, Seer has at least 1 eligible own BASE SPENT card.' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-163: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "운명 조작자",
-      "stage": 2
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-164": {
     "augmentId": "aug-164",
@@ -766,54 +408,30 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "운명 조작자",
     "stage": 2,
-    "trigger": [
-      "ON_VALID"
-    ],
-    "condition": "An ally card recovered by the Seer is next used successfully in Combat.",
-    "effectType": "DELAYED_ATTACK_BUFF",
-    "effectValue": {
-      "bonusDamage": 2,
-      "uses": 1
-    },
-    "targetRule": "RECOVERED_ALLY",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "aug_164_delayed_attack_buff",
-    "stateType": "STATUS",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": "NOT_APPLICABLE",
-    "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
-    "onceScope": "NONE",
-    "resetScope": "COMBAT_END",
-    "persistenceScope": "COMBAT",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "Past Fragment가 VALID로 통과하면:\n\n“nextRevelationGainBonus +1”\n\nreceipt 생성.\n\n다음 Revelation gain event에:\n\n+1\n\n추가 후 receipt 소비.",
+    "canonicalDescription": "Past Fragment가 VALID로 통과하면:\n\n“nextRevelationGainBonus +1”\n\nreceipt 생성.\n\n다음 Revelation gain event에:\n\n+1\n\n추가 후 receipt 소비.",
+    "tooltip": "Past Fragment가 VALID로 통과하면:\n\n“nextRevelationGainBonus +1”\n\nreceipt 생성.\n\n다음 Revelation gain event에:\n\n+1\n\n추가 후 receipt 소비.",
+    "tooltipBetaV02": "Past Fragment가 VALID로 통과하면:\n\n“nextRevelationGainBonus +1”\n\nreceipt 생성.\n\n다음 Revelation gain event에:\n\n+1\n\n추가 후 receipt 소비.",
     "roomApplicability": {
       "COMBAT": true,
-      "EVENT": true,
-      "REWARD": true,
+      "EVENT": false,
+      "REWARD": false,
       "SHOP": false,
       "REST": false
     },
-    "visibility": "SERVER_ONLY",
-    "reconnectRule": "Persist aug_164_delayed_attack_buff and physical IDs/counters through COMBAT scope; reconstruct identical projection.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "사용 카드 1장 복구. 기본 사이클당 1회; 특수/임시 카드는 복구 불가.",
-    "runtimePrimitivesRequired": [
-      "RECOVER_CARD"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-164",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-164: satisfy 'An ally card recovered by the Seer is next used successfully in Combat.' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-164: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "운명 조작자",
-      "stage": 2
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-165": {
     "augmentId": "aug-165",
@@ -821,56 +439,30 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "운명 조작자",
     "stage": 3,
-    "trigger": [
-      "ON_VALID"
-    ],
-    "condition": "예언가가 복구해준 아군 카드가 유효 성공하면 계시 1 재획득",
-    "effectType": "GAIN_RESOURCE",
-    "effectValue": {
-      "text": "예언가가 복구해준 아군 카드가 유효 성공하면 계시 1 재획득.",
-      "numericHints": [
-        1
-      ]
-    },
-    "targetRule": "SOURCE_SPECIFIED_ALLY_OR_EARLIEST_SEAT_TIE",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "aug_165_gain_resource",
-    "stateType": "INTEGER",
-    "stackRule": "Apply on declared trigger; clamp to declared cap; derived effects do not recursively retrigger.",
-    "stackCap": "NOT_APPLICABLE",
-    "consumeRule": "NONE",
-    "onceScope": "ONCE_PER_COMBAT",
-    "resetScope": "COMBAT_END",
-    "persistenceScope": "COMBAT",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "Past Fragment를 생성한 바로 그 turn에\nowner의 submitted card도 VALID였다면:\n\n생성된 Fragment에\nFIRST_VALID_DAMAGE_BONUS +1\n\n부여.\n\nFragment가 INVALID로 소모되면\nbonus도 함께 사라짐.",
+    "canonicalDescription": "Past Fragment를 생성한 바로 그 turn에\nowner의 submitted card도 VALID였다면:\n\n생성된 Fragment에\nFIRST_VALID_DAMAGE_BONUS +1\n\n부여.\n\nFragment가 INVALID로 소모되면\nbonus도 함께 사라짐.",
+    "tooltip": "Past Fragment를 생성한 바로 그 turn에\nowner의 submitted card도 VALID였다면:\n\n생성된 Fragment에\nFIRST_VALID_DAMAGE_BONUS +1\n\n부여.\n\nFragment가 INVALID로 소모되면\nbonus도 함께 사라짐.",
+    "tooltipBetaV02": "Past Fragment를 생성한 바로 그 turn에\nowner의 submitted card도 VALID였다면:\n\n생성된 Fragment에\nFIRST_VALID_DAMAGE_BONUS +1\n\n부여.\n\nFragment가 INVALID로 소모되면\nbonus도 함께 사라짐.",
     "roomApplicability": {
       "COMBAT": true,
-      "EVENT": true,
-      "REWARD": true,
+      "EVENT": false,
+      "REWARD": false,
       "SHOP": false,
       "REST": false
     },
-    "visibility": "PUBLIC",
-    "reconnectRule": "Persist aug_165_gain_resource and physical IDs/counters through COMBAT scope; reconstruct identical projection.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "예언가가 복구해준 아군 카드가 유효 성공하면 계시 1 재획득. 전투당 1회.",
-    "runtimePrimitivesRequired": [
-      "GAIN_RESOURCE"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-165",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-165: satisfy '예언가가 복구해준 아군 카드가 유효 성공하면 계시 1 재획득' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-165: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "운명 조작자",
-      "stage": 3
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-166": {
     "augmentId": "aug-166",
@@ -878,58 +470,30 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "운명 조작자",
     "stage": 3,
-    "trigger": [
-      "POST_COLLISION"
-    ],
-    "condition": "An ally card recovered by the Seer is submitted; owner chooses -1 or +1 before collision.",
-    "effectType": "MODIFY_NUMBER",
-    "effectValue": {
-      "deltaChoices": [
-        -1,
-        1
-      ],
-      "uses": 1,
-      "phase": "SELF_MODIFY"
-    },
-    "targetRule": "RECOVERED_ALLY_CARD",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "NONE",
-    "stateType": "NONE",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": "NOT_APPLICABLE",
-    "consumeRule": "NONE",
-    "onceScope": "ONCE_PER_CYCLE",
-    "resetScope": "CYCLE_END",
-    "persistenceScope": "RUN",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "Past Fragment를 제출했으나\ncollision 때문에 INVALID가 되었다면:\n\nRevelation을 즉시 6으로 SET.\n\n+6 gain이 아니라:\n\nSET_TO_AT_LEAST_6\n\n개념.\n\naug153 max8 보유 시에도 결과는:\n\nRevelation = max(current, 6)\n\n이지 8 자동 충전 아님.",
+    "canonicalDescription": "Past Fragment를 제출했으나\ncollision 때문에 INVALID가 되었다면:\n\nRevelation을 즉시 6으로 SET.\n\n+6 gain이 아니라:\n\nSET_TO_AT_LEAST_6\n\n개념.\n\naug153 max8 보유 시에도 결과는:\n\nRevelation = max(current, 6)\n\n이지 8 자동 충전 아님.",
+    "tooltip": "Past Fragment를 제출했으나\ncollision 때문에 INVALID가 되었다면:\n\nRevelation을 즉시 6으로 SET.\n\n+6 gain이 아니라:\n\nSET_TO_AT_LEAST_6\n\n개념.\n\naug153 max8 보유 시에도 결과는:\n\nRevelation = max(current, 6)\n\n이지 8 자동 충전 아님.",
+    "tooltipBetaV02": "Past Fragment를 제출했으나\ncollision 때문에 INVALID가 되었다면:\n\nRevelation을 즉시 6으로 SET.\n\n+6 gain이 아니라:\n\nSET_TO_AT_LEAST_6\n\n개념.\n\naug153 max8 보유 시에도 결과는:\n\nRevelation = max(current, 6)\n\n이지 8 자동 충전 아님.",
     "roomApplicability": {
       "COMBAT": true,
-      "EVENT": true,
-      "REWARD": true,
+      "EVENT": false,
+      "REWARD": false,
       "SHOP": false,
       "REST": false
     },
-    "visibility": "OWNER_ONLY",
-    "reconnectRule": "No mutable state beyond ownership; replay/reconnect cannot duplicate source action.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "사용 카드 1장 복구. 기본 사이클당 1회; 특수/임시 카드는 복구 불가.",
-    "runtimePrimitivesRequired": [
-      "RECOVER_CARD"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-166",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-166: satisfy 'An ally card recovered by the Seer is submitted; owner chooses -1 or +1 before collision.' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-166: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "운명 조작자",
-      "stage": 3
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-167": {
     "augmentId": "aug-167",
@@ -937,55 +501,30 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "운명 조작자",
     "stage": 3,
-    "trigger": [
-      "ON_VALID"
-    ],
-    "condition": "Whenever the Seer successfully recovers an ally BASE card.",
-    "effectType": "ADD_STACK",
-    "effectValue": {
-      "state": "sharedForesight",
-      "amount": 1,
-      "cap": 3
-    },
-    "targetRule": "ALL_LIVING_ALLIES_INCLUDING_SELF",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "aug_167_add_stack",
-    "stateType": "INTEGER",
-    "stackRule": "Apply on declared trigger; clamp to 3; derived effects do not recursively retrigger.",
-    "stackCap": 3,
-    "consumeRule": "NONE",
-    "onceScope": "ONCE_PER_TURN",
-    "resetScope": "COMBAT_END",
-    "persistenceScope": "COMBAT",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "Past Fragment가 VALID로 통과한 턴에\n\n다른 아군 중\n그 Fragment와 동일한 FINAL_NUMBER를 제출하고\nVALID하게 통과한 플레이어가 존재하면:\n\nFragment damage +1.\n\nPVP에서는 “ally” 개념이 없는 경우\n이 효과는 PVE COMBAT에서만 활성화.\n\nPvP augment system이 존재하지 않는다면\nPvP에 새 augment 시스템을 추가하지 않는다.",
+    "canonicalDescription": "Past Fragment가 VALID로 통과한 턴에\n\n다른 아군 중\n그 Fragment와 동일한 FINAL_NUMBER를 제출하고\nVALID하게 통과한 플레이어가 존재하면:\n\nFragment damage +1.\n\nPVP에서는 “ally” 개념이 없는 경우\n이 효과는 PVE COMBAT에서만 활성화.\n\nPvP augment system이 존재하지 않는다면\nPvP에 새 augment 시스템을 추가하지 않는다.",
+    "tooltip": "Past Fragment가 VALID로 통과한 턴에\n\n다른 아군 중\n그 Fragment와 동일한 FINAL_NUMBER를 제출하고\nVALID하게 통과한 플레이어가 존재하면:\n\nFragment damage +1.\n\nPVP에서는 “ally” 개념이 없는 경우\n이 효과는 PVE COMBAT에서만 활성화.\n\nPvP augment system이 존재하지 않는다면\nPvP에 새 augment 시스템을 추가하지 않는다.",
+    "tooltipBetaV02": "Past Fragment가 VALID로 통과한 턴에\n\n다른 아군 중\n그 Fragment와 동일한 FINAL_NUMBER를 제출하고\nVALID하게 통과한 플레이어가 존재하면:\n\nFragment damage +1.\n\nPVP에서는 “ally” 개념이 없는 경우\n이 효과는 PVE COMBAT에서만 활성화.\n\nPvP augment system이 존재하지 않는다면\nPvP에 새 augment 시스템을 추가하지 않는다.",
     "roomApplicability": {
       "COMBAT": true,
-      "EVENT": true,
-      "REWARD": true,
+      "EVENT": false,
+      "REWARD": false,
       "SHOP": false,
       "REST": false
     },
-    "visibility": "SERVER_ONLY",
-    "reconnectRule": "Persist aug_167_add_stack and physical IDs/counters through COMBAT scope; reconstruct identical projection.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "사용 카드 1장 복구. 기본 사이클당 1회; 특수/임시 카드는 복구 불가.",
-    "runtimePrimitivesRequired": [
-      "RECOVER_CARD"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-167",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-167: satisfy 'Whenever the Seer successfully recovers an ally BASE card.' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-167: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "운명 조작자",
-      "stage": 3
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-168": {
     "augmentId": "aug-168",
@@ -993,65 +532,30 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "운명 조작자",
     "stage": 4,
-    "trigger": [
-      "ON_SKILL_USE",
-      "ON_RECOVER_CARD"
-    ],
-    "condition": "계시 1회로 서로 다른 아군 2명에게서 사용 카드 1장씩 무작위 복구",
-    "effectType": "RECOVER_CARD",
-    "effectValue": {
-      "text": "계시 1회로 서로 다른 아군 2명에게서 사용 카드 1장씩 무작위 복구.",
-      "numericHints": [
-        1,
-        2,
-        1
-      ]
-    },
-    "targetRule": "SOURCE_SPECIFIED_ALLY_OR_EARLIEST_SEAT_TIE",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "aug_168_recover_card",
-    "stateType": "CARD_ZONE_STATE",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": {
-      "text": "2 allied cards from two different allies",
-      "source": "BETA_VALUE"
-    },
-    "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
-    "onceScope": {
-      "perRevelation": "ONCE_PER_REVELATION_USE",
-      "perCombat": "ONCE_PER_COMBAT"
-    },
-    "resetScope": "COMBAT_END",
-    "persistenceScope": "COMBAT",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "Past Fragment가 VALID로 통과하면:\n\nnext Past Fragment activation cost:\n\n6 → 5\n\n1회.\n\n사용 후 cost6 복귀.\n\n중복해서 4 이하로 내려가지 않음.",
+    "canonicalDescription": "Past Fragment가 VALID로 통과하면:\n\nnext Past Fragment activation cost:\n\n6 → 5\n\n1회.\n\n사용 후 cost6 복귀.\n\n중복해서 4 이하로 내려가지 않음.",
+    "tooltip": "Past Fragment가 VALID로 통과하면:\n\nnext Past Fragment activation cost:\n\n6 → 5\n\n1회.\n\n사용 후 cost6 복귀.\n\n중복해서 4 이하로 내려가지 않음.",
+    "tooltipBetaV02": "Past Fragment가 VALID로 통과하면:\n\nnext Past Fragment activation cost:\n\n6 → 5\n\n1회.\n\n사용 후 cost6 복귀.\n\n중복해서 4 이하로 내려가지 않음.",
     "roomApplicability": {
       "COMBAT": true,
-      "EVENT": true,
-      "REWARD": true,
+      "EVENT": false,
+      "REWARD": false,
       "SHOP": false,
       "REST": false
     },
-    "visibility": "PUBLIC",
-    "reconnectRule": "Persist aug_168_recover_card and physical IDs/counters through COMBAT scope; reconstruct identical projection.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "계시 1회로 서로 다른 아군 2명에게서 사용 카드 1장씩 무작위 복구. 전투당 1회.",
-    "runtimePrimitivesRequired": [
-      "RECOVER_CARD"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-168",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-168: satisfy '계시 1회로 서로 다른 아군 2명에게서 사용 카드 1장씩 무작위 복구' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-168: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "운명 조작자",
-      "stage": 4
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-169": {
     "augmentId": "aug-169",
@@ -1059,59 +563,30 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "운명 조작자",
     "stage": 4,
-    "trigger": [
-      "ON_VALID",
-      "ON_RECOVER_CARD"
-    ],
-    "condition": "아군 복구 시 그 아군의 사용 카드 중 무작위 2장 제시, 대상이 1장 선택",
-    "effectType": "RECOVER_CARD_SELECTOR",
-    "effectValue": {
-      "text": "아군 복구 시 그 아군의 사용 카드 중 무작위 2장 제시, 대상이 1장 선택. 복구 카드 첫 유효 공격 +1 피해.",
-      "numericHints": [
-        2,
-        1,
-        1
-      ]
-    },
-    "targetRule": "SOURCE_SPECIFIED_ALLY_OR_EARLIEST_SEAT_TIE",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "aug_169_recover_card_selector",
-    "stateType": "CARD_ZONE_STATE",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": "NOT_APPLICABLE",
-    "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
-    "onceScope": "ONCE_PER_REVELATION_USE",
-    "resetScope": "NEVER_WITHIN_RUN",
-    "persistenceScope": "RUN",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "IMPORTANT CORE OVERRIDE.\n\n0 slot을\nnormal cycle completion requirement에서 분리한다.\n\n이 증강 보유 시:\n\ncycle cards =\n1 / 2 / 3 / 4\n\n이 네 장만 모두 사용하면\n새 normal cycle 시작.\n\n0 / Past Fragment는\nINDEPENDENT PROPHECY SLOT으로 취급.\n\n\n정확한 semantics:\n\nA.\n1/2/3/4 cycle reset은\n0 slot 때문에 막히지 않는다.\n\nB.\nPast Fragment가 존재하면\n1/2/3/4 cycle이 reset되어도\nFragment는 그대로 유지.\n\nC.\nFragment를 사용하면\n0 slot은 USED_ZERO 상태가 된다.\n\nD.\n그 다음 1/2/3/4 normal cycle reset 시\n기본 0으로 복구.\n\nE.\n기본 0도 cycle completion을 막지 않는다.\n\nF.\nFragment가 존재하는 동안\n새 Fragment 생성 불가 규칙은 유지.\n\nG.\nstun random candidate 규칙은\n162가 없다면 그대로 유지.",
+    "canonicalDescription": "IMPORTANT CORE OVERRIDE.\n\n0 slot을\nnormal cycle completion requirement에서 분리한다.\n\n이 증강 보유 시:\n\ncycle cards =\n1 / 2 / 3 / 4\n\n이 네 장만 모두 사용하면\n새 normal cycle 시작.\n\n0 / Past Fragment는\nINDEPENDENT PROPHECY SLOT으로 취급.\n\n\n정확한 semantics:\n\nA.\n1/2/3/4 cycle reset은\n0 slot 때문에 막히지 않는다.\n\nB.\nPast Fragment가 존재하면\n1/2/3/4 cycle이 reset되어도\nFragment는 그대로 유지.\n\nC.\nFragment를 사용하면\n0 slot은 USED_ZERO 상태가 된다.\n\nD.\n그 다음 1/2/3/4 normal cycle reset 시\n기본 0으로 복구.\n\nE.\n기본 0도 cycle completion을 막지 않는다.\n\nF.\nFragment가 존재하는 동안\n새 Fragment 생성 불가 규칙은 유지.\n\nG.\nstun random candidate 규칙은\n162가 없다면 그대로 유지.",
+    "tooltip": "IMPORTANT CORE OVERRIDE.\n\n0 slot을\nnormal cycle completion requirement에서 분리한다.\n\n이 증강 보유 시:\n\ncycle cards =\n1 / 2 / 3 / 4\n\n이 네 장만 모두 사용하면\n새 normal cycle 시작.\n\n0 / Past Fragment는\nINDEPENDENT PROPHECY SLOT으로 취급.\n\n\n정확한 semantics:\n\nA.\n1/2/3/4 cycle reset은\n0 slot 때문에 막히지 않는다.\n\nB.\nPast Fragment가 존재하면\n1/2/3/4 cycle이 reset되어도\nFragment는 그대로 유지.\n\nC.\nFragment를 사용하면\n0 slot은 USED_ZERO 상태가 된다.\n\nD.\n그 다음 1/2/3/4 normal cycle reset 시\n기본 0으로 복구.\n\nE.\n기본 0도 cycle completion을 막지 않는다.\n\nF.\nFragment가 존재하는 동안\n새 Fragment 생성 불가 규칙은 유지.\n\nG.\nstun random candidate 규칙은\n162가 없다면 그대로 유지.",
+    "tooltipBetaV02": "IMPORTANT CORE OVERRIDE.\n\n0 slot을\nnormal cycle completion requirement에서 분리한다.\n\n이 증강 보유 시:\n\ncycle cards =\n1 / 2 / 3 / 4\n\n이 네 장만 모두 사용하면\n새 normal cycle 시작.\n\n0 / Past Fragment는\nINDEPENDENT PROPHECY SLOT으로 취급.\n\n\n정확한 semantics:\n\nA.\n1/2/3/4 cycle reset은\n0 slot 때문에 막히지 않는다.\n\nB.\nPast Fragment가 존재하면\n1/2/3/4 cycle이 reset되어도\nFragment는 그대로 유지.\n\nC.\nFragment를 사용하면\n0 slot은 USED_ZERO 상태가 된다.\n\nD.\n그 다음 1/2/3/4 normal cycle reset 시\n기본 0으로 복구.\n\nE.\n기본 0도 cycle completion을 막지 않는다.\n\nF.\nFragment가 존재하는 동안\n새 Fragment 생성 불가 규칙은 유지.\n\nG.\nstun random candidate 규칙은\n162가 없다면 그대로 유지.",
     "roomApplicability": {
       "COMBAT": true,
-      "EVENT": true,
-      "REWARD": true,
+      "EVENT": false,
+      "REWARD": false,
       "SHOP": false,
       "REST": false
     },
-    "visibility": "PUBLIC",
-    "reconnectRule": "Persist aug_169_recover_card_selector and physical IDs/counters through RUN scope; reconstruct identical projection.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "아군 복구 시 그 아군의 사용 카드 중 무작위 2장 제시, 대상이 1장 선택. 복구 카드 첫 유효 공격 +1 피해. 계시 1회당 1장.",
-    "runtimePrimitivesRequired": [
-      "RECOVER_CARD_SELECTOR"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-169",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-169: satisfy '아군 복구 시 그 아군의 사용 카드 중 무작위 2장 제시, 대상이 1장 선택' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-169: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "운명 조작자",
-      "stage": 4
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-170": {
     "augmentId": "aug-170",
@@ -1119,28 +594,13 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "운명 조작자",
     "stage": 4,
-    "trigger": [
-      "ON_VALID"
-    ],
-    "condition": "복구해준 아군 카드가 유효 성공하면 그 아군 +2 피해, 예언가의 다음 유효 공격 +2 피해",
-    "effectType": "DELAY_EFFECT",
-    "effectValue": {
-      "text": "복구해준 아군 카드가 유효 성공하면 그 아군 +2 피해, 예언가의 다음 유효 공격 +2 피해.",
-      "numericHints": [
-        2,
-        2
-      ]
-    },
-    "targetRule": "SOURCE_SPECIFIED_ALLY_OR_EARLIEST_SEAT_TIE",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "NONE",
-    "stateType": "NONE",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": "NOT_APPLICABLE",
-    "consumeRule": "NONE",
-    "onceScope": "ONCE_PER_REVELATION_USE",
-    "resetScope": "COMBAT_END",
-    "persistenceScope": "COMBAT",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "Past Fragment를 제출해 소모한 뒤:\n\n다음 Revelation gain event에\n+2 bonus.\n\n전투당 1회.\n\nVALID/INVALID 여부와 무관하게\nFragment가 실제 제출되어 소모되었을 때 arm.",
+    "canonicalDescription": "Past Fragment를 제출해 소모한 뒤:\n\n다음 Revelation gain event에\n+2 bonus.\n\n전투당 1회.\n\nVALID/INVALID 여부와 무관하게\nFragment가 실제 제출되어 소모되었을 때 arm.",
+    "tooltip": "Past Fragment를 제출해 소모한 뒤:\n\n다음 Revelation gain event에\n+2 bonus.\n\n전투당 1회.\n\nVALID/INVALID 여부와 무관하게\nFragment가 실제 제출되어 소모되었을 때 arm.",
+    "tooltipBetaV02": "Past Fragment를 제출해 소모한 뒤:\n\n다음 Revelation gain event에\n+2 bonus.\n\n전투당 1회.\n\nVALID/INVALID 여부와 무관하게\nFragment가 실제 제출되어 소모되었을 때 arm.",
     "roomApplicability": {
       "COMBAT": true,
       "EVENT": false,
@@ -1148,28 +608,16 @@ export const SEER_CONTRACTS=Object.freeze({
       "SHOP": false,
       "REST": false
     },
-    "visibility": "PUBLIC",
-    "reconnectRule": "No mutable state beyond ownership; replay/reconnect cannot duplicate source action.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "복구해준 아군 카드가 유효 성공하면 그 아군 +2 피해, 예언가의 다음 유효 공격 +2 피해. 계시 1회당 1회.",
-    "runtimePrimitivesRequired": [
-      "DELAY_EFFECT"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-170",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-170: satisfy '복구해준 아군 카드가 유효 성공하면 그 아군 +2 피해, 예언가의 다음 유효 공격 +2 피해' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-170: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "운명 조작자",
-      "stage": 4
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-171": {
     "augmentId": "aug-171",
@@ -1177,33 +625,13 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "불길한 예언",
     "stage": 1,
-    "trigger": [
-      "ON_SKILL_USE",
-      "POST_REVEAL",
-      "ON_VALID"
-    ],
-    "condition": "Spend Revelation to declare one next-turn prediction; compare declared collision/no-collision/specified-number-valid result",
-    "effectType": "DELAY_EFFECT",
-    "effectValue": {
-      "state": "prediction",
-      "originCombatId": "REQUIRED",
-      "originRoomId": "REQUIRED",
-      "expiry": "NEXT_TURN_END",
-      "cancelRule": "COMBAT_END_OR_SOURCE_INVALIDATED"
-    },
-    "targetRule": "CURRENT_ENEMY",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "NONE",
-    "stateType": "NONE",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": {
-      "text": "최대 2",
-      "source": "BETA_VALUE_OR_LIMIT"
-    },
-    "consumeRule": "NONE",
-    "onceScope": "NONE",
-    "resetScope": "TURN_END",
-    "persistenceScope": "COMBAT",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "Past Fragment가 VALID로 통과하면:\n\n현재 HP가 가장 낮은\n다른 생존 아군 1명 HP +1.\n\nmax HP cap 적용.\n\n동률:\nseeded deterministic random.\n\n본인 제외.\n\nPVE combat only if PvP has no ally/HP support equivalent.",
+    "canonicalDescription": "Past Fragment가 VALID로 통과하면:\n\n현재 HP가 가장 낮은\n다른 생존 아군 1명 HP +1.\n\nmax HP cap 적용.\n\n동률:\nseeded deterministic random.\n\n본인 제외.\n\nPVE combat only if PvP has no ally/HP support equivalent.",
+    "tooltip": "Past Fragment가 VALID로 통과하면:\n\n현재 HP가 가장 낮은\n다른 생존 아군 1명 HP +1.\n\nmax HP cap 적용.\n\n동률:\nseeded deterministic random.\n\n본인 제외.\n\nPVE combat only if PvP has no ally/HP support equivalent.",
+    "tooltipBetaV02": "Past Fragment가 VALID로 통과하면:\n\n현재 HP가 가장 낮은\n다른 생존 아군 1명 HP +1.\n\nmax HP cap 적용.\n\n동률:\nseeded deterministic random.\n\n본인 제외.\n\nPVE combat only if PvP has no ally/HP support equivalent.",
     "roomApplicability": {
       "COMBAT": true,
       "EVENT": false,
@@ -1211,34 +639,16 @@ export const SEER_CONTRACTS=Object.freeze({
       "SHOP": false,
       "REST": false
     },
-    "visibility": "PUBLIC",
-    "reconnectRule": "No mutable state beyond ownership; replay/reconnect cannot duplicate source action.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "계시 사용 시 다음 턴 예언 1개 선언. 적중 시 '예지' 1(최대 2); 예지 1당 예언가의 다음 유효 공격 추가 피해 +1 후 전부 소모. 예언 종류: 중복 발생/무중복/지정 숫자 유효.",
-    "runtimePrimitivesRequired": [
-      "DELAY_EFFECT",
-      "PREDICTION_STATE"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-171",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-171: satisfy 'Spend Revelation to declare one next-turn prediction; compare declared collision/no-collision/specified-number-valid result' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-171: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": [
-        "same rootActionId retry idempotent",
-        "reconnect before/after trigger preserves state",
-        "room/collision ordering",
-        "no recursive derived trigger"
-      ]
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "불길한 예언",
-      "stage": 1
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-172": {
     "augmentId": "aug-172",
@@ -1246,29 +656,13 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "불길한 예언",
     "stage": 2,
-    "trigger": [
-      "POST_COLLISION"
-    ],
-    "condition": "이번 턴에 충돌이 발생한다고 선언한 예언이 실제 충돌 결과와 일치한다.",
-    "effectType": "DELAYED_ATTACK_BUFF",
-    "effectValue": {
-      "bonusDamage": 1,
-      "uses": 1,
-      "target": "OWNER_NEXT_VALID_ATTACK"
-    },
-    "targetRule": "CURRENT_ENEMY",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "NONE",
-    "stateType": "NONE",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": {
-      "text": "최대 3스택",
-      "source": "BETA_VALUE_OR_LIMIT"
-    },
-    "consumeRule": "NONE",
-    "onceScope": "ONCE_PER_TURN",
-    "resetScope": "TURN_END",
-    "persistenceScope": "RUN",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "다른 아군이 collision 때문에 INVALID가 되면:\n\ncollision-invalid ally 1명당\nmonster에게 DERIVED_DAMAGE 1.\n\n한 turn 최대 3.\n\nIMPORTANT:\n\n이 피해는 Prophet owner attribution.\n\n하지만:\n\n- 해당 ally card를 VALID로 만들지 않음\n- ON_VALID 발동 안 함\n- engraving 발동 안 함\n- kill-participation card success로 취급 안 함\n- combo/other class successful-card trigger 금지\n\n순수 derived support damage.",
+    "canonicalDescription": "다른 아군이 collision 때문에 INVALID가 되면:\n\ncollision-invalid ally 1명당\nmonster에게 DERIVED_DAMAGE 1.\n\n한 turn 최대 3.\n\nIMPORTANT:\n\n이 피해는 Prophet owner attribution.\n\n하지만:\n\n- 해당 ally card를 VALID로 만들지 않음\n- ON_VALID 발동 안 함\n- engraving 발동 안 함\n- kill-participation card success로 취급 안 함\n- combo/other class successful-card trigger 금지\n\n순수 derived support damage.",
+    "tooltip": "다른 아군이 collision 때문에 INVALID가 되면:\n\ncollision-invalid ally 1명당\nmonster에게 DERIVED_DAMAGE 1.\n\n한 turn 최대 3.\n\nIMPORTANT:\n\n이 피해는 Prophet owner attribution.\n\n하지만:\n\n- 해당 ally card를 VALID로 만들지 않음\n- ON_VALID 발동 안 함\n- engraving 발동 안 함\n- kill-participation card success로 취급 안 함\n- combo/other class successful-card trigger 금지\n\n순수 derived support damage.",
+    "tooltipBetaV02": "다른 아군이 collision 때문에 INVALID가 되면:\n\ncollision-invalid ally 1명당\nmonster에게 DERIVED_DAMAGE 1.\n\n한 turn 최대 3.\n\nIMPORTANT:\n\n이 피해는 Prophet owner attribution.\n\n하지만:\n\n- 해당 ally card를 VALID로 만들지 않음\n- ON_VALID 발동 안 함\n- engraving 발동 안 함\n- kill-participation card success로 취급 안 함\n- combo/other class successful-card trigger 금지\n\n순수 derived support damage.",
     "roomApplicability": {
       "COMBAT": true,
       "EVENT": false,
@@ -1276,28 +670,16 @@ export const SEER_CONTRACTS=Object.freeze({
       "SHOP": false,
       "REST": false
     },
-    "visibility": "SERVER_ONLY",
-    "reconnectRule": "No mutable state beyond ownership; replay/reconnect cannot duplicate source action.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "이번 턴의 충돌 발생을 정확히 예언하면 자신의 다음 유효 공격 피해가 1 증가합니다. 턴당 1회.",
-    "runtimePrimitivesRequired": [
-      "ADD_DAMAGE"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-172",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-172: satisfy '중복 발생 예언 적중 보상 강화.' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-172: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "불길한 예언",
-      "stage": 2
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-173": {
     "augmentId": "aug-173",
@@ -1305,29 +687,13 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "불길한 예언",
     "stage": 2,
-    "trigger": [
-      "POST_COLLISION",
-      "ON_VALID",
-      "PRE_DAMAGE"
-    ],
-    "condition": "Declared positive prediction resolves with no collision among living players and at least 2 valid allies.",
-    "effectType": "ADD_DAMAGE",
-    "effectValue": {
-      "bonusDamage": 1
-    },
-    "targetRule": "ALL_LIVING_ALLIES_INCLUDING_SELF",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "NONE",
-    "stateType": "NONE",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": {
-      "text": "최대 3스택",
-      "source": "BETA_VALUE_OR_LIMIT"
-    },
-    "consumeRule": "NONE",
-    "onceScope": "ONCE_PER_TURN",
-    "resetScope": "TURN_END",
-    "persistenceScope": "RUN",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "한 turn에\n다른 아군 2명 이상이 collision-invalid 되면:\n\n그 collision-invalid allies 중\nHP가 가장 낮은 1명 HP +1.\n\n전투당 1회.\n\n동률 seeded random.",
+    "canonicalDescription": "한 turn에\n다른 아군 2명 이상이 collision-invalid 되면:\n\n그 collision-invalid allies 중\nHP가 가장 낮은 1명 HP +1.\n\n전투당 1회.\n\n동률 seeded random.",
+    "tooltip": "한 turn에\n다른 아군 2명 이상이 collision-invalid 되면:\n\n그 collision-invalid allies 중\nHP가 가장 낮은 1명 HP +1.\n\n전투당 1회.\n\n동률 seeded random.",
+    "tooltipBetaV02": "한 turn에\n다른 아군 2명 이상이 collision-invalid 되면:\n\n그 collision-invalid allies 중\nHP가 가장 낮은 1명 HP +1.\n\n전투당 1회.\n\n동률 seeded random.",
     "roomApplicability": {
       "COMBAT": true,
       "EVENT": false,
@@ -1335,28 +701,16 @@ export const SEER_CONTRACTS=Object.freeze({
       "SHOP": false,
       "REST": false
     },
-    "visibility": "SERVER_ONLY",
-    "reconnectRule": "No mutable state beyond ownership; replay/reconnect cannot duplicate source action.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "Declared positive prediction resolves with no collision among living players and at least 2 valid allies.일 때 추가 피해 +1 효과를 적용합니다. 제한: ONCE_PER_TURN.",
-    "runtimePrimitivesRequired": [
-      "ADD_DAMAGE"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-173",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-173: satisfy 'Declared positive prediction resolves with no collision among living players and at least 2 valid allies.' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-173: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "불길한 예언",
-      "stage": 2
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-174": {
     "augmentId": "aug-174",
@@ -1364,28 +718,13 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "불길한 예언",
     "stage": 2,
-    "trigger": [
-      "ON_VALID",
-      "PRE_DAMAGE"
-    ],
-    "condition": "The number declared before submissions matches Seer's final valid number.",
-    "effectType": "ADD_DAMAGE",
-    "effectValue": {
-      "bonusDamage": 1
-    },
-    "targetRule": "CURRENT_ENEMY",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "NONE",
-    "stateType": "NONE",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": {
-      "text": "최대 3스택",
-      "source": "BETA_VALUE_OR_LIMIT"
-    },
-    "consumeRule": "NONE",
-    "onceScope": "ONCE_PER_TURN",
-    "resetScope": "TURN_END",
-    "persistenceScope": "RUN",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "한 turn에\n서로 다른 collision group이\n2개 이상 존재하면:\n\n모든 생존 아군에게:\n\nNEXT_DIRECT_DAMAGE_REDUCTION 1\n\n각자 1 charge.\n\n동일 타입 protection은 MAX merge.",
+    "canonicalDescription": "한 turn에\n서로 다른 collision group이\n2개 이상 존재하면:\n\n모든 생존 아군에게:\n\nNEXT_DIRECT_DAMAGE_REDUCTION 1\n\n각자 1 charge.\n\n동일 타입 protection은 MAX merge.",
+    "tooltip": "한 turn에\n서로 다른 collision group이\n2개 이상 존재하면:\n\n모든 생존 아군에게:\n\nNEXT_DIRECT_DAMAGE_REDUCTION 1\n\n각자 1 charge.\n\n동일 타입 protection은 MAX merge.",
+    "tooltipBetaV02": "한 turn에\n서로 다른 collision group이\n2개 이상 존재하면:\n\n모든 생존 아군에게:\n\nNEXT_DIRECT_DAMAGE_REDUCTION 1\n\n각자 1 charge.\n\n동일 타입 protection은 MAX merge.",
     "roomApplicability": {
       "COMBAT": true,
       "EVENT": false,
@@ -1393,28 +732,16 @@ export const SEER_CONTRACTS=Object.freeze({
       "SHOP": false,
       "REST": false
     },
-    "visibility": "SERVER_ONLY",
-    "reconnectRule": "No mutable state beyond ownership; replay/reconnect cannot duplicate source action.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "The number declared before submissions matches Seer's final valid number.일 때 추가 피해 +1 효과를 적용합니다. 제한: ONCE_PER_TURN.",
-    "runtimePrimitivesRequired": [
-      "ADD_DAMAGE"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-174",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-174: satisfy 'The number declared before submissions matches Seer's final valid number.' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-174: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "불길한 예언",
-      "stage": 2
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-175": {
     "augmentId": "aug-175",
@@ -1422,28 +749,13 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "불길한 예언",
     "stage": 3,
-    "trigger": [
-      "POST_COLLISION",
-      "ON_VALID"
-    ],
-    "condition": "A declared prediction succeeds consecutively; failed prediction sets foresightStreak to 0.",
-    "effectType": "ADD_STACK",
-    "effectValue": {
-      "state": "foresightStreak",
-      "amount": 1,
-      "cap": 3,
-      "bonusDamagePerStack": 1
-    },
-    "targetRule": "CURRENT_ENEMY",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "aug_175_add_stack",
-    "stateType": "INTEGER",
-    "stackRule": "Apply on declared trigger; clamp to 3; derived effects do not recursively retrigger.",
-    "stackCap": 3,
-    "consumeRule": "NONE",
-    "onceScope": "NONE",
-    "resetScope": "COMBAT_END",
-    "persistenceScope": "COMBAT",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "owner와 최소 1명의 다른 아군이\n\n2턴 연속 모두 VALID하게 통과하면:\n\n두 번째 턴에:\n\nowner damage +1\n조건을 만족한 해당 ally들의 primary damage +1.\n\nderived retrigger 없음.",
+    "canonicalDescription": "owner와 최소 1명의 다른 아군이\n\n2턴 연속 모두 VALID하게 통과하면:\n\n두 번째 턴에:\n\nowner damage +1\n조건을 만족한 해당 ally들의 primary damage +1.\n\nderived retrigger 없음.",
+    "tooltip": "owner와 최소 1명의 다른 아군이\n\n2턴 연속 모두 VALID하게 통과하면:\n\n두 번째 턴에:\n\nowner damage +1\n조건을 만족한 해당 ally들의 primary damage +1.\n\nderived retrigger 없음.",
+    "tooltipBetaV02": "owner와 최소 1명의 다른 아군이\n\n2턴 연속 모두 VALID하게 통과하면:\n\n두 번째 턴에:\n\nowner damage +1\n조건을 만족한 해당 ally들의 primary damage +1.\n\nderived retrigger 없음.",
     "roomApplicability": {
       "COMBAT": true,
       "EVENT": false,
@@ -1451,28 +763,16 @@ export const SEER_CONTRACTS=Object.freeze({
       "SHOP": false,
       "REST": false
     },
-    "visibility": "SERVER_ONLY",
-    "reconnectRule": "Persist aug_175_add_stack and physical IDs/counters through COMBAT scope; reconstruct identical projection.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "조건 1회당 스택 +1(최대 3); 스택 1당 관련 효과 +1 피해 상당. 전투 종료 시 초기화; 별도 유지 카드 제외.",
-    "runtimePrimitivesRequired": [
-      "ADD_STACK"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-175",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-175: satisfy 'A declared prediction succeeds consecutively; failed prediction sets foresightStreak to 0.' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-175: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "불길한 예언",
-      "stage": 3
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-176": {
     "augmentId": "aug-176",
@@ -1480,29 +780,13 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "불길한 예언",
     "stage": 3,
-    "trigger": [
-      "ON_VALID"
-    ],
-    "condition": "Choose HIGH_DIFFICULTY prediction: exact final number of one named living player; it matches after collision resolution.",
-    "effectType": "GAIN_RESOURCE",
-    "effectValue": {
-      "resource": "revelation",
-      "amount": 3,
-      "temporaryCap": 3
-    },
-    "targetRule": "CURRENT_ENEMY",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "aug_176_gain_resource",
-    "stateType": "INTEGER",
-    "stackRule": "Apply on declared trigger; clamp to [object Object]; derived effects do not recursively retrigger.",
-    "stackCap": {
-      "text": "최대 2",
-      "source": "BETA_VALUE_OR_LIMIT"
-    },
-    "consumeRule": "NONE",
-    "onceScope": "ONCE_PER_COMBAT",
-    "resetScope": "COMBAT_END",
-    "persistenceScope": "COMBAT",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "Revelation >=3 상태에서\n다른 아군이 collision-invalid 되면:\n\n그 아군에게:\n\nNEXT_VALID_DAMAGE +1\n\n1 charge.\n\nplayer당 pending 1개.\n\nrefresh는 stack 추가가 아니라 MAX/replace.",
+    "canonicalDescription": "Revelation >=3 상태에서\n다른 아군이 collision-invalid 되면:\n\n그 아군에게:\n\nNEXT_VALID_DAMAGE +1\n\n1 charge.\n\nplayer당 pending 1개.\n\nrefresh는 stack 추가가 아니라 MAX/replace.",
+    "tooltip": "Revelation >=3 상태에서\n다른 아군이 collision-invalid 되면:\n\n그 아군에게:\n\nNEXT_VALID_DAMAGE +1\n\n1 charge.\n\nplayer당 pending 1개.\n\nrefresh는 stack 추가가 아니라 MAX/replace.",
+    "tooltipBetaV02": "Revelation >=3 상태에서\n다른 아군이 collision-invalid 되면:\n\n그 아군에게:\n\nNEXT_VALID_DAMAGE +1\n\n1 charge.\n\nplayer당 pending 1개.\n\nrefresh는 stack 추가가 아니라 MAX/replace.",
     "roomApplicability": {
       "COMBAT": true,
       "EVENT": false,
@@ -1510,29 +794,16 @@ export const SEER_CONTRACTS=Object.freeze({
       "SHOP": false,
       "REST": false
     },
-    "visibility": "SERVER_ONLY",
-    "reconnectRule": "Persist aug_176_gain_resource and physical IDs/counters through COMBAT scope; reconstruct identical projection.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "고난도 예언 선택 가능. 적중 시 예지 3 획득(기본 최대 2를 일시 초과 가능). 전투당 1회.",
-    "runtimePrimitivesRequired": [
-      "GAIN_RESOURCE",
-      "MODIFY_RESOURCE_CAP"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-176",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-176: satisfy 'Choose HIGH_DIFFICULTY prediction: exact final number of one named living player; it matches after collision resolution.' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-176: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "불길한 예언",
-      "stage": 3
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-177": {
     "augmentId": "aug-177",
@@ -1540,25 +811,13 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "불길한 예언",
     "stage": 3,
-    "trigger": [
-      "PRE_SELECT"
-    ],
-    "condition": "Immediately after prediction declaration and before owner confirms a card; at least one other READY ally exists.",
-    "effectType": "REVEAL_PRIVATE_INFO",
-    "effectValue": {
-      "count": 1,
-      "selection": "SEEDED_RNG_READY_ALLY_CURRENT_NUMBER"
-    },
-    "targetRule": "SOURCE_SPECIFIED_ALLY_OR_EARLIEST_SEAT_TIE",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "NONE",
-    "stateType": "NONE",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": "NOT_APPLICABLE",
-    "consumeRule": "NONE",
-    "onceScope": "ONCE_PER_PREDICTION",
-    "resetScope": "TURN_END",
-    "persistenceScope": "RUN",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "다른 아군의 collision-invalid card의\nFINAL_NUMBER가 >=3이면:\n\n그 physical card의 실패에 대해\nDERIVED_DAMAGE 1을 monster에게 보장.\n\nIMPORTANT:\n\naug172와 동일 collision-invalid card에서는\n둘을 합산하지 않는다.\n\n같은 physical failed card 기준:\n\nmax(aug172Contribution, aug177Contribution)\n\n만 발생.\n\n따라서 한 카드에서 2 damage 생성 금지.",
+    "canonicalDescription": "다른 아군의 collision-invalid card의\nFINAL_NUMBER가 >=3이면:\n\n그 physical card의 실패에 대해\nDERIVED_DAMAGE 1을 monster에게 보장.\n\nIMPORTANT:\n\naug172와 동일 collision-invalid card에서는\n둘을 합산하지 않는다.\n\n같은 physical failed card 기준:\n\nmax(aug172Contribution, aug177Contribution)\n\n만 발생.\n\n따라서 한 카드에서 2 damage 생성 금지.",
+    "tooltip": "다른 아군의 collision-invalid card의\nFINAL_NUMBER가 >=3이면:\n\n그 physical card의 실패에 대해\nDERIVED_DAMAGE 1을 monster에게 보장.\n\nIMPORTANT:\n\naug172와 동일 collision-invalid card에서는\n둘을 합산하지 않는다.\n\n같은 physical failed card 기준:\n\nmax(aug172Contribution, aug177Contribution)\n\n만 발생.\n\n따라서 한 카드에서 2 damage 생성 금지.",
+    "tooltipBetaV02": "다른 아군의 collision-invalid card의\nFINAL_NUMBER가 >=3이면:\n\n그 physical card의 실패에 대해\nDERIVED_DAMAGE 1을 monster에게 보장.\n\nIMPORTANT:\n\naug172와 동일 collision-invalid card에서는\n둘을 합산하지 않는다.\n\n같은 physical failed card 기준:\n\nmax(aug172Contribution, aug177Contribution)\n\n만 발생.\n\n따라서 한 카드에서 2 damage 생성 금지.",
     "roomApplicability": {
       "COMBAT": true,
       "EVENT": false,
@@ -1566,28 +825,16 @@ export const SEER_CONTRACTS=Object.freeze({
       "SHOP": false,
       "REST": false
     },
-    "visibility": "OWNER_ONLY",
-    "reconnectRule": "No mutable state beyond ownership; replay/reconnect cannot duplicate source action.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "예언 선언 후 카드 선택 전에 무작위 아군 1명의 현재 선택 숫자를 확인. 예언 1회당 1명.",
-    "runtimePrimitivesRequired": [
-      "REVEAL_PRIVATE_INFO"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-177",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-177: satisfy 'Immediately after prediction declaration and before owner confirms a card; at least one other READY ally exists.' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-177: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "불길한 예언",
-      "stage": 3
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-178": {
     "augmentId": "aug-178",
@@ -1595,28 +842,13 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "불길한 예언",
     "stage": 4,
-    "trigger": [
-      "ON_VALID"
-    ],
-    "condition": "고난도 예언 적중 시 예지 3 획득 및 전원 다음 유효 공격 +1 피해",
-    "effectType": "DELAY_EFFECT",
-    "effectValue": {
-      "text": "고난도 예언 적중 시 예지 3 획득 및 전원 다음 유효 공격 +1 피해.",
-      "numericHints": [
-        3,
-        1
-      ]
-    },
-    "targetRule": "ALL_LIVING_ALLIES_INCLUDING_SELF",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "NONE",
-    "stateType": "NONE",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": "NOT_APPLICABLE",
-    "consumeRule": "NONE",
-    "onceScope": "ONCE_PER_COMBAT",
-    "resetScope": "COMBAT_END",
-    "persistenceScope": "COMBAT",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "한 turn collision participant count >=3이면:\n\nturn 종료 시\nHP가 가장 낮은 다른 생존 아군 HP +1.\n\n전투당 최대 2회.\n\n동률 seeded random.",
+    "canonicalDescription": "한 turn collision participant count >=3이면:\n\nturn 종료 시\nHP가 가장 낮은 다른 생존 아군 HP +1.\n\n전투당 최대 2회.\n\n동률 seeded random.",
+    "tooltip": "한 turn collision participant count >=3이면:\n\nturn 종료 시\nHP가 가장 낮은 다른 생존 아군 HP +1.\n\n전투당 최대 2회.\n\n동률 seeded random.",
+    "tooltipBetaV02": "한 turn collision participant count >=3이면:\n\nturn 종료 시\nHP가 가장 낮은 다른 생존 아군 HP +1.\n\n전투당 최대 2회.\n\n동률 seeded random.",
     "roomApplicability": {
       "COMBAT": true,
       "EVENT": false,
@@ -1624,28 +856,16 @@ export const SEER_CONTRACTS=Object.freeze({
       "SHOP": false,
       "REST": false
     },
-    "visibility": "SERVER_ONLY",
-    "reconnectRule": "No mutable state beyond ownership; replay/reconnect cannot duplicate source action.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "고난도 예언 적중 시 예지 3 획득 및 전원 다음 유효 공격 +1 피해. 전투당 1회.",
-    "runtimePrimitivesRequired": [
-      "DELAY_EFFECT"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-178",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-178: satisfy '고난도 예언 적중 시 예지 3 획득 및 전원 다음 유효 공격 +1 피해' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-178: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "불길한 예언",
-      "stage": 4
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-179": {
     "augmentId": "aug-179",
@@ -1653,30 +873,13 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "불길한 예언",
     "stage": 4,
-    "trigger": [
-      "ON_VALID",
-      "PRE_DAMAGE"
-    ],
-    "condition": "After 3 consecutive successful predictions in the same combat.",
-    "effectType": "DELAYED_ATTACK_BUFF",
-    "effectValue": {
-      "targets": "ALL_LIVING_PLAYERS",
-      "bonusDamage": 2,
-      "usesPerTarget": 1
-    },
-    "targetRule": "ALL_LIVING_ALLIES_INCLUDING_SELF",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "aug_179_delayed_attack_buff",
-    "stateType": "STATUS",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": {
-      "text": "NONE",
-      "source": "GLOBAL_POLICY"
-    },
-    "consumeRule": "Consume/move exactly as effectValue; physical cards preserve cardInstanceId.",
-    "onceScope": "ONCE_PER_COMBAT",
-    "resetScope": "COMBAT_END",
-    "persistenceScope": "COMBAT",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "Revelation >=3 상태에서\n다른 아군이 collision-invalid 되면:\n\n해당 아군에게\n\nNEXT_DIRECT_DAMAGE_REDUCTION 1\n\n1 charge.\n\nplayer별 pending 1.\n\naug174와 동일 타입이면 MAX merge.",
+    "canonicalDescription": "Revelation >=3 상태에서\n다른 아군이 collision-invalid 되면:\n\n해당 아군에게\n\nNEXT_DIRECT_DAMAGE_REDUCTION 1\n\n1 charge.\n\nplayer별 pending 1.\n\naug174와 동일 타입이면 MAX merge.",
+    "tooltip": "Revelation >=3 상태에서\n다른 아군이 collision-invalid 되면:\n\n해당 아군에게\n\nNEXT_DIRECT_DAMAGE_REDUCTION 1\n\n1 charge.\n\nplayer별 pending 1.\n\naug174와 동일 타입이면 MAX merge.",
+    "tooltipBetaV02": "Revelation >=3 상태에서\n다른 아군이 collision-invalid 되면:\n\n해당 아군에게\n\nNEXT_DIRECT_DAMAGE_REDUCTION 1\n\n1 charge.\n\nplayer별 pending 1.\n\naug174와 동일 타입이면 MAX merge.",
     "roomApplicability": {
       "COMBAT": true,
       "EVENT": false,
@@ -1684,29 +887,16 @@ export const SEER_CONTRACTS=Object.freeze({
       "SHOP": false,
       "REST": false
     },
-    "visibility": "SERVER_ONLY",
-    "reconnectRule": "Persist aug_179_delayed_attack_buff and physical IDs/counters through COMBAT scope; reconstruct identical projection.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "대상 전원의 다음 유효 공격 추가 피해 +2. 각 대상 1회 발동 후 소멸.",
-    "runtimePrimitivesRequired": [
-      "ADD_DAMAGE",
-      "DELAY_EFFECT"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-179",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-179: satisfy 'After 3 consecutive successful predictions in the same combat.' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-179: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "불길한 예언",
-      "stage": 4
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   },
   "aug-180": {
     "augmentId": "aug-180",
@@ -1714,29 +904,13 @@ export const SEER_CONTRACTS=Object.freeze({
     "classId": "prophet",
     "archetype": "불길한 예언",
     "stage": 4,
-    "trigger": [
-      "ON_VALID"
-    ],
-    "condition": "한 전투에서 서로 다른 예언 3종을 모두 적중하면 전원 EXP +2, 예언가의 다음 유효 공격 +4 피해",
-    "effectType": "MODIFY_EXP",
-    "effectValue": {
-      "text": "한 전투에서 서로 다른 예언 3종을 모두 적중하면 전원 EXP +2, 예언가의 다음 유효 공격 +4 피해.",
-      "numericHints": [
-        3,
-        2,
-        4
-      ]
-    },
-    "targetRule": "ALL_LIVING_ALLIES_INCLUDING_SELF",
-    "tieRule": "EARLIEST_LOBBY_SEAT_THEN_PLAYER_ID_WHEN_TARGET_TIE; SEEDED_RNG_ONLY_WHERE_EXPLICIT",
-    "stateKey": "NONE",
-    "stateType": "NONE",
-    "stackRule": "NOT_APPLICABLE",
-    "stackCap": "NOT_APPLICABLE",
-    "consumeRule": "NONE",
-    "onceScope": "ONCE_PER_COMBAT",
-    "resetScope": "COMBAT_END",
-    "persistenceScope": "COMBAT",
+    "executable": true,
+    "candidateReachable": true,
+    "executionRuleSource": "USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006",
+    "condition": "한 turn에:\n\n다른 아군 2명 이상이 collision-invalid 되었고\n\n그럼에도 해당 turn\nparty가 monster에게 실제 damage > 0을 가했다면:\n\ncollision-invalid 되었던 모든 해당 아군에게:\n\nNEXT_VALID_DAMAGE +1\n\n1 charge.\n\n같은 player에게 여러 copy stack 금지.",
+    "canonicalDescription": "한 turn에:\n\n다른 아군 2명 이상이 collision-invalid 되었고\n\n그럼에도 해당 turn\nparty가 monster에게 실제 damage > 0을 가했다면:\n\ncollision-invalid 되었던 모든 해당 아군에게:\n\nNEXT_VALID_DAMAGE +1\n\n1 charge.\n\n같은 player에게 여러 copy stack 금지.",
+    "tooltip": "한 turn에:\n\n다른 아군 2명 이상이 collision-invalid 되었고\n\n그럼에도 해당 turn\nparty가 monster에게 실제 damage > 0을 가했다면:\n\ncollision-invalid 되었던 모든 해당 아군에게:\n\nNEXT_VALID_DAMAGE +1\n\n1 charge.\n\n같은 player에게 여러 copy stack 금지.",
+    "tooltipBetaV02": "한 turn에:\n\n다른 아군 2명 이상이 collision-invalid 되었고\n\n그럼에도 해당 turn\nparty가 monster에게 실제 damage > 0을 가했다면:\n\ncollision-invalid 되었던 모든 해당 아군에게:\n\nNEXT_VALID_DAMAGE +1\n\n1 charge.\n\n같은 player에게 여러 copy stack 금지.",
     "roomApplicability": {
       "COMBAT": true,
       "EVENT": false,
@@ -1744,29 +918,16 @@ export const SEER_CONTRACTS=Object.freeze({
       "SHOP": false,
       "REST": false
     },
-    "visibility": "SERVER_ONLY",
-    "reconnectRule": "No mutable state beyond ownership; replay/reconnect cannot duplicate source action.",
-    "idempotencyRule": "Key mutation by rootActionId + sourceAugmentId + effect instance; same action identity applies at most once.",
-    "tooltip": "한 전투에서 서로 다른 예언 3종을 모두 적중하면 전원 EXP +2, 예언가의 다음 유효 공격 +4 피해. 전투당 1회.",
-    "runtimePrimitivesRequired": [
-      "MODIFY_EXP",
-      "DELAY_EFFECT"
+    "stateType": "AUTHORITATIVE_COMBAT_RECEIPT",
+    "resetScope": "COMBAT_END",
+    "sourceClassification": "USER_CONFIRMED_REPLACEMENT",
+    "stateKey": "pvCore:aug-180",
+    "effects": [],
+    "specialHandlers": [
+      "PROPHET_VAMPIRE_CORE_REWORK"
     ],
-    "testCasesRequired": {
-      "minimumPositiveCase": "aug-180: satisfy '한 전투에서 서로 다른 예언 3종을 모두 적중하면 전원 EXP +2, 예언가의 다음 유효 공격 +4 피해' and assert effect exactly once within declared scope.",
-      "minimumNegativeCase": "aug-180: fail one condition/room/scope predicate and assert no effect or consumption.",
-      "edgeCases": []
-    },
-    "designStatus": "SPEC_COMPLETE",
-    "runtimeReady": true,
-    "executable": true,
-    "source": "BETA_v0.2",
-    "runtimeHandler": "SEER_V02",
-    "candidatePool": {
-      "classId": "prophet",
-      "archetype": "불길한 예언",
-      "stage": 4
-    }
+    "idempotencyRule": "Authoritative root action and effect receipt; retry returns stored result.",
+    "reconnectRule": "Restore authoritative resource, fragment, marks and receipts; never initialize again."
   }
 });
-export const SEER_CONTRACT_IDS=Object.freeze(Object.keys(SEER_CONTRACTS).sort());
+export const SEER_CONTRACT_IDS=Object.freeze(Object.keys(SEER_CONTRACTS));

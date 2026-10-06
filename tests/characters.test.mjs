@@ -116,23 +116,23 @@ test('blocked berserker cards never spend HP; original numbers still control col
  const {g}=setup(['berserker','adventurer','warrior','rogue']);
  const r=resolveTurn(g,submit(g,[4,5,2,3]));assert.equal(r.cards[0].valid,true);assert.equal(r.cards[0].damageValue,5);
 });
-test('seer base Revelation uses canonical valid gain, collision no-gain and no selected-number knowledge',()=> {
-  const {g,members}=setup(['seer','adventurer','warrior','rogue']);const p=g.state.players.p0;
-  resolveTurn(g,submit(g,[3,3,3,5]));assert.equal(p.characterRuntimeState.revelationStacks,0);
-  const request={session_id:g.id,turn_index:g.turn_index};assert.throws(()=>activateSkill(g,members[0],'u0',request,[]),/1칸/);
-  p.characterRuntimeState.revelationStacks=2;assert.equal(activateSkill(g,members[0],'u0',request,[]),true);assert.equal(activateSkill(g,members[0],'u0',request,[]),false);
-  assert.equal(p.characterRuntimeState.revelationStacks,1);assert.equal(p.characterRuntimeState.revealTargets,undefined);
-  const sub=submit(g,[1,2,5,4]);assert.deepEqual(privateKnowledge(g,'p0',sub).revealedCards,[]);
-  const r=resolveTurn(g,sub);assert.equal(r.cards[0].valid,true);assert.equal(p.characterRuntimeState.revelationStacks,2);
-  assert.deepEqual(privateKnowledge(g,'p0',sub).revealedCards,[]);
+test('seer collision participants grant Revelation and automatic information is owner-private',()=>{
+const {g,members}=setup(['seer','adventurer','warrior','rogue']),p=g.state.players.p0;
+ resolveTurn(g,submit(g,[3,3,3,5]));assert.equal(p.characterRuntimeState.revelationStacks,3);
+ const request={session_id:g.id,turn_index:g.turn_index};assert.throws(()=>activateSkill(g,members[0],'u0',request,[]),/계시/);
+ const subs=submit(g,[1,2,5,4]);assert.deepEqual(privateKnowledge(g,'p0',subs).revealedCards.map(c=>c.value),[2,5,4]);
+ assert.deepEqual(privateKnowledge(g,'p1',subs).revealedCards,[]);
+ resolveTurn(g,subs);assert.equal(p.characterRuntimeState.revelationStacks,3);
 });
-test('seer Revelation caps at three, collisions do not gain, and cycle changes preserve current stacks',()=> {
-  const {g,members}=setup(['seer','adventurer','warrior','rogue']);const p=g.state.players.p0;
-  p.characterRuntimeState.revelationStacks=3;resolveTurn(g,submit(g,[3,3,3,5]));assert.equal(p.characterRuntimeState.revelationStacks,3);
-  startCycle(p,p.character);assert.equal(p.characterRuntimeState.revelationStacks,3);
-  p.characterRuntimeState.revelationStacks=2;const request={session_id:g.id,turn_index:g.turn_index};
-  activateSkill(g,members[0],'u0',request,[]);resolveTurn(g,submit(g,[1,2,4,3]));assert.equal(p.characterRuntimeState.revelationStacks,2);
+
+test('seer Revelation caps at six and Fragment has no activation-validity refund',()=>{
+const {g,members}=setup(['seer','adventurer','warrior','rogue']),p=g.state.players.p0;
+ p.characterRuntimeState.revelationStacks=5;resolveTurn(g,submit(g,[3,3,3,5]));assert.equal(p.characterRuntimeState.revelationStacks,6);
+ startCycle(p,p.character);assert.equal(p.characterRuntimeState.revelationStacks,6);
+ activateSkill(g,members[0],'u0',{session_id:g.id,turn_index:g.turn_index},[]);assert.equal(p.characterRuntimeState.revelationStacks,0);
+ resolveTurn(g,submit(g,[1,2,4,3]));assert.equal(p.characterRuntimeState.revelationStacks,0);assert.equal(p.characterRuntimeState.prophetCore.fragment.value,4);
 });
+
 test('imp steals numbers before collision, including newly created collisions',()=>{
   const {g}=setup(['imp','adventurer','warrior','mage']);
   const r=resolveTurn(g,submit(g,[2,2,3,4]));
@@ -215,7 +215,7 @@ test('two active knights can both resist a collision, while a boss seal still su
   const r=resolveTurn(g,submit(g,[3,3,3,3],[0,1]));
   assert.deepEqual(r.cards.map(c=>c.valid),[true,true,false,false]);
   assert.deepEqual(r.cards.slice(0,2).map(c=>c.damageValue),seal?[0,0]:[3,3]);
-  assert.equal(g.state.players.p2.characterRuntimeState.revelationStacks,0);
+  assert.equal(g.state.players.p2.characterRuntimeState.revelationStacks,4);
  }
  const {g}=setup(['warrior','adventurer','mage','imp']);room(g,'suspicious_merchant','event');
  const r=resolveTurn(g,submit(g,[3,3,2,4],[0]));
@@ -224,42 +224,43 @@ test('two active knights can both resist a collision, while a boss seal still su
 
 test('revelation activation is owned, turn-scoped, before submission, and cannot be smuggled into use_skill',()=>{
  const {g,members}=setup(['seer','warrior','mage','imp']);const p=g.state.players.p0;
- p.characterRuntimeState.revelationStacks=2;
+ p.characterRuntimeState.revelationStacks=6;
  const body={session_id:g.id,turn_index:g.turn_index,card_id:p.cycleCards[0].id};
  assert.throws(()=>activateSkill(g,members[0],'u1',body,[]),/자신/);
  assert.throws(()=>activateSkill(g,members[0],'u0',{...body,turn_index:99},[]),/턴/);
  assert.throws(()=>activateSkill(g,members[0],'u0',body,[{member_id:'p0',turn_index:g.turn_index}]),/제출 전/);
  assert.throws(()=>validateSubmission(g,members[0],'u0',{...body,use_skill:true},[]),/스킬/);
  p.knockedOut=true;assert.throws(()=>activateSkill(g,members[0],'u0',body,[]));p.knockedOut=false;
- assert.equal(p.characterRuntimeState.revelationStacks,2);
+ assert.equal(p.characterRuntimeState.revelationStacks,6);
  activateSkill(g,members[0],'u0',body,[]);
- assert.equal(p.characterRuntimeState.revelationStacks,1);
+ assert.equal(p.characterRuntimeState.revelationStacks,0);
  const sub=submit(g,[1,2,3,4]);
  assert.equal(privateKnowledge(g,'p0',sub).revealedCards.length,0);
  assert.equal(privateKnowledge(g,'p1',sub).revealedCards.length,0);
- resolveTurn(g,sub);assert.equal(p.characterRuntimeState.revelationStacks,2);assert.equal(privateKnowledge(g,'p0',sub).revealedCards.length,0);
+ resolveTurn(g,sub);assert.equal(p.characterRuntimeState.revelationStacks,0);assert.equal(privateKnowledge(g,'p0',sub).revealedCards.length,0);
 });
 
-test('AI seer submissions remain hidden from a human Seer after base Revelation activation',()=>{
- const {g,members}=setup(['seer','seer','mage','imp']);members[1].member_type='ai';members[1].ai_type='balanced';
- for(const id of ['p0','p1'])g.state.players[id].characterRuntimeState.revelationStacks=2;
+test('automatic Revelation includes submitted AI original numbers and excludes unsubmitted humans',()=>{
+const {g,members}=setup(['seer','seer','mage','imp']);members[1].member_type='ai';members[1].ai_type='balanced';
+ g.state.players.p0.characterRuntimeState.revelationStacks=3;
  const submissions=openTurn(g,members,rng(2));assert.ok(submissions.some(s=>s.member_id==='p1'));
- activateSkill(g,members[0],'u0',{session_id:g.id,turn_index:g.turn_index},submissions);
- assert.equal(privateKnowledge(g,'p0',submissions).revealedCards.length,0);
+ const knowledge=privateKnowledge(g,'p0',submissions);assert.equal(knowledge.revealedCards.length,1);assert.equal(knowledge.revealedCards[0].memberId,'p1');
+ assert.equal(privateKnowledge(g,'p2',submissions).revealedCards.length,0);
 });
 
-test('skill controls label knight and seer correctly and show canonical Revelation max 3 without visible stack digits',()=>{
+test('skill controls label knight and seer correctly and show canonical Revelation max 6 and Fragment availability',()=>{
  const {g}=setup(['seer','warrior','mage','imp']);const p=g.state.players.p0;
  p.characterRuntimeState.revelationStacks=1;
  for(const [current,filled] of [[0,0],[1,1],[3,3]]){
    p.characterRuntimeState.revelationStacks=current;
    const gauge=revelationGauge(p);
-   assert.equal((gauge.match(/class="revelation-pip/g)||[]).length,3);
+   assert.equal((gauge.match(/class="revelation-pip/g)||[]).length,6);
    assert.equal((gauge.match(/revelation-pip filled/g)||[]).length,filled);
-   assert.match(gauge,/aria-valuemax="3"/);
+   assert.match(gauge,/aria-valuemax="6"/);
    assert.match(gauge,new RegExp('aria-valuenow="'+current+'"'));
  }
  assert.match(activeButton(p,false,false),/activate-revelation/);
+ p.characterRuntimeState.revelationStacks=6;
  const selectedButton=activeButton(p,false,false,[],{},true);
  assert.match(selectedButton,/activate-revelation/);assert.ok(!selectedButton.includes('disabled'));assert.ok(!selectedButton.includes('선택 취소'));
  assert.match(activeButton(g.state.players.p1,true,false),/강인함/);

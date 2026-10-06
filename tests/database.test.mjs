@@ -171,7 +171,7 @@ test('revelation activation commits once under concurrent retries and exposes on
  state=await api(a,'start_game',{room_id});assert.equal(state.status,200,state.error);
  const session=state.session,player=session.state.players[owner.id];
  assert.equal(player.character.display_name,'예언가');assert.equal(player.skillType,'hybrid');
- player.characterRuntimeState.revelationStacks=1;
+ player.characterRuntimeState.revelationStacks=6;
  await db.query('update public.game_sessions set state=$1 where id=$2',[JSON.stringify(session.state),session.id]);
  const params={room_id,session_id:session.id,turn_index:session.turn_index,member_id:owner.id};
  const responses=await Promise.all([api(a,'activate_skill',params),api(a,'activate_skill',params)]);
@@ -795,7 +795,7 @@ test('amplification persists effective number and level atomically, retries and 
   let state=(await db.query('select state from public.game_sessions where id=$1',[session])).rows[0].state;
   state.currentStage={contentId:'armored_boar',category:'monster',name:'test'};state.monster={id:'armored_boar',hp:999,maxHp:999,attackIn:99};state.stageTurn=0;
   const mage=state.players[members[0].id];assert.equal(mage.characterRuntimeState.mana,1);mage.characterRuntimeState.mana=4;mage.activeSkillState.available=true;
-  state.players[members[1].id].characterRuntimeState.revelationStacks=2;
+  state.players[members[1].id].characterRuntimeState.revelationStacks=6;
   await db.query('update public.game_sessions set state=$2 where id=$1',[session,JSON.stringify(state)]);
   const card=mage.cycleCards.find(c=>c.value===4),body={room_id:room.id,session_id:session,turn_index:1,member_id:members[0].id,card_id:card.id,card_value:4,use_skill:true,amplify_level:2};
   assert.equal((await api(ids[0],'submit_card',{...body,amplify_level:3})).status,400);

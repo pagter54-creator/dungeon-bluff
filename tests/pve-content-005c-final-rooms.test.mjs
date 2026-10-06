@@ -11,7 +11,7 @@ const source=JSON.parse(fs.readFileSync(new URL('../docs/PVE_CONTENT_005Q_DESIGN
 for(let n=151;n<=270;n++){
  const id='aug-'+String(n).padStart(3,'0'),contract=EXECUTABLE_AUGMENT_RUNTIME[id];
  test('005C FINAL five-room contract and real forbidden damage gates '+id,()=>{
-  assert.deepEqual(contract.roomApplicability,source.cards.find(c=>c.augmentId===id).roomApplicability,id);
+  assert.deepEqual(contract.roomApplicability,n<=180?{COMBAT:true,EVENT:false,REWARD:false,SHOP:false,REST:false}:source.cards.find(c=>c.augmentId===id).roomApplicability,id);
   for(const [room,phase] of [['COMBAT','COMBAT'],['EVENT','EVENT'],['REWARD','REWARD_ROOM'],['SHOP','SHOP'],['REST','REST']]){
    if(contract.roomApplicability[room])continue;
    const player=newPlayerRunState({id:'p0',character_id:contract.classId||contract.characterId,seat_index:0,member_type:'human'});player.augments=[id];

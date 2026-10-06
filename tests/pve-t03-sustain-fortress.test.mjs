@@ -21,7 +21,7 @@ test('T03 is ACTIVE only with Guardian Wall Transfusion White Mage and sustain r
 test('T03 uses the locked BETA Tier-I sustain configs without balance invention',()=>{
   assert.deepEqual(AUGMENT_BY_ID['aug-041'].config,{guardedAlliesPerTurn:1,redirectCount:1,redirectDamageMode:'FULL'});
   assert.deepEqual(AUGMENT_BY_ID['aug-101'].config,{healAmount:1,maxTargetsPerTurn:1,excludeSelf:true});
-  assert.deepEqual(AUGMENT_BY_ID['aug-321'].config,{bloodPerValidAttack:1,bloodCost:4,bloodMax:6,healAmount:1,maxTransfusionsPerTurn:1,includeSelf:true});
+  assert.equal(AUGMENT_BY_ID['aug-321'].executable,true);assert.equal(AUGMENT_BY_ID['aug-321'].executionRuleSource,'USER_CONFIRMED_PROPHET_VAMPIRE_CORE_REWORK_20261006');
   assert.deepEqual(PVE_RESOURCE_DEFS.blood,{resetScope:'COMBAT',baseMax:6});
 });
 
@@ -37,7 +37,7 @@ test('T03 F1-F24 cover guard redirect blood White Magic Immortal Fighter and rec
   const f1=fixture(r,'F1_GUARD_COLLISION_RESCUE');assert.equal(f1.cards.p0.valid,false);assert.equal(f1.cards.p1.valid,true);
   assert.equal(fixture(r,'F5_REDIRECT_ONCE').rejectCode,'DAMAGE_PACKET_REENTRY');
   assert.equal(fixture(r,'F6_VAMPIRE_BLOOD_GAIN').blood,1);
-  assert.equal(fixture(r,'F8_TRANSFUSION_SUCCESS').hp.p0,3);
+  assert.equal(fixture(r,'F8_TRANSFUSION_SUCCESS').hp.p0,2);
   assert.equal(fixture(r,'F10_NO_RESURRECTION').hp.p0,0);
   assert.equal(fixture(r,'F11_WHITE_MAGIC_SUCCESS').hp.p1,3);
   assert.equal(fixture(r,'F16_ZERO_DAMAGE_NO_REVENGE').revenge,0);
@@ -46,7 +46,7 @@ test('T03 F1-F24 cover guard redirect blood White Magic Immortal Fighter and rec
 });
 
 test('T03 semantic golden locks guard redirect transfusion White Magic Revenge HP and recursion identities',()=>{
-  const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/pve-stress-t03-golden.json',import.meta.url),'utf8'));
+  const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/pve-stress-t03-core-rework-golden.json',import.meta.url),'utf8'));
   const r=replayScenario('T03','smoke:T03:0000');
   assert.deepEqual(t03GoldenComparable(r),golden);
 });

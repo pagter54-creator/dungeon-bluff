@@ -30,7 +30,7 @@ export function buildResourceStarvationDecision(view,playerId,{seed='t09',contex
   return {
     playerId,characterId:player.characterId,cardInstanceId:card.id,baseNumber:card.baseNumber,
     skillIntent,skillData,
-    requestRevelation:player.characterId==='prophet'&&(Number(player.publicResources?.revelation)||0)>0
+    requestRevelation:player.characterId==='prophet'&&(Number(player.publicResources?.revelation)||0)>=(view.privateProphetState?.cost||6)&&!view.privateProphetState?.fragment&&!view.privateProphetState?.fragmentPending
   };
 }
 
@@ -38,7 +38,7 @@ export function invalidResourceProbe(view,playerId){
   const player=(view.players||[]).find(p=>p.playerId===playerId);
   if(!player||player.status==='DOWNED'||view.privateCombat?.playerId!==playerId)return null;
   const card=ownCards(view,playerId)[0];
-  if(player.characterId==='prophet'&&(Number(player.publicResources?.revelation)||0)<1){
+  if(player.characterId==='prophet'&&(Number(player.publicResources?.revelation)||0)<(view.privateProphetState?.cost||6)&&!view.privateProphetState?.fragment&&!view.privateProphetState?.fragmentPending){
     return {kind:'IMMEDIATE_SKILL',expectedCode:'INSUFFICIENT_RESOURCE'};
   }
   if(!card)return null;

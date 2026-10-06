@@ -8,23 +8,28 @@ function setup(id){const members=[id,'adventurer','adventurer','adventurer'].map
 function submit(g,values,level=0,skill=false){return values.map((v,i)=>{const p=g.state.players['p'+i],c=p.cycleCards.find(c=>!c.used&&c.value===v);assert.ok(c,`missing ${i}:${v}`);const s={session_id:g.id,turn_index:g.turn_index,member_id:p.memberId,card_id:c.id,use_skill:i===0&&(skill||level>0),amplify_level:i===0?level:0};s.card_value=submissionValue(p,c,s);return s;});}
 function resetOthers(g){for(let i=1;i<4;i++)startCycle(g.state.players['p'+i],g.state.players['p'+i].character);}
 test('new decks and initial resources, turn opening is idempotent and mana caps at four',()=>{
- assert.deepEqual(CHARACTER_CATALOG.seer.deck,[1,2,3,4,5]);assert.deepEqual(CHARACTER_CATALOG.mage.deck,[1,2,3,4,4]);assert.deepEqual(CHARACTER_CATALOG.warrior.deck,[2,3,4,5,5]);
+ assert.deepEqual(CHARACTER_CATALOG.seer.deck,[0,1,2,3,4]);assert.deepEqual(CHARACTER_CATALOG.mage.deck,[1,2,3,4,4]);assert.deepEqual(CHARACTER_CATALOG.warrior.deck,[2,3,4,5,5]);
  const {g,p,members}=setup('mage');assert.equal(p.characterRuntimeState.mana,0);openTurn(g,members);assert.equal(p.characterRuntimeState.mana,1);fillAutomaticSubmissions(g,members,[]);assert.equal(p.characterRuntimeState.mana,1);
  for(let i=0;i<7;i++){g.turn_index++;openTurn(g,members);}assert.equal(p.characterRuntimeState.mana,4);
  const knight=setup('warrior');assert.equal(knight.p.characterRuntimeState.toughnessCharges,1);
 });
-test('revelation restores actual used instances, can restore the same instance again, and never double-spends',()=>{
- const {g,p}=setup('seer'),c=p.cycleCards[1];c.used=true;syncCardViews(p);p.characterRuntimeState.revelationStacks=1;
- assert.equal(activateRevelation(g,p,()=>0),true);assert.equal(c.used,false);assert.ok(p.remainingCards.includes(2));assert.equal(p.characterRuntimeState.revelationStacks,0);assert.equal(activateRevelation(g,p),false);
- c.used=true;g.turn_index++;p.characterRuntimeState.revelationStacks=1;activateRevelation(g,p,()=>0);assert.equal(c.used,false);
+test('Fragment reactivates the spent physical zero slot and rejects a second creation',()=>{
+const {g,p}=setup('seer'),zero=p.cycleCards[0];zero.used=true;syncCardViews(p);p.characterRuntimeState.revelationStacks=6;
+ assert.equal(activateRevelation(g,p),true);assert.equal(p.characterRuntimeState.revelationStacks,0);assert.equal(activateRevelation(g,p),false);
+ resolveTurn(g,submit(g,[1,2,3,4]));assert.equal(zero.used,false);assert.equal(zero.value,4);assert.equal(p.characterRuntimeState.prophetCore.fragment.value,4);
+ assert.throws(()=>activateRevelation({...g,turn_index:g.turn_index+1},p),/이미/);
 });
-test('revelation without spent cards stays private; cast turns regain only on valid pass',()=>{
- for(const clash of [false,true]){const {g,p}=setup('seer');p.characterRuntimeState.revelationStacks=1;activateRevelation(g,p);assert.equal(p.cycleCards.length,5);const s=submit(g,[1,clash?1:2,3,4]);assert.equal(privateKnowledge(g,'p0',s).revealedCards.length,0);resolveTurn(g,s);assert.equal(p.characterRuntimeState.revelationStacks,clash?0:1);}
+
+test('Fragment creation costs six; only actual collision participants grant new Revelation',()=>{
+for(const clash of [false,true]){const {g,p}=setup('seer');p.characterRuntimeState.revelationStacks=6;activateRevelation(g,p);const s=submit(g,[1,clash?1:2,3,4]);assert.equal(privateKnowledge(g,'p0',s).revealedCards.length,0);resolveTurn(g,s);assert.equal(p.characterRuntimeState.revelationStacks,clash?2:0);assert.equal(p.characterRuntimeState.prophetCore.fragment.value,4);}
 });
-test('ordinary revelation clash gives no stack; duplicate-number instances restore independently',()=>{
- const {g,p}=setup('seer');resolveTurn(g,submit(g,[1,1,3,4]));assert.equal(p.characterRuntimeState.revelationStacks,0);
- p.cycleCards=[{id:'one',value:2,used:true},{id:'two',value:2,used:true}];p.characterRuntimeState.revelationStacks=1;g.turn_index++;activateRevelation(g,p,()=>.99);assert.equal(p.cycleCards[0].used,true);assert.equal(p.cycleCards[1].used,false);
+
+test('Fragment behaves as a collidable physical card and is consumed even when invalid',()=>{
+const {g,p}=setup('seer');resolveTurn(g,submit(g,[1,1,3,4]));assert.equal(p.characterRuntimeState.revelationStacks,2);
+ resetOthers(g);p.characterRuntimeState.revelationStacks=6;activateRevelation(g,p);resolveTurn(g,submit(g,[2,1,3,4]));const zero=p.cycleCards[0];assert.equal(zero.value,4);
+ resetOthers(g);const next=submit(g,[4,4,1,2]);next[0].card_id=zero.id;resolveTurn(g,next);assert.equal(zero.used,true);assert.equal(p.characterRuntimeState.prophetCore.zeroState,'USED_ZERO');
 });
+
 test('gunner misfire knocks out once, penalizes once, skips next selection and then revives',()=>{
  const {g,p,members}=setup('gunner');p.hp=1;p.score=20;p.gold=10;const r=resolveTurn(g,submit(g,[1,1,3,4],0,true));assert.equal(p.hp,0);assert.equal(p.knockedOut,true);assert.equal(p.score,10);assert.equal(p.gold,7);assert.equal(r.effects.filter(e=>e.type==='knockout').length,1);
  assert.throws(()=>validateSubmission(g,members[0],'u0',{session_id:g.id,turn_index:g.turn_index,card_id:p.cycleCards[1].id},[]));resetOthers(g);const automatic=openTurn(g,members,()=>0);assert.equal(automatic.length,1);const rest=submit(g,[2,1,3,4]).slice(1);resolveTurn(g,[...automatic,...rest]);assert.equal(p.hp,3);assert.equal(p.knockedOut,false);

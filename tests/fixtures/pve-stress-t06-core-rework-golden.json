@@ -1,0 +1,1800 @@
+{
+  "seed": "smoke:T06:0000",
+  "comparable": {
+    "scenarioId": "T06",
+    "status": "PASS",
+    "fixtures": [
+      {
+        "id": "F1_FRAMEWORK_ALLY_RECOVERY",
+        "phase": "COMBAT",
+        "resources": {
+          "p0": {
+            "revelation": 1,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p1": {
+            "revelation": null,
+            "fullBurstReady": true,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p2": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": true,
+            "acrobaticsRechargeProgress": 0,
+            "acrobaticsBoostReady": false,
+            "parity": 1,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p3": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": 0,
+            "ghostSlashLevel": 0,
+            "ghostSlashReady": true
+          }
+        },
+        "zones": {
+          "p0": {
+            "cycle": 1,
+            "remaining": [
+              "p0:base:1",
+              "p0:base:2",
+              "p0:base:3",
+              "p0:base:4",
+              "p0:base:5"
+            ],
+            "spent": []
+          },
+          "p1": {
+            "cycle": 1,
+            "remaining": [
+              "p1:base:2",
+              "p1:base:3",
+              "p1:base:4",
+              "p1:base:1"
+            ],
+            "spent": []
+          },
+          "p2": {
+            "cycle": 1,
+            "remaining": [
+              "p2:base:1",
+              "p2:base:2",
+              "p2:base:3",
+              "p2:base:4"
+            ],
+            "spent": []
+          },
+          "p3": {
+            "cycle": 1,
+            "remaining": [
+              "p3:base:1",
+              "p3:base:2",
+              "p3:base:3",
+              "p3:base:4",
+              "p3:base:5"
+            ],
+            "spent": []
+          }
+        },
+        "events": [],
+        "cardId": "p1:base:1",
+        "recoveredCardId": null,
+        "code": null,
+        "orderedTypes": null,
+        "firstRoot": null,
+        "secondRoot": null,
+        "maxDepth": null,
+        "maxDerived": null,
+        "guardCode": null,
+        "ceiling": null
+      },
+      {
+        "id": "F4_RECOVERED_CARD_NORMAL_REUSE",
+        "phase": "COMBAT",
+        "resources": {
+          "p0": {
+            "revelation": 1,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p1": {
+            "revelation": null,
+            "fullBurstReady": true,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p2": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": true,
+            "acrobaticsRechargeProgress": 0,
+            "acrobaticsBoostReady": false,
+            "parity": 0,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p3": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": 1,
+            "ghostSlashLevel": 0,
+            "ghostSlashReady": true
+          }
+        },
+        "zones": {
+          "p0": {
+            "cycle": 1,
+            "remaining": [
+              "p0:base:1",
+              "p0:base:2",
+              "p0:base:4",
+              "p0:base:5"
+            ],
+            "spent": [
+              "p0:base:3"
+            ]
+          },
+          "p1": {
+            "cycle": 1,
+            "remaining": [
+              "p1:base:2",
+              "p1:base:3",
+              "p1:base:4"
+            ],
+            "spent": [
+              "p1:base:1"
+            ]
+          },
+          "p2": {
+            "cycle": 1,
+            "remaining": [
+              "p2:base:1",
+              "p2:base:2",
+              "p2:base:4"
+            ],
+            "spent": [
+              "p2:base:3"
+            ]
+          },
+          "p3": {
+            "cycle": 1,
+            "remaining": [
+              "p3:base:1",
+              "p3:base:2",
+              "p3:base:3",
+              "p3:base:5"
+            ],
+            "spent": [
+              "p3:base:4"
+            ]
+          }
+        },
+        "events": [
+          {
+            "type": "CARD_RECOVERED",
+            "eventId": null,
+            "playerId": null,
+            "actorId": "p0",
+            "targetPlayerId": "p1",
+            "cardInstanceId": "p1:base:1",
+            "previousCycleId": null,
+            "nextCycleId": null,
+            "resetReason": null,
+            "rootActionId": "fixture-recovery:stress-combat:smoke:T06:0000:F4:1:p1",
+            "recoveryChainId": "fixture-recovery:stress-combat:smoke:T06:0000:F4:1:p1:recovery",
+            "parentEventId": "fixture-recovery:stress-combat:smoke:T06:0000:F4:1:p1:ON_RECOVER_CARD:1",
+            "chainDepth": 1,
+            "before": null,
+            "after": null
+          }
+        ],
+        "cardId": "p1:base:1",
+        "recoveredCardId": null,
+        "code": null,
+        "orderedTypes": null,
+        "firstRoot": null,
+        "secondRoot": null,
+        "maxDepth": null,
+        "maxDerived": null,
+        "guardCode": null,
+        "ceiling": null
+      },
+      {
+        "id": "F5_SAME_CARD_SECOND_RECOVERY",
+        "phase": "COMBAT",
+        "resources": {
+          "p0": {
+            "revelation": 1,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p1": {
+            "revelation": null,
+            "fullBurstReady": true,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p2": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": true,
+            "acrobaticsRechargeProgress": 0,
+            "acrobaticsBoostReady": false,
+            "parity": 0,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p3": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": 1,
+            "ghostSlashLevel": 0,
+            "ghostSlashReady": true
+          }
+        },
+        "zones": {
+          "p0": {
+            "cycle": 1,
+            "remaining": [
+              "p0:base:1",
+              "p0:base:2",
+              "p0:base:4",
+              "p0:base:5"
+            ],
+            "spent": [
+              "p0:base:3"
+            ]
+          },
+          "p1": {
+            "cycle": 1,
+            "remaining": [
+              "p1:base:2",
+              "p1:base:3",
+              "p1:base:4",
+              "p1:base:1"
+            ],
+            "spent": []
+          },
+          "p2": {
+            "cycle": 1,
+            "remaining": [
+              "p2:base:1",
+              "p2:base:2",
+              "p2:base:4"
+            ],
+            "spent": [
+              "p2:base:3"
+            ]
+          },
+          "p3": {
+            "cycle": 1,
+            "remaining": [
+              "p3:base:1",
+              "p3:base:2",
+              "p3:base:3",
+              "p3:base:5"
+            ],
+            "spent": [
+              "p3:base:4"
+            ]
+          }
+        },
+        "events": [],
+        "cardId": "p1:base:1",
+        "recoveredCardId": null,
+        "code": null,
+        "orderedTypes": null,
+        "firstRoot": null,
+        "secondRoot": null,
+        "maxDepth": null,
+        "maxDerived": null,
+        "guardCode": null,
+        "ceiling": null
+      },
+      {
+        "id": "F6_FULL_BURST_RESET",
+        "phase": "COMBAT",
+        "resources": {
+          "p0": {
+            "revelation": 0,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p1": {
+            "revelation": null,
+            "fullBurstReady": false,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p2": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": true,
+            "acrobaticsRechargeProgress": 0,
+            "acrobaticsBoostReady": false,
+            "parity": 0,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p3": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": 1,
+            "ghostSlashLevel": 0,
+            "ghostSlashReady": true
+          }
+        },
+        "zones": {
+          "p0": {
+            "cycle": 1,
+            "remaining": [
+              "p0:base:1",
+              "p0:base:2",
+              "p0:base:3",
+              "p0:base:4"
+            ],
+            "spent": [
+              "p0:base:5"
+            ]
+          },
+          "p1": {
+            "cycle": 2,
+            "remaining": [
+              "p1:base:1",
+              "p1:base:2",
+              "p1:base:3",
+              "p1:base:4"
+            ],
+            "spent": []
+          },
+          "p2": {
+            "cycle": 1,
+            "remaining": [
+              "p2:base:1",
+              "p2:base:2",
+              "p2:base:4"
+            ],
+            "spent": [
+              "p2:base:3"
+            ]
+          },
+          "p3": {
+            "cycle": 1,
+            "remaining": [
+              "p3:base:1",
+              "p3:base:3",
+              "p3:base:4",
+              "p3:base:5"
+            ],
+            "spent": [
+              "p3:base:2"
+            ]
+          }
+        },
+        "events": [
+          {
+            "type": "CYCLE_RESET",
+            "eventId": "cycle-reset:stress-combat:smoke:T06:0000:F6:1:1",
+            "playerId": "p1",
+            "actorId": null,
+            "targetPlayerId": null,
+            "cardInstanceId": null,
+            "previousCycleId": 1,
+            "nextCycleId": 2,
+            "resetReason": "FULL_BURST",
+            "rootActionId": "action:stress-combat:smoke:T06:0000:F6:1:p1:p1:base:1",
+            "recoveryChainId": "recovery:action:stress-combat:smoke:T06:0000:F6:1:p1:p1:base:1",
+            "parentEventId": null,
+            "chainDepth": 1,
+            "before": null,
+            "after": null
+          }
+        ],
+        "cardId": null,
+        "recoveredCardId": null,
+        "code": null,
+        "orderedTypes": null,
+        "firstRoot": null,
+        "secondRoot": null,
+        "maxDepth": null,
+        "maxDerived": null,
+        "guardCode": null,
+        "ceiling": null
+      },
+      {
+        "id": "F7_FULL_BURST_THEN_RECOVERY_BOUNDARY",
+        "phase": "COMBAT",
+        "resources": {
+          "p0": {
+            "revelation": 1,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p1": {
+            "revelation": null,
+            "fullBurstReady": false,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p2": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": true,
+            "acrobaticsRechargeProgress": 0,
+            "acrobaticsBoostReady": false,
+            "parity": 0,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p3": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": 1,
+            "ghostSlashLevel": 0,
+            "ghostSlashReady": true
+          }
+        },
+        "zones": {
+          "p0": {
+            "cycle": 1,
+            "remaining": [
+              "p0:base:1",
+              "p0:base:2",
+              "p0:base:3",
+              "p0:base:4"
+            ],
+            "spent": [
+              "p0:base:5"
+            ]
+          },
+          "p1": {
+            "cycle": 2,
+            "remaining": [
+              "p1:base:1",
+              "p1:base:2",
+              "p1:base:3",
+              "p1:base:4"
+            ],
+            "spent": []
+          },
+          "p2": {
+            "cycle": 1,
+            "remaining": [
+              "p2:base:1",
+              "p2:base:2",
+              "p2:base:4"
+            ],
+            "spent": [
+              "p2:base:3"
+            ]
+          },
+          "p3": {
+            "cycle": 1,
+            "remaining": [
+              "p3:base:1",
+              "p3:base:3",
+              "p3:base:4",
+              "p3:base:5"
+            ],
+            "spent": [
+              "p3:base:2"
+            ]
+          }
+        },
+        "events": [],
+        "cardId": null,
+        "recoveredCardId": null,
+        "code": "SKILL_NOT_READY",
+        "orderedTypes": null,
+        "firstRoot": null,
+        "secondRoot": null,
+        "maxDepth": null,
+        "maxDerived": null,
+        "guardCode": null,
+        "ceiling": null
+      },
+      {
+        "id": "F11_TWINS_ACROBATICS_RESET",
+        "phase": "COMBAT",
+        "resources": {
+          "p0": {
+            "revelation": 0,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p1": {
+            "revelation": null,
+            "fullBurstReady": true,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p2": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": false,
+            "acrobaticsRechargeProgress": 0,
+            "acrobaticsBoostReady": true,
+            "parity": 0,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p3": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": 0,
+            "ghostSlashLevel": 0,
+            "ghostSlashReady": true
+          }
+        },
+        "zones": {
+          "p0": {
+            "cycle": 1,
+            "remaining": [
+              "p0:base:1",
+              "p0:base:2",
+              "p0:base:3",
+              "p0:base:4",
+              "p0:base:5"
+            ],
+            "spent": []
+          },
+          "p1": {
+            "cycle": 1,
+            "remaining": [
+              "p1:base:1",
+              "p1:base:2",
+              "p1:base:3",
+              "p1:base:4"
+            ],
+            "spent": []
+          },
+          "p2": {
+            "cycle": 2,
+            "remaining": [
+              "p2:base:1",
+              "p2:base:2",
+              "p2:base:3",
+              "p2:base:4"
+            ],
+            "spent": []
+          },
+          "p3": {
+            "cycle": 1,
+            "remaining": [
+              "p3:base:1",
+              "p3:base:2",
+              "p3:base:3",
+              "p3:base:4",
+              "p3:base:5"
+            ],
+            "spent": []
+          }
+        },
+        "events": [],
+        "cardId": null,
+        "recoveredCardId": null,
+        "code": null,
+        "orderedTypes": null,
+        "firstRoot": null,
+        "secondRoot": null,
+        "maxDepth": null,
+        "maxDerived": null,
+        "guardCode": null,
+        "ceiling": null
+      },
+      {
+        "id": "F14_RECOVERY_BEFORE_ACROBATICS",
+        "phase": "COMBAT",
+        "resources": {
+          "p0": {
+            "revelation": 1,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p1": {
+            "revelation": null,
+            "fullBurstReady": true,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p2": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": false,
+            "acrobaticsRechargeProgress": 0,
+            "acrobaticsBoostReady": true,
+            "parity": 0,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p3": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": 0,
+            "ghostSlashLevel": 0,
+            "ghostSlashReady": true
+          }
+        },
+        "zones": {
+          "p0": {
+            "cycle": 1,
+            "remaining": [
+              "p0:base:1",
+              "p0:base:2",
+              "p0:base:3",
+              "p0:base:4",
+              "p0:base:5"
+            ],
+            "spent": []
+          },
+          "p1": {
+            "cycle": 1,
+            "remaining": [
+              "p1:base:1",
+              "p1:base:2",
+              "p1:base:3",
+              "p1:base:4"
+            ],
+            "spent": []
+          },
+          "p2": {
+            "cycle": 2,
+            "remaining": [
+              "p2:base:1",
+              "p2:base:2",
+              "p2:base:3",
+              "p2:base:4"
+            ],
+            "spent": []
+          },
+          "p3": {
+            "cycle": 1,
+            "remaining": [
+              "p3:base:1",
+              "p3:base:2",
+              "p3:base:3",
+              "p3:base:4",
+              "p3:base:5"
+            ],
+            "spent": []
+          }
+        },
+        "events": [],
+        "cardId": null,
+        "recoveredCardId": null,
+        "code": null,
+        "orderedTypes": null,
+        "firstRoot": null,
+        "secondRoot": null,
+        "maxDepth": null,
+        "maxDerived": null,
+        "guardCode": null,
+        "ceiling": null
+      },
+      {
+        "id": "F15_ACROBATICS_BEFORE_RECOVERY",
+        "phase": "COMBAT",
+        "resources": {
+          "p0": {
+            "revelation": 1,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p1": {
+            "revelation": null,
+            "fullBurstReady": true,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p2": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": false,
+            "acrobaticsRechargeProgress": 0,
+            "acrobaticsBoostReady": true,
+            "parity": 0,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p3": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": 0,
+            "ghostSlashLevel": 0,
+            "ghostSlashReady": true
+          }
+        },
+        "zones": {
+          "p0": {
+            "cycle": 1,
+            "remaining": [
+              "p0:base:1",
+              "p0:base:2",
+              "p0:base:3",
+              "p0:base:4",
+              "p0:base:5"
+            ],
+            "spent": []
+          },
+          "p1": {
+            "cycle": 1,
+            "remaining": [
+              "p1:base:1",
+              "p1:base:2",
+              "p1:base:3",
+              "p1:base:4"
+            ],
+            "spent": []
+          },
+          "p2": {
+            "cycle": 2,
+            "remaining": [
+              "p2:base:1",
+              "p2:base:2",
+              "p2:base:3",
+              "p2:base:4"
+            ],
+            "spent": []
+          },
+          "p3": {
+            "cycle": 1,
+            "remaining": [
+              "p3:base:1",
+              "p3:base:2",
+              "p3:base:3",
+              "p3:base:4",
+              "p3:base:5"
+            ],
+            "spent": []
+          }
+        },
+        "events": [],
+        "cardId": null,
+        "recoveredCardId": null,
+        "code": "SKILL_NOT_READY",
+        "orderedTypes": null,
+        "firstRoot": null,
+        "secondRoot": null,
+        "maxDepth": null,
+        "maxDerived": null,
+        "guardCode": null,
+        "ceiling": null
+      },
+      {
+        "id": "F16_GHOST_SLASH_REACTIVATION",
+        "phase": "COMBAT",
+        "resources": {
+          "p0": {
+            "revelation": 0,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p1": {
+            "revelation": null,
+            "fullBurstReady": true,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p2": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": true,
+            "acrobaticsRechargeProgress": 0,
+            "acrobaticsBoostReady": false,
+            "parity": 0,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p3": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": 0,
+            "ghostSlashLevel": 1,
+            "ghostSlashReady": true
+          }
+        },
+        "zones": {
+          "p0": {
+            "cycle": 1,
+            "remaining": [
+              "p0:base:1",
+              "p0:base:3",
+              "p0:base:4",
+              "p0:base:5"
+            ],
+            "spent": [
+              "p0:base:2"
+            ]
+          },
+          "p1": {
+            "cycle": 1,
+            "remaining": [
+              "p1:base:1",
+              "p1:base:3",
+              "p1:base:4"
+            ],
+            "spent": [
+              "p1:base:2"
+            ]
+          },
+          "p2": {
+            "cycle": 1,
+            "remaining": [
+              "p2:base:1",
+              "p2:base:2",
+              "p2:base:4"
+            ],
+            "spent": [
+              "p2:base:3"
+            ]
+          },
+          "p3": {
+            "cycle": 1,
+            "remaining": [
+              "p3:base:1",
+              "p3:base:2",
+              "p3:base:3",
+              "p3:base:5"
+            ],
+            "spent": [
+              "p3:base:4"
+            ]
+          }
+        },
+        "events": [
+          {
+            "type": "GHOST_SLASH_LEVEL_UP",
+            "eventId": null,
+            "playerId": "p3",
+            "actorId": null,
+            "targetPlayerId": null,
+            "cardInstanceId": null,
+            "previousCycleId": null,
+            "nextCycleId": null,
+            "resetReason": null,
+            "rootActionId": "action:stress-combat:smoke:T06:0000:F16:1:p3:p3:base:4",
+            "recoveryChainId": "reactivation:action:stress-combat:smoke:T06:0000:F16:1:p3:p3:base:4",
+            "parentEventId": "devour:action:stress-combat:smoke:T06:0000:F16:1:p3:p3:base:4:VALID_ATTACK:7->8",
+            "chainDepth": 2,
+            "before": 0,
+            "after": 1
+          },
+          {
+            "type": "GHOST_SLASH_REACTIVATED",
+            "eventId": null,
+            "playerId": "p3",
+            "actorId": null,
+            "targetPlayerId": null,
+            "cardInstanceId": null,
+            "previousCycleId": null,
+            "nextCycleId": null,
+            "resetReason": null,
+            "rootActionId": "action:stress-combat:smoke:T06:0000:F16:1:p3:p3:base:4",
+            "recoveryChainId": "reactivation:action:stress-combat:smoke:T06:0000:F16:1:p3:p3:base:4",
+            "parentEventId": "devour:action:stress-combat:smoke:T06:0000:F16:1:p3:p3:base:4:VALID_ATTACK:7->8",
+            "chainDepth": 2,
+            "before": null,
+            "after": null
+          }
+        ],
+        "cardId": null,
+        "recoveredCardId": null,
+        "code": null,
+        "orderedTypes": null,
+        "firstRoot": null,
+        "secondRoot": null,
+        "maxDepth": null,
+        "maxDerived": null,
+        "guardCode": null,
+        "ceiling": null
+      },
+      {
+        "id": "F18_GHOST_SLASH_NEXT_ACTION_REUSE",
+        "phase": "COMBAT",
+        "resources": {
+          "p0": {
+            "revelation": 0,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p1": {
+            "revelation": null,
+            "fullBurstReady": true,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p2": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": true,
+            "acrobaticsRechargeProgress": 0,
+            "acrobaticsBoostReady": false,
+            "parity": 1,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p3": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": 2,
+            "ghostSlashLevel": 1,
+            "ghostSlashReady": false
+          }
+        },
+        "zones": {
+          "p0": {
+            "cycle": 1,
+            "remaining": [
+              "p0:base:3",
+              "p0:base:4",
+              "p0:base:5"
+            ],
+            "spent": [
+              "p0:base:2",
+              "p0:base:1"
+            ]
+          },
+          "p1": {
+            "cycle": 1,
+            "remaining": [
+              "p1:base:3",
+              "p1:base:4"
+            ],
+            "spent": [
+              "p1:base:2",
+              "p1:base:1"
+            ]
+          },
+          "p2": {
+            "cycle": 1,
+            "remaining": [
+              "p2:base:1",
+              "p2:base:4"
+            ],
+            "spent": [
+              "p2:base:3",
+              "p2:base:2"
+            ]
+          },
+          "p3": {
+            "cycle": 1,
+            "remaining": [
+              "p3:base:1",
+              "p3:base:2",
+              "p3:base:3"
+            ],
+            "spent": [
+              "p3:base:4",
+              "p3:base:5"
+            ]
+          }
+        },
+        "events": [
+          {
+            "type": "GHOST_SLASH_USED",
+            "eventId": null,
+            "playerId": "p3",
+            "actorId": null,
+            "targetPlayerId": null,
+            "cardInstanceId": null,
+            "previousCycleId": null,
+            "nextCycleId": null,
+            "resetReason": null,
+            "rootActionId": null,
+            "recoveryChainId": null,
+            "parentEventId": null,
+            "chainDepth": null,
+            "before": null,
+            "after": null
+          }
+        ],
+        "cardId": null,
+        "recoveredCardId": null,
+        "code": null,
+        "orderedTypes": null,
+        "firstRoot": null,
+        "secondRoot": null,
+        "maxDepth": null,
+        "maxDerived": null,
+        "guardCode": null,
+        "ceiling": null
+      },
+      {
+        "id": "F19_NO_REACTIVATION_RECURSION",
+        "phase": "COMBAT",
+        "resources": {
+          "p0": {
+            "revelation": 0,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p1": {
+            "revelation": null,
+            "fullBurstReady": true,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p2": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": true,
+            "acrobaticsRechargeProgress": 0,
+            "acrobaticsBoostReady": false,
+            "parity": 0,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p3": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": 1,
+            "ghostSlashLevel": 1,
+            "ghostSlashReady": true
+          }
+        },
+        "zones": {
+          "p0": {
+            "cycle": 1,
+            "remaining": [
+              "p0:base:1",
+              "p0:base:3",
+              "p0:base:4",
+              "p0:base:5"
+            ],
+            "spent": [
+              "p0:base:2"
+            ]
+          },
+          "p1": {
+            "cycle": 1,
+            "remaining": [
+              "p1:base:1",
+              "p1:base:3",
+              "p1:base:4"
+            ],
+            "spent": [
+              "p1:base:2"
+            ]
+          },
+          "p2": {
+            "cycle": 1,
+            "remaining": [
+              "p2:base:1",
+              "p2:base:2",
+              "p2:base:4"
+            ],
+            "spent": [
+              "p2:base:3"
+            ]
+          },
+          "p3": {
+            "cycle": 1,
+            "remaining": [
+              "p3:base:1",
+              "p3:base:2",
+              "p3:base:3",
+              "p3:base:5"
+            ],
+            "spent": [
+              "p3:base:4"
+            ]
+          }
+        },
+        "events": [
+          {
+            "type": "GHOST_SLASH_USED",
+            "eventId": null,
+            "playerId": "p3",
+            "actorId": null,
+            "targetPlayerId": null,
+            "cardInstanceId": null,
+            "previousCycleId": null,
+            "nextCycleId": null,
+            "resetReason": null,
+            "rootActionId": null,
+            "recoveryChainId": null,
+            "parentEventId": null,
+            "chainDepth": null,
+            "before": null,
+            "after": null
+          },
+          {
+            "type": "GHOST_SLASH_LEVEL_UP",
+            "eventId": null,
+            "playerId": "p3",
+            "actorId": null,
+            "targetPlayerId": null,
+            "cardInstanceId": null,
+            "previousCycleId": null,
+            "nextCycleId": null,
+            "resetReason": null,
+            "rootActionId": "action:stress-combat:smoke:T06:0000:F19:1:p3:p3:base:4",
+            "recoveryChainId": "reactivation:action:stress-combat:smoke:T06:0000:F19:1:p3:p3:base:4",
+            "parentEventId": "devour:action:stress-combat:smoke:T06:0000:F19:1:p3:p3:base:4:VALID_ATTACK:7->9",
+            "chainDepth": 2,
+            "before": 0,
+            "after": 1
+          },
+          {
+            "type": "GHOST_SLASH_REACTIVATED",
+            "eventId": null,
+            "playerId": "p3",
+            "actorId": null,
+            "targetPlayerId": null,
+            "cardInstanceId": null,
+            "previousCycleId": null,
+            "nextCycleId": null,
+            "resetReason": null,
+            "rootActionId": "action:stress-combat:smoke:T06:0000:F19:1:p3:p3:base:4",
+            "recoveryChainId": "reactivation:action:stress-combat:smoke:T06:0000:F19:1:p3:p3:base:4",
+            "parentEventId": "devour:action:stress-combat:smoke:T06:0000:F19:1:p3:p3:base:4:VALID_ATTACK:7->9",
+            "chainDepth": 2,
+            "before": null,
+            "after": null
+          }
+        ],
+        "cardId": null,
+        "recoveredCardId": null,
+        "code": null,
+        "orderedTypes": null,
+        "firstRoot": null,
+        "secondRoot": null,
+        "maxDepth": null,
+        "maxDerived": null,
+        "guardCode": null,
+        "ceiling": null
+      },
+      {
+        "id": "F20_FULL_MIXED_RECOVERY_CHAIN",
+        "phase": "COMBAT",
+        "resources": {
+          "p0": {
+            "revelation": 1,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p1": {
+            "revelation": null,
+            "fullBurstReady": false,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p2": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": false,
+            "acrobaticsRechargeProgress": 1,
+            "acrobaticsBoostReady": false,
+            "parity": 1,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p3": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": 0,
+            "ghostSlashLevel": 1,
+            "ghostSlashReady": true
+          }
+        },
+        "zones": {
+          "p0": {
+            "cycle": 1,
+            "remaining": [
+              "p0:base:2",
+              "p0:base:3",
+              "p0:base:4",
+              "p0:base:5"
+            ],
+            "spent": [
+              "p0:base:1"
+            ]
+          },
+          "p1": {
+            "cycle": 2,
+            "remaining": [
+              "p1:base:1",
+              "p1:base:2",
+              "p1:base:3",
+              "p1:base:4"
+            ],
+            "spent": []
+          },
+          "p2": {
+            "cycle": 2,
+            "remaining": [
+              "p2:base:1",
+              "p2:base:2",
+              "p2:base:3"
+            ],
+            "spent": [
+              "p2:base:4"
+            ]
+          },
+          "p3": {
+            "cycle": 1,
+            "remaining": [
+              "p3:base:1",
+              "p3:base:2",
+              "p3:base:4",
+              "p3:base:5"
+            ],
+            "spent": [
+              "p3:base:3"
+            ]
+          }
+        },
+        "events": [
+          {
+            "type": "CARD_RECOVERED",
+            "eventId": null,
+            "playerId": null,
+            "actorId": "p0",
+            "targetPlayerId": "p1",
+            "cardInstanceId": "p1:base:1",
+            "previousCycleId": null,
+            "nextCycleId": null,
+            "resetReason": null,
+            "rootActionId": "fixture-recovery:stress-combat:smoke:T06:0000:F20:1:p1",
+            "recoveryChainId": "fixture-recovery:stress-combat:smoke:T06:0000:F20:1:p1:recovery",
+            "parentEventId": "fixture-recovery:stress-combat:smoke:T06:0000:F20:1:p1:ON_RECOVER_CARD:1",
+            "chainDepth": 1,
+            "before": null,
+            "after": null
+          },
+          {
+            "type": "ACROBATICS_USED",
+            "eventId": "acrobatics:stress-combat:smoke:T06:0000:F20:1:1",
+            "playerId": "p2",
+            "actorId": null,
+            "targetPlayerId": null,
+            "cardInstanceId": null,
+            "previousCycleId": null,
+            "nextCycleId": null,
+            "resetReason": null,
+            "rootActionId": "skill:stress-combat:smoke:T06:0000:F20:1:p2:acrobatics",
+            "recoveryChainId": "recovery:skill:stress-combat:smoke:T06:0000:F20:1:p2:acrobatics",
+            "parentEventId": null,
+            "chainDepth": 0,
+            "before": null,
+            "after": null
+          },
+          {
+            "type": "CYCLE_RESET",
+            "eventId": "cycle-reset:stress-combat:smoke:T06:0000:F20:1:1",
+            "playerId": "p2",
+            "actorId": null,
+            "targetPlayerId": null,
+            "cardInstanceId": null,
+            "previousCycleId": 1,
+            "nextCycleId": 2,
+            "resetReason": "ACROBATICS",
+            "rootActionId": "skill:stress-combat:smoke:T06:0000:F20:1:p2:acrobatics",
+            "recoveryChainId": "recovery:skill:stress-combat:smoke:T06:0000:F20:1:p2:acrobatics",
+            "parentEventId": null,
+            "chainDepth": 1,
+            "before": null,
+            "after": null
+          },
+          {
+            "type": "GHOST_SLASH_LEVEL_UP",
+            "eventId": null,
+            "playerId": "p3",
+            "actorId": null,
+            "targetPlayerId": null,
+            "cardInstanceId": null,
+            "previousCycleId": null,
+            "nextCycleId": null,
+            "resetReason": null,
+            "rootActionId": "action:stress-combat:smoke:T06:0000:F20:1:p3:p3:base:3",
+            "recoveryChainId": "reactivation:action:stress-combat:smoke:T06:0000:F20:1:p3:p3:base:3",
+            "parentEventId": "devour:action:stress-combat:smoke:T06:0000:F20:1:p3:p3:base:3:VALID_ATTACK:7->8",
+            "chainDepth": 2,
+            "before": 0,
+            "after": 1
+          },
+          {
+            "type": "GHOST_SLASH_REACTIVATED",
+            "eventId": null,
+            "playerId": "p3",
+            "actorId": null,
+            "targetPlayerId": null,
+            "cardInstanceId": null,
+            "previousCycleId": null,
+            "nextCycleId": null,
+            "resetReason": null,
+            "rootActionId": "action:stress-combat:smoke:T06:0000:F20:1:p3:p3:base:3",
+            "recoveryChainId": "reactivation:action:stress-combat:smoke:T06:0000:F20:1:p3:p3:base:3",
+            "parentEventId": "devour:action:stress-combat:smoke:T06:0000:F20:1:p3:p3:base:3:VALID_ATTACK:7->8",
+            "chainDepth": 2,
+            "before": null,
+            "after": null
+          },
+          {
+            "type": "CYCLE_RESET",
+            "eventId": "cycle-reset:stress-combat:smoke:T06:0000:F20:1:2",
+            "playerId": "p1",
+            "actorId": null,
+            "targetPlayerId": null,
+            "cardInstanceId": null,
+            "previousCycleId": 1,
+            "nextCycleId": 2,
+            "resetReason": "FULL_BURST",
+            "rootActionId": "action:stress-combat:smoke:T06:0000:F20:1:p1:p1:base:2",
+            "recoveryChainId": "recovery:action:stress-combat:smoke:T06:0000:F20:1:p1:p1:base:2",
+            "parentEventId": null,
+            "chainDepth": 1,
+            "before": null,
+            "after": null
+          }
+        ],
+        "cardId": null,
+        "recoveredCardId": null,
+        "code": null,
+        "orderedTypes": [
+          "CARD_RECOVERED",
+          "ACROBATICS_USED",
+          "CYCLE_RESET",
+          "GHOST_SLASH_LEVEL_UP",
+          "GHOST_SLASH_REACTIVATED",
+          "CYCLE_RESET"
+        ],
+        "firstRoot": null,
+        "secondRoot": null,
+        "maxDepth": null,
+        "maxDerived": null,
+        "guardCode": null,
+        "ceiling": null
+      },
+      {
+        "id": "F21_RECOVERY_RESET_RECOVERY",
+        "phase": "COMBAT",
+        "resources": {
+          "p0": {
+            "revelation": 1,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p1": {
+            "revelation": null,
+            "fullBurstReady": true,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p2": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": false,
+            "acrobaticsRechargeProgress": 1,
+            "acrobaticsBoostReady": false,
+            "parity": 1,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p3": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": 1,
+            "ghostSlashLevel": 0,
+            "ghostSlashReady": true
+          }
+        },
+        "zones": {
+          "p0": {
+            "cycle": 1,
+            "remaining": [
+              "p0:base:1",
+              "p0:base:3",
+              "p0:base:4",
+              "p0:base:5"
+            ],
+            "spent": [
+              "p0:base:2"
+            ]
+          },
+          "p1": {
+            "cycle": 1,
+            "remaining": [
+              "p1:base:1",
+              "p1:base:2",
+              "p1:base:3"
+            ],
+            "spent": [
+              "p1:base:4"
+            ]
+          },
+          "p2": {
+            "cycle": 2,
+            "remaining": [
+              "p2:base:1",
+              "p2:base:3",
+              "p2:base:4",
+              "p2:base:2"
+            ],
+            "spent": []
+          },
+          "p3": {
+            "cycle": 1,
+            "remaining": [
+              "p3:base:1",
+              "p3:base:2",
+              "p3:base:3",
+              "p3:base:5"
+            ],
+            "spent": [
+              "p3:base:4"
+            ]
+          }
+        },
+        "events": [],
+        "cardId": null,
+        "recoveredCardId": null,
+        "code": null,
+        "orderedTypes": null,
+        "firstRoot": "fixture-recovery:stress-combat:smoke:T06:0000:F21:1:p2",
+        "secondRoot": "fixture-recovery:stress-combat:smoke:T06:0000:F21:2:p2",
+        "maxDepth": null,
+        "maxDerived": null,
+        "guardCode": null,
+        "ceiling": null
+      },
+      {
+        "id": "F24_COMBAT_END_CLEANUP",
+        "phase": "ROOM_RESULT",
+        "resources": {
+          "p0": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p1": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p2": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": null,
+            "ghostSlashLevel": null,
+            "ghostSlashReady": null
+          },
+          "p3": {
+            "revelation": null,
+            "fullBurstReady": null,
+            "acrobaticsReady": null,
+            "acrobaticsRechargeProgress": null,
+            "acrobaticsBoostReady": null,
+            "parity": null,
+            "devour": 4,
+            "ghostSlashLevel": 1,
+            "ghostSlashReady": null
+          }
+        },
+        "zones": {
+          "p0": {
+            "cycle": 1,
+            "remaining": [
+              "p0:base:1",
+              "p0:base:3",
+              "p0:base:4",
+              "p0:base:5"
+            ],
+            "spent": [
+              "p0:base:2"
+            ]
+          },
+          "p1": {
+            "cycle": 1,
+            "remaining": [
+              "p1:base:1",
+              "p1:base:3",
+              "p1:base:4"
+            ],
+            "spent": [
+              "p1:base:2"
+            ]
+          },
+          "p2": {
+            "cycle": 1,
+            "remaining": [
+              "p2:base:1",
+              "p2:base:2",
+              "p2:base:4"
+            ],
+            "spent": [
+              "p2:base:3"
+            ]
+          },
+          "p3": {
+            "cycle": 1,
+            "remaining": [
+              "p3:base:1",
+              "p3:base:2",
+              "p3:base:3",
+              "p3:base:5"
+            ],
+            "spent": [
+              "p3:base:4"
+            ]
+          }
+        },
+        "events": [],
+        "cardId": null,
+        "recoveredCardId": null,
+        "code": null,
+        "orderedTypes": null,
+        "firstRoot": null,
+        "secondRoot": null,
+        "maxDepth": null,
+        "maxDerived": null,
+        "guardCode": null,
+        "ceiling": null
+      },
+      {
+        "id": "F25_DETERMINISTIC_RECOVERED_CARD",
+        "phase": null,
+        "resources": null,
+        "zones": null,
+        "events": [],
+        "cardId": null,
+        "recoveredCardId": "p1:base:2",
+        "code": null,
+        "orderedTypes": null,
+        "firstRoot": null,
+        "secondRoot": null,
+        "maxDepth": null,
+        "maxDerived": null,
+        "guardCode": null,
+        "ceiling": null
+      },
+      {
+        "id": "F26_ACTION_CEILING_TRAP",
+        "phase": null,
+        "resources": null,
+        "zones": null,
+        "events": [],
+        "cardId": null,
+        "recoveredCardId": null,
+        "code": null,
+        "orderedTypes": null,
+        "firstRoot": null,
+        "secondRoot": null,
+        "maxDepth": null,
+        "maxDerived": null,
+        "guardCode": "ACTION_CHAIN_CEILING_EXCEEDED",
+        "ceiling": 24
+      }
+    ]
+  },
+  "fingerprint": "204d17c7d75b5741937509741144153687c807e4fedd7764ea21034980fda027"
+}
