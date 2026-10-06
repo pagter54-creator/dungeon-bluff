@@ -1,3 +1,4 @@
+import {prophecySlot} from '../prophet-vampire-core.js';
 import {collisionParticipants,revelationGain,armPastFragment,capturePastFragment,consumePastFragment,lowestValidThrall,revelationVisible} from '../prophet-vampire-core.js';
 import {choose} from './rng.js';
 const has=(p,n)=>p.augments?.includes('aug-'+n);
@@ -5,7 +6,7 @@ const live=p=>p.status!=='DOWNED'&&p.hp>0;
 export function coreState(run,p){
  const f=run.augmentFramework||={once:{},statuses:[],delayed:[],grants:{},acquired:{},temporary:[],telemetry:[],recoveryCounts:{},sequence:0};f.cardState||={};
  const key=p.playerId+':pvCore',scope=run.combat?.id||run.roomState?.id||run.currentRoomNodeId;
- if(f.cardState[key]?.scope!==scope)f.cardState[key]={scope,claims:{},revelation:0,zeroState:'ZERO',pendingDamage:0,streak:0,pairStreak:{},receipts:[],blood:0};
+ if(f.cardState[key]?.scope!==scope)f.cardState[key]={scope,claims:{},revelation:0,zeroState:'BASE_ZERO',pendingDamage:0,streak:0,pairStreak:{},receipts:[],blood:0};
  return f.cardState[key];
 }
 const turn=run=>run.combat?.turn??run.roomState?.turn??run.roomState?.attempt??0;
@@ -42,7 +43,7 @@ export function activateFragment(run,p){
 }
 export function prepareFragmentCards(run,cards){
  for(const rc of cards){const p=get(run,rc.playerId);if(p?.characterId!=='prophet')continue;
-  const s=coreState(run,p);rc.isPastFragment=Boolean(s.fragment&&p.cardPool.find(c=>c.id===rc.cardInstanceId)?.baseNumber===0);
+  const s=coreState(run,p);rc.isPastFragment=Boolean(s.fragment&&prophecySlot(p)?.id===rc.cardInstanceId);
   if(rc.isPastFragment){rc.workingNumber=s.fragment.value;rc.finalNumber=s.fragment.value;rc.fragmentFirstBonus=s.fragment.firstBonus||0;}
  }
 }
@@ -50,7 +51,7 @@ export function captureFragments(run,cards,events=[]){
  for(const p of run.players.filter(p=>p.characterId==='prophet'&&live(p))){
   const s=coreState(run,p),priv=current(run,p),fragment=capturePastFragment(s,p.playerId,cards,{turn:turn(run)});
   if(!fragment)continue;
-  const zero=p.cardPool.find(c=>c.baseNumber===0);s.zeroCardId=zero.id;priv.spentCardIds=priv.spentCardIds.filter(id=>id!==zero.id);if(!priv.remainingCardIds.includes(zero.id))priv.remainingCardIds.push(zero.id);
+  const zero=prophecySlot(p);s.zeroCardId=zero.id;priv.spentCardIds=priv.spentCardIds.filter(id=>id!==zero.id);if(!priv.remainingCardIds.includes(zero.id))priv.remainingCardIds.push(zero.id);
   events.push({type:'PROPHET_PAST_FRAGMENT_CREATED',playerId:p.playerId,value:fragment.value});
   if(run.phase==='COMBAT'&&has(p,163)&&fragment.value>=5)prophetGain(run,p,1,'fragment-high:'+fragment.actionId,events);
  }
@@ -212,15 +213,15 @@ export function afterIncomingCoreDamage(run,target,damageEvent,events=[]){
 }
 export function resetProphecyCycle(run,p,priv,beforeReset=()=>{}){
  if(p.characterId!=='prophet')return false;
- const s=coreState(run,p),zero=p.cardPool.find(c=>c.baseNumber===0),independent=has(p,169),normal=p.cardPool.filter(c=>!independent||c.id!==zero.id);
+ const s=coreState(run,p),zero=prophecySlot(p),independent=has(p,169),normal=p.cardPool.filter(c=>!independent||c.id!==zero.id);
  if(normal.some(c=>priv.remainingCardIds.includes(c.id)))return false;
  beforeReset();
  const keep=independent&&s.fragment;
  priv.cycleIndex=(priv.cycleIndex||1)+1;priv.spentCardIds=[];priv.remainingCardIds=p.cardPool.map(c=>c.id);
- if(!keep){delete s.fragment;s.zeroState='ZERO';}
+ if(!keep){delete s.fragment;s.zeroState='BASE_ZERO';}
  return true;
 }
 export function fragmentRandomEligible(run,p,id){
  if(p.characterId!=='prophet'||!has(p,162))return true;
- const s=coreState(run,p);return !(s.fragment&&p.cardPool.find(c=>c.id===id)?.baseNumber===0&&turn(run)<=s.fragment.createdTurn+1);
+ const s=coreState(run,p);return !(s.fragment&&prophecySlot(p)?.id===id&&turn(run)<=s.fragment.createdTurn+1);
 }

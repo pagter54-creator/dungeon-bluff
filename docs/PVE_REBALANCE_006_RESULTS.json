@@ -1,0 +1,419 @@
+{
+  "SourceHEAD": "ee31994a95969e7abce667108d14a393cfff20d8",
+  "MainAtStart": "56f2f9098cec3a91efef3568896628f209d6a9e1",
+  "Branch": "feat/pve-rebalance-006-f3-audit",
+  "RuntimeHash": "CANDIDATE_RUNTIME_HASH:2dc6f9f98032d9dd1a7cbac10f70a37b729cb6f0291ec5c0b8cd42d3a2b30764",
+  "EmpiricalF3Entries": 25,
+  "MigratedOldEntries": 0,
+  "SyntheticFallbackEntries": 0,
+  "EmpiricalResampling": "25 compatible new-rule entries reused across species/cohorts and 250 sequences; observations correlated, not independent samples",
+  "FullRuns": 500,
+  "TargetedRuns": 2600,
+  "F3Sequences": 250,
+  "Exceptions": 0,
+  "TurnCaps": 0,
+  "NetworkAttempts": 0,
+  "MatchedPR37BothPairs": 250,
+  "MatchedPriorClear": 4,
+  "MatchedCurrentClear": 4,
+  "MatchedIdenticalOutcomes": 250,
+  "Full500CONTROLReference": "UNAVAILABLE; previous CONTROL only250, not mislabelled500",
+  "OracleLimit": "Failure-only deterministic sample; cap40 per species per execution; repaired partition separately capped; max128 combinations. Unknown and not-sampled excluded; possible witness is AI_MISPLAY under scoped choices, not global optimal play",
+  "OutlierCutoff": "Tier+cohort median. TOO_HARD: wipe +15pp AND damage10 >=1.5x median; severe +30pp AND >=2x. Long >=1.35x turns. TooEasy clear>=90% AND damage10<=0.75x. Diagnostic only",
+  "PriorityCandidates": [
+    {
+      "MonsterId": "f3_black_choir",
+      "Evidence": {
+        "Tier": "NORMAL",
+        "WipeRate": 0.42,
+        "DamagePer10Turns": 9.395121951219512,
+        "PatternDamagePer10Turns": 7.297560975609756,
+        "BaseDamagePer10Turns": 2.097560975609756,
+        "Classification": "TOO_HARD,PATTERN_PROBLEM"
+      },
+      "SuggestedAxis": "pattern",
+      "Applied": false
+    },
+    {
+      "MonsterId": "f3_masked_queen",
+      "Evidence": {
+        "Tier": "BOSS",
+        "WipeRate": 0.9466666666666667,
+        "DamagePer10Turns": 6.834813499111901,
+        "PatternDamagePer10Turns": 2.092362344582593,
+        "BaseDamagePer10Turns": 4.7424511545293075,
+        "Classification": "BASE_DAMAGE_PROBLEM"
+      },
+      "SuggestedAxis": "cadence",
+      "Applied": false
+    },
+    {
+      "MonsterId": "f3_abyss_king",
+      "Evidence": {
+        "Tier": "BOSS",
+        "WipeRate": 0.6,
+        "DamagePer10Turns": 4.604079184163167,
+        "PatternDamagePer10Turns": 0.16196760647870426,
+        "BaseDamagePer10Turns": 4.4421115776844635,
+        "Classification": "BASE_DAMAGE_PROBLEM"
+      },
+      "SuggestedAxis": "cadence",
+      "Applied": false
+    }
+  ],
+  "ClassObservations": [
+    {
+      "Class": "prophet",
+      "Scope": "FULL_500",
+      "PlayerEncounters": 656,
+      "DPT": 1.3117738651335489,
+      "SurvivalRate": 0.7682926829268293,
+      "EncounterClearRate": 0.7682926829268293,
+      "LowSample": false
+    },
+    {
+      "Class": "prophet",
+      "Scope": "F3_SEQUENCE_250",
+      "PlayerEncounters": 342,
+      "DPT": 2.0753019180677246,
+      "SurvivalRate": 0.8713450292397661,
+      "EncounterClearRate": 0.8713450292397661,
+      "LowSample": false
+    },
+    {
+      "Class": "prophet",
+      "Scope": "TARGETED_2600",
+      "PlayerEncounters": 766,
+      "DPT": 1.7942822104698397,
+      "SurvivalRate": 0.7154046997389034,
+      "EncounterClearRate": 0.7154046997389034,
+      "LowSample": false
+    },
+    {
+      "Class": "vampire",
+      "Scope": "FULL_500",
+      "PlayerEncounters": 602,
+      "DPT": 1.8243005811596162,
+      "SurvivalRate": 0.7458471760797342,
+      "EncounterClearRate": 0.7458471760797342,
+      "LowSample": false
+    },
+    {
+      "Class": "vampire",
+      "Scope": "F3_SEQUENCE_250",
+      "PlayerEncounters": 57,
+      "DPT": 3.3286052009456264,
+      "SurvivalRate": 1,
+      "EncounterClearRate": 1,
+      "LowSample": false
+    },
+    {
+      "Class": "vampire",
+      "Scope": "TARGETED_2600",
+      "PlayerEncounters": 444,
+      "DPT": 2.290045063498566,
+      "SurvivalRate": 0.6846846846846847,
+      "EncounterClearRate": 0.6846846846846847,
+      "LowSample": false
+    }
+  ],
+  "SlotFixtureMetrics": {
+    "scope": "DEDICATED_AUTHORITATIVE_LIFECYCLE_FIXTURES",
+    "cases": 100,
+    "ShopVisits": 100,
+    "ReplacementSelections": 100,
+    "ProphecySlotReplacementAttempts": 0,
+    "MalformedSlotRequests": 200,
+    "FragmentCreated": 100,
+    "FragmentSubmitted": 100,
+    "Aug169FragmentPreservedCycleResets": 100,
+    "ReconnectRestoreChecks": 300,
+    "failures": 0
+  },
+  "Funnel": [
+    {
+      "Scope": "FULL_500",
+      "Gate": "START",
+      "Count": 500,
+      "RateOfStart": 1.0,
+      "ConditionalF3EntryRate": null,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "FULL_500",
+      "Gate": "F1_EARLY_SURVIVE",
+      "Count": 484,
+      "RateOfStart": 0.968,
+      "ConditionalF3EntryRate": null,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "FULL_500",
+      "Gate": "F1_BOSS_REACH",
+      "Count": 192,
+      "RateOfStart": 0.384,
+      "ConditionalF3EntryRate": null,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "FULL_500",
+      "Gate": "F1_CLEAR",
+      "Count": 153,
+      "RateOfStart": 0.306,
+      "ConditionalF3EntryRate": null,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "FULL_500",
+      "Gate": "F2_BOSS_REACH",
+      "Count": 51,
+      "RateOfStart": 0.102,
+      "ConditionalF3EntryRate": null,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "FULL_500",
+      "Gate": "F2_CLEAR",
+      "Count": 25,
+      "RateOfStart": 0.05,
+      "ConditionalF3EntryRate": null,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "FULL_500",
+      "Gate": "F3_ENTER",
+      "Count": 25,
+      "RateOfStart": 0.05,
+      "ConditionalF3EntryRate": 1.0,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "FULL_500",
+      "Gate": "F3_FIRST_COMBAT_CLEAR",
+      "Count": 23,
+      "RateOfStart": 0.046,
+      "ConditionalF3EntryRate": 0.92,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "FULL_500",
+      "Gate": "F3_ELITE_ENCOUNTERED",
+      "Count": 6,
+      "RateOfStart": 0.012,
+      "ConditionalF3EntryRate": 0.24,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "FULL_500",
+      "Gate": "F3_FIRST3_SURVIVE",
+      "Count": 17,
+      "RateOfStart": 0.034,
+      "ConditionalF3EntryRate": 0.68,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "FULL_500",
+      "Gate": "F3_REST_REACH",
+      "Count": 16,
+      "RateOfStart": 0.032,
+      "ConditionalF3EntryRate": 0.64,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "FULL_500",
+      "Gate": "F3_BOSS_REACH",
+      "Count": 16,
+      "RateOfStart": 0.032,
+      "ConditionalF3EntryRate": 0.64,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "FULL_500",
+      "Gate": "F3_ELITE_CLEAR",
+      "Count": 5,
+      "RateOfStart": 0.01,
+      "ConditionalF3EntryRate": 0.2,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "FULL_500",
+      "Gate": "F3_BOSS_CLEAR",
+      "Count": 8,
+      "RateOfStart": 0.016,
+      "ConditionalF3EntryRate": 0.32,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "FULL_500",
+      "Gate": "RUN_CLEAR",
+      "Count": 8,
+      "RateOfStart": 0.016,
+      "ConditionalF3EntryRate": 0.32,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "F3_ONLY_250",
+      "Gate": "START",
+      "Count": 250,
+      "RateOfStart": 1.0,
+      "ConditionalF3EntryRate": null,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "F3_ONLY_250",
+      "Gate": "F1_CLEAR",
+      "Count": 250,
+      "RateOfStart": 1.0,
+      "ConditionalF3EntryRate": null,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "F3_ONLY_250",
+      "Gate": "F2_CLEAR",
+      "Count": 250,
+      "RateOfStart": 1.0,
+      "ConditionalF3EntryRate": null,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "F3_ONLY_250",
+      "Gate": "F3_ENTER",
+      "Count": 250,
+      "RateOfStart": 1.0,
+      "ConditionalF3EntryRate": 1.0,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "F3_ONLY_250",
+      "Gate": "F3_FIRST_COMBAT_CLEAR",
+      "Count": 231,
+      "RateOfStart": 0.924,
+      "ConditionalF3EntryRate": 0.924,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "F3_ONLY_250",
+      "Gate": "F3_REST_REACH",
+      "Count": 162,
+      "RateOfStart": 0.648,
+      "ConditionalF3EntryRate": 0.648,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "F3_ONLY_250",
+      "Gate": "F3_BOSS_REACH",
+      "Count": 162,
+      "RateOfStart": 0.648,
+      "ConditionalF3EntryRate": 0.648,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "F3_ONLY_250",
+      "Gate": "F3_FIRST3_SURVIVE",
+      "Count": 182,
+      "RateOfStart": 0.728,
+      "ConditionalF3EntryRate": 0.728,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "F3_ONLY_250",
+      "Gate": "F3_ELITE_ENCOUNTERED",
+      "Count": 118,
+      "RateOfStart": 0.472,
+      "ConditionalF3EntryRate": 0.472,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "F3_ONLY_250",
+      "Gate": "F3_ELITE_CLEAR",
+      "Count": 110,
+      "RateOfStart": 0.44,
+      "ConditionalF3EntryRate": 0.44,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "F3_ONLY_250",
+      "Gate": "F3_BOSS_CLEAR",
+      "Count": 109,
+      "RateOfStart": 0.436,
+      "ConditionalF3EntryRate": 0.436,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    },
+    {
+      "Scope": "F3_ONLY_250",
+      "Gate": "RUN_CLEAR",
+      "Count": 109,
+      "RateOfStart": 0.436,
+      "ConditionalF3EntryRate": 0.436,
+      "RouteEvidence": "REST: deterministic replay of recorded real map and unchanged route-selection rule; combat gates: observed encounters"
+    }
+  ],
+  "Flags": {
+    "PROPHET_SLOT1_FIXED": true,
+    "PROPHET_SLOT1_BASE_ZERO_ONLY": true,
+    "PROPHET_SLOT1_SHOP_REPLACEABLE": false,
+    "PROPHET_FRAGMENT_USES_SLOT1": true,
+    "PROPHET_AUG169_SLOT1_INDEPENDENT": true,
+    "PVP_PVE_PROPHECY_SLOT_UNIFIED": true,
+    "MOON_BOTH_PRESERVED": true,
+    "F3_MONSTER_VALUES_CHANGED": false,
+    "F3_TARGETED_RUNS_PER_NORMAL_ELITE": 200,
+    "F3_TARGETED_RUNS_PER_BOSS": 300,
+    "F3_SEQUENCE_RUNS": 250,
+    "FULL_EXPEDITION_RUNS": 500,
+    "F3_AUTO_TUNING": false,
+    "ALL_390_EXECUTABLE": true,
+    "ALL_390_CANDIDATE_REACHABLE": true,
+    "FULL_TEST_SUITE_PASS": true,
+    "SUPABASE_CALLS": 0,
+    "PRODUCTION_MUTATION": 0,
+    "READY_FOR_PRODUCTION": false
+  },
+  "Provenance": {
+    "RuntimeHashes": {
+      "target-bounded/results-0.json": "CANDIDATE_RUNTIME_HASH:2dc6f9f98032d9dd1a7cbac10f70a37b729cb6f0291ec5c0b8cd42d3a2b30764",
+      "target-exp-restored/results-0.json": "CANDIDATE_RUNTIME_HASH:2dc6f9f98032d9dd1a7cbac10f70a37b729cb6f0291ec5c0b8cd42d3a2b30764",
+      "target-id-repair/results-0.json": "CANDIDATE_RUNTIME_HASH:2dc6f9f98032d9dd1a7cbac10f70a37b729cb6f0291ec5c0b8cd42d3a2b30764",
+      "full-final/results-0.json": "CANDIDATE_RUNTIME_HASH:2dc6f9f98032d9dd1a7cbac10f70a37b729cb6f0291ec5c0b8cd42d3a2b30764",
+      "f3-only/results-0.json": "CANDIDATE_RUNTIME_HASH:2dc6f9f98032d9dd1a7cbac10f70a37b729cb6f0291ec5c0b8cd42d3a2b30764"
+    },
+    "SHA256": {
+      "target-bounded/results-0.json": "d56b801c5efca56d01bd41b7e371c2e4b14be09eb9183d2a025e93f116297b04",
+      "target-exp-restored/results-0.json": "4d9b470cf118dad3d50024009d928f47ad9c5795d7a4460f8883cf0501f1daf0",
+      "target-id-repair/results-0.json": "fabfc590f441ac609e88a17970e1ffd5b0e19803fa5e6a6b75e1d465cf759926",
+      "full-final/results-0.json": "743b9143f5953da07efc241380adee1fd2f091d4e9e46d39370989f95b04e522",
+      "f3-only/results-0.json": "1ac9829ce02fe865b1765d37fa31151bd253103df3abd99c40e40fa59c859ef1"
+    },
+    "TargetedReuse": {
+      "originalControlledValid": 1300,
+      "originalExpeditionDiscarded": 1300,
+      "restoredExpeditionValid": 1292,
+      "opaqueIdRepairedSeeds": [
+        "f3-target:f3_null_choir_priest:E:11",
+        "f3-target:f3_null_choir_priest:E:18",
+        "f3-target:f3_null_choir_priest:E:36",
+        "f3-target:f3_null_choir_priest:E:43",
+        "f3-target:f3_null_choir_priest:E:61",
+        "f3-target:f3_null_choir_priest:E:68",
+        "f3-target:f3_null_choir_priest:E:86",
+        "f3-target:f3_null_choir_priest:E:93"
+      ],
+      "opaqueIdRepairedCount": 8
+    },
+    "FullRunsReused": 500,
+    "SequencesReused": 250,
+    "Compatibility": "Final harness changes affect only direct targeted EXPEDITION construction. Full/sequence execute actual room API and controlled uses opaque hashed combat ID already. ID replacement changes scope identity only; seed/rng/build/AI/gameplay unchanged. Room/Gambler restoration is mandatory for all expedition targets; original E results excluded. No claim that old files were physically produced by final script. Reused paths are equivalent and runtime-hash matched.",
+    "OldDiagnosticErrorsNotFinalFailures": {
+      "original": 12,
+      "restored": 8
+    },
+    "FinalExceptions": 0
+  },
+  "Tests": {
+    "Baseline": 2910,
+    "AfterSlot": 2916,
+    "Final": 2919,
+    "Failed": 0,
+    "SyntaxParsed": 276
+  }
+}

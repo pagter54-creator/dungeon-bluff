@@ -1,3 +1,4 @@
+import {isProphecySlot} from '../prophet-vampire-core.js';
 import {prepareFragmentCards,captureFragments,beforeCollision} from './prophet-vampire-rework.js';
 import {adventurerShopPrice} from './adventurer-runtime.js';
 import {choose,drawIndex} from './rng.js';
@@ -120,6 +121,8 @@ export function cancelShopCardReservation(run,playerId,productId){
 }
 export function confirmShopCard(run,playerId,productId,replaceCardId,nowMs=Date.now()){
   if(run.phase!=='SHOP'||run.roomState?.type!=='SHOP')throw new Error('현재 상점이 아닙니다.');
+  const owner=playerFor(run,playerId);
+  if(owner&&isProphecySlot(owner,replaceCardId)){const e=new Error('예언 전용 슬롯은 교체할 수 없습니다.');e.code='PROPHET_PROPHECY_SLOT_LOCKED';throw e;}
   expireShopReservations(run,nowMs);
   const p=playerFor(run,playerId),item=shopCard(run,productId);if(!p||!item||item.sold)throw new Error('구매할 수 없는 카드 상품입니다.');
   if(p.characterId==='gambler')throw new Error('도박사는 카드 상품을 구매할 수 없습니다.');

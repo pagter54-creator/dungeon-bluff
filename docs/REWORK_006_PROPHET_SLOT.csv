@@ -1,0 +1,18 @@
+Metric,Value,Scope
+scope,DEDICATED_AUTHORITATIVE_LIFECYCLE_FIXTURES,DEDICATED_LIFECYCLE_FIXTURES
+cases,100,DEDICATED_LIFECYCLE_FIXTURES
+ShopVisits,100,DEDICATED_LIFECYCLE_FIXTURES
+ReplacementSelections,100,DEDICATED_LIFECYCLE_FIXTURES
+ProphecySlotReplacementAttempts,0,DEDICATED_LIFECYCLE_FIXTURES
+MalformedSlotRequests,200,DEDICATED_LIFECYCLE_FIXTURES
+FragmentCreated,100,DEDICATED_LIFECYCLE_FIXTURES
+FragmentSubmitted,100,DEDICATED_LIFECYCLE_FIXTURES
+Aug169FragmentPreservedCycleResets,100,DEDICATED_LIFECYCLE_FIXTURES
+ReconnectRestoreChecks,300,DEDICATED_LIFECYCLE_FIXTURES
+failures,0,DEDICATED_LIFECYCLE_FIXTURES
+ClassObservation,"{""Class"": ""prophet"", ""Scope"": ""FULL_500"", ""PlayerEncounters"": 656, ""DPT"": 1.3117738651335489, ""SurvivalRate"": 0.7682926829268293, ""EncounterClearRate"": 0.7682926829268293, ""LowSample"": false}",FULL_500
+ClassObservation,"{""Class"": ""prophet"", ""Scope"": ""F3_SEQUENCE_250"", ""PlayerEncounters"": 342, ""DPT"": 2.0753019180677246, ""SurvivalRate"": 0.8713450292397661, ""EncounterClearRate"": 0.8713450292397661, ""LowSample"": false}",F3_SEQUENCE_250
+ClassObservation,"{""Class"": ""prophet"", ""Scope"": ""TARGETED_2600"", ""PlayerEncounters"": 766, ""DPT"": 1.7942822104698397, ""SurvivalRate"": 0.7154046997389034, ""EncounterClearRate"": 0.7154046997389034, ""LowSample"": false}",TARGETED_2600
+ClassObservation,"{""Class"": ""vampire"", ""Scope"": ""FULL_500"", ""PlayerEncounters"": 602, ""DPT"": 1.8243005811596162, ""SurvivalRate"": 0.7458471760797342, ""EncounterClearRate"": 0.7458471760797342, ""LowSample"": false}",FULL_500
+ClassObservation,"{""Class"": ""vampire"", ""Scope"": ""F3_SEQUENCE_250"", ""PlayerEncounters"": 57, ""DPT"": 3.3286052009456264, ""SurvivalRate"": 1, ""EncounterClearRate"": 1, ""LowSample"": false}",F3_SEQUENCE_250
+ClassObservation,"{""Class"": ""vampire"", ""Scope"": ""TARGETED_2600"", ""PlayerEncounters"": 444, ""DPT"": 2.290045063498566, ""SurvivalRate"": 0.6846846846846847, ""EncounterClearRate"": 0.6846846846846847, ""LowSample"": false}",TARGETED_2600

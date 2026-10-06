@@ -66,7 +66,9 @@ export function startCycle(player, character, rng = Math.random, resetBySkill = 
   }
   if (values.length !== (character.id === 'gunner' ? 3 : character.id === 'twins' ? 4 : 5) || values.some(v => !Number.isInteger(v) || v < (player.skillId==='revelation'?0:1))) throw new Error('캐릭터 카드 정의를 확인해 주세요.');
   player.cycleIndex = (player.cycleIndex || 0) + 1;
-  player.cycleCards = values.map((value, slot) => ({ id: `${player.memberId}-cycle-${player.cycleIndex}-card-${slot}`, slot, value, used: false }));
+  const previousProphecy=player.skillId==='revelation'?player.cycleCards?.find(c=>c.slot===0):null;
+  player.cycleCards = values.map((value, slot) => ({ id: slot===0&&previousProphecy?previousProphecy.id:`${player.memberId}-cycle-${player.cycleIndex}-card-${slot}`, slot, value, used: false,...(player.skillId==='revelation'&&slot===0?{slotRole:'PROPHECY_SLOT'}:{}) }));
+  if(player.skillId==='revelation'&&player.characterRuntimeState.prophetCore){delete player.characterRuntimeState.prophetCore.fragment;player.characterRuntimeState.prophetCore.zeroState='BASE_ZERO';}
   player.activeSkillState = { available: player.skillType === 'active' || (player.skillId === 'revelation' && (player.characterRuntimeState.revelationStacks || 0) >= 6 && !player.characterRuntimeState.prophetCore?.fragment && !player.characterRuntimeState.prophetCore?.fragmentPending) };
   if (player.skillId === 'amplify') player.activeSkillState.available = (player.characterRuntimeState.mana||0)>=2;
   if (player.skillId === 'toughness') {player.characterRuntimeState.toughnessCharges=Math.min(2,(player.characterRuntimeState.toughnessCharges||0)+1);player.activeSkillState.available=true;}
@@ -114,7 +116,7 @@ export function ensureCharacterState(player, character) {
   if(player.skillId==='revelation'){
     const r=player.characterRuntimeState;
     if(r.coreRevision!==CORE_REVISION){
-      r.coreRevision=CORE_REVISION;r.revelationStacks=0;r.prophetCore={revelation:0,zeroState:'ZERO'};
+      r.coreRevision=CORE_REVISION;r.revelationStacks=0;r.prophetCore={revelation:0,zeroState:'BASE_ZERO'};
       for(const key of ['revelationUsedTurn','revelationResolvedTurn','restoredCardId','revealTargets','revealExpiresTurn'])delete r[key];
       player.character=structuredClone(CHARACTER_CATALOG.seer);
       if(player.cycleCards){player.cycleCards=player.cycleCards.map((c,i)=>({...c,value:PROPHET_CARD_POOL[i]}));syncCardViews(player);}

@@ -1,0 +1,49 @@
+Metric,Value
+SourceHEAD,ee31994a95969e7abce667108d14a393cfff20d8
+MainAtStart,56f2f9098cec3a91efef3568896628f209d6a9e1
+Branch,feat/pve-rebalance-006-f3-audit
+RuntimeHash,CANDIDATE_RUNTIME_HASH:2dc6f9f98032d9dd1a7cbac10f70a37b729cb6f0291ec5c0b8cd42d3a2b30764
+EmpiricalF3Entries,25
+MigratedOldEntries,0
+SyntheticFallbackEntries,0
+EmpiricalResampling,"25 compatible new-rule entries reused across species/cohorts and 250 sequences; observations correlated, not independent samples"
+FullRuns,500
+TargetedRuns,2600
+F3Sequences,250
+Exceptions,0
+TurnCaps,0
+NetworkAttempts,0
+MatchedPR37BothPairs,250
+MatchedPriorClear,4
+MatchedCurrentClear,4
+MatchedIdenticalOutcomes,250
+Full500CONTROLReference,"UNAVAILABLE; previous CONTROL only250, not mislabelled500"
+OracleLimit,"Failure-only deterministic sample; cap40 per species per execution; repaired partition separately capped; max128 combinations. Unknown and not-sampled excluded; possible witness is AI_MISPLAY under scoped choices, not global optimal play"
+OutlierCutoff,Tier+cohort median. TOO_HARD: wipe +15pp AND damage10 >=1.5x median; severe +30pp AND >=2x. Long >=1.35x turns. TooEasy clear>=90% AND damage10<=0.75x. Diagnostic only
+PriorityCandidates,"[{""MonsterId"": ""f3_black_choir"", ""Evidence"": {""Tier"": ""NORMAL"", ""WipeRate"": 0.42, ""DamagePer10Turns"": 9.395121951219512, ""PatternDamagePer10Turns"": 7.297560975609756, ""BaseDamagePer10Turns"": 2.097560975609756, ""Classification"": ""TOO_HARD,PATTERN_PROBLEM""}, ""SuggestedAxis"": ""pattern"", ""Applied"": false}, {""MonsterId"": ""f3_masked_queen"", ""Evidence"": {""Tier"": ""BOSS"", ""WipeRate"": 0.9466666666666667, ""DamagePer10Turns"": 6.834813499111901, ""PatternDamagePer10Turns"": 2.092362344582593, ""BaseDamagePer10Turns"": 4.7424511545293075, ""Classification"": ""BASE_DAMAGE_PROBLEM""}, ""SuggestedAxis"": ""cadence"", ""Applied"": false}, {""MonsterId"": ""f3_abyss_king"", ""Evidence"": {""Tier"": ""BOSS"", ""WipeRate"": 0.6, ""DamagePer10Turns"": 4.604079184163167, ""PatternDamagePer10Turns"": 0.16196760647870426, ""BaseDamagePer10Turns"": 4.4421115776844635, ""Classification"": ""BASE_DAMAGE_PROBLEM""}, ""SuggestedAxis"": ""cadence"", ""Applied"": false}]"
+Tests,"{""Baseline"": 2910, ""AfterSlot"": 2916, ""Final"": 2919, ""Failed"": 0, ""SyntaxParsed"": 276}"
+PROPHET_SLOT1_FIXED,True
+PROPHET_SLOT1_BASE_ZERO_ONLY,True
+PROPHET_SLOT1_SHOP_REPLACEABLE,False
+PROPHET_FRAGMENT_USES_SLOT1,True
+PROPHET_AUG169_SLOT1_INDEPENDENT,True
+PVP_PVE_PROPHECY_SLOT_UNIFIED,True
+MOON_BOTH_PRESERVED,True
+F3_MONSTER_VALUES_CHANGED,False
+F3_TARGETED_RUNS_PER_NORMAL_ELITE,200
+F3_TARGETED_RUNS_PER_BOSS,300
+F3_SEQUENCE_RUNS,250
+FULL_EXPEDITION_RUNS,500
+F3_AUTO_TUNING,False
+ALL_390_EXECUTABLE,True
+ALL_390_CANDIDATE_REACHABLE,True
+FULL_TEST_SUITE_PASS,True
+SUPABASE_CALLS,0
+PRODUCTION_MUTATION,0
+READY_FOR_PRODUCTION,False
+우선 점검 · f3_black_choir,pattern / wipe 42.0% / damage10 9.40 / 실제 조정 없음
+우선 점검 · f3_masked_queen,cadence / wipe 94.7% / damage10 6.83 / 실제 조정 없음
+우선 점검 · f3_abyss_king,cadence / wipe 60.0% / damage10 4.60 / 실제 조정 없음
+재사용/부분 재실행,표적 2592회 재사용 + opaque ID 오류 8회 재실행. 원래 복원 누락 E 1300회는 전부 제외.
+출처 판정,모든 runtime hash 동일. full/sequence/controlled는 hotfix 비적용 경로로 동등. 이전 파일을 최종 스크립트 생성물이라고 소급 표기하지 않음.
+표본 한계,F3 진입 25개 상태 재표집; 독립 표본 아님. 전체 탐험 실제 몬스터 노출 n<30은 LOW_SAMPLE.

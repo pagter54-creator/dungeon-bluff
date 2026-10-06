@@ -75,7 +75,7 @@ export function pveGameplayPlayers(bundle,run,{scope='combat'}={}){
       cycleIndex:cycle.cycleIndex||1,
       cycleCards:(cycle.cards||[]).map((card,index)=>({
         id:card.id||physical[index]?.id||`pve-public:${p.playerId}:${cycle.cycleIndex||1}:${index}`,
-        slot:index,value:card.displayNumber??card.baseNumber,used:Boolean(card.used),fragment:p.characterId==='prophet'&&card.baseNumber===0&&(card.displayNumber??0)!==0
+        slot:index,value:card.displayNumber??card.baseNumber,used:Boolean(card.used)||(run.phase==='SHOP'&&p.characterId==='prophet'&&(card.id||physical[index]?.id)===`${p.playerId}:base:1`),prophecySlot:p.characterId==='prophet'&&(card.id||physical[index]?.id)===`${p.playerId}:base:1`,fragment:p.characterId==='prophet'&&card.baseNumber===0&&(card.displayNumber??0)!==0
       })),
       skillId:rewardSkillSupported?rawSkillId:'',
       skillType:rewardSkillSupported?(character?.definition?.skill?.type||'passive'):'passive',

@@ -29,7 +29,7 @@ export function capturePastFragment(state,ownerId,cards,{turn,numberOf=c=>c.fina
  const others=cards.filter(c=>idOf(c)!==ownerId);
  if(!others.length)throw new Error('PAST_FRAGMENT_REQUIRES_OTHER_CARD');
  state.fragment={value:Math.max(...others.map(numberOf)),createdTurn:turn,actionId:state.fragmentPending.actionId};
- delete state.fragmentPending;state.zeroState='FRAGMENT';
+ delete state.fragmentPending;state.zeroState='PAST_FRAGMENT';
  return state.fragment;
 }
 export function consumePastFragment(state){
@@ -49,3 +49,11 @@ export function lowestValidThrall(ownerId,cards,{idOf=c=>c.playerId??c.memberId,
 export function revelationVisible(state,{threshold=3,turn}={}){
  return (state.revelation||0)>=threshold||(turn!=null&&state.visibilityHeldTurn===turn);
 }
+
+// Physical identity, never a search by current/display number. A purchased zero
+// remains a normal slot. Legacy BASE cards already use this canonical identity.
+export function prophecySlot(player){
+ const cards=player.cardPool||player.cycleCards||[];
+ return cards.find(c=>c.slotRole==='PROPHECY_SLOT')||cards.find(c=>c.id===`${player.playerId}:base:1`)||(!player.cardPool?cards.find(c=>c.slot===0):null);
+}
+export function isProphecySlot(player,cardId){return (player.characterId==='prophet'||player.skillId==='revelation')&&prophecySlot(player)?.id===cardId;}

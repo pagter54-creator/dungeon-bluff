@@ -1,3 +1,4 @@
+import {isProphecySlot} from '../prophet-vampire-core.js';
 import {coreState} from './prophet-vampire-rework.js';
 import {revelationVisible} from '../prophet-vampire-core.js';
 import {projectAugmentFramework} from './augment-framework.js';
@@ -7,7 +8,7 @@ export function projectRun(run,viewerPlayerId){
   const core=run.augmentFramework?.cardState?.[viewerPlayerId+':pvCore'];
   if(owner?.characterId==='prophet'){
     const threshold=owner.augments?.includes('aug-158')?2:3;
-    out.privateProphetState={fragment:core?.fragment?structuredClone(core.fragment):null,fragmentPending:Boolean(core?.fragmentPending),zeroState:core?.zeroState||'ZERO',cost:core?.discount?5:6,threshold};
+    out.privateProphetState={fragment:core?.fragment?structuredClone(core.fragment):null,fragmentPending:Boolean(core?.fragmentPending),zeroState:core?.zeroState||'BASE_ZERO',cost:core?.discount?5:6,threshold};
     const visible=owner.status!=='DOWNED'&&revelationVisible({revelation:owner.publicResources.revelation,visibilityHeldTurn:core?.visibilityHeldTurn},{threshold,turn:state?.turn});
     out.privateRevelation={active:visible,revealedCards:visible?Object.entries(state?.turnSubmissions||{}).filter(([id])=>id!==viewerPlayerId&&run.players.some(p=>p.playerId===id&&p.status!=='DOWNED')).map(([id,sub])=>({memberId:id,value:run.players.find(p=>p.playerId===id).cardPool.find(c=>c.id===sub.cardInstanceId)?.baseNumber})):[]};
   }
@@ -79,7 +80,7 @@ export function projectRun(run,viewerPlayerId){
       return [player.playerId,{cycleIndex:state.cycleIndex||1,cards:(state.remainingCardIds||[]).map(()=>({baseNumber:null,used:false}))}];
     }
     const remaining=new Set(state.remainingCardIds||[]);
-    return [player.playerId,{cycleIndex:state.cycleIndex||1,cards:(player.cardPool||[]).map(card=>({baseNumber:card.baseNumber,...(player.characterId==='prophet'&&card.baseNumber===0&&run.augmentFramework?.cardState?.[player.playerId+':pvCore']?.fragment?{displayNumber:run.augmentFramework.cardState[player.playerId+':pvCore'].fragment.value}:{}),used:!remaining.has(card.id)}))}];
+    return [player.playerId,{cycleIndex:state.cycleIndex||1,cards:(player.cardPool||[]).map(card=>({baseNumber:card.baseNumber,...(isProphecySlot(player,card.id)&&run.augmentFramework?.cardState?.[player.playerId+':pvCore']?.fragment?{displayNumber:run.augmentFramework.cardState[player.playerId+':pvCore'].fragment.value}:{}),used:!remaining.has(card.id)}))}];
   }));
   out.publicCardCycles=publicCycles(run.cardCycles);
   if(out.combat)out.combat.publicCardCycles=publicCycles(run.combat?.privateByPlayer);

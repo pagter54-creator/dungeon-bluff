@@ -5,7 +5,7 @@ export const PVE_STATUS_LABELS=Object.freeze({ACTIVE:'정상',STUNNED_NEXT_TURN:
 export const RUN_PHASES=['CREATED','MAP_VOTE','ROOM_ENTER','COMBAT','EVENT','REST','SHOP','REWARD_ROOM','AUGMENT_CHOICE','ROOM_RESULT','FLOOR_CLEAR','FLOOR_TRANSITION','RUN_CLEAR','RUN_FAILED','ABANDONED'];
 export const COMBAT_PHASES=['TURN_START','INTENT_PUBLISH','SELECTION_OPEN','SELECTION_LOCKED','PRE_COLLISION_SELF_MODIFY','PRE_COLLISION_SWAP','PRE_COLLISION_STEAL','FINAL_NUMBER_REVEAL','COLLISION_RESOLVE','POST_COLLISION_EFFECTS','VALIDITY_DERIVE','DAMAGE_BUILD','DAMAGE_BATCH_APPLY','POST_PLAYER_ATTACK','KILL_CHECK','MONSTER_ACTION','DOWN_RESOLVE','TURN_END','COMBAT_END'];
 export function baseCards(playerId,characterId='adventurer'){
-  return pveCharacterDef(characterId).deck.map((baseNumber,i)=>({id:`${playerId}:base:${i+1}`,baseNumber,source:'BASE'}));
+  return pveCharacterDef(characterId).deck.map((baseNumber,i)=>({id:`${playerId}:base:${i+1}`,baseNumber,source:'BASE',...(characterId==='prophet'&&i===0?{slotRole:'PROPHECY_SLOT'}:{})}));
 }
 export function newPlayerRunState(member){
   const characterId=member.character_id||'adventurer';
