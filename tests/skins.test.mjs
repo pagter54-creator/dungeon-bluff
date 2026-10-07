@@ -7,6 +7,21 @@ import { createSkinDrawClient } from '../src/skin-draw.js';
 import { partyPanels } from '../src/character-ui.js';
 import { entryAssetPlan,pveEntryAssetPlan } from '../src/battle-loading.js';
 
+test('Halloween skins load standing and both poses in competitive and PvE, including both twins',async()=>{
+ for(const [id,character,name] of [['prophet4','seer','영매'],['demonsword2','demonsword','잊혀진 검귀'],['vampire2','vampire','할로윈 침실'],['twins2','twins','심야의 퍼레이드'],['thief4','rogue','사탕 도둑'],['warrior4','warrior','호박 기사']]){
+  const skin=SKINS[id],loadout={equipped_character_skins:{[character]:id}};
+  assert.equal(skinFor(character,loadout),skin);assert.equal(skin.name,name);assert.equal(skin.isDefault,false);
+  const parts=skin.partners||[skin];
+  for(const url of [skin.preview,...parts.flatMap(p=>[p.preview,p.attack,p.damage])]){
+   const file=await readFile(new URL(url));assert.equal(file.subarray(1,4).toString(),'PNG');assert.equal(file[25],6,'RGBA PNG');
+  }
+  for(const parity of [0,1]){const markup=skinIllustration(character,loadout,false,{parity});for(const part of parts)for(const url of [part.preview,part.attack,part.damage])assert.ok(markup.includes(url));}
+  for(const plan of [entryAssetPlan({state:{players:{p:{characterId:character,loadout}},stageOrder:[]}}),pveEntryAssetPlan({},[{member_type:'human',character_id:character,loadout}])]){
+   for(const part of parts){assert.ok(plan.required.includes(part.preview));assert.ok(plan.poses.includes(part.attack));assert.ok(plan.poses.includes(part.damage));}
+  }
+ }
+});
+
 test('Sun and Moon Circus uses all seven supplied twins images for equipped art and both loading modes',async()=>{
  const skin=SKINS.twins1,loadout={equipped_character_skins:{twins:'twins1'}};
  assert.equal(skin.name,'태양과 달의 서커스');assert.equal(skin.isDefault,false);
@@ -30,7 +45,7 @@ test('Sun and Moon Circus uses all seven supplied twins images for equipped art 
 });
 
 test('all available skins map to supplied full/cropped PNG pairs, with thirteen free defaults',async()=>{
- assert.equal(Object.keys(SKINS).length,44);assert.equal(Object.keys(DEFAULT_SKINS).length,13);
+ assert.equal(Object.keys(SKINS).length,50);assert.equal(Object.keys(DEFAULT_SKINS).length,13);
  for(const skin of Object.values(SKINS))for(const field of ['preview','portrait']){
   if(['gunner0','fighter0','twins0'].includes(skin.id)){assert.match(skin[field],new RegExp(skin.id));continue;}
   const file=await readFile(new URL(skin[field]));assert.equal(file.subarray(1,4).toString(),'PNG',skin.id+field);
@@ -142,14 +157,14 @@ test('gacha and inventory UI show full art, block duplicate clicks and equip the
   assert.equal(groups.find(group=>group.dataset.characterGroup==='seer').hidden,true);
   assert.equal(filters.find(filter=>filter.dataset.character==='mage')['aria-pressed'],'true');
   assert.equal(requests.filter(r=>r.action==='get_shop').length,shopCalls);
-  await ui.openAccountPage('gacha');assert.match(markup,/mage1\.png/);assert.doesNotMatch(markup,/_crop\.png/);assert.match(markup,/3\.23%/);
+  await ui.openAccountPage('gacha');assert.match(markup,/mage1\.png/);assert.doesNotMatch(markup,/_crop\.png/);assert.match(markup,/2\.70%/);
   assert.match(markup,/태양과 달의 서커스/);assert.match(markup,/twins1\.png/);
   assert.ok(markup.indexOf('data-character-group="gambler"')<markup.indexOf('data-character-group="mage"'));
   assert.match(markup,/data-character-group="seer"[^>]*><h3/);
   const drawing=click('draw');await click('draw');assert.equal(requests.filter(r=>r.action==='draw_skin').length,1);
   releaseDraw();await drawing;assert.equal(markup,'REVEALED mage1');
   await click('equip',{item:'mage1'});assert.match(markup,/mage0\.png/);assert.match(markup,/mage1\.png/);assert.doesNotMatch(markup,/mage2\.png/);assert.match(markup,/data-item="mage1" disabled/);
-  await ui.openAccountPage('gacha');assert.match(markup,/3\.33%/);assert.match(markup,/보유 중 · 뽑기 제외/);
+  await ui.openAccountPage('gacha');assert.match(markup,/2\.78%/);assert.match(markup,/보유 중 · 뽑기 제외/);
   account.stats.account_gold=0;await ui.openAccountPage('gacha');assert.match(markup,/data-meta="draw" disabled/);
  }finally{for(const k of keys){if(originals[k])Object.defineProperty(globalThis,k,originals[k]);else delete globalThis[k];}}
 });
@@ -164,3 +179,4 @@ test('new default skins keep future filenames, pose paths and optional loading b
  }
  assert.equal(pendingSkinImage(SKINS.mage0.preview),false);
 });
+

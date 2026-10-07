@@ -17,7 +17,7 @@ test('cosmetics preserve card numbers, used/locked states and never render secre
  const used=cardComponent(card,{loadout,own:true});assert.match(used,/cosmetic-front-jade/);assert.match(used,/>7<\/b>/);assert.match(used,/spent/);assert.match(used,/disabled/);
  const back=cardComponent(null,{loadout,blocked:true,revealId:'player-1'});assert.match(back,/cosmetic-back-stars/);assert.match(back,/reveal-value">\?</);assert.ok(!back.includes('7'));
  assert.equal(cosmeticClass({equipped_card_front:'bad" onclick="x'},'front'),'cosmetic-front-default');
- assert.equal(Object.keys(COSMETIC_ASSETS).length,56);
+ assert.equal(Object.keys(COSMETIC_ASSETS).length,62);
 });
 test('all ten cosmetic preview files exist and panel UI has no separate hand section',async()=>{
  for(const item of Object.values(COSMETIC_ASSETS))if(item.preview?.endsWith('.svg'))assert.match(await readFile(new URL(item.preview),'utf8'),/<svg/);
@@ -54,3 +54,4 @@ test('Auth registration upgrades the same user immediately in one update; failur
   await api.loginAccount('a@example.test','password8');await api.logoutAccount();assert.equal(reloads,2);
  }finally{globalThis.fetch=originalFetch;if(originalLocation===undefined)delete globalThis.location;else globalThis.location=originalLocation;delete globalThis.__accountTestClient;}
 });
+

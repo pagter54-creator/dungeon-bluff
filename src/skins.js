@@ -1,19 +1,19 @@
 import {assetLoader} from './asset-loader.js';
 // File stems intentionally match the supplied artwork (travler, warrior).
 const groups=[
-['twins','twins','쌍둥이',['쌍둥이 기본 스킨','태양과 달의 서커스']],
-['vampire','vampire','흡혈귀',['흡혈귀 기본 스킨','가면 무도회']],
-['demonsword','demonsword','귀검사',['귀검사 기본 스킨','천명 집행자']],
+['twins','twins','쌍둥이',['쌍둥이 기본 스킨','태양과 달의 서커스','심야의 퍼레이드']],
+['vampire','vampire','흡혈귀',['흡혈귀 기본 스킨','가면 무도회','할로윈 침실']],
+['demonsword','demonsword','귀검사',['귀검사 기본 스킨','천명 집행자','잊혀진 검귀']],
 ['gunner','gunner','총잡이',['총잡이 기본 스킨','황야의 무법자','유령선의 포격수']],
 ['fighter','fighter','무투가',['무투가 기본 스킨','뇌격투희','염화난무']],
 ['gambler','gambler','도박사',['도박사 기본 스킨','부르주아','가면 무도회','선상 도박꾼']],
 ['berserker','berserker','광전사',['광전사 기본 스킨','혹한의 야만족','지옥불 광전사','흑철 기사']],
 ['imp','imp','임프',['임프 기본 스킨','트릭 오어 트릿!','지옥불 요정','깜짝 선물']],
 ['mage','mage','마법사',['마법사 기본 스킨','눈꽃 마녀','신의 사도','꼭두각시 마녀']],
-['prophet','seer','예언가',['예언가 기본 스킨','붉은 달의 예언가','점성술사','거울 세계']],
-['thief','rogue','도적',['도적 기본 스킨','신출귀몰의 괴도','무도회의 불청객','사냥개']],
+['prophet','seer','예언가',['예언가 기본 스킨','붉은 달의 예언가','점성술사','거울 세계','영매']],
+['thief','rogue','도적',['도적 기본 스킨','신출귀몰의 괴도','무도회의 불청객','사냥개','사탕 도둑']],
 ['travler','adventurer','모험가',['모험가 기본 스킨','설산의 탐험가','신참 항해사','유적 발굴단']],
-['warrior','warrior','기사',['기사','성지 수호자','북부의 병사','용기사']],
+['warrior','warrior','기사',['기사','성지 수호자','북부의 병사','용기사','호박 기사']],
 ];
 export const pendingSkinImage = url => /\/(?:gunner0|fighter0)(?:_crop|_A|_D)?\.png(?:\?.*)?$/.test(url) || /\/vampire1_(?:A|D)\.png(?:\?.*)?$/.test(url) || /\/twins0(?:_crop|_[AD]|_[BG](?:_[AD])?)?\.png(?:\?.*)?$/.test(url);
 // Missing future artwork must never prevent joining a room. Retry real filenames
