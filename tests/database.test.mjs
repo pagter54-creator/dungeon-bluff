@@ -120,6 +120,7 @@ before(async () => {
   await db.exec(await readFile(new URL('../supabase/migrations/20261006062205_twins_sun_moon_circus_skin.sql', import.meta.url), 'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/20261007155312_halloween_six_skins.sql', import.meta.url), 'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/20261007192058_railway_seven_skins.sql', import.meta.url), 'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/20261012090209_ts_thirteen_skins.sql', import.meta.url), 'utf8'));
   await db.exec("update public.pve_runtime_flags set enabled=true,updated_at=now() where flag_key='COOP_PVE_ENABLED'");
   globalThis.__testCreateClient = () => admin;
   globalThis.Deno = { env: { get: key => key==='COOP_PVE_ENABLED'?'true':'test-value' }, serve: fn => { handler = fn; } };
@@ -557,9 +558,9 @@ test('registration during a run cannot retroactively become a reward recipient, 
  await game.close();
 });
 
-test('skin gacha catalog matches 57 skins and forbids unowned equips, guest draws and direct purchase',async()=>{
+test('skin gacha catalog matches 70 skins and forbids unowned equips, guest draws and direct purchase',async()=>{
  const {items}=await accountApi(accountOwner,'get_shop');const skins=items.filter(i=>i.item_type==='character_skin');
- assert.equal(skins.length,57);assert.equal(skins.filter(i=>i.is_default).length,13);assert.equal(skins.filter(i=>i.gacha_enabled).length,44);
+ assert.equal(skins.length,70);assert.equal(skins.filter(i=>i.is_default).length,13);assert.equal(skins.filter(i=>i.gacha_enabled).length,57);
  const circus=skins.find(i=>i.id==='twins1');assert.equal(circus.asset_key,'twins1');assert.equal(circus.price,10);assert.equal(circus.gacha_enabled,true);
  const {SKINS}=await import('../src/skins.js');for(const skin of skins){assert.equal(skin.display_name,SKINS[skin.id].name);assert.equal(skin.target_character_id,SKINS[skin.id].character);}
  const guest=await newAccount('SkinGuest',false);
@@ -576,17 +577,17 @@ test('skin gacha catalog matches 57 skins and forbids unowned equips, guest draw
  }finally{await db.exec('reset role');}
 });
 
-test('gacha is atomic, charges once for concurrent retries and never duplicates across all forty-four draws',async()=>{
+test('gacha is atomic, charges once for concurrent retries and never duplicates across all fifty-seven draws',async()=>{
  const u=await newAccount('SkinCollector');const empty=await accountApi(u,'draw_skin',{request_id:crypto.randomUUID()});assert.equal(empty.status,400);
  assert.deepEqual((await accountApi(u,'get_account')).inventory,[]);
- await db.query('update public.player_stats set account_gold=450 where user_id=$1',[users[u]]);
+ await db.query('update public.player_stats set account_gold=580 where user_id=$1',[users[u]]);
  const request_id=crypto.randomUUID();const results=await Promise.all([accountApi(u,'draw_skin',{request_id,price:0,item_id:'mage1'}),accountApi(u,'draw_skin',{request_id})]);
  results.forEach(r=>assert.equal(r.status,200,r.error));assert.equal(results[0].item.id,results[1].item.id);
- assert.equal((await accountApi(u,'get_account')).stats.account_gold,440);
+ assert.equal((await accountApi(u,'get_account')).stats.account_gold,570);
  const all=[results[0].item.id];
- for(let i=0;i<43;i++){const r=await accountApi(u,'draw_skin',{request_id:crypto.randomUUID()});assert.equal(r.status,200,r.error);all.push(r.item.id);}
- assert.equal(new Set(all).size,44);assert.ok(all.every(id=>!id.endsWith('0')));assert.ok(all.includes('twins1'));for(const id of ["gunner3", "fighter3", "berserker4", "imp4", "mage4", "gambler4", "travler4"])assert.ok(all.includes(id));for(const id of ['prophet4','demonsword2','vampire2','twins2','thief4','warrior4'])assert.ok(all.includes(id));
- let state=await accountApi(u,'get_account');assert.equal(state.stats.account_gold,10);assert.equal(state.inventory.length,44);
+ for(let i=0;i<56;i++){const r=await accountApi(u,'draw_skin',{request_id:crypto.randomUUID()});assert.equal(r.status,200,r.error);all.push(r.item.id);}
+ assert.equal(new Set(all).size,57);assert.ok(all.every(id=>!id.endsWith('0')));assert.ok(all.includes('twins1'));for(const [id,character] of [["twins3", "twins"], ["vampire3", "vampire"], ["demonsword3", "demonsword"], ["gunner4", "gunner"], ["fighter4", "fighter"], ["gambler5", "gambler"], ["berserker5", "berserker"], ["imp5", "imp"], ["mage5", "mage"], ["prophet5", "seer"], ["thief5", "rogue"], ["travler5", "adventurer"], ["warrior5", "warrior"]]){assert.ok(all.includes(id));assert.equal((await accountApi(u,'equip_item',{item_id:id})).status,200);assert.equal((await accountApi(u,'get_account')).loadout.equipped_character_skins[character],id);}for(const id of ["gunner3", "fighter3", "berserker4", "imp4", "mage4", "gambler4", "travler4"])assert.ok(all.includes(id));for(const id of ['prophet4','demonsword2','vampire2','twins2','thief4','warrior4'])assert.ok(all.includes(id));
+ let state=await accountApi(u,'get_account');assert.equal(state.stats.account_gold,10);assert.equal(state.inventory.length,57);
  assert.equal((await accountApi(u,'draw_skin',{request_id:crypto.randomUUID()})).status,400);
  const retry=await accountApi(u,'draw_skin',{request_id});assert.equal(retry.item.id,results[0].item.id);assert.equal(retry.remaining,0);
  assert.equal((await accountApi(u,'get_account')).stats.account_gold,10);
