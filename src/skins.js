@@ -1,19 +1,19 @@
 import {assetLoader} from './asset-loader.js';
 // File stems intentionally match the supplied artwork (travler, warrior).
 const groups=[
-['twins','twins','쌍둥이',['쌍둥이 기본 스킨','태양과 달의 서커스','심야의 퍼레이드']],
-['vampire','vampire','흡혈귀',['흡혈귀 기본 스킨','가면 무도회','할로윈 침실']],
-['demonsword','demonsword','귀검사',['귀검사 기본 스킨','천명 집행자','잊혀진 검귀']],
-['gunner','gunner','총잡이',['총잡이 기본 스킨','황야의 무법자','유령선의 포격수','청동 압력의 명사수']],
-['fighter','fighter','무투가',['무투가 기본 스킨','뇌격투희','염화난무','검댕투성이 정비사']],
-['gambler','gambler','도박사',['도박사 기본 스킨','부르주아','가면 무도회','선상 도박꾼','행운의 검표원']],
-['berserker','berserker','광전사',['광전사 기본 스킨','혹한의 야만족','지옥불 광전사','흑철 기사','강철 차축의 작업반장']],
-['imp','imp','임프',['임프 기본 스킨','트릭 오어 트릿!','지옥불 요정','깜짝 선물','말썽쟁이 신호차장']],
-['mage','mage','마법사',['마법사 기본 스킨','눈꽃 마녀','신의 사도','꼭두각시 마녀','별빛 객실 안내원']],
-['prophet','seer','예언가',['예언가 기본 스킨','붉은 달의 예언가','점성술사','거울 세계','영매']],
-['thief','rogue','도적',['도적 기본 스킨','신출귀몰의 괴도','무도회의 불청객','사냥개','사탕 도둑']],
-['travler','adventurer','모험가',['모험가 기본 스킨','설산의 탐험가','신참 항해사','유적 발굴단','새벽을 달리는 기관사']],
-['warrior','warrior','기사',['기사','성지 수호자','북부의 병사','용기사','호박 기사']],
+['twins','twins','쌍둥이',['쌍둥이 기본 스킨','태양과 달의 서커스','심야의 퍼레이드','TS 쌍둥이']],
+['vampire','vampire','흡혈귀',['흡혈귀 기본 스킨','가면 무도회','할로윈 침실','TS 흡혈귀']],
+['demonsword','demonsword','귀검사',['귀검사 기본 스킨','천명 집행자','잊혀진 검귀','TS 귀검사']],
+['gunner','gunner','총잡이',['총잡이 기본 스킨','황야의 무법자','유령선의 포격수','청동 압력의 명사수','TS 총잡이']],
+['fighter','fighter','무투가',['무투가 기본 스킨','뇌격투희','염화난무','검댕투성이 정비사','TS 무투가']],
+['gambler','gambler','도박사',['도박사 기본 스킨','부르주아','가면 무도회','선상 도박꾼','행운의 검표원','TS 도박사']],
+['berserker','berserker','광전사',['광전사 기본 스킨','혹한의 야만족','지옥불 광전사','흑철 기사','강철 차축의 작업반장','TS 광전사']],
+['imp','imp','임프',['임프 기본 스킨','트릭 오어 트릿!','지옥불 요정','깜짝 선물','말썽쟁이 신호차장','TS 임프']],
+['mage','mage','마법사',['마법사 기본 스킨','눈꽃 마녀','신의 사도','꼭두각시 마녀','별빛 객실 안내원','TS 마법사']],
+['prophet','seer','예언가',['예언가 기본 스킨','붉은 달의 예언가','점성술사','거울 세계','영매','TS 예언가']],
+['thief','rogue','도적',['도적 기본 스킨','신출귀몰의 괴도','무도회의 불청객','사냥개','사탕 도둑','TS 도적']],
+['travler','adventurer','모험가',['모험가 기본 스킨','설산의 탐험가','신참 항해사','유적 발굴단','새벽을 달리는 기관사','TS 모험가']],
+['warrior','warrior','기사',['기사','성지 수호자','북부의 병사','용기사','호박 기사','TS 기사']],
 ];
 export const pendingSkinImage = url => /\/(?:gunner0|fighter0)(?:_crop|_A|_D)?\.png(?:\?.*)?$/.test(url) || /\/vampire1_(?:A|D)\.png(?:\?.*)?$/.test(url) || /\/twins0(?:_crop|_[AD]|_[BG](?:_[AD])?)?\.png(?:\?.*)?$/.test(url);
 // Missing future artwork must never prevent joining a room. Retry real filenames
@@ -32,7 +32,7 @@ export const SKINS=Object.fromEntries(groups.flatMap(([stem,character,label,name
   portrait:new URL(`../skin image/${id}${index===0&&character!=='twins'?'_crop':''}.png`,import.meta.url).href,
   attack:new URL(`../skin image/${id}_A.png`,import.meta.url).href,
   damage:new URL(`../skin image/${id}_D.png`,import.meta.url).href,
-  ...(character==='twins'?{partners:['B','G'].map(side=>({side,preview:new URL(`../skin image/${id}_${side}.png`,import.meta.url).href,attack:new URL(`../skin image/${id}_${side}_A.png`,import.meta.url).href,damage:new URL(`../skin image/${id}_${side}_D.png`,import.meta.url).href}))}:{})}];
+  ...(character==='twins'?{partners:['B','G'].map(side=>({side,partnerLabel:id==='twins3'?(side==='B'?'소녀':'소년'):(side==='B'?'소년':'소녀'),preview:new URL(`../skin image/${id}_${side}.png`,import.meta.url).href,attack:new URL(`../skin image/${id}_${side}_A.png`,import.meta.url).href,damage:new URL(`../skin image/${id}_${side}_D.png`,import.meta.url).href}))}:{})}];
 })));
 export const DEFAULT_SKINS=Object.fromEntries(Object.values(SKINS).filter(s=>s.isDefault).map(s=>[s.character,s.id]));
 // Tune individual silhouettes here as new poses arrive. Values are applied to
@@ -69,8 +69,9 @@ export function skinIllustration(character,loadout,knockedOut=false,runtime={}){
 }
 function illustrationFrame(skin,knockedOut,extra=''){
  const {scale=1,offsetX=0,offsetY=0,positionX=50,positionY=100}=SKIN_ART_LAYOUT[skin.id]||{};
- return `<div class="player-illustration${extra?' '+extra:''}" data-standing-src="${skin.preview}" data-knocked-out="${Boolean(knockedOut)}" data-attack-src="${skin.attack}" data-damage-src="${skin.damage}" data-attack-lift="${SKIN_POSE_LIFT[skin.id+'_A']||0}" data-damage-lift="${SKIN_POSE_LIFT[skin.id+'_D']||0}" style="--art-scale:${scale};--art-offset-x:${offsetX}px;--art-offset-y:${offsetY}px;--art-position-x:${positionX}%;--art-position-y:${positionY}%;--base-lift:${SKIN_POSE_LIFT[skin.id]||0}px"><img class="player-illustration-base" src="${knockedOut&&assetLoader.ready.has(skin.damage)?skin.damage:skin.preview}" alt="${skin.name}${extra.includes('twin-B')?' · 소년':extra.includes('twin-G')?' · 소녀':''}" draggable="false" decoding="async"></div>`;
+ return `<div class="player-illustration${extra?' '+extra:''}" data-standing-src="${skin.preview}" data-knocked-out="${Boolean(knockedOut)}" data-attack-src="${skin.attack}" data-damage-src="${skin.damage}" data-attack-lift="${SKIN_POSE_LIFT[skin.id+'_A']||0}" data-damage-lift="${SKIN_POSE_LIFT[skin.id+'_D']||0}" style="--art-scale:${scale};--art-offset-x:${offsetX}px;--art-offset-y:${offsetY}px;--art-position-x:${positionX}%;--art-position-y:${positionY}%;--base-lift:${SKIN_POSE_LIFT[skin.id]||0}px"><img class="player-illustration-base" src="${knockedOut&&assetLoader.ready.has(skin.damage)?skin.damage:skin.preview}" alt="${skin.name}${skin.partnerLabel?' · '+skin.partnerLabel:extra.includes('twin-B')?' · 소년':extra.includes('twin-G')?' · 소녀':''}" draggable="false" decoding="async"></div>`;
 }
 export function skinStandingAssets(skin){return [skin.preview,...(skin.partners||[]).map(p=>p.preview)];}
 export function skinPoseAssets(skin){return [skin.attack,skin.damage,...(skin.partners||[]).flatMap(p=>[p.attack,p.damage])];}
+
 
