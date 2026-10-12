@@ -1,0 +1,61 @@
+name: PVE Balance Lab
+on:
+  workflow_dispatch:
+    inputs:
+      experiment:
+        default: black_choir_ai_limit
+        type: string
+      samples_per_arm:
+        default: '200'
+        type: string
+      cohort:
+        default: expedition_like
+        type: choice
+        options: [expedition_like, controlled, both]
+      seed_set:
+        default: rebalance006
+        type: string
+      upload_artifacts:
+        default: true
+        type: boolean
+  # One initial branch run; dispatch remains available for follow-up experiments.
+  push:
+    branches: [feat/pve-rebalance-007-black-choir-ai-audit]
+    paths: [.github/workflows/pve-balance-lab.yml]
+permissions:
+  contents: read
+concurrency:
+  group: pve-balance-lab
+  cancel-in-progress: false
+jobs:
+  black-choir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Full regression suite
+        run: npm test
+      - run: npm run check
+      - name: Diagnostic experiment
+        env:
+          EXPERIMENT: ${{ inputs.experiment || 'black_choir_ai_limit' }}
+          SAMPLES: ${{ inputs.samples_per_arm || '200' }}
+          COHORT: ${{ inputs.cohort || 'expedition_like' }}
+          SEED_SET: ${{ inputs.seed_set || 'rebalance006' }}
+          PVE_SOURCE_HEAD: ${{ github.sha }}
+        run: |
+          test "$EXPERIMENT" = black_choir_ai_limit
+          node scripts/black-choir-lab.mjs --samples="$SAMPLES" --cohort="$COHORT" --seed_set="$SEED_SET" --output="$RUNNER_TEMP/choir-lab"
+      - name: Preserve diagnostic artifacts, including invalid data
+        if: always() && (github.event_name != 'workflow_dispatch' || inputs.upload_artifacts)
+        uses: actions/upload-artifact@v4
+        with:
+          name: black-choir-ai-limit-${{ github.run_id }}
+          path: ${{ runner.temp }}/choir-lab/black_choir_ai_limit_*
+          if-no-files-found: warn
+          retention-days: 30
